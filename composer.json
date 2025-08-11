@@ -1,23 +1,22 @@
 {
-    "name": ":vendor_slug/:package_slug",
-    "description": ":package_description",
+    "name": "glugox/magic",
+    "description": "Tools for creating magic!",
     "keywords": [
-        ":vendor_name",
+        "glugox",
         "laravel",
-        ":package_slug"
+        "magic"
     ],
-    "homepage": "https://github.com/:vendor_slug/:package_slug",
+    "homepage": "https://github.com/glugox/magic",
     "license": "MIT",
     "authors": [
         {
-            "name": ":author_name",
-            "email": "author@domain.com",
+            "name": "Ervin Bećiragić",
+            "email": "ervinbeciragic@gmail.com",
             "role": "Developer"
         }
     ],
     "require": {
         "php": "^8.3",
-        "spatie/laravel-package-tools": "^1.16",
         "illuminate/contracts": "^10.0||^11.0||^12.0"
     },
     "require-dev": {
@@ -35,13 +34,13 @@
     },
     "autoload": {
         "psr-4": {
-            "VendorName\\Skeleton\\": "src/",
-            "VendorName\\Skeleton\\Database\\Factories\\": "database/factories/"
+            "Glugox\\Magic\\": "src/",
+            "Glugox\\Magic\\Database\\Factories\\": "database/factories/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "VendorName\\Skeleton\\Tests\\": "tests/",
+            "Glugox\\Magic\\Tests\\": "tests/",
             "Workbench\\App\\": "workbench/app/"
         }
     },
@@ -63,10 +62,10 @@
     "extra": {
         "laravel": {
             "providers": [
-                "VendorName\\Skeleton\\SkeletonServiceProvider"
+                "Glugox\\Magic\\MagicServiceProvider"
             ],
             "aliases": {
-                "Skeleton": "VendorName\\Skeleton\\Facades\\Skeleton"
+                "Magic": "Glugox\\Magic\\Facades\\Magic"
             }
         }
     },
