@@ -27,14 +27,15 @@ class BuildModelsCommand extends Command
         try {
             $config = ConfigLoader::load($configPath);
         } catch (\Exception $e) {
-            $this->error("Failed to load config: " . $e->getMessage());
+            $this->error('Failed to load config: '.$e->getMessage());
+
             return 1;
         }
 
         $migrationBuilderService = new ModelBuilderService($config);
         $migrationBuilderService->build();
 
-        $this->info("Build models complete!");
+        $this->info('Build models complete!');
 
         return 0;
     }

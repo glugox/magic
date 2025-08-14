@@ -2,18 +2,18 @@
 
 namespace Glugox\Magic;
 
+use Glugox\Magic\Commands\BuildAppCommand;
 use Glugox\Magic\Commands\BuildControllersCommand;
 use Glugox\Magic\Commands\BuildMigrationsCommand;
 use Glugox\Magic\Commands\BuildModelsCommand;
 use Glugox\Magic\Commands\BuildSeedersCommand;
 use Glugox\Magic\Commands\BuildTsCommand;
+use Glugox\Magic\Commands\BuildVuePagesCommand;
 use Glugox\Magic\Commands\FreshCommand;
 use Glugox\Magic\Commands\ResetAppCommand;
 use Glugox\Magic\Commands\ResetLaravelCommand;
 use Glugox\Magic\Commands\VueSidebarUpdaterCommand;
 use Illuminate\Support\ServiceProvider;
-use Glugox\Magic\Commands\BuildAppCommand;
-use Glugox\Magic\Commands\BuildVuePagesCommand;
 
 class MagicServiceProvider extends ServiceProvider
 {

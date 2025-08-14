@@ -2,7 +2,6 @@
 
 namespace Glugox\Magic\Commands;
 
-use Glugox\Magic\Support\ConfigLoader;
 use Illuminate\Console\Command;
 
 class FreshCommand extends Command
@@ -26,8 +25,7 @@ class FreshCommand extends Command
             '--starter' => $this->option('starter'),
         ]);
 
-
-        $this->info("Fresh complete!");
+        $this->info('Fresh complete!');
 
         return 0;
     }

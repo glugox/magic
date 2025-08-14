@@ -4,41 +4,36 @@ namespace Glugox\Magic\Support;
 
 class CodeGenerationHelper
 {
-
     /**
      * Append a code block to a method in a file.
-     *
-     * @param string $filePath
-     * @param string $methodName
-     * @param array $lines
-     * @param string|null $tag
-     * @return bool
      */
     public static function appendCodeBlock(string $filePath, string $methodName, array $lines, ?string $tag): bool
     {
         $code = file_get_contents($filePath);
         $tag = $tag ?? 'default';
-        $tag = 'Uno:' . $tag;
+        $tag = 'Uno:'.$tag;
 
-        if ($code === false) return false;
+        if ($code === false) {
+            return false;
+        }
 
         $startMarker = "//region {$tag}";
-        $endMarker = "//endregion";
+        $endMarker = '//endregion';
 
         $indent = '        '; // 8 spaces
         $nl = "\n";
-        $newLines = "";
+        $newLines = '';
 
         $k = 0;
         foreach ($lines as $line) {
             $lineTrimmed = trim($line);
             $newLines .= "$lineTrimmed";
             if ($k++ < count($lines) - 1) {
-                $newLines .= $nl . $indent;
+                $newLines .= $nl.$indent;
             }
         }
 
-        $pattern = '/(public\s+function\s+' . preg_quote($methodName, '/') . '\s*\([^)]*\)\s*(?::\s*[^{\s]+)?\s*\{)(.*?)(^\s*\})/ms';
+        $pattern = '/(public\s+function\s+'.preg_quote($methodName, '/').'\s*\([^)]*\)\s*(?::\s*[^{\s]+)?\s*\{)(.*?)(^\s*\})/ms';
 
         if (preg_match($pattern, $code, $matches, PREG_OFFSET_CAPTURE)) {
             $methodBody = $matches[2][0];
@@ -46,7 +41,7 @@ class CodeGenerationHelper
             $methodEnd = $matches[3][1];
 
             // Search for existing region block inside method body
-            $regionPattern = '/(\/\/region ' . preg_quote($tag, '/') . ')(.*?)(\/\/endregion)/s';
+            $regionPattern = '/(\/\/region '.preg_quote($tag, '/').')(.*?)(\/\/endregion)/s';
 
             if (preg_match($regionPattern, $methodBody, $regionMatches, PREG_OFFSET_CAPTURE)) {
                 // region exists: insert before //endregion
@@ -62,11 +57,11 @@ class CodeGenerationHelper
                 $newContentBeforeLines = '';
                 if ($regionHasContent) {
                     // If there is existing content, add a new line before inserting new lines
-                    $newContentBeforeLines = $nl . $indent;
+                    $newContentBeforeLines = $nl.$indent;
                 }
 
                 // Insert new lines before //endregion
-                $updatedRegionContent = substr($regionContent, 0, $endregionPos) . $newContentBeforeLines  . $newLines . $nl . $indent . $endMarker;
+                $updatedRegionContent = substr($regionContent, 0, $endregionPos).$newContentBeforeLines.$newLines.$nl.$indent.$endMarker;
 
                 // Replace old region with updated one inside methodBody
                 $methodBody = substr_replace($methodBody, $updatedRegionContent, $regionStartPos, strlen($regionContent));
@@ -77,7 +72,7 @@ class CodeGenerationHelper
             }
 
             // Rebuild whole code
-            $newCode = substr($code, 0, $methodStart) . $methodBody . substr($code, $methodEnd);
+            $newCode = substr($code, 0, $methodStart).$methodBody.substr($code, $methodEnd);
 
             return file_put_contents($filePath, $newCode) !== false;
         }
@@ -87,10 +82,6 @@ class CodeGenerationHelper
 
     /**
      * Remove a region block from a method in a file.
-     *
-     * @param string $filePath
-     * @param string|null $tag
-     * @return bool
      */
     public static function removeRegion(string $filePath, ?string $tag = null): bool
     {
@@ -98,7 +89,7 @@ class CodeGenerationHelper
         if ($tag) {
             // Escape tag and match exactly that region
             $escapedTag = preg_quote($tag, '/');
-            $pattern = '/^[ \t]*\/\/region\s+' . $escapedTag . '.*?^[ \t]*\/\/endregion\s*$/ms';
+            $pattern = '/^[ \t]*\/\/region\s+'.$escapedTag.'.*?^[ \t]*\/\/endregion\s*$/ms';
         } else {
             // Match *any* tag
             $pattern = '/^[ \t]*\/\/region\s+.*?^[ \t]*\/\/endregion\s*$/ms';
@@ -109,5 +100,4 @@ class CodeGenerationHelper
 
         return file_put_contents($filePath, $content) !== false;
     }
-
 }

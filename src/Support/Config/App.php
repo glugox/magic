@@ -6,7 +6,7 @@ class App
 {
     public function __construct(
         private string $name
-    ){}
+    ) {}
 
     public static function fromConfig(array $data): self
     {

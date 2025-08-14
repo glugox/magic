@@ -27,14 +27,15 @@ class VueSidebarUpdaterCommand extends Command
         try {
             $config = ConfigLoader::load($configPath);
         } catch (\Exception $e) {
-            $this->error("Failed to load config: " . $e->getMessage());
+            $this->error('Failed to load config: '.$e->getMessage());
+
             return 1;
         }
 
         $service = new VueSidebarUpdaterService($config);
         $service->update();
 
-        $this->info("Update Vue sidebar complete!");
+        $this->info('Update Vue sidebar complete!');
 
         return 0;
     }

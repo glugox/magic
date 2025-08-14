@@ -28,14 +28,15 @@ class BuildSeedersCommand extends Command
         try {
             $config = ConfigLoader::load($configPath);
         } catch (\Exception $e) {
-            $this->error("Failed to load config: " . $e->getMessage());
+            $this->error('Failed to load config: '.$e->getMessage());
+
             return 1;
         }
 
         $service = new SeederBuilderService($this->files, $config);
         $service->build();
 
-        $this->info("Build complete!");
+        $this->info('Build complete!');
 
         return 0;
     }

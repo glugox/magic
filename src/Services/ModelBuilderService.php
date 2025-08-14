@@ -17,10 +17,9 @@ class ModelBuilderService
 
     public function __construct(
         protected Config $config
-    )
-    {
+    ) {
         $this->modelPath = app_path('Models');
-        if (!File::exists($this->modelPath)) {
+        if (! File::exists($this->modelPath)) {
             File::makeDirectory($this->modelPath, 0755, true);
         }
     }
@@ -50,27 +49,24 @@ class ModelBuilderService
         $traits = [];
         $fields = $entity->getFields();
 
-
         // Fillable fields
         // Start from the defined fields
         $fillable = $entity->getFillableFieldsNames();
         $hidden = $entity->getHiddenFieldsNames();
         $casts = $entity->getCasts();
 
-
-
         if (isset($modelPresets[$entityName])) {
             $preset = $modelPresets[$entityName];
 
             $extends = $preset['extends'] ?? $extends;
-            $traits  = $preset['traits'] ?? $traits;
+            $traits = $preset['traits'] ?? $traits;
 
             // If preset has default fields, use them.
             // Add them to the entity fields if they are not already present.
             $defaultFields = $preset['default_fields'] ?? [];
             foreach ($defaultFields as $defaultField) {
                 $name = $defaultField['name'];
-                if (!$entity->hasField($name)) {
+                if (! $entity->hasField($name)) {
                     $entity->addField(Field::fromConfig($defaultField));
                 }
             }
@@ -78,7 +74,7 @@ class ModelBuilderService
             // Merge preset fillable
             $presetFillable = $preset['fillable'] ?? [];
             foreach ($presetFillable as $item) {
-                if (!in_array($item, $fillable)) {
+                if (! in_array($item, $fillable)) {
                     $fillable[] = $item;
                 }
             }
@@ -86,7 +82,7 @@ class ModelBuilderService
             // Merge preset hidden
             $presetHidden = $preset['hidden'] ?? [];
             foreach ($presetHidden as $item) {
-                if (!in_array($item, $hidden)) {
+                if (! in_array($item, $hidden)) {
                     $hidden[] = $item;
                 }
             }
@@ -94,7 +90,7 @@ class ModelBuilderService
             // Merge preset casts
             $presetCasts = $preset['casts'] ?? [];
             foreach ($presetCasts as $key => $value) {
-                if (!isset($casts[$key])) {
+                if (! isset($casts[$key])) {
                     $casts[$key] = $value;
                 }
             }
@@ -103,7 +99,7 @@ class ModelBuilderService
         // Determine if we should have factory for this model.
         // TODO: Get from configuration if we should use HasFactory trait. In other words,
         // if we want to generate factories for this model.
-        if (!in_array(HasFactory::class, $traits)) {
+        if (! in_array(HasFactory::class, $traits)) {
             $traits[] = HasFactory::class;
         }
 
@@ -122,23 +118,23 @@ class ModelBuilderService
         // Relations
         $relationsCode = '';
         foreach ($entity->getRelations() as $relation) {
-            $relationsCode .= $this->buildRelationMethod($relation) . "\n\n";
+            $relationsCode .= $this->buildRelationMethod($relation)."\n\n";
         }
 
         // Format arrays
-        $fillableStr = implode(",\n        ", array_map(fn($f) => "'$f'", $fillable));
-        $hiddenStr   = implode(",\n        ", array_map(fn($h) => "'$h'", $hidden));
-        $castsStr    = implode(",\n        ", array_map(fn($k, $v) => "'$k' => '$v'", array_keys($casts), $casts));
+        $fillableStr = implode(",\n        ", array_map(fn ($f) => "'$f'", $fillable));
+        $hiddenStr = implode(",\n        ", array_map(fn ($h) => "'$h'", $hidden));
+        $castsStr = implode(",\n        ", array_map(fn ($k, $v) => "'$k' => '$v'", array_keys($casts), $casts));
 
         // Traits
         $traitsUseStr = '';
-        if (!empty($traits)) {
-            $traitsUseStr = 'use ' . implode(', ', array_map(fn($t) => class_basename($t), $traits)) . ';';
+        if (! empty($traits)) {
+            $traitsUseStr = 'use '.implode(', ', array_map(fn ($t) => class_basename($t), $traits)).';';
         }
 
         // Namespace use statements
         $useStatements = [];
-        foreach   ($traits as $trait) {
+        foreach ($traits as $trait) {
             $useStatements[] = "use {$trait};";
         }
         $useStatementsStr = implode("\n", array_unique($useStatements));
@@ -188,7 +184,7 @@ $relationsCode
 }
 PHP;
 
-        $filePath = $this->modelPath . '/' . $className . '.php';
+        $filePath = $this->modelPath.'/'.$className.'.php';
         File::put($filePath, $template);
 
         echo "Model created: $filePath\n";
@@ -199,10 +195,9 @@ PHP;
         return class_basename($fqcn);
     }
 
-
     protected function mapFieldTypeToCast(string $type): ?string
     {
-        return match(strtolower($type)) {
+        return match (strtolower($type)) {
             'date' => 'date',
             'datetime', 'timestamp' => 'datetime',
             'bool', 'boolean' => 'boolean',
@@ -222,14 +217,14 @@ PHP;
         $foreignKey = $relation->getForeignKey() ? "'{$relation->getForeignKey()}'" : '';
         $localKey = $relation->getLocalKey() ? ", '{$relation->getLocalKey()}'" : '';
 
-        $relationCall = match($relation->getType()) {
+        $relationCall = match ($relation->getType()) {
             RelationType::HAS_ONE => "return \$this->hasOne($relatedClass::class, $foreignKey$localKey);",
             RelationType::HAS_MANY => "return \$this->hasMany($relatedClass::class, $foreignKey$localKey);",
             RelationType::BELONGS_TO => "return \$this->belongsTo($relatedClass::class, $foreignKey$localKey);",
             RelationType::BELONGS_TO_MANY => "return \$this->belongsToMany($relatedClass::class);",
             RelationType::MORPH_ONE => "return \$this->morphOne($relatedClass::class, '{$relation->getMorphName()}');",
             RelationType::MORPH_MANY => "return \$this->morphMany($relatedClass::class, '{$relation->getMorphName()}');",
-            RelationType::MORPH_TO => "return \$this->morphTo();",
+            RelationType::MORPH_TO => 'return $this->morphTo();',
             default => "// Unknown relation type '{$relation->getType()->name}' for {$relation->getEntityName()}",
         };
 

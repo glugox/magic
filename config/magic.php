@@ -20,8 +20,8 @@ return [
                 ['name' => 'remember_token', 'type' => 'string', 'nullable' => true],
             ],
             'fillable' => ['name', 'email', 'password'],
-            'hidden'   => ['password', 'remember_token'],
-            'casts'    => [
+            'hidden' => ['password', 'remember_token'],
+            'casts' => [
                 'email_verified_at' => 'datetime',
                 'password' => 'hashed',
             ],
@@ -35,27 +35,27 @@ return [
      */
     'faker_mappings' => [
         // Match by field name (partial match)
-        'email'    => 'unique()->safeEmail()',
-        'name'     => 'name()',
+        'email' => 'unique()->safeEmail()',
+        'name' => 'name()',
         'password' => 'password()',
-        'date'     => 'date()',
+        'date' => 'date()',
 
-        'phone'          => 'phoneNumber()',
-        'street'         => 'streetAddress()',
-        'city'           => 'city()',
-        'country'        => 'country()',
-        'postal_code'    => 'postcode()',
-        'title'          => 'sentence(3)',
-        'description'    => 'paragraph()',
-        'content'        => 'text()',
+        'phone' => 'phoneNumber()',
+        'street' => 'streetAddress()',
+        'city' => 'city()',
+        'country' => 'country()',
+        'postal_code' => 'postcode()',
+        'title' => 'sentence(3)',
+        'description' => 'paragraph()',
+        'content' => 'text()',
 
         // Match by exact type
-        'type:string'               => 'word()',
-        'type:integer'              => 'randomNumber()',
-        'type:unsignedBigInteger'   => 'randomNumber()',
-        'type:bigInteger'           => 'randomNumber()',
-        'type:float'                => 'randomFloat(2, 1, 100)',
-        'type:double'               => 'randomFloat(2, 1, 100)',
-        'type:decimal'              => 'randomFloat(2, 1, 100)',
+        'type:string' => 'word()',
+        'type:integer' => 'randomNumber()',
+        'type:unsignedBigInteger' => 'randomNumber()',
+        'type:bigInteger' => 'randomNumber()',
+        'type:float' => 'randomFloat(2, 1, 100)',
+        'type:double' => 'randomFloat(2, 1, 100)',
+        'type:decimal' => 'randomFloat(2, 1, 100)',
     ],
 ];

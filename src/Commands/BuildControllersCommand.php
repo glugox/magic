@@ -26,16 +26,15 @@ class BuildControllersCommand extends Command
         try {
             $config = ConfigLoader::load($configPath);
         } catch (\Exception $e) {
-            $this->error("Failed to load config: " . $e->getMessage());
+            $this->error('Failed to load config: '.$e->getMessage());
+
             return 1;
         }
 
         $migrationBuilderService = new ControllerBuilderService($config);
         $migrationBuilderService->build();
 
-
-
-        $this->info("Build controllers complete!");
+        $this->info('Build controllers complete!');
 
         return 0;
     }

@@ -7,14 +7,13 @@ use Illuminate\Support\Facades\File;
 
 class VueSidebarUpdaterService
 {
-
     protected string $appLogoPath;
+
     protected string $sidebarPath;
 
     public function __construct(
         protected Config $config
-    )
-    {
+    ) {
         // Path to your Vue file
         $this->sidebarPath = base_path('resources/js/components/AppSidebar.vue');
         $this->appLogoPath = base_path('resources/js/components/AppLogo.vue');
@@ -36,7 +35,7 @@ class VueSidebarUpdaterService
      */
     public function updateSidebar()
     {
-        if (!File::exists($this->sidebarPath)) {
+        if (! File::exists($this->sidebarPath)) {
             throw new \RuntimeException("Sidebar file not found at {$this->sidebarPath}");
         }
 
@@ -73,7 +72,6 @@ class VueSidebarUpdaterService
         File::put($this->appLogoPath, $updatedContent);
     }
 
-
     protected function generateNavItemsCode(): string
     {
         $lines = [];
@@ -90,4 +88,3 @@ const mainNavItems: NavItem[] = [
 JS;
     }
 }
-

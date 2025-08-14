@@ -17,6 +17,7 @@ class TsHelper
         foreach ($entity->getFields() as $field) {
             $columns .= static::writeTableColumn($field);
         }
+
         return $columns;
     }
 
@@ -44,6 +45,7 @@ class TsHelper
                 enableSorting: {$strEnableSorting},
                 enableHiding: true,
             }";
+
         return $fieldStr;
     }
 
@@ -61,6 +63,7 @@ class TsHelper
             }, () => ['{$fieldTitle}', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })])
         }
 HEADER;
+
         return $header;
 
     }
@@ -75,15 +78,16 @@ HEADER;
         $fieldMeta = "{
             name: '{$field->getName()}',
             type: '{$tsType}',
-            nullable: " . ($field->isNullable() ? 'true' : 'false') . ",
-            length: " . ($field->getLength() !== null ? $field->getLength() : 'null') . ",
-            precision: " . ($field->getPrecision() !== null ? $field->getPrecision() : 'null') . ",
-            scale: " . ($field->getScale() !== null ? $field->getScale() : 'null') . ",
-            default: " . ($field->getDefault() !== null ? "'{$field->getDefault()}'" : 'null') . ",
-            comment: " . ($field->getComment() !== null ? "'{$field->getComment()}'" : 'null') . ",
-            sortable: " . ($field->isSortable() ? 'true' : 'false') . ",
-            searchable: " . ($field->isSearchable() ? 'true' : 'false') . "
-        }";
+            nullable: ".($field->isNullable() ? 'true' : 'false').',
+            length: '.($field->getLength() !== null ? $field->getLength() : 'null').',
+            precision: '.($field->getPrecision() !== null ? $field->getPrecision() : 'null').',
+            scale: '.($field->getScale() !== null ? $field->getScale() : 'null').',
+            default: '.($field->getDefault() !== null ? "'{$field->getDefault()}'" : 'null').',
+            comment: '.($field->getComment() !== null ? "'{$field->getComment()}'" : 'null').',
+            sortable: '.($field->isSortable() ? 'true' : 'false').',
+            searchable: '.($field->isSearchable() ? 'true' : 'false').'
+        }';
+
         return $fieldMeta;
     }
 }

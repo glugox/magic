@@ -3,7 +3,6 @@
 namespace Glugox\Magic\Commands;
 
 use Glugox\Magic\Services\TsBuilderService;
-use Glugox\Magic\Services\VuePageBuilderService;
 use Glugox\Magic\Support\ConfigLoader;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
@@ -29,14 +28,15 @@ class BuildTsCommand extends Command
         try {
             $config = ConfigLoader::load($configPath);
         } catch (\Exception $e) {
-            $this->error("Failed to load config: " . $e->getMessage());
+            $this->error('Failed to load config: '.$e->getMessage());
+
             return 1;
         }
 
         $service = new TsBuilderService($this->files, $config);
         $service->build();
 
-        $this->info("Build TS complete!");
+        $this->info('Build TS complete!');
 
         return 0;
     }

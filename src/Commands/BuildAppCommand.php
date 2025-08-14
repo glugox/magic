@@ -2,10 +2,10 @@
 
 namespace Glugox\Magic\Commands;
 
+use Exception;
 use Glugox\Magic\Support\ConfigLoader;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
-use Exception;
 use Symfony\Component\Console\Command\Command as CommandAlias;
 
 class BuildAppCommand extends Command
@@ -20,13 +20,13 @@ class BuildAppCommand extends Command
      * The build steps to run in order.
      */
     private const array BUILD_STEPS = [
-        'magic:build-migrations'   => 'Building migrations',
-        'magic:build-models'       => 'Building models',
-        'magic:build-seeders'      => 'Building seeders',
-        'magic:build-controllers'  => 'Building controllers',
-        'magic:build-ts'           => 'Building TypeScript support files',
-        'magic:build-vue-pages'    => 'Building Vue pages',
-        'magic:update-vue-pages'   => 'Updating Vue sidebar',
+        'magic:build-migrations' => 'Building migrations',
+        'magic:build-models' => 'Building models',
+        'magic:build-seeders' => 'Building seeders',
+        'magic:build-controllers' => 'Building controllers',
+        'magic:build-ts' => 'Building TypeScript support files',
+        'magic:build-vue-pages' => 'Building Vue pages',
+        'magic:update-vue-pages' => 'Updating Vue sidebar',
     ];
 
     public function handle(): int
@@ -41,7 +41,7 @@ class BuildAppCommand extends Command
 
         // Load config
         $config = $this->loadConfig($configPath);
-        if (!$config) {
+        if (! $config) {
             return CommandAlias::FAILURE;
         }
 
@@ -51,17 +51,18 @@ class BuildAppCommand extends Command
         }
 
         // Run migrations and optional seeding
-        $this->info("Running migrations...");
+        $this->info('Running migrations...');
         $this->call('migrate', ['--force' => true]);
 
         if ($config->dev->isSeedEnabled()) {
-            $this->info("Seeding the database...");
+            $this->info('Seeding the database...');
             $this->call('db:seed', ['--force' => true]);
         } else {
-            $this->warn("Database seeding is disabled in the config.");
+            $this->warn('Database seeding is disabled in the config.');
         }
 
-        $this->info("✅ Build complete!");
+        $this->info('✅ Build complete!');
+
         return CommandAlias::SUCCESS;
     }
 
@@ -70,18 +71,20 @@ class BuildAppCommand extends Command
      */
     private function setupStarterTemplate(?string $starter): ?string
     {
-        if (!$starter) {
-            $this->info("No starter template specified, using default.");
+        if (! $starter) {
+            $this->info('No starter template specified, using default.');
+
             return null;
         }
 
         $this->info("Using starter template: {$starter}");
 
-        $source = __DIR__ . "/../../stubs/samples/{$starter}.json";
+        $source = __DIR__."/../../stubs/samples/{$starter}.json";
         $destination = base_path("{$starter}.json");
 
-        if (!File::exists($source)) {
+        if (! File::exists($source)) {
             $this->error("Starter template file not found: {$source}");
+
             return null;
         }
 
@@ -99,10 +102,12 @@ class BuildAppCommand extends Command
         $this->info("Loading config from: {$configPath}");
         try {
             $config = ConfigLoader::load($configPath);
-            $this->info("Config loaded successfully!");
+            $this->info('Config loaded successfully!');
+
             return $config;
         } catch (Exception $e) {
-            $this->error("Failed to load config: " . $e->getMessage());
+            $this->error('Failed to load config: '.$e->getMessage());
+
             return null;
         }
     }
@@ -112,8 +117,8 @@ class BuildAppCommand extends Command
      */
     private function runStep(string $command, string $message, string $configPath): void
     {
-        $this->info($message . "...");
+        $this->info($message.'...');
         $this->call($command, ['--config' => $configPath]);
-        $this->info(str_replace('Building', '', $message) . " built successfully!");
+        $this->info(str_replace('Building', '', $message).' built successfully!');
     }
 }

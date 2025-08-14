@@ -7,7 +7,6 @@ use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Frontend\TsHelper;
 use Glugox\Magic\Support\TypeHelper;
 use Illuminate\Filesystem\Filesystem;
-use Illuminate\Support\Str;
 
 class TsBuilderService
 {
@@ -16,8 +15,7 @@ class TsBuilderService
     public function __construct(
         protected Filesystem $files,
         protected Config $config
-    )
-    {
+    ) {
         $this->jsPath = resource_path('js');
     }
 
@@ -46,7 +44,7 @@ class TsBuilderService
     private function generateTypesFile()
     {
         $path = resource_path('js/types/app.ts');
-        if (!$this->files->isDirectory(dirname($path))) {
+        if (! $this->files->isDirectory(dirname($path))) {
             $this->files->makeDirectory(dirname($path), 0755, true);
         }
 
@@ -60,10 +58,10 @@ class TsBuilderService
             $entityName = $entity->getName();
             $content .= "export interface {$entityName} {\n";
             foreach ($entity->getFields() as $field) {
-                $tsType = TypeHelper::migrationTypeToTsType( $field->getType());
+                $tsType = TypeHelper::migrationTypeToTsType($field->getType());
                 $fields .= "    {$field->getName()}: {$tsType};\n";
             }
-            $content .= $fields . "}\n\n";
+            $content .= $fields."}\n\n";
             $fields = ''; // Reset fields for next entity
         }
 
@@ -76,14 +74,14 @@ class TsBuilderService
     private function generateLibFiles()
     {
         $libPath = resource_path('js/lib');
-        if (!$this->files->isDirectory($libPath)) {
+        if (! $this->files->isDirectory($libPath)) {
             $this->files->makeDirectory($libPath, 0755, true);
         }
 
         // Example: Generate a utility file
-        $utilityFile = $libPath . '/app.ts';
+        $utilityFile = $libPath.'/app.ts';
 
-        $utilityContent = <<<EOT
+        $utilityContent = <<<'EOT'
 export function formatDate(date: Date): string {
     return date.toISOString().split('T')[0];
 }
@@ -104,17 +102,15 @@ EOT;
 
     /**
      * Generate a helper file for a specific entity.
-     *
-     * @param Entity $entity
      */
     private function generateEntityHelperFile(Entity $entity)
     {
         $entityName = $entity->getName();
         $folderName = $entity->getFolderName();
-        $fileName = $folderName . '_helper.ts';
+        $fileName = $folderName.'_helper.ts';
         $path = "{$this->jsPath}/helpers/{$fileName}";
 
-        if (!$this->files->isDirectory(dirname($path))) {
+        if (! $this->files->isDirectory(dirname($path))) {
             $this->files->makeDirectory(dirname($path), 0755, true);
         }
 
@@ -152,7 +148,6 @@ EOT;
      * the metadata for the fields, not the column definitions
      * that are strict formatted for the table.
      *
-     * @param Entity $entity
      * @return string
      */
     private function getColumnsMeta(Entity $entity)
@@ -162,16 +157,14 @@ EOT;
             $fieldMeta = TsHelper::writeFieldMeta($field);
             $fields[] = $fieldMeta;
         }
+
         return implode(",\n            ", $fields);
     }
 
     /**
      * Generate the column definition for the entity.
-     *
-     * @param Entity $entity
-     * @return string
      */
-    private function getColumnDef(Entity $entity) : string
+    private function getColumnDef(Entity $entity): string
     {
         $columns = [];
 
@@ -197,6 +190,7 @@ EOT;
             $column = TsHelper::writeTableColumn($field);
             $columns[] = $column;
         }
+
         return implode(",\n        ", $columns);
     }
 
@@ -237,10 +231,10 @@ EOT;
         ];
 
         foreach ($vueFiles as $file) {
-            $sourcePath = __DIR__ . "/../../resources/js/{$file}";
+            $sourcePath = __DIR__."/../../resources/js/{$file}";
             $destinationPath = resource_path("js/{$file}");
 
-            if (!$this->files->isDirectory(dirname($destinationPath))) {
+            if (! $this->files->isDirectory(dirname($destinationPath))) {
                 $this->files->makeDirectory(dirname($destinationPath), 0755, true);
             }
 
@@ -248,4 +242,3 @@ EOT;
         }
     }
 }
-
