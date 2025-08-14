@@ -1,0 +1,84 @@
+{
+    "app": {
+        "name": "TaskMaster"
+    },
+    "entities": [
+        {
+            "name": "User",
+            "fields": [
+                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "name", "type": "string", "nullable": false, "sortable": true, "searchable": true },
+                { "name": "email", "type": "string", "nullable": false, "unique": true, "sortable": true, "searchable": true },
+                { "name": "password", "type": "string", "nullable": false, "hidden": true }
+            ],
+            "relations": [
+                { "type": "hasMany", "entity": "Project", "foreign_key": "owner_id" },
+                { "type": "hasMany", "entity": "Task", "foreign_key": "assigned_to" },
+                { "type": "belongsToMany", "entity": "Team", "pivot": "team_user", "foreign_key": "user_id", "related_key": "team_id" }
+            ]
+        },
+        {
+            "name": "Team",
+            "fields": [
+                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "name", "type": "string", "nullable": false, "unique": true, "searchable": true },
+                { "name": "description", "type": "text", "nullable": true }
+            ],
+            "relations": [
+                { "type": "belongsToMany", "entity": "User", "pivot": "team_user", "foreign_key": "team_id", "related_key": "user_id" },
+                { "type": "hasMany", "entity": "Project", "foreign_key": "team_id" }
+            ]
+        },
+        {
+            "name": "Project",
+            "fields": [
+                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "team_id", "type": "unsignedBigInteger", "nullable": true },
+                { "name": "owner_id", "type": "unsignedBigInteger", "nullable": false },
+                { "name": "title", "type": "string", "nullable": false, "searchable": true },
+                { "name": "description", "type": "text", "nullable": true },
+                { "name": "status", "type": "enum", "values": ["planning", "in_progress", "completed", "archived"], "nullable": false, "sortable": true }
+            ],
+            "relations": [
+                { "type": "belongsTo", "entity": "User", "foreign_key": "owner_id" },
+                { "type": "belongsTo", "entity": "Team", "foreign_key": "team_id" },
+                { "type": "hasMany", "entity": "Task", "foreign_key": "project_id" }
+            ]
+        },
+        {
+            "name": "Task",
+            "fields": [
+                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "project_id", "type": "unsignedBigInteger", "nullable": false },
+                { "name": "assigned_to", "type": "unsignedBigInteger", "nullable": true },
+                { "name": "title", "type": "string", "nullable": false, "searchable": true },
+                { "name": "description", "type": "text", "nullable": true },
+                { "name": "priority", "type": "enum", "values": ["low", "medium", "high"], "nullable": false, "sortable": true },
+                { "name": "status", "type": "enum", "values": ["todo", "in_progress", "done"], "nullable": false, "sortable": true },
+                { "name": "due_date", "type": "date", "nullable": true, "sortable": true }
+            ],
+            "relations": [
+                { "type": "belongsTo", "entity": "Project", "foreign_key": "project_id" },
+                { "type": "belongsTo", "entity": "User", "foreign_key": "assigned_to" },
+                { "type": "hasMany", "entity": "Comment", "foreign_key": "task_id" }
+            ]
+        },
+        {
+            "name": "Comment",
+            "fields": [
+                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "task_id", "type": "unsignedBigInteger", "nullable": false },
+                { "name": "user_id", "type": "unsignedBigInteger", "nullable": false },
+                { "name": "content", "type": "text", "nullable": false }
+            ],
+            "relations": [
+                { "type": "belongsTo", "entity": "Task", "foreign_key": "task_id" },
+                { "type": "belongsTo", "entity": "User", "foreign_key": "user_id" }
+            ]
+        }
+    ],
+    "dev": {
+        "seedEnabled": true,
+        "seedCount": 50
+    }
+}

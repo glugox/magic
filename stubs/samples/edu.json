@@ -1,0 +1,87 @@
+{
+    "app": {
+        "name": "EduTrack"
+    },
+    "entities": [
+        {
+            "name": "Student",
+            "fields": [
+                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "first_name", "type": "string", "nullable": false, "sortable": true, "searchable": true },
+                { "name": "last_name", "type": "string", "nullable": false, "sortable": true, "searchable": true },
+                { "name": "email", "type": "string", "nullable": false, "unique": true, "sortable": true, "searchable": true },
+                { "name": "enrollment_date", "type": "date", "nullable": false, "sortable": true }
+            ],
+            "relations": [
+                { "type": "hasMany", "entity": "Enrollment", "foreign_key": "student_id" },
+                { "type": "belongsToMany", "entity": "Course", "pivot": "enrollments", "foreign_key": "student_id", "related_key": "course_id" }
+            ]
+        },
+        {
+            "name": "Course",
+            "fields": [
+                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "title", "type": "string", "nullable": false, "sortable": true, "searchable": true },
+                { "name": "description", "type": "text", "nullable": true, "searchable": true },
+                { "name": "credits", "type": "integer", "nullable": false, "sortable": true }
+            ],
+            "relations": [
+                { "type": "belongsToMany", "entity": "Student", "pivot": "enrollments", "foreign_key": "course_id", "related_key": "student_id" },
+                { "type": "hasMany", "entity": "Assignment", "foreign_key": "course_id" }
+            ]
+        },
+        {
+            "name": "Enrollment",
+            "fields": [
+                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "student_id", "type": "unsignedBigInteger", "nullable": false },
+                { "name": "course_id", "type": "unsignedBigInteger", "nullable": false },
+                { "name": "enrolled_on", "type": "date", "nullable": false },
+                { "name": "status", "type": "enum", "nullable": false, "values": ["active", "completed", "dropped"], "default": "active" }
+            ],
+            "relations": [
+                { "type": "belongsTo", "entity": "Student", "foreign_key": "student_id" },
+                { "type": "belongsTo", "entity": "Course", "foreign_key": "course_id" }
+            ]
+        },
+        {
+            "name": "Assignment",
+            "fields": [
+                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "course_id", "type": "unsignedBigInteger", "nullable": false },
+                { "name": "title", "type": "string", "nullable": false, "searchable": true },
+                { "name": "description", "type": "text", "nullable": true, "searchable": true },
+                { "name": "due_date", "type": "date", "nullable": false }
+            ],
+            "relations": [
+                { "type": "belongsTo", "entity": "Course", "foreign_key": "course_id" },
+                { "type": "hasMany", "entity": "Submission", "foreign_key": "assignment_id" }
+            ]
+        },
+        {
+            "name": "Submission",
+            "fields": [
+                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "assignment_id", "type": "unsignedBigInteger", "nullable": false },
+                { "name": "student_id", "type": "unsignedBigInteger", "nullable": false },
+                { "name": "submitted_on", "type": "dateTime", "nullable": false },
+                {
+                    "name": "grade",
+                    "type": "decimal",
+                    "nullable": true,
+                    "sortable": true,
+                    "precision": 5,
+                    "scale": 2
+                }
+            ],
+            "relations": [
+                { "type": "belongsTo", "entity": "Assignment", "foreign_key": "assignment_id" },
+                { "type": "belongsTo", "entity": "Student", "foreign_key": "student_id" }
+            ]
+        }
+    ],
+    "dev": {
+        "seedEnabled": true,
+        "seedCount": 50
+    }
+}

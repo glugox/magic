@@ -1,0 +1,41 @@
+<?php
+
+namespace Glugox\Magic\Commands;
+
+use Glugox\Magic\Services\ModelBuilderService;
+use Glugox\Magic\Support\ConfigLoader;
+use Illuminate\Console\Command;
+
+class BuildModelsCommand extends Command
+{
+    protected $signature = 'magic:build-models {--config= : Path to JSON config file}';
+
+    protected $description = 'Build Laravel app models from JSON config';
+
+    /**
+     * Constructor for the command.
+     */
+    public function __construct()
+    {
+        parent::__construct();
+    }
+
+    public function handle()
+    {
+        $configPath = $this->option('config') ?? config('magic.config_path');
+
+        try {
+            $config = ConfigLoader::load($configPath);
+        } catch (\Exception $e) {
+            $this->error("Failed to load config: " . $e->getMessage());
+            return 1;
+        }
+
+        $migrationBuilderService = new ModelBuilderService($config);
+        $migrationBuilderService->build();
+
+        $this->info("Build models complete!");
+
+        return 0;
+    }
+}
