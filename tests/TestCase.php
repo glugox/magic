@@ -2,9 +2,9 @@
 
 namespace Glugox\Magic\Tests;
 
+use Glugox\Magic\MagicServiceProvider;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Orchestra\Testbench\TestCase as Orchestra;
-use Glugox\Magic\MagicServiceProvider;
 
 class TestCase extends Orchestra
 {
