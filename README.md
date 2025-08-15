@@ -3,8 +3,9 @@
 [![PHP Version](https://img.shields.io/badge/php-%5E8.1-blue)](https://php.net)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-Magic — A lightweight PHP/Laravel toolkit for effortless configuration management, database seeding, and realistic fake data generation with Faker. Perfect for testing, prototyping, and automation.
-Build full-featured apps from configuration files.
+Lightweight PHP/Laravel toolkit designed to auto-generate all essential application files from entity configurations stored in JSON files. It streamlines tasks like database seeding and realistic data generation using Faker, making it perfect for testing, prototyping, and automation.
+
+With Magic, you can build full-featured Laravel applications directly from configuration files, eliminating repetitive boilerplate and speeding up development.
 
 🔧 How it works
 ![magic-demo.svg](magic-demo.svg)
