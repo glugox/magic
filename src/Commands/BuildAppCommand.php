@@ -6,7 +6,6 @@ use Glugox\Magic\Support\ConfigLoader;
 use Glugox\Magic\Support\ConsoleBlock;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
-use Exception;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\Console\Command\Command as CommandAlias;
 
@@ -22,13 +21,13 @@ class BuildAppCommand extends Command
      * The build steps to run in order.
      */
     private const array BUILD_STEPS = [
-        'magic:build-migrations'   => 'Building migrations',
-        'magic:build-models'       => 'Building models',
-        'magic:build-seeders'      => 'Building seeders',
-        'magic:build-controllers'  => 'Building controllers',
-        'magic:build-ts'           => 'Building TypeScript support files',
-        'magic:build-vue-pages'    => 'Building Vue pages',
-        'magic:update-vue-pages'   => 'Updating Vue sidebar',
+        'magic:build-migrations' => 'Building migrations',
+        'magic:build-models' => 'Building models',
+        'magic:build-seeders' => 'Building seeders',
+        'magic:build-controllers' => 'Building controllers',
+        'magic:build-ts' => 'Building TypeScript support files',
+        'magic:build-vue-pages' => 'Building Vue pages',
+        'magic:update-vue-pages' => 'Updating Vue sidebar',
     ];
 
     /**
@@ -66,7 +65,7 @@ class BuildAppCommand extends Command
 
         // Load config
         $config = ConfigLoader::load($configPath);
-        if (!$config->isValid()) {
+        if (! $config->isValid()) {
             return CommandAlias::FAILURE;
         }
 
@@ -76,17 +75,18 @@ class BuildAppCommand extends Command
         }
 
         // Run migrations and optional seeding
-        Log::channel('magic')->info("Running migrations...");
+        Log::channel('magic')->info('Running migrations...');
         $this->call('migrate', ['--force' => true]);
 
         if ($config->dev->isSeedEnabled()) {
-            Log::channel('magic')->info("Seeding the database...");
+            Log::channel('magic')->info('Seeding the database...');
             $this->call('db:seed', ['--force' => true]);
         } else {
-            $this->warn("Database seeding is disabled in the config.");
+            $this->warn('Database seeding is disabled in the config.');
         }
 
-        Log::channel('magic')->info("✅ Build complete!");
+        Log::channel('magic')->info('✅ Build complete!');
+
         return CommandAlias::SUCCESS;
     }
 
@@ -95,18 +95,20 @@ class BuildAppCommand extends Command
      */
     private function setupStarterTemplate(?string $starter): ?string
     {
-        if (!$starter) {
-            Log::channel('magic')->info("No starter template specified, using default.");
+        if (! $starter) {
+            Log::channel('magic')->info('No starter template specified, using default.');
+
             return null;
         }
 
         Log::channel('magic')->info("Using starter template: {$starter}");
 
-        $source = __DIR__ . "/../../stubs/samples/{$starter}.json";
+        $source = __DIR__."/../../stubs/samples/{$starter}.json";
         $destination = base_path("{$starter}.json");
 
-        if (!File::exists($source)) {
+        if (! File::exists($source)) {
             $this->error("Starter template file not found: {$source}");
+
             return null;
         }
 
@@ -121,8 +123,8 @@ class BuildAppCommand extends Command
      */
     private function runStep(string $command, string $message, string $configPath): void
     {
-        $this->block->info($message . "...");
+        $this->block->info($message.'...');
         $this->call($command, ['--config' => $configPath]);
-        //$this->block->info("✅ {$message} completed!");
+        // $this->block->info("✅ {$message} completed!");
     }
 }

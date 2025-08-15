@@ -10,11 +10,9 @@ use Illuminate\Support\Facades\Log;
 
 class MigrationBuilderService
 {
-
     public function __construct(
         protected Config $config
-    )
-    {}
+    ) {}
 
     public function build()
     {
@@ -31,18 +29,17 @@ class MigrationBuilderService
 
         // 1. Check if migration already exists
         $migrationFiles = File::glob(database_path("migrations/*_create_{$tableName}_table.php"));
-        if (!$isUpdate && !empty($migrationFiles)) {
+        if (! $isUpdate && ! empty($migrationFiles)) {
             Log::channel('magic')->info("Skipping migration for '$tableName' — already exists.");
+
             return;
         }
 
         // 2. Decide create vs update
         $updateOrCreateKey = $isUpdate ? 'update' : 'create';
-        $fileName  = date('Y_m_d_His') . '_' . $updateOrCreateKey . '_' . $tableName . '_table.php';
+        $fileName = date('Y_m_d_His').'_'.$updateOrCreateKey.'_'.$tableName.'_table.php';
 
-
-        $migrationPath = database_path('migrations/' . $fileName);
-
+        $migrationPath = database_path('migrations/'.$fileName);
 
         if ($isUpdate) {
             $columnsCode = $this->buildColumnsCodeForUpdate($entity);
@@ -97,11 +94,10 @@ PHP;
         File::put($migrationPath, $template);
 
         $migrationPathRelative = str_replace(database_path('migrations/'), '', $migrationPath);
-        Log::channel('magic')->info(($isUpdate ? "Update" : "Create") . " migration created: $migrationPathRelative");
+        Log::channel('magic')->info(($isUpdate ? 'Update' : 'Create')." migration created: $migrationPathRelative");
     }
 
     /**
-     * @param Entity $entity
      * @return void Generate pivot tables for many-to-many relations.
      */
     protected function generatePivotTables(Entity $entity)
@@ -110,18 +106,17 @@ PHP;
         foreach ($entity->getRelations() as $relation) {
             if ($relation->isManyToMany()) {
                 $pivotTableName = $relation->getPivotName();
-                $fileName = date('Y_m_d_His') . "_create_{$pivotTableName}_table.php";
+                $fileName = date('Y_m_d_His')."_create_{$pivotTableName}_table.php";
 
-                $migrationPath = database_path('migrations/' . $fileName);
+                $migrationPath = database_path('migrations/'.$fileName);
 
                 // 1. Check if migration already exists
                 $migrationFiles = File::glob(database_path("migrations/*_create_{$pivotTableName}_table.php"));
-                if (!empty($migrationFiles)) {
+                if (! empty($migrationFiles)) {
                     Log::channel('magic')->info("Skipping migration for '$pivotTableName' — already exists.");
+
                     return;
                 }
-
-
 
                 $columnsCode = <<<PHP
             \$table->foreignId('{$entity->getForeignKey()}')->constrained('{$entity->getTableName()}')->cascadeOnDelete();
@@ -159,13 +154,8 @@ PHP;
         }
     }
 
-
-
     /**
      * Build the migration columns code for an update operation.
-     *
-     * @param Entity $entity
-     * @return string
      */
     protected function buildColumnsCodeForUpdate(Entity $entity): string
     {
@@ -191,8 +181,7 @@ PHP;
     /**
      * Build the migration columns code from the entity fields.
      *
-     * @param Field[] $columns
-     * @return string
+     * @param  Field[]  $columns
      */
     protected function buildColumnsCode(Entity $entity): string
     {
@@ -203,8 +192,9 @@ PHP;
         }
         // Add timestamps if allowed
         if ($entity->hasTimestamps()) {
-            $codeLines[] = "            \$table->timestamps();";
+            $codeLines[] = '            $table->timestamps();';
         }
+
         return implode("\n", $codeLines);
     }
 
@@ -242,19 +232,19 @@ PHP;
 
             // Add type-specific arguments
             // Enum type
-            if ($col->isEnum() && !empty($col->getValues())) {
-                $values = '[' . implode(', ', array_map(
-                        fn($v) => json_encode($v, JSON_UNESCAPED_UNICODE),
-                        array_values($col->getValues())
-                    )) . ']';
+            if ($col->isEnum() && ! empty($col->getValues())) {
+                $values = '['.implode(', ', array_map(
+                    fn ($v) => json_encode($v, JSON_UNESCAPED_UNICODE),
+                    array_values($col->getValues())
+                )).']';
                 $args[] = $values;
             }
 
-            $line .= "\$table->{$type}(" . implode(', ', $args) . ")";
+            $line .= "\$table->{$type}(".implode(', ', $args).')';
 
             // Nullable
             if (method_exists($col, 'isNullable') && $col->isNullable()) {
-                $line .= "->nullable()";
+                $line .= '->nullable()';
             }
             // Default value
             if (method_exists($col, 'getDefault') && $col->getDefault() !== null) {
@@ -273,19 +263,15 @@ PHP;
 
     /**
      * Generate the pivot table name based on entity and target.
-     *
-     * @param string $entityName
-     * @param string $targetEntityName
-     * @return string
      */
     protected function getPivotTableName(string $entityName, string $targetEntityName): string
     {
         $tables = [
             \Str::snake(\Str::plural($entityName)),
-            \Str::snake(\Str::plural($targetEntityName))
+            \Str::snake(\Str::plural($targetEntityName)),
         ];
         sort($tables); // alphabetical order
+
         return implode('_', $tables);
     }
-
 }

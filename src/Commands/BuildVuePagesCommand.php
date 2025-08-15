@@ -29,16 +29,15 @@ class BuildVuePagesCommand extends Command
         try {
             $config = ConfigLoader::load($configPath);
         } catch (\Exception $e) {
-            $this->error("Failed to load config: " . $e->getMessage());
+            $this->error('Failed to load config: '.$e->getMessage());
+
             return 1;
         }
 
         $service = new VuePageBuilderService($this->files, $config);
         $service->build();
 
-
-
-        Log::channel('magic')->info("Build Vue pages complete!");
+        Log::channel('magic')->info('Build Vue pages complete!');
 
         return 0;
     }

@@ -70,7 +70,7 @@ class MagicServiceProvider extends ServiceProvider
      */
     private function registerMagicLogChannel(): void
     {
-        if (!config('magic.logging.enabled', true)) {
+        if (! config('magic.logging.enabled', true)) {
             return;
         }
 
@@ -79,7 +79,7 @@ class MagicServiceProvider extends ServiceProvider
             'driver' => 'stack',
             'channels' => ['magic_file', 'magic_console'],
             'ignore_exceptions' => false,
-            //'tap' => [LogIndentTap::class],
+            // 'tap' => [LogIndentTap::class],
         ];
 
         // Merge into logging.channels

@@ -12,7 +12,8 @@ class LogIndentTap
     public function __invoke(Logger $logger)
     {
         $logger->pushProcessor(function ($record) {
-            $record['message'] = '  ' . $record['message']; // prepend 2 spaces
+            $record['message'] = '  '.$record['message']; // prepend 2 spaces
+
             return $record;
         });
     }

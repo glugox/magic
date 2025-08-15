@@ -14,16 +14,17 @@ class ResetLaravelCommand extends Command
 
     public function handle()
     {
-        Log::channel('magic')->info("Starting Laravel reset...");
+        Log::channel('magic')->info('Starting Laravel reset...');
 
-        $source = __DIR__ . '/../../stubs/laravel';
+        $source = __DIR__.'/../../stubs/laravel';
         $destination = base_path();
 
-        $files = new Filesystem();
+        $files = new Filesystem;
 
         $this->copyDirectoryRecursively($source, $destination, $files);
 
-        Log::channel('magic')->info("Reset Laravel complete!");
+        Log::channel('magic')->info('Reset Laravel complete!');
+
         return 0;
     }
 
@@ -33,7 +34,7 @@ class ResetLaravelCommand extends Command
 
         foreach ($items as $item) {
             $relativePath = $item->getRelativePathname();
-            $targetPath = $destination . '/' . $relativePath;
+            $targetPath = $destination.'/'.$relativePath;
 
             // Ensure directory exists
             $files->ensureDirectoryExists(dirname($targetPath));

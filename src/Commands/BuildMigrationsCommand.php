@@ -27,13 +27,14 @@ class BuildMigrationsCommand extends Command
         try {
             $config = ConfigLoader::load($configPath);
         } catch (\Exception $e) {
-            $this->error("Failed to load config: " . $e->getMessage());
+            $this->error('Failed to load config: '.$e->getMessage());
+
             return 1;
         }
         $migrationBuilderService = new MigrationBuilderService($config);
         $migrationBuilderService->build();
 
-        Log::channel('magic')->info("Build migrations complete!");
+        Log::channel('magic')->info('Build migrations complete!');
 
         return 0;
     }
