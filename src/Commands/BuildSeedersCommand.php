@@ -30,6 +30,7 @@ class BuildSeedersCommand extends MagicBaseCommand
 
     /**
      * @throws \JsonException
+     * @throws \ReflectionException
      */
     public function handle()
     {

@@ -22,6 +22,7 @@ abstract class MagicBaseCommand extends Command
 
     /**
      * @throws \JsonException
+     * @throws \ReflectionException
      */
     protected function getConfig(): ?Config
     {
@@ -43,6 +44,7 @@ abstract class MagicBaseCommand extends Command
         $this->config = $config;
 
         Log::channel('magic')->info("Configuration loaded from: {$configPath}");
+        $this->config->printDebugInfo();
 
         return $this->config;
     }

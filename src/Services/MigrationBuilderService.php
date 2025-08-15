@@ -16,7 +16,7 @@ class MigrationBuilderService
 
     public function build()
     {
-        foreach ($this->config->getEntities() as $entity) {
+        foreach ($this->config->entities as $entity) {
             $this->generateMigrationForEntity($entity);
             $this->generatePivotTables($entity);
         }

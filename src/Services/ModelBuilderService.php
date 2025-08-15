@@ -30,7 +30,7 @@ class ModelBuilderService
      */
     public function build(): void
     {
-        foreach ($this->config->getEntities() as $entity) {
+        foreach ($this->config->entities as $entity) {
             $this->generateModel($entity);
         }
     }

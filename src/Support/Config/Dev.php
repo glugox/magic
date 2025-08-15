@@ -5,8 +5,16 @@ namespace Glugox\Magic\Support\Config;
 class Dev
 {
     public function __construct(
-        private ?bool $seedEnabled = false,
-        private ?int $seedCount = 20,
+        /**
+         * Whether to enable seeding of the database with initial data.
+         * @var bool|null
+         */
+        public ?bool $seedEnabled = false,
+        /**
+         * Number of records to seed for each entity.
+         * @var int|null
+         */
+        public ?int $seedCount = 20,
     ) {}
 
     /**
@@ -20,13 +28,4 @@ class Dev
         );
     }
 
-    public function isSeedEnabled(): bool
-    {
-        return $this->seedEnabled;
-    }
-
-    public function getSeedCount(): int
-    {
-        return $this->seedCount;
-    }
 }

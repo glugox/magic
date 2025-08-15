@@ -38,7 +38,7 @@ class ControllerBuilderService
      */
     public function buildControllers(): void
     {
-        foreach ($this->config->getEntities() as $entity) {
+        foreach ($this->config->entities as $entity) {
             $this->generateController($entity);
         }
     }
@@ -189,7 +189,7 @@ PHP;
     {
         $routeLines = [];
 
-        foreach ($this->config->getEntities() as $entity) {
+        foreach ($this->config->entities as $entity) {
             $name = $entity->getRouteName();
             $controller = '\\App\\Http\\Controllers\\'.Str::studly(Str::singular($name)).'Controller';
 

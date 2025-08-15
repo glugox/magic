@@ -59,7 +59,7 @@ class VueSidebarUpdaterService
      */
     public function updateAppName(): void
     {
-        $appName = $this->config->app->getName();
+        $appName = $this->config->app->name;
         $content = File::get($this->appLogoPath);
 
         // Replace the app name in the file
@@ -75,7 +75,7 @@ class VueSidebarUpdaterService
     protected function generateNavItemsCode(): string
     {
         $lines = [];
-        foreach ($this->config->getEntities() as $entity) {
+        foreach ($this->config->entities as $entity) {
             $lines[] = "    { title: '{$entity->getPluralName()}', href: '{$entity->getHref()}', icon: {$entity->getIcon()} },";
         }
 

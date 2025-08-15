@@ -43,7 +43,7 @@ class SeederBuilderService
         // Add seeding code to create admin user
         $this->generateAdminUserSeeder();
 
-        foreach ($this->config->getEntities() as $entity) {
+        foreach ($this->config->entities as $entity) {
             $this->generateFactory($entity);
             $this->generateSeeder($entity);
         }
@@ -92,7 +92,7 @@ class SeederBuilderService
     protected function generateSeeder(Entity $entity): void
     {
         $entityName = $entity->getName();
-        $seedCount = $this->config->getDevConfig()->getSeedCount();
+        $seedCount = $this->config->dev->seedCount;
         $className = $entityName.'Seeder';
         $namespace = 'Database\Seeders';
 
@@ -155,6 +155,7 @@ PHP;
     {
 
         $pivotTable = $relation->getPivotName();
+        $seedCount = $this->config->dev->seedCount;
 
         // Skip if we already generated this pivot table seeder
         if (in_array($pivotTable, $this->generatedPivotSeeders)) {
@@ -188,7 +189,7 @@ class $seederClass extends Seeder
 
         foreach (\$items as \$item) {
             \$item->{$relationMethod}()->attach(
-                \$relatedItems->random(rand(1, 3))->pluck('id')->toArray()
+                \$relatedItems->random(rand(1, {$seedCount}))->pluck('id')->toArray()
             );
         }
     }

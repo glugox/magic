@@ -5,7 +5,11 @@ namespace Glugox\Magic\Support\Config;
 class App
 {
     public function __construct(
-        private string $name
+        /**
+         * The name of the application.
+         * @var string
+         */
+        public string $name
     ) {}
 
     public static function fromConfig(array $data): self
@@ -13,10 +17,5 @@ class App
         return new self(
             $data['name'] ?? 'Uno'
         );
-    }
-
-    public function getName(): string
-    {
-        return $this->name;
     }
 }

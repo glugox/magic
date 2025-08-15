@@ -22,7 +22,7 @@ class VuePageBuilderService
      */
     public function build()
     {
-        foreach ($this->config->getEntities() as $entity) {
+        foreach ($this->config->entities as $entity) {
             $this->generateIndexPage($entity);
             $this->generateFormPage($entity);
         }

@@ -16,6 +16,7 @@ class ConfigLoader
      * @param string|null $path Path to the JSON config file. If null, uses the default path from config.
      * @return Config Parsed configuration data.
      * @throws \JsonException If the file does not exist or contains invalid JSON.
+     * @throws \ReflectionException
      */
     public static function load(?string $path = null, array $overrides = null): Config
     {
@@ -40,7 +41,7 @@ class ConfigLoader
 
         // Apply overrides if provided
         if ($overrides) {
-            $config->applyOverrides($overrides);
+            $config = $config->applyOverrides($overrides);
         }
 
         return $config;

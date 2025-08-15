@@ -57,7 +57,7 @@ class ResetAppCommand extends MagicBaseCommand
 
         // Reset migrations
         Log::channel('magic')->info("Resetting migrations...");
-        foreach ($this->getConfig()->getEntities() as $entity) {
+        foreach ($this->getConfig()->entities as $entity) {
             $tableName = $entity->getTableName();
 
             // Regular create/update migrations for the entity's table
@@ -88,7 +88,7 @@ class ResetAppCommand extends MagicBaseCommand
         CodeGenerationHelper::removeRegion($databaseSeederPath);
 
         // Reset models and seeders
-        foreach ($this->getConfig()->getEntities() as $entity) {
+        foreach ($this->getConfig()->entities as $entity) {
 
             // Reset models
             Log::channel('magic')->info("Resetting model: " . $entity->getName());

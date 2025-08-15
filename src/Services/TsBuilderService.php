@@ -54,7 +54,7 @@ class TsBuilderService
         $content .= $this->generateGenericTypes();
         $content .= "\n\n";
         $fields = '';
-        foreach ($this->config->getEntities() as $entity) {
+        foreach ($this->config->entities as $entity) {
             $entityName = $entity->getName();
             $content .= "export interface {$entityName} {\n";
             foreach ($entity->getFields() as $field) {
@@ -95,7 +95,7 @@ EOT;
      */
     private function generateEntityHelperFiles()
     {
-        foreach ($this->config->getEntities() as $entity) {
+        foreach ($this->config->entities as $entity) {
             $this->generateEntityHelperFile($entity);
         }
     }
