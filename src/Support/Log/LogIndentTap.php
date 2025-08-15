@@ -2,9 +2,7 @@
 
 namespace Glugox\Magic\Support\Log;
 
-
 use Monolog\Formatter\LineFormatter;
-use Monolog\Logger as MonologLogger;
 
 class LogIndentTap
 {

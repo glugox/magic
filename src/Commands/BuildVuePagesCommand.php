@@ -36,7 +36,7 @@ class BuildVuePagesCommand extends MagicBaseCommand
         $service = new VuePageBuilderService($this->files, $this->getConfig());
         $service->build();
 
-        Log::channel('magic')->info("Build Vue pages complete!");
+        Log::channel('magic')->info('Build Vue pages complete!');
 
         return 0;
     }

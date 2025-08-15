@@ -3,8 +3,8 @@
 namespace Glugox\Magic\Commands;
 
 use Glugox\Magic\Support\Config\Config;
-use Illuminate\Console\Command;
 use Glugox\Magic\Support\ConfigLoader;
+use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 
@@ -36,7 +36,7 @@ abstract class MagicBaseCommand extends Command
 
         $configPath = $this->getConfigPath();
         $config = ConfigLoader::load($configPath, $overrides);
-        if (!$config->isValid()) {
+        if (! $config->isValid()) {
             throw new \JsonException("Invalid configuration file: {$configPath}");
         }
 
@@ -66,7 +66,7 @@ abstract class MagicBaseCommand extends Command
             $configPath = $starterPath;
         }
 
-        if (!File::exists($configPath)) {
+        if (! File::exists($configPath)) {
             throw new \RuntimeException("Configuration file not found: {$configPath}");
         }
 
@@ -81,18 +81,20 @@ abstract class MagicBaseCommand extends Command
      */
     protected function setupStarterTemplate(?string $starter): ?string
     {
-        if (!$starter) {
-            Log::channel('magic')->info("No starter template specified, using default.");
+        if (! $starter) {
+            Log::channel('magic')->info('No starter template specified, using default.');
+
             return null;
         }
 
         Log::channel('magic')->info("Using starter template: {$starter}");
 
-        $source = __DIR__ . "/../../stubs/samples/{$starter}.json";
+        $source = __DIR__."/../../stubs/samples/{$starter}.json";
         $destination = base_path("{$starter}.json");
 
-        if (!File::exists($source)) {
+        if (! File::exists($source)) {
             $this->error("Starter template file not found: {$source}");
+
             return null;
         }
 

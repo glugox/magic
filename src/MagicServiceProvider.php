@@ -70,7 +70,7 @@ class MagicServiceProvider extends ServiceProvider
      */
     private function registerMagicLogChannel(): void
     {
-        if (!config('magic.logging.enabled', true)) {
+        if (! config('magic.logging.enabled', true)) {
             return;
         }
 

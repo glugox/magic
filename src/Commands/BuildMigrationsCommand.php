@@ -35,7 +35,7 @@ class BuildMigrationsCommand extends MagicBaseCommand
         $migrationBuilderService = new MigrationBuilderService($this->getConfig());
         $migrationBuilderService->build();
 
-        Log::channel('magic')->info("Build migrations complete!");
+        Log::channel('magic')->info('Build migrations complete!');
 
         return 0;
     }

@@ -35,7 +35,7 @@ class VueSidebarUpdaterCommand extends MagicBaseCommand
         $service = new VueSidebarUpdaterService($this->getConfig());
         $service->update();
 
-        Log::channel('magic')->info("Update Vue sidebar complete!");
+        Log::channel('magic')->info('Update Vue sidebar complete!');
 
         return 0;
     }
