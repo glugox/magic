@@ -9,11 +9,11 @@ use Glugox\Magic\Support\Config\Field;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 class SeederBuilderService
 {
     protected string $factoriesPath;
+
     protected string $seedersPath;
 
     protected array $generatedPivotSeeders = []; // track already generated pivot seeders
@@ -21,17 +21,16 @@ class SeederBuilderService
     public function __construct(
         protected Filesystem $files,
         protected Config $config
-    )
-    {
+    ) {
         // Ensure the factories directory exists
         $this->factoriesPath = database_path('factories');
-        if (!File::exists($this->factoriesPath)) {
+        if (! File::exists($this->factoriesPath)) {
             File::makeDirectory($this->factoriesPath, 0755, true);
         }
 
         // Ensure the seeders directory exists
         $this->seedersPath = database_path('seeders');
-        if (!File::exists($this->seedersPath)) {
+        if (! File::exists($this->seedersPath)) {
             File::makeDirectory($this->seedersPath, 0755, true);
         }
     }
@@ -57,7 +56,7 @@ class SeederBuilderService
     {
         $entityName = $entity->getName();
 
-        $className = $entityName . 'Factory';
+        $className = $entityName.'Factory';
         $namespace = 'Database\Factories';
 
         $fakerFields = $this->buildFakerFields($entity);
@@ -94,7 +93,7 @@ class SeederBuilderService
     {
         $entityName = $entity->getName();
         $seedCount = $this->config->getDevConfig()->getSeedCount();
-        $className = $entityName . 'Seeder';
+        $className = $entityName.'Seeder';
         $namespace = 'Database\Seeders';
 
         $hasManyLines = [];
@@ -131,11 +130,11 @@ $relationsCode
 }
 PHP;
 
-        $path = $this->seedersPath . "/{$className}.php";
+        $path = $this->seedersPath."/{$className}.php";
         $this->files->put($path, $stub);
 
         // Log the seeder creation
-        $pathRelative = str_replace($this->seedersPath . '/', '', $path);
+        $pathRelative = str_replace($this->seedersPath.'/', '', $path);
         Log::channel('magic')->info("Seeder created: {$pathRelative}");
 
         // Insert call to DatabaseSeeder
@@ -148,7 +147,6 @@ PHP;
             }
         }
     }
-
 
     /**
      * Generate a seeder for belongsToMany pivot tables
@@ -169,7 +167,7 @@ PHP;
         $relatedEntity = $relation->getEntityName();
         $relationMethod = $relation->getRelationName();
 
-        $seederClass = \Str::studly($pivotTable) . 'PivotSeeder';
+        $seederClass = \Str::studly($pivotTable).'PivotSeeder';
         $namespace = 'Database\Seeders';
 
         $stub = <<<PHP
@@ -197,15 +195,15 @@ class $seederClass extends Seeder
 }
 PHP;
 
-        $path = $this->seedersPath . "/{$seederClass}.php";
+        $path = $this->seedersPath."/{$seederClass}.php";
         $this->files->put($path, $stub);
 
         // Log the pivot seeder creation
-        $pathRelative = str_replace($this->seedersPath . '/', '', $path);
+        $pathRelative = str_replace($this->seedersPath.'/', '', $path);
         Log::channel('magic')->info("Pivot seeder created: {$pathRelative}");
 
         // Append pivot seeder call at the **end** of DatabaseSeeder
-        $filePath = $this->seedersPath . '/DatabaseSeeder.php';
+        $filePath = $this->seedersPath.'/DatabaseSeeder.php';
         CodeGenerationHelper::appendCodeBlock(
             $filePath,
             'run',
@@ -220,9 +218,10 @@ PHP;
     /**
      * Insert a call to the seeder in the DatabaseSeeder class.
      */
-    private function insertSeederCall($seederClass) {
+    private function insertSeederCall($seederClass)
+    {
 
-        $filePath = $this->seedersPath . '/DatabaseSeeder.php';
+        $filePath = $this->seedersPath.'/DatabaseSeeder.php';
 
         CodeGenerationHelper::appendCodeBlock(
             $filePath,
@@ -249,11 +248,12 @@ PHP;
 
             // Check if field is a belongsTo relation
             $belongsTo = collect($entity->getRelations())
-                ->first(fn($rel) => $rel->isBelongsTo() && $rel->getForeignKey() === $field->getName());
+                ->first(fn ($rel) => $rel->isBelongsTo() && $rel->getForeignKey() === $field->getName());
 
             if ($belongsTo) {
                 $relatedEntity = $belongsTo->getEntityName();
                 $lines[] = "            '{$field->getName()}' => \\App\\Models\\{$relatedEntity}::inRandomOrder()->first()?->id ?? \\App\\Models\\{$relatedEntity}::factory(),";
+
                 continue;
             }
 
@@ -290,7 +290,7 @@ PHP;
         }
 
         // Check for date fields
-        if($field->isDate()) {
+        if ($field->isDate()) {
             return 'date()'; // default date format
         }
 
@@ -301,9 +301,8 @@ PHP;
 
         // Check if the field is enum
         if ($field->isEnum()) {
-            return 'randomElement(' . json_encode($field->getValues()) . ')';
+            return 'randomElement('.json_encode($field->getValues()).')';
         }
-
 
         // Default fallback if no match found
 
@@ -317,15 +316,13 @@ PHP;
     {
         // Generate creating of admin user
         CodeGenerationHelper::appendCodeBlock(
-            $this->seedersPath . '/DatabaseSeeder.php',
+            $this->seedersPath.'/DatabaseSeeder.php',
             'run',
             [
-                "// Create admin user",
+                '// Create admin user',
                 "User::factory()->create(['name' => 'Admin User', 'email' => 'admin@example.com', 'password' => bcrypt('password')]);",
             ],
             'seeders'
         );
     }
-
-
 }
