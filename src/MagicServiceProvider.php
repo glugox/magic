@@ -79,7 +79,7 @@ class MagicServiceProvider extends ServiceProvider
             'driver' => 'stack',
             'channels' => ['magic_file', 'magic_console'],
             'ignore_exceptions' => false,
-            //'tap' => [LogIndentTap::class],
+            'tap' => [LogIndentTap::class],
         ];
 
         // Merge into logging.channels

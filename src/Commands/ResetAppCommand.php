@@ -5,18 +5,26 @@ namespace Glugox\Magic\Commands;
 use Glugox\Magic\Support\CodeGenerationHelper;
 use Glugox\Magic\Support\ConfigLoader;
 use Glugox\Magic\Support\ConsoleBlock;
-use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
  * Command to reset the Laravel application by removing generated files
  * and resetting migrations, models, seeders, controllers, TypeScript support files,
  * and other related components.
  */
-class ResetAppCommand extends Command
+class ResetAppCommand extends MagicBaseCommand
 {
-    protected $signature = 'magic:reset {--config= : Path to JSON config file} {--starter= : Starter template to use}';
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'magic:reset
+    {--config= : Path to JSON config file}
+    {--starter= : Starter template to use}
+    {--set=* : Inline config override in key=value format (dot notation allowed)}';
 
     protected $description = 'Build Laravel app parts from JSON config';
 
@@ -35,49 +43,21 @@ class ResetAppCommand extends Command
      */
     private ConsoleBlock $block;
 
+    /**
+     * @throws \JsonException
+     */
     public function handle()
     {
+
         // Initialize console block for structured output
         $this->block = new ConsoleBlock($this);
         $this->block->info('Resetting Magic...');
 
-        $configPath = $this->option('config') ?? config('magic.config_path');
-        $starterTemplate = $this->option('starter');
         $databaseSeederPath = database_path('seeders/DatabaseSeeder.php');
-
-        // Check if the starter template option is provided
-        if ($starterTemplate) {
-            Log::channel('magic')->info("Using starter template: {$starterTemplate}");
-            // Copy starter template files from stubs/samples/
-            $source = __DIR__ . "/../../stubs/samples/{$starterTemplate}.json";
-            $destination = base_path("{$starterTemplate}.json");
-
-            if (File::exists($source)) {
-                File::copy($source, $destination);
-                Log::channel('magic')->info("Copied starter template to: {$destination}");
-
-                // Update config path to the new starter template
-                $configPath = $destination;
-            } else {
-                Log::channel('magic')->error("Starter template file not found: {$source}");
-                return 1;
-            }
-        } else {
-            Log::channel('magic')->info("No starter template specified, using default.");
-        }
-
-        Log::channel('magic')->info("Loading config from: {$configPath}");
-
-        try {
-            $config = ConfigLoader::load($configPath);
-        } catch (\Exception $e) {
-            Log::channel('magic')->error("Failed to load config: " . $e->getMessage());
-            return 1;
-        }
 
         // Reset migrations
         Log::channel('magic')->info("Resetting migrations...");
-        foreach ($config->getEntities() as $entity) {
+        foreach ($this->getConfig()->getEntities() as $entity) {
             $tableName = $entity->getTableName();
 
             // Regular create/update migrations for the entity's table
@@ -85,7 +65,7 @@ class ResetAppCommand extends Command
             $migrationUpdateFiles = File::glob(database_path("migrations/*_update_{$tableName}_table.php"));
 
             // Pivot table migrations (any table with entity name + underscore or underscore + entity name)
-            $tableNameSingular = \Str::singular($tableName);
+            $tableNameSingular = Str::singular($tableName);
             $migrationPivotFiles = array_merge(
                 File::glob(database_path("migrations/*_create_*_{$tableNameSingular}_table.php")),
                 File::glob(database_path("migrations/*_create_{$tableNameSingular}_*_table.php"))
@@ -108,7 +88,7 @@ class ResetAppCommand extends Command
         CodeGenerationHelper::removeRegion($databaseSeederPath);
 
         // Reset models and seeders
-        foreach ($config->getEntities() as $entity) {
+        foreach ($this->getConfig()->getEntities() as $entity) {
 
             // Reset models
             Log::channel('magic')->info("Resetting model: " . $entity->getName());
@@ -132,7 +112,7 @@ class ResetAppCommand extends Command
             }
             // Remove pivot seeders if they exist by checking for related entities
             foreach ($entity->getRelations() as $relation) {
-                $pivotNameStudly = \Str::studly($relation->getPivotName());
+                $pivotNameStudly = Str::studly($relation->getPivotName());
                 $pivotSeederPath = database_path('seeders/' . $pivotNameStudly . 'PivotSeeder.php');
                 if (file_exists($pivotSeederPath)) {
                     unlink($pivotSeederPath);

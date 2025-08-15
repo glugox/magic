@@ -3,13 +3,19 @@
 namespace Glugox\Magic\Commands;
 
 use Glugox\Magic\Services\VueSidebarUpdaterService;
-use Glugox\Magic\Support\ConfigLoader;
-use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
-class VueSidebarUpdaterCommand extends Command
+class VueSidebarUpdaterCommand extends MagicBaseCommand
 {
-    protected $signature = 'magic:update-vue-pages {--config= : Path to JSON config file}';
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'magic:update-vue-pages
+    {--config= : Path to JSON config file}
+    {--starter= : Starter template to use}
+    {--set=* : Inline config override in key=value format (dot notation allowed)}';
 
     protected $description = 'Update Laravel app VUE pages from JSON config';
 
@@ -21,18 +27,12 @@ class VueSidebarUpdaterCommand extends Command
         parent::__construct();
     }
 
+    /**
+     * @throws \JsonException
+     */
     public function handle()
     {
-        $configPath = $this->option('config') ?? config('magic.config_path');
-
-        try {
-            $config = ConfigLoader::load($configPath);
-        } catch (\Exception $e) {
-            $this->error("Failed to load config: " . $e->getMessage());
-            return 1;
-        }
-
-        $service = new VueSidebarUpdaterService($config);
+        $service = new VueSidebarUpdaterService($this->getConfig());
         $service->update();
 
         Log::channel('magic')->info("Update Vue sidebar complete!");

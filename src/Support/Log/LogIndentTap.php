@@ -2,18 +2,22 @@
 
 namespace Glugox\Magic\Support\Log;
 
-use Monolog\Logger;
+
+use Monolog\Formatter\LineFormatter;
+use Monolog\Logger as MonologLogger;
 
 class LogIndentTap
 {
-    /**
-     * Apply processor to prepend indent to each log record.
-     */
-    public function __invoke(Logger $logger)
+    public function __invoke($monolog)
     {
-        $logger->pushProcessor(function ($record) {
-            $record['message'] = '  ' . $record['message']; // prepend 2 spaces
-            return $record;
-        });
+        // Set the default indentation for all log messages
+        foreach ($monolog->getHandlers() as $handler) {
+            $formatter = $handler->getFormatter();
+
+            // Only change LineFormatter — skip JSONFormatter
+            if ($formatter instanceof LineFormatter) {
+                $handler->setFormatter(new LineFormatter("  %message%\n", null, true, true));
+            }
+        }
     }
 }

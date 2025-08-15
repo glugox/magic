@@ -3,14 +3,20 @@
 namespace Glugox\Magic\Commands;
 
 use Glugox\Magic\Services\VuePageBuilderService;
-use Glugox\Magic\Support\ConfigLoader;
-use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Log;
 
-class BuildVuePagesCommand extends Command
+class BuildVuePagesCommand extends MagicBaseCommand
 {
-    protected $signature = 'magic:build-vue-pages {--config= : Path to JSON config file}';
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'magic:build-vue-pages
+    {--config= : Path to JSON config file}
+    {--starter= : Starter template to use}
+    {--set=* : Inline config override in key=value format (dot notation allowed)}';
 
     protected $description = 'Build Laravel app VUE pages from JSON config';
 
@@ -22,21 +28,13 @@ class BuildVuePagesCommand extends Command
         parent::__construct();
     }
 
+    /**
+     * @throws \JsonException
+     */
     public function handle()
     {
-        $configPath = $this->option('config') ?? config('magic.config_path');
-
-        try {
-            $config = ConfigLoader::load($configPath);
-        } catch (\Exception $e) {
-            $this->error("Failed to load config: " . $e->getMessage());
-            return 1;
-        }
-
-        $service = new VuePageBuilderService($this->files, $config);
+        $service = new VuePageBuilderService($this->files, $this->getConfig());
         $service->build();
-
-
 
         Log::channel('magic')->info("Build Vue pages complete!");
 

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Glugox\Magic\Support\Config;
 
+use Illuminate\Support\Facades\Log;
+
 class Config
 {
     public App $app;
@@ -11,7 +13,10 @@ class Config
     /** @var Entity[] */
     private array $entities = [];
 
-    public Dev $dev;
+    /**
+     * @var Dev Config related to development environment.
+     */
+    protected Dev $dev;
 
     /**
      * @param  Entity[]  $entities
@@ -66,5 +71,29 @@ class Config
     public function getDevConfig(): Dev
     {
         return $this->dev;
+    }
+
+    /**
+     * @param array $overrides
+     * @return void
+     *
+     * Applies overrides to the configuration array.
+     * This is usually used to modify specific configuration values from the command line or other sources.
+     */
+    public function applyOverrides(array $overrides): void
+    {
+        Log::channel('magic')->info("Applying overrides to config: " . json_encode($overrides));
+        foreach ($overrides as $override) {
+            [$key, $value] = explode('=', $override, 2);
+            $keys = explode('.', $key);
+            $current = &$config;
+            foreach ($keys as $k) {
+                Log::channel('magic')->info("Setting config key: {$k} to value: {$value}");
+                /*if (!isset($current[$k])) {
+                    Log::channel('magic')->warning("Key {$k} does not exist in config, creating it.");
+                }
+                $current = &$current[$k];*/
+            }
+        }
     }
 }

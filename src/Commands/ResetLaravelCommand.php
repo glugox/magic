@@ -2,13 +2,20 @@
 
 namespace Glugox\Magic\Commands;
 
-use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Log;
 
-class ResetLaravelCommand extends Command
+class ResetLaravelCommand extends MagicBaseCommand
 {
-    protected $signature = 'magic:reset-laravel';
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'magic:reset-laravel
+    {--config= : Path to JSON config file}
+    {--starter= : Starter template to use}
+    {--set=* : Inline config override in key=value format (dot notation allowed)}';
 
     protected $description = 'Reset Laravel app parts';
 
@@ -27,7 +34,7 @@ class ResetLaravelCommand extends Command
         return 0;
     }
 
-    protected function copyDirectoryRecursively(string $source, string $destination, Filesystem $files)
+    protected function copyDirectoryRecursively(string $source, string $destination, Filesystem $files): void
     {
         $items = $files->allFiles($source);
 
@@ -42,7 +49,7 @@ class ResetLaravelCommand extends Command
             if ($files->copy($item->getRealPath(), $targetPath)) {
                 Log::channel('magic')->info("Copied: {$relativePath}");
             } else {
-                $this->error("Failed to copy: {$relativePath}");
+                Log::channel('magic')->error("Failed to copy: {$relativePath}");
             }
         }
     }

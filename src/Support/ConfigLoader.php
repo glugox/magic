@@ -17,7 +17,7 @@ class ConfigLoader
      * @return Config Parsed configuration data.
      * @throws \JsonException If the file does not exist or contains invalid JSON.
      */
-    public static function load(?string $path = null): Config
+    public static function load(?string $path = null, array $overrides = null): Config
     {
         $path = $path ?? config('magic.config_path', base_path('resume.json'));
 
@@ -37,6 +37,12 @@ class ConfigLoader
         }
 
         Log::channel('magic')->info("Config loaded successfully: " . $path);
+
+        // Apply overrides if provided
+        if ($overrides) {
+            $config->applyOverrides($overrides);
+        }
+
         return $config;
     }
 }
