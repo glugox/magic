@@ -228,9 +228,9 @@ PHP;
         // Enum type
         if ($col->isEnum() && ! empty($col->values)) {
             $values = '['.implode(', ', array_map(
-                    fn ($v) => json_encode($v, JSON_UNESCAPED_UNICODE),
-                    array_values($col->values)
-                )).']';
+                fn ($v) => json_encode($v, JSON_UNESCAPED_UNICODE),
+                array_values($col->values)
+            )).']';
             $args[] = $values;
         }
 

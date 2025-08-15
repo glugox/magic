@@ -245,7 +245,7 @@ PHP;
     protected function buildFakerFields(Entity $entity): string
     {
         $lines = [];
-        $typesNotForFaker = [ FieldType::JSON, FieldType::JSONB, FieldType::FILE, FieldType::IMAGE ];
+        $typesNotForFaker = [FieldType::JSON, FieldType::JSONB, FieldType::FILE, FieldType::IMAGE];
 
         foreach ($entity->getFields() as $field) {
 
@@ -269,6 +269,7 @@ PHP;
             if (in_array($field->type, $typesNotForFaker)) {
                 Log::channel('magic')->warning("Field '{$field->name}' of type '{$field->type->value}' is not suitable for Faker. Skipping.");
                 $lines[] = "            '{$field->name}' => null, // Not suitable for Faker";
+
                 continue;
             }
 
@@ -304,7 +305,7 @@ PHP;
         );
     }
 
-    function guessFakerMethod(\Faker\Generator $faker, Field $field): string
+    public function guessFakerMethod(\Faker\Generator $faker, Field $field): string
     {
 
         $name = strtolower($field->name);
@@ -328,7 +329,7 @@ PHP;
             'city' => 'city',
             'country' => 'country',
             'postal' => 'postcode',
-            'url' => 'url'
+            'url' => 'url',
         ];
 
         $typeStr = $field->type->value;
@@ -349,7 +350,7 @@ PHP;
         // without the "type:" prefix
         foreach ($wordAssocToType as $word => $availableType) {
             // Check exact match
-            if( $name === $word || str_ends_with($name, "_{$word}") || str_starts_with($name, "{$word}_") ) {
+            if ($name === $word || str_ends_with($name, "_{$word}") || str_starts_with($name, "{$word}_")) {
                 return $availableType;
             }
         }
@@ -359,7 +360,6 @@ PHP;
         if (str_ends_with($name, '_at')) {
             return 'dateTime';
         }
-
 
         // 5. Fallback to type-based mapping
         $typeFallbacks = [];

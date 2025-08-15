@@ -54,7 +54,7 @@ return [
         'type:boolean' => 'boolean()',
         'type:text' => 'text()',
         'type:date' => 'date()',
-        'type:datetime' => 'dateTime()'
+        'type:datetime' => 'dateTime()',
     ],
     /**
      * Some models may require specific traits or base classes
