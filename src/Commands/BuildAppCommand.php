@@ -81,6 +81,8 @@ class BuildAppCommand extends MagicBaseCommand
     private function runStep(string $command, string $message): void
     {
         $this->block->info($message . "...");
+        Log::channel('magic')->info("Sleeping only for demo purposes...");
+        sleep(1.3);
         $this->call($command, [
             '--config' => $this->getConfigPath(),
             '--starter' => $this->option('starter'),

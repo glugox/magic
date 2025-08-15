@@ -44,7 +44,7 @@ abstract class MagicBaseCommand extends Command
         $this->config = $config;
 
         Log::channel('magic')->info("Configuration loaded from: {$configPath}");
-        $this->config->printDebugInfo();
+        //$this->config->printDebugInfo();
 
         return $this->config;
     }

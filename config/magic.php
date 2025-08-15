@@ -18,7 +18,6 @@ return [
         'name' => 'name()',
         'password' => 'password()',
         'date' => 'date()',
-
         'phone' => 'phoneNumber()',
         'street' => 'streetAddress()',
         'city' => 'city()',
@@ -27,6 +26,22 @@ return [
         'title' => 'sentence(3)',
         'description' => 'paragraph()',
         'content' => 'text()',
+        'first_name' => 'firstName()',
+        'last_name' => 'lastName()',
+        'full_name' => 'name()',
+        'address' => 'address()',
+        'comment' => 'sentence()',
+        'body' => 'paragraph()',
+        'username' => 'userName()',
+        'url' => 'url()',
+        'price' => 'randomFloat()',
+        'total' => 'randomFloat()',
+        'amount' => 'randomFloat()',
+        'count' => 'randomNumber()',
+        'quantity' => 'randomNumber()',
+        'expires_at' => 'dateTimeBetween("now", "+1 year")',
+        'available_from' => 'dateTimeBetween("now", "+1 year")',
+        'placed_at' => 'dateTimeBetween("now", "+1 year")',
 
         // Match by exact type
         'type:string' => 'word()',
@@ -36,6 +51,10 @@ return [
         'type:float' => 'randomFloat(2, 1, 100)',
         'type:double' => 'randomFloat(2, 1, 100)',
         'type:decimal' => 'randomFloat(2, 1, 100)',
+        'type:boolean' => 'boolean()',
+        'type:text' => 'text()',
+        'type:date' => 'date()',
+        'type:datetime' => 'dateTime()'
     ],
     /**
      * Some models may require specific traits or base classes

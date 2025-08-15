@@ -131,7 +131,7 @@ class Entity
     public function hasField(string $name): bool
     {
         foreach ($this->fields as $field) {
-            if ($field->getName() === $name) {
+            if ($field->name === $name) {
                 return true;
             }
         }
@@ -156,7 +156,7 @@ class Entity
     {
         $fillable = [];
         foreach ($this->getFillableFields() as $field) {
-            $fillable[] = $field->getName();
+            $fillable[] = $field->name;
         }
 
         return $fillable;
@@ -164,12 +164,14 @@ class Entity
 
     /**
      * Get fillable fields.
+     *
+     * @return Field[]
      */
     public function getFillableFields(): array
     {
         $fillable = [];
         foreach ($this->fields as $field) {
-            if (! in_array($field->getName(), ['id', 'created_at', 'updated_at'])) {
+            if (! in_array($field->name, ['id', 'created_at', 'updated_at'])) {
                 $fillable[] = $field;
             }
         }
@@ -186,7 +188,7 @@ class Entity
     {
         $hidden = [];
         foreach ($this->fields as $field) {
-            if (in_array($field->getName(), ['password', 'remember_token'])) {
+            if (in_array($field->name, ['password', 'remember_token'])) {
                 $hidden[] = $field;
             }
         }
@@ -203,7 +205,7 @@ class Entity
     {
         $hidden = [];
         foreach ($this->getHiddenFields() as $field) {
-            $hidden[] = $field->getName();
+            $hidden[] = $field->name;
         }
 
         return $hidden;
@@ -247,14 +249,14 @@ class Entity
         $fields = [];
         foreach ($this->fields as $field) {
             $fields[] = [
-                'name' => $field->getName(),
-                'type' => $field->getType(),
-                'nullable' => $field->isNullable(),
-                'length' => $field->getLength(),
-                'precision' => $field->getPrecision(),
-                'scale' => $field->getScale(),
-                'default' => $field->getDefault(),
-                'comment' => $field->getComment(),
+                'name' => $field->name,
+                'type' => $field->type->value,
+                'nullable' => $field->nullable,
+                'length' => $field->length,
+                'precision' => $field->precision,
+                'scale' => $field->scale,
+                'default' => $field->default,
+                'comment' => $field->comment,
             ];
         }
 

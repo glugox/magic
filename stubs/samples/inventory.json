@@ -161,6 +161,9 @@
     ],
     "dev": {
         "seedEnabled": true,
-        "seedCount": 50
+        "seedCount": 50,
+        "fakerMappings": {
+            "carrier": "randomElement([\"FedEx\", \"UPS\", \"DHL\", \"USPS\"])"
+        }
     }
 }

@@ -3,9 +3,11 @@
 [![PHP Version](https://img.shields.io/badge/php-%5E8.1-blue)](https://php.net)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
+Magic — A lightweight PHP/Laravel toolkit for effortless configuration management, database seeding, and realistic fake data generation with Faker. Perfect for testing, prototyping, and automation.
 Build full-featured apps from configuration files.
 
 🔧 How it works
+![magic-demo.svg](magic-demo.svg)
 
 ## Installation
 

@@ -26,7 +26,7 @@ class TsHelper
      */
     public static function writeTableColumn(Field $field)
     {
-        $tsType = TypeHelper::migrationTypeToTsType($field->getType());
+        $tsType = TypeHelper::migrationTypeToTsType($field->type);
         $strEnableSorting = $field->isSortable() ? 'true' : 'false';
         if ($field->isSortable()) {
             $fieldHeader = static::writeSortableColumnHeader($field);
@@ -35,9 +35,9 @@ class TsHelper
         }
 
         return "{
-                id: '{$field->getName()}',
+                id: '{$field->name}',
                 header: {$fieldHeader},
-                accessorKey: '{$field->getName()}',
+                accessorKey: '{$field->name}',
                 cell: ({ cell }) => {
                     const value = cell.getValue() as {$tsType};
                     return value ? value.toString() : '';
@@ -72,20 +72,18 @@ HEADER;
      */
     public static function writeFieldMeta(Field $field)
     {
-        $tsType = TypeHelper::migrationTypeToTsType($field->getType());
-        $fieldMeta = "{
-            name: '{$field->getName()}',
+        $tsType = TypeHelper::migrationTypeToTsType($field->type);
+        return "{
+            name: '{$field->name}',
             type: '{$tsType}',
-            nullable: ".($field->isNullable() ? 'true' : 'false').',
-            length: '.($field->getLength() !== null ? $field->getLength() : 'null').',
-            precision: '.($field->getPrecision() !== null ? $field->getPrecision() : 'null').',
-            scale: '.($field->getScale() !== null ? $field->getScale() : 'null').',
-            default: '.($field->getDefault() !== null ? "'{$field->getDefault()}'" : 'null').',
-            comment: '.($field->getComment() !== null ? "'{$field->getComment()}'" : 'null').',
+            nullable: ".($field->nullable ? 'true' : 'false').',
+            length: '.($field->length !== null ? $field->length : 'null').',
+            precision: '.($field->precision !== null ? $field->precision : 'null').',
+            scale: '.($field->scale !== null ? $field->scale : 'null').',
+            default: '.($field->default !== null ? "'{$field->default}'" : 'null').',
+            comment: '.($field->comment !== null ? "'{$field->comment}'" : 'null').',
             sortable: '.($field->isSortable() ? 'true' : 'false').',
             searchable: '.($field->isSearchable() ? 'true' : 'false').'
         }';
-
-        return $fieldMeta;
     }
 }

@@ -58,8 +58,8 @@ class TsBuilderService
             $entityName = $entity->getName();
             $content .= "export interface {$entityName} {\n";
             foreach ($entity->getFields() as $field) {
-                $tsType = TypeHelper::migrationTypeToTsType($field->getType());
-                $fields .= "    {$field->getName()}: {$tsType};\n";
+                $tsType = TypeHelper::migrationTypeToTsType($field->type);
+                $fields .= "    {$field->name}: {$tsType};\n";
             }
             $content .= $fields."}\n\n";
             $fields = ''; // Reset fields for next entity

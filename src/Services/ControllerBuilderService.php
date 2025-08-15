@@ -4,6 +4,7 @@ namespace Glugox\Magic\Services;
 
 use Glugox\Magic\Support\Config\Config;
 use Glugox\Magic\Support\Config\Entity;
+use Glugox\Magic\Support\Config\FieldType;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -56,37 +57,20 @@ class ControllerBuilderService
         $validationRules = [];
         foreach ($entity->getFields() as $field) {
             $rules = [];
-            if (! $field->isNullable()) {
+            if (!$field->nullable) {
                 $rules[] = 'required';
             } else {
                 $rules[] = 'sometimes';
             }
-            switch (strtolower($field->getType())) {
-                case 'email':
-                    $rules[] = 'email';
-                    break;
-                case 'integer':
-                case 'int':
-                    $rules[] = 'integer';
-                    break;
-                case 'decimal':
-                case 'float':
-                case 'double':
-                    $rules[] = 'numeric';
-                    break;
-                case 'boolean':
-                case 'bool':
-                    $rules[] = 'boolean';
-                    break;
-                case 'date':
-                case 'datetime':
-                    $rules[] = 'date';
-                    break;
-                default:
-                    $rules[] = 'string';
-                    break;
-            }
-            $validationRules[$field->getName()] = implode('|', $rules);
+            $rules[] = match ($field->type) {
+                FieldType::EMAIL => 'email',
+                FieldType::INTEGER => 'integer',
+                FieldType::DECIMAL, FieldType::FLOAT, FieldType::DOUBLE => 'numeric',
+                FieldType::BOOLEAN => 'boolean',
+                FieldType::DATE, FieldType::DATETIME => 'date',
+                default => 'string',
+            };
+            $validationRules[$field->name] = implode('|', $rules);
         }
         $rulesArrayStr = var_export($validationRules, true);
         $rulesArrayStr = str_replace(['array (', ')'], ['[', ']'], $rulesArrayStr);

@@ -6,6 +6,8 @@ use Glugox\Magic\Support\CodeGenerationHelper;
 use Glugox\Magic\Support\Config\Config;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
+use Glugox\Magic\Support\Config\FieldType;
+use Glugox\Magic\Support\Config\Relation;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
@@ -17,6 +19,8 @@ class SeederBuilderService
     protected string $seedersPath;
 
     protected array $generatedPivotSeeders = []; // track already generated pivot seeders
+
+    private ?array $fakerMethods = null;
 
     public function __construct(
         protected Filesystem $files,
@@ -219,7 +223,7 @@ PHP;
     /**
      * Insert a call to the seeder in the DatabaseSeeder class.
      */
-    private function insertSeederCall($seederClass)
+    private function insertSeederCall($seederClass): void
     {
 
         $filePath = $this->seedersPath.'/DatabaseSeeder.php';
@@ -241,25 +245,35 @@ PHP;
     protected function buildFakerFields(Entity $entity): string
     {
         $lines = [];
+        $typesNotForFaker = [ FieldType::JSON, FieldType::JSONB, FieldType::FILE, FieldType::IMAGE ];
 
         foreach ($entity->getFields() as $field) {
-            if (in_array($field->getName(), ['id', 'created_at', 'updated_at', 'deleted_at'])) {
+
+            if (in_array($field->name, ['id', 'created_at', 'updated_at', 'deleted_at'])) {
                 continue;
             }
 
             // Check if field is a belongsTo relation
+            /** @var Relation $belongsTo */
             $belongsTo = collect($entity->getRelations())
-                ->first(fn ($rel) => $rel->isBelongsTo() && $rel->getForeignKey() === $field->getName());
+                ->first(fn ($rel) => $rel->isBelongsTo() && $rel->getForeignKey() === $field->name);
 
             if ($belongsTo) {
                 $relatedEntity = $belongsTo->getEntityName();
-                $lines[] = "            '{$field->getName()}' => \\App\\Models\\{$relatedEntity}::inRandomOrder()->first()?->id ?? \\App\\Models\\{$relatedEntity}::factory(),";
+                $lines[] = "            '{$field->name}' => \\App\\Models\\{$relatedEntity}::inRandomOrder()->first()?->id ?? \\App\\Models\\{$relatedEntity}::factory(),";
 
                 continue;
             }
 
+            // Skip fields that are not suitable for Faker
+            if (in_array($field->type, $typesNotForFaker)) {
+                Log::channel('magic')->warning("Field '{$field->name}' of type '{$field->type->value}' is not suitable for Faker. Skipping.");
+                $lines[] = "            '{$field->name}' => null, // Not suitable for Faker";
+                continue;
+            }
+
             $fakerType = $this->guessFakerType($field);
-            $lines[] = "            '{$field->getName()}' => \$this->faker->{$fakerType},";
+            $lines[] = "            '{$field->name}' => \$this->faker->{$fakerType},";
         }
 
         return implode("\n", $lines);
@@ -270,50 +284,13 @@ PHP;
      */
     protected function guessFakerType(Field $field): string
     {
-        $name = strtolower($field->getName());
-        $type = strtolower($field->getType());
-
-        $mappings = config('magic.faker_mappings', []);
-
-        foreach ($mappings as $key => $faker) {
-            if (str_starts_with($key, 'type:')) {
-                // Type-based match
-                $expectedType = substr($key, 5);
-                if ($type === $expectedType) {
-                    return $faker;
-                }
-            } else {
-                // Name-based partial match
-                if (str_contains($name, $key)) {
-                    return $faker;
-                }
-            }
-        }
-
-        // Check for date fields
-        if ($field->isDate()) {
-            return 'date()'; // default date format
-        }
-
-        // Check for datetime fields
-        if ($field->isDateTime()) {
-            return 'dateTime()'; // default datetime format
-        }
-
-        // Check if the field is enum
-        if ($field->isEnum()) {
-            return 'randomElement('.json_encode($field->getValues()).')';
-        }
-
-        // Default fallback if no match found
-
-        return 'word()'; // default
+        return $this->guessFakerMethod(\Faker\Factory::create(), $field);
     }
 
     /**
      * Generate the seeder for creating an admin user.
      */
-    private function generateAdminUserSeeder()
+    private function generateAdminUserSeeder(): void
     {
         // Generate creating of admin user
         CodeGenerationHelper::appendCodeBlock(
@@ -325,5 +302,75 @@ PHP;
             ],
             'seeders'
         );
+    }
+
+    function guessFakerMethod(\Faker\Generator $faker, Field $field): string
+    {
+
+        $name = strtolower($field->name);
+        $mapFromConfig = config('magic.faker_mappings', []);
+        $mapFromJsonConfig = $this->config->dev->fakerMappings ?? [];
+        $map = array_merge($mapFromConfig, $mapFromJsonConfig);
+
+        // If the name of the field contains a word that is associated with a Faker method,
+        // we can use that method directly. For example, if the field name is "order_number",
+        // we can use the "number" part to determine the Faker method.
+        $wordAssocToType = [
+            'string' => 'word',
+            'number' => 'randomNumber',
+            'color' => 'hexColor',
+            'text' => 'text',
+            'date' => 'date',
+            'datetime' => 'dateTime',
+            'email' => 'safeEmail',
+            'phone' => 'phoneNumber',
+            'address' => 'address',
+            'city' => 'city',
+            'country' => 'country',
+            'postal' => 'postcode',
+            'url' => 'url'
+        ];
+
+        $typeStr = $field->type->value;
+
+        // 1. Check if the field name matches a predefined mapping
+        if (isset($map[$name])) {
+            return $map[$name];
+        }
+
+        // 2. For enum types, use the enum values directly because they are always set in json config
+        // Check if the field is enum
+        if ($field->isEnum()) {
+            return 'randomElement('.json_encode($field->values).')';
+        }
+
+        // 3. Check if the field name has type string inside , for example: "order_number"
+        // $availableTypes now contains all types like ['string', 'integer', 'boolean', etc.]
+        // without the "type:" prefix
+        foreach ($wordAssocToType as $word => $availableType) {
+            // Check exact match
+            if( $name === $word || str_ends_with($name, "_{$word}") || str_starts_with($name, "{$word}_") ) {
+                return $availableType;
+            }
+        }
+
+        // 4. Although other fields than date can end with "_at", it is kind of a convention
+        // to use "dateTime" for fields ending with "_at"
+        if (str_ends_with($name, '_at')) {
+            return 'dateTime';
+        }
+
+
+        // 5. Fallback to type-based mapping
+        $typeFallbacks = [];
+
+        foreach ($map as $mapKey => $item) {
+            if (str_starts_with($mapKey, 'type:')) {
+                $typeInConfig = substr($mapKey, 5);
+                $typeFallbacks[strtolower($typeInConfig)] = $item;
+            }
+        }
+
+        return $typeFallbacks[strtolower($typeStr)] ?? 'word';
     }
 }

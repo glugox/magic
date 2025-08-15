@@ -15,7 +15,13 @@ class Dev
          * @var int|null
          */
         public ?int $seedCount = 20,
-    ) {}
+
+        /**
+         * Faker mappings for generating fake data.
+         * @var array
+         */
+        public ?array $fakerMappings = null,
+    ){}
 
     /**
      * Create a Dev configuration object from an array of properties.
@@ -24,8 +30,8 @@ class Dev
     {
         return new self(
             $data['seedEnabled'] ?? false,
-            $data['seedCount'] ?? 20
+            $data['seedCount'] ?? 20,
+            $data['fakerMappings'] ?? null
         );
     }
-
 }

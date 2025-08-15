@@ -5,6 +5,7 @@ namespace Glugox\Magic\Services;
 use Glugox\Magic\Support\Config\Config;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
+use Glugox\Magic\Support\Config\FieldType;
 use Glugox\Magic\Support\Config\Relation;
 use Glugox\Magic\Support\Config\RelationType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -107,10 +108,10 @@ class ModelBuilderService
         // If no casts given in preset, infer from fields
         if (empty($casts)) {
             foreach ($fields as $field) {
-                $type = $field instanceof Field ? $field->getType() : $field['type'];
+                $type = $field->type;
                 $cast = $this->mapFieldTypeToCast($type);
                 if ($cast) {
-                    $name = $field instanceof Field ? $field->getName() : $field['name'];
+                    $name = $field instanceof Field ? $field->name : $field['name'];
                     $casts[$name] = $cast;
                 }
             }
@@ -197,14 +198,14 @@ PHP;
         return class_basename($fqcn);
     }
 
-    protected function mapFieldTypeToCast(string $type): ?string
+    protected function mapFieldTypeToCast(FieldType $type): ?string
     {
-        return match (strtolower($type)) {
-            'date' => 'date',
-            'datetime', 'timestamp' => 'datetime',
-            'bool', 'boolean' => 'boolean',
-            'int', 'integer' => 'integer',
-            'float', 'double', 'decimal' => 'float',
+        return match ($type) {
+            FieldType::DATE => 'date',
+            FieldType::DATETIME, FieldType::TIMESTAMP => 'datetime',
+            FieldType::BOOLEAN => 'boolean',
+            FieldType::INTEGER => 'integer',
+            FieldType::FLOAT, FieldType::DOUBLE, FieldType::DECIMAL => 'float',
             default => null,
         };
     }

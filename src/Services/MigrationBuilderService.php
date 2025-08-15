@@ -164,7 +164,7 @@ PHP;
         // Find existing columns
         $existingColumns = \Schema::getColumnListing($entity->getTableName());
         foreach ($entity->getFields() as $col) {
-            $name = $col->getName();
+            $name = $col->name;
             if (in_array($name, $existingColumns)) {
                 // Column exists, generate code to modify it
                 // TODO
@@ -205,60 +205,53 @@ PHP;
     {
 
         $line = '';
-        $type = $col->getType();
-        $name = $col->getName();
+        $typeStr = $col->type->value;
+        $name = $col->name;
 
         // Start building the line
-        if (in_array($type, ['timestamps', 'timestampsTz'])) {
-            // timestamps don’t take column name or params
-            return "\$table->{$type}();";
-        } elseif (in_array($type, ['softDeletes', 'softDeletesTz'])) {
-            return "\$table->{$type}();";
-        } else {
-            $args = ["'$name'"];
+        $args = ["'$name'"];
 
-            // Add length if exists and type supports it
-            if (method_exists($col, 'getLength') && $col->getLength() !== null) {
-                $args[] = $col->getLength();
-            }
-
-            // Add precision and scale if exist and type supports it
-            if (method_exists($col, 'getPrecision') && method_exists($col, 'getScale')) {
-                if ($col->getPrecision() !== null && $col->getScale() !== null) {
-                    $args[] = $col->getPrecision();
-                    $args[] = $col->getScale();
-                }
-            }
-
-            // Add type-specific arguments
-            // Enum type
-            if ($col->isEnum() && ! empty($col->getValues())) {
-                $values = '['.implode(', ', array_map(
-                    fn ($v) => json_encode($v, JSON_UNESCAPED_UNICODE),
-                    array_values($col->getValues())
-                )).']';
-                $args[] = $values;
-            }
-
-            $line .= "\$table->{$type}(".implode(', ', $args).')';
-
-            // Nullable
-            if (method_exists($col, 'isNullable') && $col->isNullable()) {
-                $line .= '->nullable()';
-            }
-            // Default value
-            if (method_exists($col, 'getDefault') && $col->getDefault() !== null) {
-                $default = var_export($col->getDefault(), true);
-                $line .= "->default({$default})";
-            }
-            // Comment
-            if (method_exists($col, 'getComment') && $col->getComment()) {
-                $comment = addslashes($col->getComment());
-                $line .= "->comment('{$comment}')";
-            }
-
-            return "$line;";
+        // Add length if exists and type supports it
+        if (method_exists($col, 'getLength') && $col->length !== null) {
+            $args[] = $col->length;
         }
+
+        // Add precision and scale if exist and type supports it
+        if (method_exists($col, 'getPrecision') && method_exists($col, 'getScale')) {
+            if ($col->precision !== null && $col->scale !== null) {
+                $args[] = $col->precision;
+                $args[] = $col->scale;
+            }
+        }
+
+        // Add type-specific arguments
+        // Enum type
+        if ($col->isEnum() && ! empty($col->values)) {
+            $values = '['.implode(', ', array_map(
+                    fn ($v) => json_encode($v, JSON_UNESCAPED_UNICODE),
+                    array_values($col->values)
+                )).']';
+            $args[] = $values;
+        }
+
+        $line .= "\$table->{$typeStr}(".implode(', ', $args).')';
+
+        // Nullable
+        if ($col->nullable) {
+            $line .= '->nullable()';
+        }
+        // Default value
+        if ($col->default !== null) {
+            $default = var_export($col->default, true);
+            $line .= "->default({$default})";
+        }
+        // Comment
+        if ($col->comment) {
+            $comment = addslashes($col->comment);
+            $line .= "->comment('{$comment}')";
+        }
+
+        return "$line;";
     }
 
     /**
