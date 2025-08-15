@@ -16,31 +16,30 @@ class Field
     /**
      * Create a new Field instance.
      *
-     * @param string $name The name of the field.
-     * @param FieldType $type The type of the field (e.g., 'string', 'integer').
-     * @param bool $nullable Whether the field can be null.
-     * @param int|null $length The length of the field (if applicable).
-     * @param int|null $precision The precision of the field (if applicable).
-     * @param int|null $scale The scale of the field (if applicable).
-     * @param mixed|null $default The default value for the field.
-     * @param string|null $comment An optional comment for the field.
-     * @param bool|null $sortable Whether the field is sortable in UI.
-     * @param bool|null $searchable Whether the field is searchable in UI.
-     * @param string[] $values Additional options for the field.
-     *
+     * @param  string  $name  The name of the field.
+     * @param  FieldType  $type  The type of the field (e.g., 'string', 'integer').
+     * @param  bool  $nullable  Whether the field can be null.
+     * @param  int|null  $length  The length of the field (if applicable).
+     * @param  int|null  $precision  The precision of the field (if applicable).
+     * @param  int|null  $scale  The scale of the field (if applicable).
+     * @param  mixed|null  $default  The default value for the field.
+     * @param  string|null  $comment  An optional comment for the field.
+     * @param  bool|null  $sortable  Whether the field is sortable in UI.
+     * @param  bool|null  $searchable  Whether the field is searchable in UI.
+     * @param  string[]  $values  Additional options for the field.
      */
     public function __construct(
-        public string    $name,
+        public string $name,
         public FieldType $type,
-        public bool      $nullable = false,
-        public ?int      $length = null,
-        public ?int      $precision = null,
-        public ?int      $scale = null,
-        public mixed     $default = null,
-        public ?string   $comment = null,
-        public ?bool     $sortable = false,
-        public ?bool     $searchable = false,
-        public array     $values = []
+        public bool $nullable = false,
+        public ?int $length = null,
+        public ?int $precision = null,
+        public ?int $scale = null,
+        public mixed $default = null,
+        public ?string $comment = null,
+        public ?bool $sortable = false,
+        public ?bool $searchable = false,
+        public array $values = []
     ) {}
 
     /**

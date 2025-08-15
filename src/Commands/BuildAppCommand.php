@@ -19,13 +19,13 @@ class BuildAppCommand extends MagicBaseCommand
      * The build steps to run in order.
      */
     private const array BUILD_STEPS = [
-        'magic:build-migrations'   => 'Building migrations',
-        'magic:build-models'       => 'Building models',
-        'magic:build-seeders'      => 'Building seeders',
-        'magic:build-controllers'  => 'Building controllers',
-        'magic:build-ts'           => 'Building TypeScript support files',
-        'magic:build-vue-pages'    => 'Building Vue pages',
-        'magic:update-vue-pages'   => 'Updating Vue sidebar',
+        'magic:build-migrations' => 'Building migrations',
+        'magic:build-models' => 'Building models',
+        'magic:build-seeders' => 'Building seeders',
+        'magic:build-controllers' => 'Building controllers',
+        'magic:build-ts' => 'Building TypeScript support files',
+        'magic:build-vue-pages' => 'Building Vue pages',
+        'magic:update-vue-pages' => 'Updating Vue sidebar',
     ];
 
     /**
@@ -59,29 +59,28 @@ class BuildAppCommand extends MagicBaseCommand
         }
 
         // Run migrations and optional seeding
-        Log::channel('magic')->info("Running migrations...");
+        Log::channel('magic')->info('Running migrations...');
         $this->call('migrate', ['--force' => true]);
 
         if ($this->getConfig()->dev->seedEnabled) {
             Log::channel('magic')->info("Seeding the database with default seedCount of {$this->getConfig()->dev->seedCount}...");
             $this->call('db:seed', ['--force' => true]);
         } else {
-            $this->warn("Database seeding is disabled in the config.");
+            $this->warn('Database seeding is disabled in the config.');
         }
 
-        Log::channel('magic')->info("✅ Build complete!");
+        Log::channel('magic')->info('✅ Build complete!');
+
         return CommandAlias::SUCCESS;
     }
-
-
 
     /**
      * Run a single build step with consistent messaging.
      */
     private function runStep(string $command, string $message): void
     {
-        $this->block->info($message . "...");
-        Log::channel('magic')->info("Sleeping only for demo purposes...");
+        $this->block->info($message.'...');
+        Log::channel('magic')->info('Sleeping only for demo purposes...');
         sleep(1.3);
         $this->call($command, [
             '--config' => $this->getConfigPath(),
@@ -89,6 +88,6 @@ class BuildAppCommand extends MagicBaseCommand
             '--set' => $this->option('set'),
         ]
         );
-        //$this->block->info("✅ {$message} completed!");
+        // $this->block->info("✅ {$message} completed!");
     }
 }

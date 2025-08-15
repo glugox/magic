@@ -73,6 +73,7 @@ HEADER;
     public static function writeFieldMeta(Field $field)
     {
         $tsType = TypeHelper::migrationTypeToTsType($field->type);
+
         return "{
             name: '{$field->name}',
             type: '{$tsType}',

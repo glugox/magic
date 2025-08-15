@@ -4,7 +4,6 @@ namespace Glugox\Magic\Support\Config;
 
 enum FieldType: string
 {
-
     case DATE = 'date';
     case DATETIME = 'dateTime';
     case TIME = 'time';

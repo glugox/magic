@@ -20,10 +20,11 @@ class Dev
 
         /**
          * Faker mappings for generating fake data.
+         *
          * @var array
          */
         public ?array $fakerMappings = null,
-    ){}
+    ) {}
 
     /**
      * Create a Dev configuration object from an array of properties.

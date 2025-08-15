@@ -57,7 +57,7 @@ class ControllerBuilderService
         $validationRules = [];
         foreach ($entity->getFields() as $field) {
             $rules = [];
-            if (!$field->nullable) {
+            if (! $field->nullable) {
                 $rules[] = 'required';
             } else {
                 $rules[] = 'sometimes';
