@@ -3,7 +3,7 @@
 [![PHP Version](https://img.shields.io/badge/php-%5E8.1-blue)](https://php.net)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-Lightweight PHP/Laravel toolkit designed to auto-generate all essential application files from entity configurations stored in JSON files. It streamlines tasks like database seeding and realistic data generation using Faker, making it perfect for testing, prototyping, and automation.
+Lightweight PHP/Laravel toolkit designed to auto-generate all essential application files from entity configurations stored in [JSON files](stubs/samples/inventory.json). It streamlines tasks like database seeding and realistic data generation using Faker, making it perfect for testing, prototyping, and automation.
 
 With Magic, you can build full-featured Laravel applications directly from configuration files, eliminating repetitive boilerplate and speeding up development.
 
