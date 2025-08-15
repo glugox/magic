@@ -37,7 +37,7 @@ class FreshCommand extends MagicBaseCommand
             '--set' => $overrides,
         ]);
 
-        Log::channel('magic')->info("Fresh complete!");
+        Log::channel('magic')->info('Fresh complete!');
 
         return 0;
     }

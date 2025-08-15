@@ -35,7 +35,7 @@ class BuildModelsCommand extends MagicBaseCommand
         $migrationBuilderService = new ModelBuilderService($this->getConfig());
         $migrationBuilderService->build();
 
-        Log::channel('magic')->info("Build models complete!");
+        Log::channel('magic')->info('Build models complete!');
 
         return 0;
     }

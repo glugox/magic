@@ -74,7 +74,6 @@ class Config
     }
 
     /**
-     * @param array $overrides
      * @return void
      *
      * Applies overrides to the configuration array.
@@ -82,7 +81,7 @@ class Config
      */
     public function applyOverrides(array $overrides): void
     {
-        Log::channel('magic')->info("Applying overrides to config: " . json_encode($overrides));
+        Log::channel('magic')->info('Applying overrides to config: '.json_encode($overrides));
         foreach ($overrides as $override) {
             [$key, $value] = explode('=', $override, 2);
             $keys = explode('.', $key);

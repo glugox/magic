@@ -37,7 +37,7 @@ class BuildTsCommand extends MagicBaseCommand
         $service = new TsBuilderService($this->files, $this->getConfig());
         $service->build();
 
-        Log::channel('magic')->info("Build TS complete!");
+        Log::channel('magic')->info('Build TS complete!');
 
         return 0;
     }

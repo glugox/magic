@@ -35,7 +35,7 @@ class BuildControllersCommand extends MagicBaseCommand
         $migrationBuilderService = new ControllerBuilderService($this->getConfig());
         $migrationBuilderService->build();
 
-        Log::channel('magic')->info("Build controllers complete!");
+        Log::channel('magic')->info('Build controllers complete!');
 
         return 0;
     }
