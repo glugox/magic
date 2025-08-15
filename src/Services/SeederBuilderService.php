@@ -8,6 +8,7 @@ use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class SeederBuilderService
@@ -133,6 +134,10 @@ PHP;
         $path = $this->seedersPath . "/{$className}.php";
         $this->files->put($path, $stub);
 
+        // Log the seeder creation
+        $pathRelative = str_replace($this->seedersPath . '/', '', $path);
+        Log::channel('magic')->info("Seeder created: {$pathRelative}");
+
         // Insert call to DatabaseSeeder
         $this->insertSeederCall($className);
 
@@ -194,6 +199,10 @@ PHP;
 
         $path = $this->seedersPath . "/{$seederClass}.php";
         $this->files->put($path, $stub);
+
+        // Log the pivot seeder creation
+        $pathRelative = str_replace($this->seedersPath . '/', '', $path);
+        Log::channel('magic')->info("Pivot seeder created: {$pathRelative}");
 
         // Append pivot seeder call at the **end** of DatabaseSeeder
         $filePath = $this->seedersPath . '/DatabaseSeeder.php';

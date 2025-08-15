@@ -2,8 +2,8 @@
 
 namespace Glugox\Magic\Commands;
 
-use Glugox\Magic\Support\ConfigLoader;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 
 class FreshCommand extends Command
 {
@@ -27,7 +27,7 @@ class FreshCommand extends Command
         ]);
 
 
-        $this->info("Fresh complete!");
+        Log::channel('magic')->info("Fresh complete!");
 
         return 0;
     }

@@ -7,6 +7,7 @@ use Glugox\Magic\Services\VuePageBuilderService;
 use Glugox\Magic\Support\ConfigLoader;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Facades\Log;
 
 class BuildTsCommand extends Command
 {
@@ -36,7 +37,7 @@ class BuildTsCommand extends Command
         $service = new TsBuilderService($this->files, $config);
         $service->build();
 
-        $this->info("Build TS complete!");
+        Log::channel('magic')->info("Build TS complete!");
 
         return 0;
     }

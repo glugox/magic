@@ -5,6 +5,7 @@ namespace Glugox\Magic\Commands;
 use Glugox\Magic\Services\ControllerBuilderService;
 use Glugox\Magic\Support\ConfigLoader;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 
 class BuildControllersCommand extends Command
 {
@@ -35,7 +36,7 @@ class BuildControllersCommand extends Command
 
 
 
-        $this->info("Build controllers complete!");
+        Log::channel('magic')->info("Build controllers complete!");
 
         return 0;
     }

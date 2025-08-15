@@ -51,7 +51,7 @@ class Field
      * @param int|null $length The length of the field (if applicable).
      * @param int|null $precision The precision of the field (if applicable).
      * @param int|null $scale The scale of the field (if applicable).
-     * @param mixed $default The default value for the field.
+     * @param mixed|null $default The default value for the field.
      * @param string|null $comment An optional comment for the field.
      * @param bool|null $sortable Whether the field is sortable in UI.
      * @param bool|null $searchable Whether the field is searchable in UI.
@@ -64,7 +64,7 @@ class Field
         private ?int    $length = null,
         private ?int    $precision = null,
         private ?int    $scale = null,
-        private         $default = null,
+        private mixed   $default = null,
         private ?string $comment = null,
         private ?bool   $sortable = false,
         private ?bool   $searchable = false,

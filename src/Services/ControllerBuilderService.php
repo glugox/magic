@@ -5,6 +5,7 @@ namespace Glugox\Magic\Services;
 use Glugox\Magic\Support\Config\Config;
 use Glugox\Magic\Support\Config\Entity;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class ControllerBuilderService
@@ -32,7 +33,7 @@ class ControllerBuilderService
     }
 
     /**
-     * @param Entity[] $entities
+     * Generate controllers for all entities defined in the config.
      */
     public function buildControllers(): void
     {
@@ -62,9 +63,6 @@ class ControllerBuilderService
                 $rules[] = 'sometimes';
             }
             switch (strtolower($field->getType())) {
-                case 'string':
-                    $rules[] = 'string';
-                    break;
                 case 'email':
                     $rules[] = 'email';
                     break;
@@ -179,7 +177,8 @@ PHP;
 
         File::put($filePath, $template);
 
-        echo "Inertia controller created: $filePath\n";
+        $relPath = str_replace(app_path('Http/Controllers/'), '', $filePath);
+        Log::channel('magic')->info("Controller created: {$relPath}");
     }
 
 
@@ -204,7 +203,7 @@ PHP;
 
         File::put($this->routesFilePath, $routesContent);
 
-        echo "Routes generated: {$this->routesFilePath}\n";
+        Log::channel('magic')->info("Routes generated and saved to: {$this->routesFilePath}");
 
         $this->ensureWebPhpRequiresAppPhp();
     }
@@ -221,16 +220,16 @@ PHP;
         if (!File::exists($webPhpPath)) {
             // Create minimal web.php if missing
             File::put($webPhpPath, "<?php\n\n$requireLine\n");
-            echo "Created routes/web.php and added require for app.php\n";
+            Log::channel('magic')->info( "Created routes/web.php and added require for app.php");
             return;
         }
 
         $webPhpContent = File::get($webPhpPath);
 
-        if (strpos($webPhpContent, $requireLine) === false) {
+        if (!str_contains($webPhpContent, $requireLine)) {
             // Append require line at the end
             File::append($webPhpPath, "\n$requireLine\n");
-            echo "Added require to routes/web.php\n";
+            Log::channel('magic')->info("Added require to routes/web.php");
         }
     }
 }

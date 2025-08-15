@@ -4,6 +4,7 @@ namespace Glugox\Magic\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Facades\Log;
 
 class ResetLaravelCommand extends Command
 {
@@ -13,7 +14,7 @@ class ResetLaravelCommand extends Command
 
     public function handle()
     {
-        $this->info("Starting Laravel reset...");
+        Log::channel('magic')->info("Starting Laravel reset...");
 
         $source = __DIR__ . '/../../stubs/laravel';
         $destination = base_path();
@@ -22,7 +23,7 @@ class ResetLaravelCommand extends Command
 
         $this->copyDirectoryRecursively($source, $destination, $files);
 
-        $this->info("Reset Laravel complete!");
+        Log::channel('magic')->info("Reset Laravel complete!");
         return 0;
     }
 
@@ -39,7 +40,7 @@ class ResetLaravelCommand extends Command
 
             // Copy the file, overwrite if exists
             if ($files->copy($item->getRealPath(), $targetPath)) {
-                $this->info("Copied: {$relativePath}");
+                Log::channel('magic')->info("Copied: {$relativePath}");
             } else {
                 $this->error("Failed to copy: {$relativePath}");
             }

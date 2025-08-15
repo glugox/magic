@@ -6,6 +6,7 @@ use Glugox\Magic\Services\SeederBuilderService;
 use Glugox\Magic\Support\ConfigLoader;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Facades\Log;
 
 class BuildSeedersCommand extends Command
 {
@@ -35,7 +36,7 @@ class BuildSeedersCommand extends Command
         $service = new SeederBuilderService($this->files, $config);
         $service->build();
 
-        $this->info("Build complete!");
+        Log::channel('magic')->info("Build complete!");
 
         return 0;
     }

@@ -9,6 +9,7 @@ use Glugox\Magic\Support\Config\Relation;
 use Glugox\Magic\Support\Config\RelationType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class ModelBuilderService
@@ -191,7 +192,8 @@ PHP;
         $filePath = $this->modelPath . '/' . $className . '.php';
         File::put($filePath, $template);
 
-        echo "Model created: $filePath\n";
+        $filePathRelative = str_replace(app_path('Models/'), '', $filePath);
+        Log::channel('magic')->info("Model created: $filePathRelative");
     }
 
     protected function shortClassName(string $fqcn): string

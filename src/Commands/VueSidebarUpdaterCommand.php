@@ -5,6 +5,7 @@ namespace Glugox\Magic\Commands;
 use Glugox\Magic\Services\VueSidebarUpdaterService;
 use Glugox\Magic\Support\ConfigLoader;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 
 class VueSidebarUpdaterCommand extends Command
 {
@@ -34,7 +35,7 @@ class VueSidebarUpdaterCommand extends Command
         $service = new VueSidebarUpdaterService($config);
         $service->update();
 
-        $this->info("Update Vue sidebar complete!");
+        Log::channel('magic')->info("Update Vue sidebar complete!");
 
         return 0;
     }

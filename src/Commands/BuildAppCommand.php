@@ -3,9 +3,11 @@
 namespace Glugox\Magic\Commands;
 
 use Glugox\Magic\Support\ConfigLoader;
+use Glugox\Magic\Support\ConsoleBlock;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Exception;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\Console\Command\Command as CommandAlias;
 
 class BuildAppCommand extends Command
@@ -29,8 +31,31 @@ class BuildAppCommand extends Command
         'magic:update-vue-pages'   => 'Updating Vue sidebar',
     ];
 
+    /**
+     * Console block for structured output.
+     *
+     * ex output:
+     *
+     * ```
+     *
+     * Building migrations...
+     *
+     * ✅ Building migrations completed!
+     *
+     * ```
+     */
+    private ConsoleBlock $block;
+
+    /**
+     * @throws \JsonException
+     */
     public function handle(): int
     {
+
+        // Initialize console block for structured output
+        $this->block = new ConsoleBlock($this);
+        $this->block->info('✨[MAGIC]✨ Building Laravel app...');
+
         // Resolve config path (option > config file default)
         $configPath = $this->option('config') ?? config('magic.config_path');
 
@@ -40,8 +65,8 @@ class BuildAppCommand extends Command
         }
 
         // Load config
-        $config = $this->loadConfig($configPath);
-        if (!$config) {
+        $config = ConfigLoader::load($configPath);
+        if (!$config->isValid()) {
             return CommandAlias::FAILURE;
         }
 
@@ -51,17 +76,17 @@ class BuildAppCommand extends Command
         }
 
         // Run migrations and optional seeding
-        $this->info("Running migrations...");
+        Log::channel('magic')->info("Running migrations...");
         $this->call('migrate', ['--force' => true]);
 
         if ($config->dev->isSeedEnabled()) {
-            $this->info("Seeding the database...");
+            Log::channel('magic')->info("Seeding the database...");
             $this->call('db:seed', ['--force' => true]);
         } else {
             $this->warn("Database seeding is disabled in the config.");
         }
 
-        $this->info("✅ Build complete!");
+        Log::channel('magic')->info("✅ Build complete!");
         return CommandAlias::SUCCESS;
     }
 
@@ -71,11 +96,11 @@ class BuildAppCommand extends Command
     private function setupStarterTemplate(?string $starter): ?string
     {
         if (!$starter) {
-            $this->info("No starter template specified, using default.");
+            Log::channel('magic')->info("No starter template specified, using default.");
             return null;
         }
 
-        $this->info("Using starter template: {$starter}");
+        Log::channel('magic')->info("Using starter template: {$starter}");
 
         $source = __DIR__ . "/../../stubs/samples/{$starter}.json";
         $destination = base_path("{$starter}.json");
@@ -86,25 +111,9 @@ class BuildAppCommand extends Command
         }
 
         File::copy($source, $destination);
-        $this->info("Copied starter template to: {$destination}");
+        Log::channel('magic')->info("Copied starter template to: {$destination}");
 
         return $destination;
-    }
-
-    /**
-     * Load and validate the config.
-     */
-    private function loadConfig(string $configPath)
-    {
-        $this->info("Loading config from: {$configPath}");
-        try {
-            $config = ConfigLoader::load($configPath);
-            $this->info("Config loaded successfully!");
-            return $config;
-        } catch (Exception $e) {
-            $this->error("Failed to load config: " . $e->getMessage());
-            return null;
-        }
     }
 
     /**
@@ -112,8 +121,8 @@ class BuildAppCommand extends Command
      */
     private function runStep(string $command, string $message, string $configPath): void
     {
-        $this->info($message . "...");
+        $this->block->info($message . "...");
         $this->call($command, ['--config' => $configPath]);
-        $this->info(str_replace('Building', '', $message) . " built successfully!");
+        //$this->block->info("✅ {$message} completed!");
     }
 }

@@ -26,6 +26,15 @@ class Config
     }
 
     /**
+     * Check if the configuration is valid.
+     */
+    public function isValid(): bool
+    {
+        // TODO: Implement validation logic
+        return true;
+    }
+
+    /**
      * @return Entity[]
      */
     public function getEntities(): array

@@ -33,7 +33,7 @@ class TsHelper
             $fieldHeader = "'{$field->getTitle()}'";
         }
 
-        $fieldStr = "{
+        return "{
                 id: '{$field->getName()}',
                 header: {$fieldHeader},
                 accessorKey: '{$field->getName()}',
@@ -44,7 +44,6 @@ class TsHelper
                 enableSorting: {$strEnableSorting},
                 enableHiding: true,
             }";
-        return $fieldStr;
     }
 
     /**

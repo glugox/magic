@@ -6,7 +6,7 @@ use Glugox\Magic\Support\Config\Config;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class MigrationBuilderService
 {
@@ -32,7 +32,7 @@ class MigrationBuilderService
         // 1. Check if migration already exists
         $migrationFiles = File::glob(database_path("migrations/*_create_{$tableName}_table.php"));
         if (!$isUpdate && !empty($migrationFiles)) {
-            echo "Skipping migration for '$tableName' — already exists.\n";
+            Log::channel('magic')->info("Skipping migration for '$tableName' — already exists.");
             return;
         }
 
@@ -96,7 +96,8 @@ PHP;
 
         File::put($migrationPath, $template);
 
-        echo ($isUpdate ? "Update" : "Create") . " migration created: $migrationPath\n";
+        $migrationPathRelative = str_replace(database_path('migrations/'), '', $migrationPath);
+        Log::channel('magic')->info(($isUpdate ? "Update" : "Create") . " migration created: $migrationPathRelative");
     }
 
     /**
@@ -116,7 +117,7 @@ PHP;
                 // 1. Check if migration already exists
                 $migrationFiles = File::glob(database_path("migrations/*_create_{$pivotTableName}_table.php"));
                 if (!empty($migrationFiles)) {
-                    echo "Skipping migration for '$pivotTableName' — already exists.\n";
+                    Log::channel('magic')->info("Skipping migration for '$pivotTableName' — already exists.");
                     return;
                 }
 
@@ -152,7 +153,8 @@ PHP;
 
                 File::put($migrationPath, $template);
 
-                echo "Pivot migration created: $migrationPath\n";
+                $migrationPathRelative = str_replace(database_path('migrations/'), '', $migrationPath);
+                Log::channel('magic')->info("Pivot migration created: $migrationPathRelative");
             }
         }
     }

@@ -7,7 +7,6 @@ use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Frontend\TsHelper;
 use Glugox\Magic\Support\TypeHelper;
 use Illuminate\Filesystem\Filesystem;
-use Illuminate\Support\Str;
 
 class TsBuilderService
 {

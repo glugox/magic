@@ -6,6 +6,7 @@ use Glugox\Magic\Services\VuePageBuilderService;
 use Glugox\Magic\Support\ConfigLoader;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Facades\Log;
 
 class BuildVuePagesCommand extends Command
 {
@@ -37,7 +38,7 @@ class BuildVuePagesCommand extends Command
 
 
 
-        $this->info("Build Vue pages complete!");
+        Log::channel('magic')->info("Build Vue pages complete!");
 
         return 0;
     }

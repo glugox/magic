@@ -5,6 +5,7 @@ namespace Glugox\Magic\Commands;
 use Glugox\Magic\Services\MigrationBuilderService;
 use Glugox\Magic\Support\ConfigLoader;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 
 class BuildMigrationsCommand extends Command
 {
@@ -32,9 +33,7 @@ class BuildMigrationsCommand extends Command
         $migrationBuilderService = new MigrationBuilderService($config);
         $migrationBuilderService->build();
 
-
-
-        $this->info("Build migrations complete!");
+        Log::channel('magic')->info("Build migrations complete!");
 
         return 0;
     }
