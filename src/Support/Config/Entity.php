@@ -7,20 +7,15 @@ class Entity
     public function __construct(
         private string $name,
         /** @var Field[] */
-        private array  $fields,
+        private array $fields,
         /** @var Relation[] */
-        private array  $relations = [],
+        private array $relations = [],
         /** @var string */
         private ?string $tableName = null,
-    )
-    {
-    }
+    ) {}
 
     /**
      * Create an Entity object from an array of properties.
-     *
-     * @param array $data
-     * @return Entity
      */
     public static function fromConfig(array $data): self
     {
@@ -69,7 +64,7 @@ class Entity
     public function getForeignKey(): string
     {
         // Usually the foreign key is snake_case of the entity name + '_id'
-        return \Str::snake($this->getName()) . '_id';
+        return \Str::snake($this->getName()).'_id';
     }
 
     /**
@@ -95,7 +90,7 @@ class Entity
     public function getHref(): string
     {
         // Convert entity name to kebab-case for href
-        return '/' . $this->getTableName();
+        return '/'.$this->getTableName();
     }
 
     /**
@@ -124,8 +119,6 @@ class Entity
 
     /**
      * Add a field to the entity.
-     *
-     * @param Field $field
      */
     public function addField(Field $field): void
     {
@@ -142,6 +135,7 @@ class Entity
                 return true;
             }
         }
+
         return false;
     }
 
@@ -164,6 +158,7 @@ class Entity
         foreach ($this->getFillableFields() as $field) {
             $fillable[] = $field->getName();
         }
+
         return $fillable;
     }
 
@@ -174,10 +169,11 @@ class Entity
     {
         $fillable = [];
         foreach ($this->fields as $field) {
-            if (!in_array($field->getName(), ['id', 'created_at', 'updated_at'])) {
+            if (! in_array($field->getName(), ['id', 'created_at', 'updated_at'])) {
                 $fillable[] = $field;
             }
         }
+
         return $fillable;
     }
 
@@ -194,6 +190,7 @@ class Entity
                 $hidden[] = $field;
             }
         }
+
         return $hidden;
     }
 
@@ -208,6 +205,7 @@ class Entity
         foreach ($this->getHiddenFields() as $field) {
             $hidden[] = $field->getName();
         }
+
         return $hidden;
     }
 
@@ -222,6 +220,7 @@ class Entity
                 $searchable[] = $field;
             }
         }
+
         return $searchable;
     }
 
@@ -236,13 +235,12 @@ class Entity
         foreach ($this->getSearchableFields() as $field) {
             $searchable[] = $field->getName();
         }
+
         return $searchable;
     }
 
     /**
      * Get the fields as JSON.
-     *
-     * @return string
      */
     public function getFieldsJson(): string
     {
@@ -259,17 +257,17 @@ class Entity
                 'comment' => $field->getComment(),
             ];
         }
+
         return json_encode($fields, JSON_PRETTY_PRINT);
     }
 
     /**
      * Get the casts for the fields.
-     *
-     * @return array
      */
     public function getCasts(): array
     {
         $casts = [];
+
         // TODO: Implement logic to determine casts based on field types
         return $casts;
     }
@@ -284,8 +282,6 @@ class Entity
 
     /**
      * Add a relation to the entity.
-     *
-     * @param Relation $relation
      */
     public function addRelation(Relation $relation): void
     {

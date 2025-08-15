@@ -6,23 +6,21 @@ namespace Glugox\Magic\Support\Config;
 
 class Config
 {
-    /** @var App */
     public App $app;
 
     /** @var Entity[] */
     private array $entities = [];
 
-    /** @var Dev */
     public Dev $dev;
 
     /**
-     * @param Entity[] $entities
+     * @param  Entity[]  $entities
      */
-    public function __construct(App $app, array $entities, Dev $dev = null)
+    public function __construct(App $app, array $entities, ?Dev $dev = null)
     {
         $this->entities = $entities;
         $this->app = $app;
-        $this->dev = $dev ?? new Dev();
+        $this->dev = $dev ?? new Dev;
     }
 
     /**
@@ -44,8 +42,6 @@ class Config
 
     /**
      * Convert the configuration from JSON string to Config object.
-     *
-     * @return Config
      */
     public static function fromJson(string $json): self
     {
@@ -67,7 +63,7 @@ class Config
      *
      * @return App
      */
-    public function getDevConfig() : Dev
+    public function getDevConfig(): Dev
     {
         return $this->dev;
     }

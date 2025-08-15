@@ -5,7 +5,6 @@ namespace Glugox\Magic\Services;
 use Glugox\Magic\Support\Config\Config;
 use Glugox\Magic\Support\Config\Entity;
 use Illuminate\Filesystem\Filesystem;
-use Illuminate\Support\Str;
 
 class VuePageBuilderService
 {
@@ -14,8 +13,7 @@ class VuePageBuilderService
     public function __construct(
         protected Filesystem $files,
         protected Config $config
-    )
-    {
+    ) {
         $this->pagesPath = resource_path('js/pages');
     }
 
@@ -32,15 +30,13 @@ class VuePageBuilderService
 
     /**
      * Generate the Index.vue page.
-     *
-     * @param Entity $entity
      */
     protected function generateIndexPage(Entity $entity)
     {
 
         $folderName = $entity->getFolderName();
         $path = "{$this->pagesPath}/{$folderName}/Index.vue";
-        if (!$this->files->isDirectory(dirname($path))) {
+        if (! $this->files->isDirectory(dirname($path))) {
             $this->files->makeDirectory(dirname($path), 0755, true);
         }
 
@@ -60,7 +56,7 @@ class VuePageBuilderService
 
         $path = "{$this->pagesPath}/{$folderName}/Edit.vue";
 
-        if (!$this->files->isDirectory(dirname($path))) {
+        if (! $this->files->isDirectory(dirname($path))) {
             $this->files->makeDirectory(dirname($path), 0755, true);
         }
 
@@ -146,7 +142,6 @@ PHP;
      */
     protected function getFormTemplate(string $className, string $columns): string
     {
-        return "TODO";
+        return 'TODO';
     }
 }
-
