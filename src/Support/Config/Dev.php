@@ -7,11 +7,13 @@ class Dev
     public function __construct(
         /**
          * Whether to enable seeding of the database with initial data.
+         *
          * @var bool|null
          */
         public ?bool $seedEnabled = false,
         /**
          * Number of records to seed for each entity.
+         *
          * @var int|null
          */
         public ?int $seedCount = 20,

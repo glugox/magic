@@ -7,6 +7,7 @@ class App
     public function __construct(
         /**
          * The name of the application.
+         *
          * @var string
          */
         public string $name
