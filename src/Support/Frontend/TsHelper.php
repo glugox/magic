@@ -27,11 +27,11 @@ class TsHelper
     public static function writeTableColumn(Field $field)
     {
         $tsType = TypeHelper::migrationTypeToTsType($field->type);
-        $strEnableSorting = $field->isSortable() ? 'true' : 'false';
-        if ($field->isSortable()) {
+        $strEnableSorting = $field->sortable ? 'true' : 'false';
+        if ($field->sortable) {
             $fieldHeader = static::writeSortableColumnHeader($field);
         } else {
-            $fieldHeader = "'{$field->getTitle()}'";
+            $fieldHeader = "'{$field->title()}'";
         }
 
         return "{
@@ -52,7 +52,7 @@ class TsHelper
      */
     public static function writeSortableColumnHeader(Field $field): string
     {
-        $fieldTitle = $field->getTitle();
+        $fieldTitle = $field->title();
         $header = <<< HEADER
 ({ column }) => {
             return h(Button, {
@@ -83,8 +83,8 @@ HEADER;
             scale: '.($field->scale !== null ? $field->scale : 'null').',
             default: '.($field->default !== null ? "'{$field->default}'" : 'null').',
             comment: '.($field->comment !== null ? "'{$field->comment}'" : 'null').',
-            sortable: '.($field->isSortable() ? 'true' : 'false').',
-            searchable: '.($field->isSearchable() ? 'true' : 'false').'
+            sortable: '.($field->sortable ? 'true' : 'false').',
+            searchable: '.($field->searchable ? 'true' : 'false').'
         }';
     }
 }

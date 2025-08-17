@@ -43,7 +43,7 @@ class ResetAppCommand extends MagicBaseCommand
     private ConsoleBlock $block;
 
     /**
-     * @throws \JsonException
+     * @throws \JsonException|\ReflectionException
      */
     public function handle()
     {
@@ -174,6 +174,33 @@ class ResetAppCommand extends MagicBaseCommand
             }
         } else {
             Log::channel('magic')->warning('Helpers directory does not exist. Nothing to delete.');
+        }
+
+        // Remove js pages for entities
+        $jsPagesPath = resource_path('js/pages');
+        if (is_dir($jsPagesPath)) {
+            // Delete files for each entity in separate directory
+            // named after the entity
+            foreach ($this->getConfig()->entities as $entity) {
+                $entityDir = $jsPagesPath.'/'.$entity->getName();
+                if (is_dir($entityDir)) {
+                    $files = glob($entityDir.'/*');
+                    foreach ($files as $file) {
+                        if (is_file($file)) {
+                            unlink($file);
+                            $fileRelative = str_replace(resource_path().'/', '', $file);
+                            Log::channel('magic')->info("JS page {$fileRelative} deleted successfully!");
+                        }
+                    }
+                    // Remove the directory itself
+                    rmdir($entityDir);
+                    Log::channel('magic')->info("JS pages directory for {$entity->getName()} deleted successfully!");
+                } else {
+                    Log::channel('magic')->warning("JS pages directory for {$entity->getName()} does not exist. Nothing to delete.");
+                }
+            }
+        } else {
+            Log::channel('magic')->warning('JS pages directory does not exist. Nothing to delete.');
         }
 
         // Reset Laravel app parts

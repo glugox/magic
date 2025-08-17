@@ -5,8 +5,10 @@ namespace Glugox\Magic\Services;
 use Glugox\Magic\Support\Config\Config;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
+use Glugox\Magic\Support\Config\FieldType;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 class MigrationBuilderService
 {
@@ -25,7 +27,7 @@ class MigrationBuilderService
     protected function generateMigrationForEntity(Entity $entity)
     {
         $tableName = $entity->getTableName();
-        $isUpdate = \Schema::hasTable($tableName);
+        $isUpdate = Schema::hasTable($tableName);
 
         // 1. Check if migration already exists
         $migrationFiles = File::glob(database_path("migrations/*_create_{$tableName}_table.php"));
@@ -49,6 +51,7 @@ class MigrationBuilderService
 use Illuminate\\Database\\Migrations\\Migration;
 use Illuminate\\Database\\Schema\\Blueprint;
 use Illuminate\\Support\\Facades\\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -67,12 +70,16 @@ $columnsCode
 PHP;
         } else {
             $columnsCode = $this->buildColumnsCode($entity);
+            // Keep db statements after the table is created
+            $dbStatements = $this->buildDbStatements($entity);
+
             $template = <<<PHP
 <?php
 
 use Illuminate\\Database\\Migrations\\Migration;
 use Illuminate\\Database\\Schema\\Blueprint;
 use Illuminate\\Support\\Facades\\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -81,6 +88,7 @@ return new class extends Migration
         Schema::create('$tableName', function (Blueprint \$table) {
 $columnsCode
         });
+$dbStatements
     }
 
     public function down(): void
@@ -162,7 +170,7 @@ PHP;
         $codeLines = [];
 
         // Find existing columns
-        $existingColumns = \Schema::getColumnListing($entity->getTableName());
+        $existingColumns = Schema::getColumnListing($entity->getTableName());
         foreach ($entity->getFields() as $col) {
             $name = $col->name;
             if (in_array($name, $existingColumns)) {
@@ -180,8 +188,6 @@ PHP;
 
     /**
      * Build the migration columns code from the entity fields.
-     *
-     * @param  Field[]  $columns
      */
     protected function buildColumnsCode(Entity $entity): string
     {
@@ -203,7 +209,6 @@ PHP;
      */
     protected function buildColumnCode(Field $col): string
     {
-
         $line = '';
         $typeStr = $col->type->value;
         $name = $col->name;
@@ -212,59 +217,69 @@ PHP;
         $args = ["'$name'"];
 
         // Add length if exists and type supports it
-        if (method_exists($col, 'getLength') && $col->length !== null) {
+        if ($col->length !== null) {
             $args[] = $col->length;
         }
 
         // Add precision and scale if exist and type supports it
-        if (method_exists($col, 'getPrecision') && method_exists($col, 'getScale')) {
-            if ($col->precision !== null && $col->scale !== null) {
-                $args[] = $col->precision;
-                $args[] = $col->scale;
-            }
+        if ($col->precision !== null && $col->scale !== null) {
+            $args[] = $col->precision;
+            $args[] = $col->scale;
         }
 
-        // Add type-specific arguments
-        // Enum type
-        if ($col->isEnum() && ! empty($col->values)) {
-            $values = '['.implode(', ', array_map(
-                fn ($v) => json_encode($v, JSON_UNESCAPED_UNICODE),
-                array_values($col->values)
-            )).']';
+        // Enum type values
+        if ($col->isEnum() && !empty($col->values)) {
+            $values = '[' . implode(', ', array_map(
+                    fn($v) => json_encode($v, JSON_UNESCAPED_UNICODE),
+                    array_values($col->values)
+                )) . ']';
             $args[] = $values;
         }
 
-        $line .= "\$table->{$typeStr}(".implode(', ', $args).')';
+        $line .= "\$table->{$typeStr}(" . implode(', ', $args) . ')';
 
         // Nullable
         if ($col->nullable) {
             $line .= '->nullable()';
         }
+
         // Default value
         if ($col->default !== null) {
             $default = var_export($col->default, true);
             $line .= "->default({$default})";
         }
+
         // Comment
         if ($col->comment) {
             $comment = addslashes($col->comment);
             $line .= "->comment('{$comment}')";
         }
 
+        // Return main line
         return "$line;";
     }
 
     /**
-     * Generate the pivot table name based on entity and target.
+     * Build additional DB statements after table creation.
      */
-    protected function getPivotTableName(string $entityName, string $targetEntityName): string
+    protected function buildDbStatements(Entity $entity): string
     {
-        $tables = [
-            \Str::snake(\Str::plural($entityName)),
-            \Str::snake(\Str::plural($targetEntityName)),
-        ];
-        sort($tables); // alphabetical order
+        $statements = [];
 
-        return implode('_', $tables);
+        foreach ($entity->getFields() as $field) {
+            if (in_array($field->type, [FieldType::INTEGER, FieldType::FLOAT, FieldType::DECIMAL])) {
+                if ($field->min > 0) {
+                    $statements[] = "// Add check constraint for minimum value";
+                    $statements[] = "if (config('database.default') !== 'sqlite') { DB::statement('ALTER TABLE {$entity->getTableName()} ADD CONSTRAINT chk_{$field->name}_min CHECK ({$field->name} >= {$field->min})'); }";
+                }
+                if ($field->max > 0) {
+                    $statements[] = "// Add check constraint for maximum value";
+                    $statements[] = "if (config('database.default') !== 'sqlite') { DB::statement('ALTER TABLE {$entity->getTableName()} ADD CONSTRAINT chk_{$field->name}_max CHECK ({$field->name} <= {$field->max})'); }";
+                }
+            }
+        }
+
+        // Return the statements as a string
+        return "\n        " . implode("\n        ", $statements); // Indented for migration
     }
 }

@@ -36,7 +36,7 @@
                 { "name": "id", "type": "bigIncrements", "nullable": false },
                 { "name": "name", "type": "string", "nullable": false, "searchable": true },
                 { "name": "location", "type": "string", "nullable": false },
-                { "name": "capacity", "type": "integer", "nullable": false },
+                { "name": "capacity", "type": "integer", "nullable": false, "min": 0, "max": 200 },
                 { "name": "metadata", "type": "json", "nullable": true }
             ],
             "relations": [
@@ -62,8 +62,8 @@
                 { "name": "warehouse_id", "type": "unsignedBigInteger", "nullable": false },
                 { "name": "name", "type": "string", "nullable": false, "searchable": true },
                 { "name": "sku", "type": "string", "nullable": false, "unique": true },
-                { "name": "price", "type": "decimal", "nullable": false },
-                { "name": "weight", "type": "float", "nullable": true },
+                { "name": "price", "type": "decimal", "nullable": false, "min": 0, "max": 10000 },
+                { "name": "weight", "type": "float", "nullable": true, "min": 0, "max": 100 },
                 { "name": "available_from", "type": "date", "nullable": true },
                 { "name": "expires_at", "type": "dateTime", "nullable": true },
                 { "name": "image", "type": "binary", "nullable": true },
@@ -83,7 +83,7 @@
                 { "name": "user_id", "type": "unsignedBigInteger", "nullable": false },
                 { "name": "order_number", "type": "string", "nullable": false, "unique": true },
                 { "name": "status", "type": "enum", "nullable": false, "values": ["pending", "processing", "shipped", "delivered"] },
-                { "name": "total", "type": "decimal", "nullable": false },
+                { "name": "total", "type": "decimal", "nullable": false, "min": 0, "max": 10000 },
                 { "name": "placed_at", "type": "dateTime", "nullable": false }
             ],
             "relations": [
@@ -98,8 +98,8 @@
                 { "name": "id", "type": "bigIncrements", "nullable": false },
                 { "name": "order_id", "type": "unsignedBigInteger", "nullable": false },
                 { "name": "product_id", "type": "unsignedBigInteger", "nullable": false },
-                { "name": "quantity", "type": "integer", "nullable": false },
-                { "name": "unit_price", "type": "decimal", "nullable": false }
+                { "name": "quantity", "type": "integer", "nullable": false, "min": 1, "max": 10 },
+                { "name": "unit_price", "type": "decimal", "nullable": false, "min": 0, "max": 10000 }
             ],
             "relations": [
                 { "type": "belongsTo", "entity": "Order", "foreign_key": "order_id" },
@@ -151,7 +151,7 @@
                 { "name": "id", "type": "bigIncrements", "nullable": false },
                 { "name": "reviewable_id", "type": "unsignedBigInteger", "nullable": false },
                 { "name": "reviewable_type", "type": "string", "nullable": false },
-                { "name": "rating", "type": "integer", "nullable": false },
+                { "name": "rating", "type": "integer", "nullable": false, "min": 0, "max": 10 },
                 { "name": "comment", "type": "text", "nullable": true }
             ],
             "relations": [

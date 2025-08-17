@@ -2,6 +2,7 @@
 
 namespace Glugox\Magic\Services;
 
+use Faker\Factory;
 use Glugox\Magic\Support\CodeGenerationHelper;
 use Glugox\Magic\Support\Config\Config;
 use Glugox\Magic\Support\Config\Entity;
@@ -274,7 +275,10 @@ PHP;
             }
 
             $fakerType = $this->guessFakerType($field);
-            $lines[] = "            '{$field->name}' => \$this->faker->{$fakerType},";
+            $finalMethodCode = $this->ensureChecksInFakerType($fakerType, $field);
+
+
+            $lines[] = "            '{$field->name}' => \$this->faker->{$finalMethodCode},";
         }
 
         return implode("\n", $lines);
@@ -285,7 +289,7 @@ PHP;
      */
     protected function guessFakerType(Field $field): string
     {
-        return $this->guessFakerMethod(\Faker\Factory::create(), $field);
+        return $this->guessFakerMethod(Factory::create(), $field);
     }
 
     /**
@@ -317,19 +321,27 @@ PHP;
         // we can use that method directly. For example, if the field name is "order_number",
         // we can use the "number" part to determine the Faker method.
         $wordAssocToType = [
-            'string' => 'word',
-            'number' => 'randomNumber',
-            'color' => 'hexColor',
-            'text' => 'text',
-            'date' => 'date',
-            'datetime' => 'dateTime',
-            'email' => 'safeEmail',
-            'phone' => 'phoneNumber',
-            'address' => 'address',
-            'city' => 'city',
-            'country' => 'country',
-            'postal' => 'postcode',
-            'url' => 'url',
+            'color' => 'hexColor()',
+            'text' => 'text()',
+            'email' => 'safeEmail()',
+            'phone' => 'phoneNumber()',
+            'address' => 'address()',
+            'location' => 'address()',
+            'name' => 'name()',
+            'first_name' => 'firstName()',
+            'last_name' => 'lastName()',
+            'full_name' => 'name()',
+            'username' => 'userName()',
+            'password' => 'password()',
+            'title' => 'sentence(3)',
+            'description' => 'paragraph()',
+            'content' => 'text()',
+            'comment' => 'sentence()',
+            'body' => 'paragraph()',
+            'city' => 'city()',
+            'country' => 'country()',
+            'postal' => 'postcode()',
+            'url' => 'url()',
         ];
 
         $typeStr = $field->type->value;
@@ -358,7 +370,7 @@ PHP;
         // 4. Although other fields than date can end with "_at", it is kind of a convention
         // to use "dateTime" for fields ending with "_at"
         if (str_ends_with($name, '_at')) {
-            return 'dateTime';
+            return 'dateTime()';
         }
 
         // 5. Fallback to type-based mapping
@@ -372,5 +384,41 @@ PHP;
         }
 
         return $typeFallbacks[strtolower($typeStr)] ?? 'word';
+    }
+
+    /**
+     * Ensure the Faker type is valid and add any necessary checks.
+     */
+    private function ensureChecksInFakerType(string $fakerType, Field $field): string
+    {
+        // Numeric integer types
+        if ($field->isNumeric()) {
+            $min = $field->min ?? 0;
+            $max = $field->max ?? $min + 1000; // fallback if max not defined
+            $fakerType = str_replace('randomNumber()', "numberBetween({$min}, {$max})", $fakerType);
+        }
+
+        // Float / decimal types
+        if (in_array($field->type, [FieldType::FLOAT, FieldType::DOUBLE, FieldType::DECIMAL])) {
+            $min = $field->min ?? 0;
+            $max = $field->max ?? $min + 1000;
+            $fakerType = str_replace('randomFloat()', "randomFloat(2, {$min}, {$max})", $fakerType);
+        }
+
+        // Date types
+        if ($field->type === FieldType::DATE) {
+            $min = $field->min ?? 0;
+            $max = $field->max ?? '+1 year';
+            $fakerType = str_replace('date()', "dateBetween('{$min}', '{$max}')", $fakerType);
+        }
+
+        // Datetime types
+        if ($field->type === FieldType::DATETIME) {
+            $min = $field->min ?? 'now';
+            $max = $field->max ?? '+1 year';
+            $fakerType = str_replace('dateTime()', "dateTimeBetween('{$min}', '{$max}')", $fakerType);
+        }
+
+        return $fakerType;
     }
 }
