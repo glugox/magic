@@ -15,19 +15,19 @@ class Field
     /**
      * Create a new Field instance.
      *
-     * @param string $name Field name
-     * @param FieldType $type Field type (enum)
-     * @param bool $nullable Whether the field can be null
-     * @param int|null $length String length if applicable
-     * @param int|null $precision Numeric precision
-     * @param int|null $scale Numeric scale
-     * @param mixed|null $default Default value
-     * @param string|null $comment Optional database comment
-     * @param bool $sortable Whether sortable in UI
-     * @param bool $searchable Whether searchable in UI
-     * @param string[] $values Enum or option values
-     * @param float $min Minimum allowed numeric value
-     * @param float $max Maximum allowed numeric value
+     * @param  string  $name  Field name
+     * @param  FieldType  $type  Field type (enum)
+     * @param  bool  $nullable  Whether the field can be null
+     * @param  int|null  $length  String length if applicable
+     * @param  int|null  $precision  Numeric precision
+     * @param  int|null  $scale  Numeric scale
+     * @param  mixed|null  $default  Default value
+     * @param  string|null  $comment  Optional database comment
+     * @param  bool  $sortable  Whether sortable in UI
+     * @param  bool  $searchable  Whether searchable in UI
+     * @param  string[]  $values  Enum or option values
+     * @param  float  $min  Minimum allowed numeric value
+     * @param  float  $max  Maximum allowed numeric value
      */
     public function __construct(
         public string $name,                 // field name
@@ -107,11 +107,31 @@ class Field
     }
 
     // Semantic checks for field types
-    public function isDate(): bool { return $this->type === FieldType::DATE; }
-    public function isDatetime(): bool { return $this->type === FieldType::DATETIME; }
-    public function isTime(): bool { return $this->type === FieldType::TIME; }
-    public function isTimestamp(): bool { return $this->type === FieldType::TIMESTAMP; }
-    public function isJson(): bool { return in_array($this->type, [FieldType::JSON, FieldType::JSONB], true); }
+    public function isDate(): bool
+    {
+        return $this->type === FieldType::DATE;
+    }
+
+    public function isDatetime(): bool
+    {
+        return $this->type === FieldType::DATETIME;
+    }
+
+    public function isTime(): bool
+    {
+        return $this->type === FieldType::TIME;
+    }
+
+    public function isTimestamp(): bool
+    {
+        return $this->type === FieldType::TIMESTAMP;
+    }
+
+    public function isJson(): bool
+    {
+        return in_array($this->type, [FieldType::JSON, FieldType::JSONB], true);
+    }
+
     public function isNumeric(): bool
     {
         return in_array($this->type, [
