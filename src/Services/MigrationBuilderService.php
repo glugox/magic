@@ -228,15 +228,15 @@ PHP;
         }
 
         // Enum type values
-        if ($col->isEnum() && !empty($col->values)) {
-            $values = '[' . implode(', ', array_map(
-                    fn($v) => json_encode($v, JSON_UNESCAPED_UNICODE),
-                    array_values($col->values)
-                )) . ']';
+        if ($col->isEnum() && ! empty($col->values)) {
+            $values = '['.implode(', ', array_map(
+                fn ($v) => json_encode($v, JSON_UNESCAPED_UNICODE),
+                array_values($col->values)
+            )).']';
             $args[] = $values;
         }
 
-        $line .= "\$table->{$typeStr}(" . implode(', ', $args) . ')';
+        $line .= "\$table->{$typeStr}(".implode(', ', $args).')';
 
         // Nullable
         if ($col->nullable) {
@@ -269,17 +269,17 @@ PHP;
         foreach ($entity->getFields() as $field) {
             if (in_array($field->type, [FieldType::INTEGER, FieldType::FLOAT, FieldType::DECIMAL])) {
                 if ($field->min > 0) {
-                    $statements[] = "// Add check constraint for minimum value";
+                    $statements[] = '// Add check constraint for minimum value';
                     $statements[] = "if (config('database.default') !== 'sqlite') { DB::statement('ALTER TABLE {$entity->getTableName()} ADD CONSTRAINT chk_{$field->name}_min CHECK ({$field->name} >= {$field->min})'); }";
                 }
                 if ($field->max > 0) {
-                    $statements[] = "// Add check constraint for maximum value";
+                    $statements[] = '// Add check constraint for maximum value';
                     $statements[] = "if (config('database.default') !== 'sqlite') { DB::statement('ALTER TABLE {$entity->getTableName()} ADD CONSTRAINT chk_{$field->name}_max CHECK ({$field->name} <= {$field->max})'); }";
                 }
             }
         }
 
         // Return the statements as a string
-        return "\n        " . implode("\n        ", $statements); // Indented for migration
+        return "\n        ".implode("\n        ", $statements); // Indented for migration
     }
 }

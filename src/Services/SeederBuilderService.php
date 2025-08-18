@@ -288,7 +288,6 @@ PHP;
             $fakerType = $this->guessFakerType($field);
             $finalMethodCode = $this->ensureChecksInFakerType($fakerType, $field);
 
-
             $lines[] = "            '{$field->name}' => \$this->faker->{$finalMethodCode},";
         }
 
