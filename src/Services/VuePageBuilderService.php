@@ -83,6 +83,7 @@ class VuePageBuilderService
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { type {$entityName} } from "@/types/app";
+import { type PaginationObject } from "@/types/magic";
 import { Head } from '@inertiajs/vue3';
 import { get{$entityName}Columns, get{$entityName}EntityMeta } from '@/helpers/{$folderName}_helper';
 import PlaceholderPattern from '@/components/PlaceholderPattern.vue'
@@ -90,7 +91,7 @@ import ResourceTable from '@/components/ResourceTable.vue';
 import {ColumnDef} from "@tanstack/vue-table";
 
 interface Props {
-    data: {$entityName}[];
+    data: PaginationObject;
 }
 
 const { data }: Props = defineProps<Props>();

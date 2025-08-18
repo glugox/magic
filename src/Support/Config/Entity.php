@@ -50,6 +50,14 @@ class Entity
     }
 
     /**
+     * Get directory name for the entity.
+     */
+    public function getDirectoryName(): string
+    {
+        return $this->getTableName();
+    }
+
+    /**
      * Get db table name for the entity.
      */
     public function getTableName(): string
@@ -85,6 +93,15 @@ class Entity
     }
 
     /**
+     * Get the resource path for the entity.
+     */
+    public function getResourcePath(): string
+    {
+        // Convert entity name to kebab-case for resource path
+        return $this->getFolderName() . '.index';
+    }
+
+    /**
      * Get the href for the entity.
      */
     public function getHref(): string
@@ -99,6 +116,14 @@ class Entity
     public function getPluralName(): string
     {
         return \Str::plural($this->name);
+    }
+
+    /**
+     * Entity name in singular form.
+     */
+    public function getSingularName(): string
+    {
+        return \Str::singular($this->name);
     }
 
     /**

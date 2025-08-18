@@ -182,7 +182,7 @@ class ResetAppCommand extends MagicBaseCommand
             // Delete files for each entity in separate directory
             // named after the entity
             foreach ($this->getConfig()->entities as $entity) {
-                $entityDir = $jsPagesPath.'/'.$entity->getName();
+                $entityDir = $jsPagesPath.'/'.$entity->getDirectoryName();
                 if (is_dir($entityDir)) {
                     $files = glob($entityDir.'/*');
                     foreach ($files as $file) {

@@ -248,9 +248,20 @@ PHP;
         $lines = [];
         $typesNotForFaker = [FieldType::JSON, FieldType::JSONB, FieldType::FILE, FieldType::IMAGE];
 
+        Log::channel('magic')->info("Building Faker fields for entity: {$entity->getName()}");
+
         foreach ($entity->getFields() as $field) {
 
             if (in_array($field->name, ['id', 'created_at', 'updated_at', 'deleted_at'])) {
+                continue;
+            }
+
+            // Enforce seeder rulers from config
+            if ($field->type === FieldType::PASSWORD && ! $this->config->dev->strongPasswords) {
+                Log::channel('magic')->info("Using simple password for field '{$field->name}' in entity '{$entity->getName()}'");
+                $passwordHash = config('magic.default_password_hash', '$2y$12$00A.1FrCk3FctOEVIHlkLu5qYNfFdBGJUCyzdMaGcvC9CPTgPoIgK');
+
+                $lines[] = "            '{$field->name}' => '$passwordHash', // Simple password for testing ('password')";
                 continue;
             }
 
@@ -348,6 +359,7 @@ PHP;
 
         // 1. Check if the field name matches a predefined mapping
         if (isset($map[$name])) {
+            Log::channel('magic')->info("Using predefined Faker mapping for field '{$field->name}': {$map[$name]}");
             return $map[$name];
         }
 
@@ -363,6 +375,7 @@ PHP;
         foreach ($wordAssocToType as $word => $availableType) {
             // Check exact match
             if ($name === $word || str_ends_with($name, "_{$word}") || str_starts_with($name, "{$word}_")) {
+                Log::channel('magic')->info("Using word association for field '{$field->name}': {$availableType}");
                 return $availableType;
             }
         }
@@ -370,6 +383,7 @@ PHP;
         // 4. Although other fields than date can end with "_at", it is kind of a convention
         // to use "dateTime" for fields ending with "_at"
         if (str_ends_with($name, '_at')) {
+            Log::channel('magic')->info("Using dateTime mapping for field '{$field->name}'");
             return 'dateTime()';
         }
 
@@ -383,7 +397,10 @@ PHP;
             }
         }
 
-        return $typeFallbacks[strtolower($typeStr)] ?? 'word';
+        // If the type is not found in the map, use a default type
+        $fallbackValue = $typeFallbacks[strtolower($typeStr)] ?? 'word';
+        Log::channel('magic')->info("Using fallback Faker mapping for field '{$field->name}': {$typeStr} which is: {$fallbackValue}");
+        return $fallbackValue;
     }
 
     /**

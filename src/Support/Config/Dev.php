@@ -21,9 +21,14 @@ class Dev
         /**
          * Faker mappings for generating fake data.
          *
-         * @var array
          */
         public ?array $fakerMappings = null,
+
+        /**
+         * Whether to generate strong passwords (longer time) for seeded users,
+         * or use 'password' (faster) for testing purposes.
+         */
+        public ?bool $strongPasswords = false
     ) {}
 
     /**
@@ -34,7 +39,8 @@ class Dev
         return new self(
             $data['seedEnabled'] ?? false,
             $data['seedCount'] ?? 20,
-            $data['fakerMappings'] ?? null
+            $data['fakerMappings'] ?? null,
+            $data['strongPasswords'] ?? false
         );
     }
 }

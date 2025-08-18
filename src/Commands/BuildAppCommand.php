@@ -23,6 +23,8 @@ class BuildAppCommand extends MagicBaseCommand
         'magic:build-models' => 'Building models',
         'magic:build-seeders' => 'Building seeders',
         'magic:build-controllers' => 'Building controllers',
+        'magic:install-node-packages' => 'Installing Node.js packages',
+        'magic:publish-files' => 'Publishing magic files',
         'magic:build-ts' => 'Building TypeScript support files',
         'magic:build-vue-pages' => 'Building Vue pages',
         'magic:update-vue-pages' => 'Updating Vue sidebar',
@@ -30,16 +32,7 @@ class BuildAppCommand extends MagicBaseCommand
 
     /**
      * Console block for structured output.
-     *
-     * ex output:
-     *
-     * ```
-     *
-     * Building migrations...
-     *
-     * ✅ Building migrations completed!
-     *
-     * ```
+     * Displays messages as a header.
      */
     private ConsoleBlock $block;
 

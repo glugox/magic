@@ -10,6 +10,8 @@ use Glugox\Magic\Commands\BuildSeedersCommand;
 use Glugox\Magic\Commands\BuildTsCommand;
 use Glugox\Magic\Commands\BuildVuePagesCommand;
 use Glugox\Magic\Commands\FreshCommand;
+use Glugox\Magic\Commands\InstallNodePackagesCommand;
+use Glugox\Magic\Commands\PublishFilesCommand;
 use Glugox\Magic\Commands\ResetAppCommand;
 use Glugox\Magic\Commands\ResetLaravelCommand;
 use Glugox\Magic\Commands\VueSidebarUpdaterCommand;
@@ -43,6 +45,8 @@ class MagicServiceProvider extends ServiceProvider
                 FreshCommand::class,
                 BuildTsCommand::class,
                 ResetLaravelCommand::class,
+                InstallNodePackagesCommand::class,
+                PublishFilesCommand::class,
             ]);
         }
     }

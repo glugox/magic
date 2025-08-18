@@ -91,9 +91,32 @@ class $controllerClass extends Controller
      */
     public function index()
     {
-        \$items = $modelClass::all();
+        \$request = request();
+        \$query = $modelClass::query();
+
+        // Sorting
+        \$sorts = (array) \$request->get('sort', []);
+        foreach (\$sorts as \$sort) {
+            [\$column, \$direction] = explode(':', \$sort);
+            \$query->orderBy(\$column, \$direction);
+        }
+        // Search
+        \$search = \$request->get('search');
+        if (\$search) {
+            \$query->where(function (\$q) use (\$search) {
+                \$q->where('name', 'like', "%{\$search}%")
+                  ->orWhere('email', 'like', "%{\$search}%");
+            });
+        }
+        \$items = \$query->paginate(
+            \$request->integer('per_page', 15),
+            ['*'],
+            'page',
+            \$request->integer('page', 1)
+        );
 
         return Inertia::render('$vuePage/Index', [
+            'filters' => request()->only(['search', 'sort', 'direction']),
             'data' => \$items,
         ]);
     }

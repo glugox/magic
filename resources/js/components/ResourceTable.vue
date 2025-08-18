@@ -1,145 +1,172 @@
 <script setup lang="ts">
-// This file is part of the generated code for the ResourceTable component.
-import type {
-    ColumnDef,
-    ColumnFiltersState,
-    ExpandedState,
-    SortingState,
-    VisibilityState,
-} from "@tanstack/vue-table"
+import { ref, watch, computed } from "vue"
+import { router, usePage } from "@inertiajs/vue3"
 import {
-    FlexRender,
+    createColumnHelper,
     getCoreRowModel,
-    getExpandedRowModel,
-    getFilteredRowModel,
-    getPaginationRowModel,
-    getSortedRowModel,
     useVueTable,
+    SortingState,
+    FlexRender
 } from "@tanstack/vue-table"
-import { ArrowUpDown, ChevronDown } from "lucide-vue-next"
-import { h, ref } from "vue"
-import { valueUpdater } from "@/utils"
-
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
 import {
-    DropdownMenu,
-    DropdownMenuCheckboxItem,
-    DropdownMenuContent,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table"
-import {Entity} from "@/types/app";
-//import DropdownAction from "./DataTableDemoColumn.vue"
+    Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from '@/components/ui/table'
+import { Button } from '@/components/ui/button'
+import { Entity } from '@/types/app'
 
-interface Props {
-    columns?: ColumnDef<any>[];
-    data?: any[];
-    entityMeta?: Entity
+type User = {
+    id: number
+    name: string
+    email: string
+    created_at: string
 }
-const { columns = [], data = [], entityMeta } = defineProps<Props>()
 
-const sorting = ref<SortingState>([])
-const columnFilters = ref<ColumnFiltersState>([])
-const columnVisibility = ref<VisibilityState>({})
-const rowSelection = ref({})
-const expanded = ref<ExpandedState>({})
+interface PaginationObject {
+    data: any[]
+    total: number
+    current_page: number
+    per_page: number
+    search?: string
+    sort_key?: string
+    last_page?: number
+    sort_dir?: "asc" | "desc"
+    prev_page_url?: string | null
+    next_page_url?: string | null
+    [key: string]: any
+}
 
-const defaultSearchColumn = entityMeta?.fields
-    .find(field => field.searchable)?.name || null
+
+const { data, columns, entityMeta } = defineProps<{
+    data: PaginationObject,
+    columns ?: any[],
+    entityMeta?: Entity
+}>()
+
+console.log("Initial page:", data)
+
+const rows = ref<User[]>(data.data)
+const page = ref(data.current_page)
+const perPage = ref(data.per_page)
+const total = ref(data.total)
+const search = ref(data.search ?? "")
+const lastPage = ref(data.last_page ?? 1)
+const prevPageUrl = ref(data.prev_page_url ?? null)
+const nextPageUrl = ref(data.next_page_url ?? null)
+const sorting = ref<SortingState>(
+    data.sort_key && data.sort_dir
+        ? [{ id: data.sort_key, desc: data.sort_dir === "desc" }]
+        : []
+)
+
+// Only send the text; server decides which columns are searchable.
+const debounced = (fn: Function, ms = 400) => {
+    let t: number | undefined
+    return (...args: any[]) => {
+        clearTimeout(t)
+        // @ts-ignore
+        t = setTimeout(() => fn(...args), ms)
+    }
+}
+const send = () => {
+    const sort = sorting.value[0]
+    router.get(
+        route(entityMeta.resourcePath),
+        {
+            page: page.value,
+            perPage: perPage.value,
+            sortKey: sort?.id ?? null,
+            sortDir: sort ? (sort.desc ? "desc" : "asc") : null,
+            search: search.value || null,
+        },
+        { preserveState: true, preserveScroll: true, replace: true }
+    )
+}
+const sendDebounced = debounced(send, 400)
 
 const table = useVueTable({
-    data,
+    data: rows.value,
     columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
-    onSortingChange: updaterOrValue => valueUpdater(updaterOrValue, sorting),
-    onColumnFiltersChange: updaterOrValue => valueUpdater(updaterOrValue, columnFilters),
-    onColumnVisibilityChange: updaterOrValue => valueUpdater(updaterOrValue, columnVisibility),
-    onRowSelectionChange: updaterOrValue => valueUpdater(updaterOrValue, rowSelection),
-    onExpandedChange: updaterOrValue => valueUpdater(updaterOrValue, expanded),
-    state: {
-        get sorting() { return sorting.value },
-        get columnFilters() { return columnFilters.value },
-        get columnVisibility() { return columnVisibility.value },
-        get rowSelection() { return rowSelection.value },
-        get expanded() { return expanded.value },
+    state: { sorting: sorting.value },
+    onSortingChange: updater => {
+        sorting.value = typeof updater === "function" ? updater(sorting.value) : updater
+        page.value = 1 // reset to first page when sorting changes
+        send()
     },
+    manualSorting: true,
+    manualPagination: true,
+    getCoreRowModel: getCoreRowModel(),
+    pageCount: computed(() => Math.ceil(total.value / perPage.value)).value,
+})
+
+// react to Inertia updates (when server responds)
+watch(
+    () => data,
+    (props: PaginationObject) => {
+        rows.value = props.data
+        total.value = props.total
+        page.value = props.current_page
+        perPage.value = props.per_page
+        lastPage.value = props.last_page ?? 1
+        prevPageUrl.value = props.prev_page_url ?? null
+        nextPageUrl.value = props.next_page_url ?? null
+        sorting.value =
+            props.sort_key && props.sort_dir
+                ? [{ id: props.sort_key, desc: props.sort_dir === "desc" }]
+                : []
+        search.value = props.search ?? ""
+        table.setOptions(prev => ({ ...prev, data: rows.value }))
+    }
+)
+
+watch([page, perPage], send)
+watch(search, () => {
+    page.value = 1
+    sendDebounced()
 })
 </script>
 
 <template>
-    <div class="w-full">
-        <div class="flex items-center pb-4">
-            <Input
-                v-if="defaultSearchColumn"
-                class="max-w-sm"
-                placeholder="Search..."
-                :model-value="table.getColumn(defaultSearchColumn)?.getFilterValue() as string"
-                @update:model-value=" table.getColumn('email')?.setFilterValue($event)"
+    <div class="p-4 space-y-3">
+        <div class="flex gap-2 items-center">
+            <input
+                v-model="search"
+                type="search"
+                placeholder="Search…"
+                class="border rounded px-2 py-1 w-64"
             />
-            <DropdownMenu>
-                <DropdownMenuTrigger as-child>
-                    <Button variant="outline" class="ml-auto">
-                        Columns <ChevronDown class="ml-2 h-4 w-4" />
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuCheckboxItem
-                        v-for="column in table.getAllColumns().filter((column) => column.getCanHide())"
-                        :key="column.id"
-                        class="capitalize"
-                        :model-value="column.getIsVisible()"
-                        @update:model-value="(value) => {
-              column.toggleVisibility(!!value)
-            }"
-                    >
-                        {{ column.id }}
-                    </DropdownMenuCheckboxItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
+            <select v-model.number="perPage" class="border rounded px-2 py-1">
+                <option :value="10">10</option>
+                <option :value="25">25</option>
+                <option :value="50">50</option>
+            </select>
         </div>
+
+        <!-- Table -->
         <div class="rounded-md border">
             <Table>
                 <TableHeader>
                     <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
                         <TableHead v-for="header in headerGroup.headers" :key="header.id">
-                            <FlexRender v-if="!header.isPlaceholder" :render="header.column.columnDef.header" :props="header.getContext()" />
+                            <FlexRender
+                                v-if="!header.isPlaceholder"
+                                :render="header.column.columnDef.header"
+                                :props="header.getContext()"
+                            />
                         </TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    <template v-if="table.getRowModel().rows?.length">
+                    <template v-if="rows.length">
                         <template v-for="row in table.getRowModel().rows" :key="row.id">
-                            <TableRow :data-state="row.getIsSelected() && 'selected'">
+                            <TableRow>
                                 <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id">
-                                    <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
-                                </TableCell>
-                            </TableRow>
-                            <TableRow v-if="row.getIsExpanded()">
-                                <TableCell :colspan="row.getAllCells().length">
-                                    {{ JSON.stringify(row.original) }}
+                                    {{ cell.getValue() }}
                                 </TableCell>
                             </TableRow>
                         </template>
                     </template>
-
                     <TableRow v-else>
-                        <TableCell
-                            :colspan="columns.length"
-                            class="h-24 text-center"
-                        >
+                        <TableCell :colspan="columns.length" class="h-24 text-center">
                             No results.
                         </TableCell>
                     </TableRow>
@@ -147,29 +174,24 @@ const table = useVueTable({
             </Table>
         </div>
 
-        <div class="flex items-center justify-end space-x-2 py-4">
-            <div class="flex-1 text-sm text-muted-foreground">
-                {{ table.getFilteredSelectedRowModel().rows.length }} of
-                {{ table.getFilteredRowModel().rows.length }} row(s) selected.
-            </div>
+        <!-- Pagination -->
+        <div class="flex justify-between mt-4">
+            <div>Page {{ page }} of {{ lastPage }} ({{ total }} rows)</div>
             <div class="space-x-2">
                 <Button
-                    variant="outline"
-                    size="sm"
-                    :disabled="!table.getCanPreviousPage()"
-                    @click="table.previousPage()"
+                    :disabled="!prevPageUrl"
+                    @click="prevPageUrl && router.get(prevPageUrl, {}, { preserveState: true })"
                 >
                     Previous
                 </Button>
                 <Button
-                    variant="outline"
-                    size="sm"
-                    :disabled="!table.getCanNextPage()"
-                    @click="table.nextPage()"
+                    :disabled="!nextPageUrl"
+                    @click="nextPageUrl && router.get(nextPageUrl, {}, { preserveState: true })"
                 >
                     Next
                 </Button>
             </div>
         </div>
+
     </div>
 </template>

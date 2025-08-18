@@ -109,6 +109,7 @@ class Field
     // Semantic checks for field types
     public function isDate(): bool { return $this->type === FieldType::DATE; }
     public function isDatetime(): bool { return $this->type === FieldType::DATETIME; }
+    public function isPassword(): bool { return $this->type === FieldType::PASSWORD; }
     public function isTime(): bool { return $this->type === FieldType::TIME; }
     public function isTimestamp(): bool { return $this->type === FieldType::TIMESTAMP; }
     public function isJson(): bool { return in_array($this->type, [FieldType::JSON, FieldType::JSONB], true); }

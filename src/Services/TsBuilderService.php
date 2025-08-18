@@ -131,6 +131,10 @@ export function get{$entityName}Columns(): ColumnDef<{$entityName}>[] {
 
 export function get{$entityName}EntityMeta(): Entity {
     return {
+        name: '{$entityName}',
+        resourcePath: '{$entity->getResourcePath()}',
+        singularName: '{$entity->getSingularName()}',
+        pluralName: '{$entity->getPluralName()}',
         fields: [
             // Define fields for the entity
             {$this->getColumnsMeta($entity)}
@@ -228,6 +232,7 @@ EOT;
     {
         $vueFiles = [
             'components/ResourceTable.vue',
+            'types/magic.ts',
         ];
 
         foreach ($vueFiles as $file) {
