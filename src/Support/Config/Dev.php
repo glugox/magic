@@ -20,7 +20,6 @@ class Dev
 
         /**
          * Faker mappings for generating fake data.
-         *
          */
         public ?array $fakerMappings = null,
 
