@@ -98,7 +98,7 @@ class Entity
     public function getResourcePath(): string
     {
         // Convert entity name to kebab-case for resource path
-        return $this->getFolderName().'.index';
+        return $this->getFolderName() . '.index';
     }
 
     /**

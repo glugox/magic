@@ -2,10 +2,11 @@
 
 namespace Glugox\Magic\Commands;
 
-use Illuminate\Support\Facades\Log;
-use Symfony\Component\Console\Command\Command as CommandAlias;
-use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
+use Symfony\Component\Process\Exception\ProcessFailedException;
+use Symfony\Component\Console\Command\Command as CommandAlias;
+use Illuminate\Support\Facades\Log;
+
 
 class InstallNodePackagesCommand extends MagicBaseCommand
 {
@@ -41,7 +42,6 @@ class InstallNodePackagesCommand extends MagicBaseCommand
         foreach ($this->shadcnComponents as $component) {
             if ($this->isShadcnInstalled($component, $packageJson)) {
                 Log::channel('magic')->info("shadcn-vue component [$component] already installed, skipping...");
-
                 continue;
             }
 
@@ -57,17 +57,15 @@ class InstallNodePackagesCommand extends MagicBaseCommand
         foreach ($this->npmPackages as $package) {
             if ($this->isPackageInstalled($package, $packageJson)) {
                 Log::channel('magic')->info("npm package [$package] already installed, skipping...");
-
                 continue;
             }
 
             $this->runProcess([
-                'npm', 'install', $package, '--save-dev',
+                'npm', 'install', $package, '--save-dev'
             ], "Installing npm package [$package]...");
         }
 
         Log::channel('magic')->info('All Node.js dependencies are up to date!');
-
         return CommandAlias::SUCCESS;
     }
 
@@ -77,7 +75,6 @@ class InstallNodePackagesCommand extends MagicBaseCommand
     protected function isShadcnInstalled(string $component): bool
     {
         $uiPath = resource_path("js/components/ui/{$component}.vue");
-
         return file_exists($uiPath) || is_dir(resource_path("js/components/ui/{$component}"));
     }
 
@@ -104,7 +101,7 @@ class InstallNodePackagesCommand extends MagicBaseCommand
             echo $buffer;
         });
 
-        if (! $process->isSuccessful()) {
+        if (!$process->isSuccessful()) {
             throw new ProcessFailedException($process);
         }
     }

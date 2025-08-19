@@ -262,7 +262,6 @@ PHP;
                 $passwordHash = config('magic.default_password_hash', '$2y$12$00A.1FrCk3FctOEVIHlkLu5qYNfFdBGJUCyzdMaGcvC9CPTgPoIgK');
 
                 $lines[] = "            '{$field->name}' => '$passwordHash', // Simple password for testing ('password')";
-
                 continue;
             }
 
@@ -360,7 +359,6 @@ PHP;
         // 1. Check if the field name matches a predefined mapping
         if (isset($map[$name])) {
             Log::channel('magic')->info("Using predefined Faker mapping for field '{$field->name}': {$map[$name]}");
-
             return $map[$name];
         }
 
@@ -377,7 +375,6 @@ PHP;
             // Check exact match
             if ($name === $word || str_ends_with($name, "_{$word}") || str_starts_with($name, "{$word}_")) {
                 Log::channel('magic')->info("Using word association for field '{$field->name}': {$availableType}");
-
                 return $availableType;
             }
         }
@@ -386,7 +383,6 @@ PHP;
         // to use "dateTime" for fields ending with "_at"
         if (str_ends_with($name, '_at')) {
             Log::channel('magic')->info("Using dateTime mapping for field '{$field->name}'");
-
             return 'dateTime()';
         }
 
@@ -403,7 +399,6 @@ PHP;
         // If the type is not found in the map, use a default type
         $fallbackValue = $typeFallbacks[strtolower($typeStr)] ?? 'word';
         Log::channel('magic')->info("Using fallback Faker mapping for field '{$field->name}': {$typeStr} which is: {$fallbackValue}");
-
         return $fallbackValue;
     }
 
