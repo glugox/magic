@@ -99,6 +99,7 @@ import {h} from "vue";
 import {Button} from "@/components/ui/button";
 import {ArrowUpDown} from "lucide-vue-next";
 import Avatar from "@/components/Avatar.vue";
+import {parseBool} from "@/lib/utils";
 
 export function get{$entityName}Columns(): ColumnDef<{$entityName}>[] {
     return [

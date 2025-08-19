@@ -2,26 +2,12 @@
 
 namespace Glugox\Magic\Support\Frontend;
 
-use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Config\FieldType;
 use Glugox\Magic\Support\TypeHelper;
 
 class TsHelper
 {
-    /**
-     * Write table columns for a given entity.
-     */
-    public static function writeTableColumns(Entity $entity): string
-    {
-        $columns = '';
-        foreach ($entity->getFields() as $field) {
-            $columns .= static::writeTableColumn($field);
-        }
-
-        return $columns;
-    }
-
     /**
      * Write a single table column definition.
      */
@@ -133,7 +119,7 @@ HEADER;
                 break;
 
             case FieldType::BOOLEAN:
-                $cellRenderer = "return h(Checkbox, { checked: !!cell.getValue(), disabled: true })";
+                $cellRenderer = "return h(Checkbox, { 'modelValue': parseBool(cell.getValue()), disabled: true })";
                 break;
 
             case FieldType::DATE:
