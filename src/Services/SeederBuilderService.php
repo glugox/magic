@@ -284,9 +284,9 @@ PHP;
             if ($fakerExtension) {
                 Log::channel('magic')->info("Using Faker extension for field '{$field->name}' in entity '{$entity->getName()}'");
                 $lines[] = "            '{$field->name}' => {$fakerExtension->handle(Factory::create())},";
+
                 continue;
             }
-
 
             // Skip fields that are not suitable for Faker
             if (in_array($field->type, $typesNotForFaker)) {

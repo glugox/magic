@@ -1,13 +1,13 @@
 <?php
 
 namespace Glugox\Magic\Support\Faker;
+
 use Faker\Generator;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Faker\Extensions\ImageExtension;
 
 abstract class FakerExtension
 {
-
     /**
      * Registration of all Faker extensions.
      *
@@ -16,7 +16,7 @@ abstract class FakerExtension
     public static function getExtensions(): array
     {
         return [
-            'image' => ImageExtension::class
+            'image' => ImageExtension::class,
             // Add other extensions here as needed
         ];
     }
@@ -29,8 +29,9 @@ abstract class FakerExtension
         $fieldString = $field->name;
         $extensions = self::getExtensions();
         if (isset($extensions[$fieldString])) {
-            return new $extensions[$fieldString]();
+            return new $extensions[$fieldString];
         }
+
         return null;
     }
 

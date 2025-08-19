@@ -185,9 +185,6 @@ EOT;
         }
     }
 
-    /**
-     * @return string
-     */
     public function getInitialColumnDef(): string
     {
         return "

@@ -8,7 +8,7 @@ use Glugox\Magic\Support\Config\FieldType;
  * TypeScript types for entities and fields.
  * This enum is used to define the TypeScript types for various field types.
  */
-enum TsType : string
+enum TsType: string
 {
     case STRING = 'string';
     case NUMBER = 'number';
@@ -64,6 +64,4 @@ enum TsType : string
             default => self::ANY,
         };
     }
-
-
 }
