@@ -133,7 +133,7 @@ HEADER;
                 break;
 
             case FieldType::BOOLEAN:
-                $cellRenderer = "return h(Checkbox, { checked: !!cell.getValue(), disabled: true })";
+                $cellRenderer = 'return h(Checkbox, { checked: !!cell.getValue(), disabled: true })';
                 break;
 
             case FieldType::DATE:
@@ -170,9 +170,6 @@ HEADER;
         return $cellRenderer;
     }
 
-    /**
-     * @return string
-     */
     public static function getTsForImage(): string
     {
         $cellRenderer = "
@@ -196,7 +193,6 @@ HEADER;
     }";
 
         // Return the renderer based on the environment
-        return  env('APP_ENV') === 'local'  ? $cellRenderer : $productionRenderer;
+        return env('APP_ENV') === 'local' ? $cellRenderer : $productionRenderer;
     }
-
 }
