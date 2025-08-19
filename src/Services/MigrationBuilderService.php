@@ -207,51 +207,51 @@ PHP;
     /**
      * Build code for one column in the migration.
      */
-    protected function buildColumnCode(Field $col): string
+    protected function buildColumnCode(Field $field): string
     {
         $line = '';
-        $typeStr = $col->type->value;
-        $name = $col->name;
+        $migrationType = $field->migrationType();
+        $name = $field->name;
 
         // Start building the line
         $args = ["'$name'"];
 
         // Add length if exists and type supports it
-        if ($col->length !== null) {
-            $args[] = $col->length;
+        if ($field->length !== null) {
+            $args[] = $field->length;
         }
 
         // Add precision and scale if exist and type supports it
-        if ($col->precision !== null && $col->scale !== null) {
-            $args[] = $col->precision;
-            $args[] = $col->scale;
+        if ($field->precision !== null && $field->scale !== null) {
+            $args[] = $field->precision;
+            $args[] = $field->scale;
         }
 
         // Enum type values
-        if ($col->isEnum() && ! empty($col->values)) {
+        if ($field->isEnum() && ! empty($field->values)) {
             $values = '['.implode(', ', array_map(
                 fn ($v) => json_encode($v, JSON_UNESCAPED_UNICODE),
-                array_values($col->values)
+                array_values($field->values)
             )).']';
             $args[] = $values;
         }
 
-        $line .= "\$table->{$typeStr}(".implode(', ', $args).')';
+        $line .= "\$table->{$migrationType}(".implode(', ', $args).')';
 
         // Nullable
-        if ($col->nullable) {
+        if ($field->nullable) {
             $line .= '->nullable()';
         }
 
         // Default value
-        if ($col->default !== null) {
-            $default = var_export($col->default, true);
+        if ($field->default !== null) {
+            $default = var_export($field->default, true);
             $line .= "->default({$default})";
         }
 
         // Comment
-        if ($col->comment) {
-            $comment = addslashes($col->comment);
+        if ($field->comment) {
+            $comment = addslashes($field->comment);
             $line .= "->comment('{$comment}')";
         }
 

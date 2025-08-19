@@ -9,6 +9,7 @@ use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Config\FieldType;
 use Glugox\Magic\Support\Config\Relation;
+use Glugox\Magic\Support\Faker\FakerExtension;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
@@ -246,7 +247,7 @@ PHP;
     protected function buildFakerFields(Entity $entity): string
     {
         $lines = [];
-        $typesNotForFaker = [FieldType::JSON, FieldType::JSONB, FieldType::FILE, FieldType::IMAGE];
+        $typesNotForFaker = [FieldType::JSON, FieldType::JSONB, FieldType::FILE];
 
         Log::channel('magic')->info("Building Faker fields for entity: {$entity->getName()}");
 
@@ -276,6 +277,15 @@ PHP;
 
                 continue;
             }
+
+            // Check for available Faker extensions
+            $fakerExtension = FakerExtension::getExtensionByField($field);
+            if ($fakerExtension) {
+                Log::channel('magic')->info("Using Faker extension for field '{$field->name}' in entity '{$entity->getName()}'");
+                $lines[] = "            '{$field->name}' => {$fakerExtension->handle(Factory::create())},";
+                continue;
+            }
+
 
             // Skip fields that are not suitable for Faker
             if (in_array($field->type, $typesNotForFaker)) {
@@ -341,6 +351,7 @@ PHP;
             'first_name' => 'firstName()',
             'last_name' => 'lastName()',
             'full_name' => 'name()',
+            'image' => 'imageUrl(200, 200, null, true)', // true for random image
             'username' => 'userName()',
             'password' => 'password()',
             'title' => 'sentence(3)',

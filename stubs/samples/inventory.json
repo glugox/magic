@@ -11,7 +11,8 @@
                 { "name": "email", "type": "string", "nullable": false, "unique": true, "sortable": true, "searchable": true },
                 { "name": "password", "type": "password", "nullable": false, "hidden": true },
                 { "name": "settings", "type": "json", "nullable": true },
-                { "name": "active", "type": "boolean", "nullable": false, "default": true }
+                { "name": "active", "type": "boolean", "nullable": false, "default": true },
+                { "name": "image", "type": "image", "nullable": true }
             ],
             "relations": [
                 { "type": "hasMany", "entity": "Order", "foreign_key": "user_id" },
@@ -60,14 +61,14 @@
             "fields": [
                 { "name": "id", "type": "bigIncrements", "nullable": false },
                 { "name": "warehouse_id", "type": "unsignedBigInteger", "nullable": false },
-                { "name": "name", "type": "string", "nullable": false, "searchable": true },
+                { "name": "name", "type": "string", "nullable": false, "searchable": true, "sortable": true },
                 { "name": "sku", "type": "string", "nullable": false, "unique": true },
-                { "name": "price", "type": "decimal", "nullable": false, "min": 0, "max": 10000 },
-                { "name": "weight", "type": "float", "nullable": true, "min": 0, "max": 100 },
-                { "name": "available_from", "type": "date", "nullable": true },
-                { "name": "expires_at", "type": "dateTime", "nullable": true },
-                { "name": "image", "type": "binary", "nullable": true },
-                { "name": "status", "type": "enum", "nullable": false, "values": ["active", "inactive", "discontinued"] }
+                { "name": "price", "type": "decimal", "nullable": false, "min": 0, "max": 10000, "sortable": true },
+                { "name": "weight", "type": "float", "nullable": true, "min": 0, "max": 100, "sortable": true },
+                { "name": "available_from", "type": "date", "nullable": true, "sortable": true },
+                { "name": "expires_at", "type": "dateTime", "nullable": true, "sortable": true },
+                { "name": "image", "type": "image", "nullable": true },
+                { "name": "status", "type": "enum", "nullable": false, "values": ["active", "inactive", "discontinued"], "sortable": true }
             ],
             "relations": [
                 { "type": "belongsTo", "entity": "Warehouse", "foreign_key": "warehouse_id" },

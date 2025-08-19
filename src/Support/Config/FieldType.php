@@ -38,4 +38,6 @@ enum FieldType: string
     case UNSIGNED_TINY_INTEGER = 'unsignedTinyInteger';
     case UUID = 'uuid';
     case YEAR = 'year';
+    case SECRET = 'secret';
+    case TOKEN = 'token';
 }

@@ -3,6 +3,7 @@ import { ref, watch, computed } from "vue"
 import { router } from "@inertiajs/vue3"
 import { getCoreRowModel, useVueTable, SortingState, FlexRender } from "@tanstack/vue-table"
 
+import { Avatar } from "@/components/Avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Entity } from '@/types/magic'
@@ -180,7 +181,10 @@ watch(search, () => {
                         <template v-for="row in table.getRowModel().rows" :key="row.id">
                             <TableRow>
                                 <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id">
-                                    {{ cell.getValue() }}
+                                    <FlexRender
+                                        :render="cell.column.columnDef.cell"
+                                        :props="cell.getContext()"
+                                    />
                                 </TableCell>
                             </TableRow>
                         </template>

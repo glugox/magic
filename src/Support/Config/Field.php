@@ -99,6 +99,18 @@ class Field
     }
 
     /**
+     * Returns the migration type string that is used in Laravel migrations. For example: $table->string('name').
+     * In this case, it would return 'string'.
+     */
+    public function migrationType(): string
+    {
+        return match ($this->type) {
+            FieldType::IMAGE => 'string',
+            default => $this->type->value // Fallback to the enum value if not matched
+        };
+    }
+
+    /**
      * Type checks.
      */
     public function isEnum(): bool

@@ -33,7 +33,6 @@ class TsBuilderService
     private function generateSupportFiles()
     {
         $this->generateTypesFile();
-        $this->generateLibFiles();
         $this->generateEntityHelperFiles();
         $this->copyVueFiles();
     }
@@ -50,8 +49,7 @@ class TsBuilderService
 
         $content = '';
 
-        // Generate generic, entity agnostic types
-        //$content .= $this->generateGenericTypes();
+        // Generate entity and field interfaces
         $content .= "\n\n";
         $fields = '';
         foreach ($this->config->entities as $entity) {
@@ -59,35 +57,13 @@ class TsBuilderService
             $content .= "export interface {$entityName} {\n";
             foreach ($entity->getFields() as $field) {
                 $tsType = TypeHelper::migrationTypeToTsType($field->type);
-                $fields .= "    {$field->name}: {$tsType};\n";
+                $fields .= "    {$field->name}: {$tsType->value};\n";
             }
             $content .= $fields."}\n\n";
             $fields = ''; // Reset fields for next entity
         }
 
         $this->files->put($path, $content);
-    }
-
-    /**
-     * Generate additional library files if needed.
-     */
-    private function generateLibFiles()
-    {
-        /*$libPath = resource_path('js/lib');
-        if (! $this->files->isDirectory($libPath)) {
-            $this->files->makeDirectory($libPath, 0755, true);
-        }
-
-        // Example: Generate a utility file
-        $utilityFile = $libPath.'/app.ts';
-
-        $utilityContent = <<<'EOT'
-export function formatDate(date: Date): string {
-    return date.toISOString().split('T')[0];
-}
-EOT;
-        $this->files->put($utilityFile, $utilityContent);*/
-
     }
 
     /**
@@ -122,6 +98,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import {h} from "vue";
 import {Button} from "@/components/ui/button";
 import {ArrowUpDown} from "lucide-vue-next";
+import Avatar from "@/components/Avatar.vue";
 
 export function get{$entityName}Columns(): ColumnDef<{$entityName}>[] {
     return [
@@ -173,7 +150,46 @@ EOT;
         $columns = [];
 
         // Add select at the beginning
-        $columns[] = "
+        $columns[] = $this->getInitialColumnDef();
+
+        foreach ($entity->getFields() as $field) {
+            $column = TsHelper::writeTableColumn($field);
+            $columns[] = $column;
+        }
+
+        return implode(",\n        ", $columns);
+    }
+
+    /**
+     * Copy Vue files from the package to the resources/js directory.
+     * This is a placeholder for future implementation.
+     */
+    private function copyVueFiles()
+    {
+        $vueFiles = [
+            'components/ResourceTable.vue',
+            'components/Avatar.vue',
+            'types/magic.ts',
+        ];
+
+        foreach ($vueFiles as $file) {
+            $sourcePath = __DIR__."/../../resources/js/{$file}";
+            $destinationPath = resource_path("js/{$file}");
+
+            if (! $this->files->isDirectory(dirname($destinationPath))) {
+                $this->files->makeDirectory(dirname($destinationPath), 0755, true);
+            }
+
+            $this->files->copy($sourcePath, $destinationPath);
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function getInitialColumnDef(): string
+    {
+        return "
         {
         id: 'select',
         header: ({ table }) => h(Checkbox, {
@@ -189,66 +205,5 @@ EOT;
         enableSorting: false,
         enableHiding: false,
     }";
-
-        foreach ($entity->getFields() as $field) {
-            $column = TsHelper::writeTableColumn($field);
-            $columns[] = $column;
-        }
-
-        return implode(",\n        ", $columns);
-    }
-
-    private function generateGenericTypes()
-    {
-        /*$content = '';
-
-        // Field
-        $content .= "export interface Field {\n";
-        $content .= "    name: string;\n";
-        $content .= "    type: string;\n";
-        $content .= "    nullable: boolean;\n";
-        $content .= "    length?: number | null;\n";
-        $content .= "    precision?: number | null;\n";
-        $content .= "    scale?: number | null;\n";
-        $content .= "    default?: string | null;\n";
-        $content .= "    comment?: string | null;\n";
-        $content .= "    sortable?: boolean;\n";
-        $content .= "    searchable?: boolean;\n";
-        $content .= "};\n\n";
-
-        // Entity
-
-        $content .= "export interface Entity {\n";
-        $content .= "    fields: Field[];\n";
-        $content .= "    name: string;\n";
-        $content .= "    resourcePath: string;\n";
-        $content .= "    singularName: string;\n";
-        $content .= "    pluralName: string;\n";
-        $content .= "};\n";
-
-        return $content;*/
-    }
-
-    /**
-     * Copy Vue files from the package to the resources/js directory.
-     * This is a placeholder for future implementation.
-     */
-    private function copyVueFiles()
-    {
-        $vueFiles = [
-            'components/ResourceTable.vue',
-            'types/magic.ts',
-        ];
-
-        foreach ($vueFiles as $file) {
-            $sourcePath = __DIR__."/../../resources/js/{$file}";
-            $destinationPath = resource_path("js/{$file}");
-
-            if (! $this->files->isDirectory(dirname($destinationPath))) {
-                $this->files->makeDirectory(dirname($destinationPath), 0755, true);
-            }
-
-            $this->files->copy($sourcePath, $destinationPath);
-        }
     }
 }
