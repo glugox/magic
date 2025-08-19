@@ -182,9 +182,6 @@ HEADER;
         return $cellRenderer;
     }
 
-    /**
-     * @return string
-     */
     public static function getTsForImage(): string
     {
         $cellRenderer = "
@@ -208,7 +205,6 @@ HEADER;
     }";
 
         // Return the renderer based on the environment
-        return  env('APP_ENV') === 'local'  ? $cellRenderer : $productionRenderer;
+        return env('APP_ENV') === 'local' ? $cellRenderer : $productionRenderer;
     }
-
 }
