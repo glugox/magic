@@ -51,7 +51,7 @@ class TsBuilderService
         $content = '';
 
         // Generate generic, entity agnostic types
-        //$content .= $this->generateGenericTypes();
+        // $content .= $this->generateGenericTypes();
         $content .= "\n\n";
         $fields = '';
         foreach ($this->config->entities as $entity) {
