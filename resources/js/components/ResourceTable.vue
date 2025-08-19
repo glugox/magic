@@ -1,25 +1,11 @@
 <script setup lang="ts">
 import { ref, watch, computed } from "vue"
-import { router, usePage } from "@inertiajs/vue3"
-import {
-    createColumnHelper,
-    getCoreRowModel,
-    useVueTable,
-    SortingState,
-    FlexRender
-} from "@tanstack/vue-table"
-import {
-    Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table'
-import { Button } from '@/components/ui/button'
-import { Entity } from '@/types/app'
+import { router } from "@inertiajs/vue3"
+import { getCoreRowModel, useVueTable, SortingState, FlexRender } from "@tanstack/vue-table"
 
-type User = {
-    id: number
-    name: string
-    email: string
-    created_at: string
-}
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Button } from '@/components/ui/button'
+import { Entity } from '@/types/magic'
 
 interface PaginationObject {
     data: any[]
@@ -30,21 +16,22 @@ interface PaginationObject {
     sort_key?: string
     last_page?: number
     sort_dir?: "asc" | "desc"
+    prev_page?: number
+    next_page?: number
     prev_page_url?: string | null
     next_page_url?: string | null
     [key: string]: any
 }
 
 
-const { data, columns, entityMeta } = defineProps<{
+const { data, columns, filters, entityMeta } = defineProps<{
     data: PaginationObject,
     columns ?: any[],
+    filters?: TableFilters,
     entityMeta?: Entity
 }>()
 
-console.log("Initial page:", data)
-
-const rows = ref<User[]>(data.data)
+const rows = ref(data.data)
 const page = ref(data.current_page)
 const perPage = ref(data.per_page)
 const total = ref(data.total)
@@ -52,13 +39,15 @@ const search = ref(data.search ?? "")
 const lastPage = ref(data.last_page ?? 1)
 const prevPageUrl = ref(data.prev_page_url ?? null)
 const nextPageUrl = ref(data.next_page_url ?? null)
-const sorting = ref<SortingState>(
-    data.sort_key && data.sort_dir
-        ? [{ id: data.sort_key, desc: data.sort_dir === "desc" }]
-        : []
+const sorting = ref<SortingState>(filters.sortKey
+    ? [{ id: filters.sortKey, desc: filters.sortDir === "desc" }]
+    : []
 )
+const sortKey = ref(filters.sortKey ?? null)
+const sortDir = ref(filters.sortDir ?? null)
 
-// Only send the text; server decides which columns are searchable.
+// Debounce function to limit the frequency of API calls
+// TODO: Move to a utility file
 const debounced = (fn: Function, ms = 400) => {
     let t: number | undefined
     return (...args: any[]) => {
@@ -67,15 +56,31 @@ const debounced = (fn: Function, ms = 400) => {
         t = setTimeout(() => fn(...args), ms)
     }
 }
+
+const gotoPrevPage = () => {
+    // set page and call send
+    if (prevPageUrl.value) {
+        page.value = prevPage.value
+        send()
+    }
+}
+
 const send = () => {
-    const sort = sorting.value[0]
+    console.log("Sending request with params:", {
+        url: route(entityMeta.resourcePath),
+        page: page.value,
+        perPage: perPage.value,
+        sortKey: sortKey.value,
+        sortDir: sortDir.value,
+        search: search.value
+    })
     router.get(
         route(entityMeta.resourcePath),
         {
             page: page.value,
             perPage: perPage.value,
-            sortKey: sort?.id ?? null,
-            sortDir: sort ? (sort.desc ? "desc" : "asc") : null,
+            sortKey: sortKey.value || null,
+            sortDir: sortDir.value || null,
             search: search.value || null,
         },
         { preserveState: true, preserveScroll: true, replace: true }
@@ -86,13 +91,36 @@ const sendDebounced = debounced(send, 400)
 const table = useVueTable({
     data: rows.value,
     columns,
-    state: { sorting: sorting.value },
+    state: {
+        get sorting() {
+            return sorting.value
+        },
+        set sorting(updater) {
+            sorting.value = typeof updater === "function"
+                ? updater(sorting.value)
+                : updater
+        },
+    },
     onSortingChange: updater => {
+        // update sorting state for the frontend table
         sorting.value = typeof updater === "function" ? updater(sorting.value) : updater
         page.value = 1 // reset to first page when sorting changes
+        const sort = sorting.value[0]
+        // send request with new sorting
+        // update sorting state for the server request
+        sortKey.value = sort?.id ?? null
+        sortDir.value = sort ? (sort.desc ? "desc" : "asc") : null
+
+        console.log("Sorting changed:", {
+            sorting: sorting.value,
+            sortKey: sortKey.value,
+            sortDir: sortDir.value
+        })
+
         send()
     },
-    manualSorting: true,
+    //manualSorting: true,
+    //getSortedRowModel: getSortedRowModel(),
     manualPagination: true,
     getCoreRowModel: getCoreRowModel(),
     pageCount: computed(() => Math.ceil(total.value / perPage.value)).value,
@@ -103,17 +131,9 @@ watch(
     () => data,
     (props: PaginationObject) => {
         rows.value = props.data
-        total.value = props.total
-        page.value = props.current_page
-        perPage.value = props.per_page
         lastPage.value = props.last_page ?? 1
         prevPageUrl.value = props.prev_page_url ?? null
         nextPageUrl.value = props.next_page_url ?? null
-        sorting.value =
-            props.sort_key && props.sort_dir
-                ? [{ id: props.sort_key, desc: props.sort_dir === "desc" }]
-                : []
-        search.value = props.search ?? ""
         table.setOptions(prev => ({ ...prev, data: rows.value }))
     }
 )
@@ -180,13 +200,13 @@ watch(search, () => {
             <div class="space-x-2">
                 <Button
                     :disabled="!prevPageUrl"
-                    @click="prevPageUrl && router.get(prevPageUrl, {}, { preserveState: true })"
+                    @click="() => { page--; }"
                 >
                     Previous
                 </Button>
                 <Button
                     :disabled="!nextPageUrl"
-                    @click="nextPageUrl && router.get(nextPageUrl, {}, { preserveState: true })"
+                    @click="() => { page++; }"
                 >
                     Next
                 </Button>

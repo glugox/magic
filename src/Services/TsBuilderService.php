@@ -51,7 +51,7 @@ class TsBuilderService
         $content = '';
 
         // Generate generic, entity agnostic types
-        $content .= $this->generateGenericTypes();
+        //$content .= $this->generateGenericTypes();
         $content .= "\n\n";
         $fields = '';
         foreach ($this->config->entities as $entity) {
@@ -73,7 +73,7 @@ class TsBuilderService
      */
     private function generateLibFiles()
     {
-        $libPath = resource_path('js/lib');
+        /*$libPath = resource_path('js/lib');
         if (! $this->files->isDirectory($libPath)) {
             $this->files->makeDirectory($libPath, 0755, true);
         }
@@ -86,7 +86,7 @@ export function formatDate(date: Date): string {
     return date.toISOString().split('T')[0];
 }
 EOT;
-        $this->files->put($utilityFile, $utilityContent);
+        $this->files->put($utilityFile, $utilityContent);*/
 
     }
 
@@ -116,7 +116,7 @@ EOT;
 
         $content = <<<EOT
 
-import {type Entity, type Field, type {$entityName}} from "@/types/app";
+import {type Entity, type Field, type {$entityName}} from "@/types/magic";
 import {ColumnDef} from "@tanstack/vue-table";
 import { Checkbox } from "@/components/ui/checkbox"
 import {h} from "vue";
@@ -200,7 +200,7 @@ EOT;
 
     private function generateGenericTypes()
     {
-        $content = '';
+        /*$content = '';
 
         // Field
         $content .= "export interface Field {\n";
@@ -217,11 +217,16 @@ EOT;
         $content .= "};\n\n";
 
         // Entity
+
         $content .= "export interface Entity {\n";
         $content .= "    fields: Field[];\n";
+        $content .= "    name: string;\n";
+        $content .= "    resourcePath: string;\n";
+        $content .= "    singularName: string;\n";
+        $content .= "    pluralName: string;\n";
         $content .= "};\n";
 
-        return $content;
+        return $content;*/
     }
 
     /**

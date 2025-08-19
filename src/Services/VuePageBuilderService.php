@@ -83,7 +83,7 @@ class VuePageBuilderService
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { type {$entityName} } from "@/types/app";
-import { type PaginationObject } from "@/types/magic";
+import { type PaginationObject, type TableFilters } from "@/types/magic";
 import { Head } from '@inertiajs/vue3';
 import { get{$entityName}Columns, get{$entityName}EntityMeta } from '@/helpers/{$folderName}_helper';
 import PlaceholderPattern from '@/components/PlaceholderPattern.vue'
@@ -92,6 +92,7 @@ import {ColumnDef} from "@tanstack/vue-table";
 
 interface Props {
     data: PaginationObject;
+    filters?: TableFilters;
 }
 
 const { data }: Props = defineProps<Props>();
@@ -129,6 +130,7 @@ const entityMeta = get{$entityName}EntityMeta();
                     :data="data"
                     :columns="columns"
                     :entity-meta="entityMeta"
+                    :filters="filters"
                     />
             </div>
         </div>

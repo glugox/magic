@@ -94,12 +94,15 @@ class $controllerClass extends Controller
         \$request = request();
         \$query = $modelClass::query();
 
-        // Sorting
-        \$sorts = (array) \$request->get('sort', []);
-        foreach (\$sorts as \$sort) {
-            [\$column, \$direction] = explode(':', \$sort);
-            \$query->orderBy(\$column, \$direction);
+        // Sorting ( sortKey / sortDir )
+        \$sortKey = \$request->get('sortKey', 'id');
+        \$sortDir = \$request->get('sortDir', 'asc');
+        if (\$sortKey && \$sortDir) {
+            \$query->orderBy(\$sortKey, \$sortDir);
+        } else {
+            \$query->orderBy('id', 'asc'); // Default sorting
         }
+
         // Search
         \$search = \$request->get('search');
         if (\$search) {
@@ -116,7 +119,7 @@ class $controllerClass extends Controller
         );
 
         return Inertia::render('$vuePage/Index', [
-            'filters' => request()->only(['search', 'sort', 'direction']),
+            'filters' => request()->only(['search', 'sortKey', 'sortDir']),
             'data' => \$items,
         ]);
     }
