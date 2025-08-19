@@ -54,9 +54,8 @@ class ControllerBuilderService
         $controllerClass = Str::studly(Str::singular($entity->getName())).'Controller';
         $vuePage = $entity->getFolderName();
         $relations = $entity->getRelations(RelationType::BELONGS_TO);
-        $relationsNames = array_map(fn($r) => $r->getRelationName(), $relations);
-        $relationNamesCode = empty($relationsNames) ? '[]' : "['" . implode("', '", $relationsNames) . "']";
-
+        $relationsNames = array_map(fn ($r) => $r->getRelationName(), $relations);
+        $relationNamesCode = empty($relationsNames) ? '[]' : "['".implode("', '", $relationsNames)."']";
 
         // Validation rules
         $validationRules = [];

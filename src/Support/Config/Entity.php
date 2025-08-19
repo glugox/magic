@@ -306,7 +306,7 @@ class Entity
      */
     public function getRelations(?RelationType $type = null): array
     {
-        if (!is_null($type)) {
+        if (! is_null($type)) {
             return array_filter($this->relations, function (Relation $relation) use ($type) {
                 return $relation->getType() === $type;
             });
@@ -329,10 +329,11 @@ class Entity
     public function getRelationByName(string $name): ?Relation
     {
         foreach ($this->relations as $relation) {
-            if ($relation->getTableName()=== $name) {
+            if ($relation->getTableName() === $name) {
                 return $relation;
             }
         }
+
         return null;
     }
 
@@ -346,6 +347,7 @@ class Entity
                 return $relation;
             }
         }
+
         return null;
     }
 }

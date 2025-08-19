@@ -12,7 +12,7 @@ class TsHelper
     /**
      * Write a single table column definition.
      */
-    public static function writeTableColumn(Field $field, Entity $entity) : string
+    public static function writeTableColumn(Field $field, Entity $entity): string
     {
         $tsType = TypeHelper::migrationTypeToTsType($field->type);
         $strEnableSorting = $field->sortable ? 'true' : 'false';
@@ -86,11 +86,11 @@ HEADER;
      * Write a table cell renderer for a given field.
      * Uses the FieldType enum for correct formatting and masks sensitive fields.
      */
-    private static function writeTableCell(Field $field, Entity $entity) : string
+    private static function writeTableCell(Field $field, Entity $entity): string
     {
         $type = $field->type; // FieldType enum
         // If the field is a foreign key, we can return the related entity's name
-        if( $belongsTo = $field->belongsTo() ) {
+        if ($belongsTo = $field->belongsTo()) {
             if ($belongsTo) {
 
                 $relatedEntity = $belongsTo->getLocalEntity();
@@ -108,11 +108,12 @@ HEADER;
                         h('span', null, relatedEntity.name)
                     ]);
                 ";
+
                 return $tableCellStr;
             }
         }
 
-        //return "return '{$type->value}'";
+        // return "return '{$type->value}'";
 
         $cellRenderer = '';
 

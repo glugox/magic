@@ -15,20 +15,20 @@ class Field
     /**
      * Create a new Field instance.
      *
-     * @param string $name Field name
-     * @param FieldType $type Field type (enum)
-     * @param Entity|null $entityRef The entity this field belongs to
-     * @param bool $nullable Whether the field can be null
-     * @param int|null $length String length if applicable
-     * @param int|null $precision Numeric precision
-     * @param int|null $scale Numeric scale
-     * @param mixed|null $default Default value
-     * @param string|null $comment Optional database comment
-     * @param bool $sortable Whether sortable in UI
-     * @param bool $searchable Whether searchable in UI
-     * @param string[] $values Enum or option values
-     * @param float $min Minimum allowed numeric value
-     * @param float $max Maximum allowed numeric value
+     * @param  string  $name  Field name
+     * @param  FieldType  $type  Field type (enum)
+     * @param  Entity|null  $entityRef  The entity this field belongs to
+     * @param  bool  $nullable  Whether the field can be null
+     * @param  int|null  $length  String length if applicable
+     * @param  int|null  $precision  Numeric precision
+     * @param  int|null  $scale  Numeric scale
+     * @param  mixed|null  $default  Default value
+     * @param  string|null  $comment  Optional database comment
+     * @param  bool  $sortable  Whether sortable in UI
+     * @param  bool  $searchable  Whether searchable in UI
+     * @param  string[]  $values  Enum or option values
+     * @param  float  $min  Minimum allowed numeric value
+     * @param  float  $max  Maximum allowed numeric value
      */
     public function __construct(
         public string $name,                 // field name
@@ -48,8 +48,8 @@ class Field
         public $max = null
     ) {
         // Validate min/max values
-        //$this->min = max(0.0, $this->min);
-        //$this->max = max($this->min, $this->max); // ensure max >= min
+        // $this->min = max(0.0, $this->min);
+        // $this->max = max($this->min, $this->max); // ensure max >= min
     }
 
     /**
@@ -121,8 +121,8 @@ class Field
      * Get migration arguments for this field.
      *
      * @return array<string|int> Returns an array of arguments for the migration method.
-     * For example, for a string field with length 255, it would return ['name', 255].
-     * For an enum field with values, it would return ['name', ["pending", "processing", "shipped", "delivered"], ...].
+     *                           For example, for a string field with length 255, it would return ['name', 255].
+     *                           For an enum field with values, it would return ['name', ["pending", "processing", "shipped", "delivered"], ...].
      */
     public function migrationArgs(): array
     {
@@ -137,11 +137,11 @@ class Field
             $args[] = $this->scale;
         }
         // Add enum values if applicable
-        if ($this->isEnum() && !empty($this->values)) {
-            $args[] = '[' . implode(', ', array_map(
-                fn($v) => json_encode($v, JSON_UNESCAPED_UNICODE),
+        if ($this->isEnum() && ! empty($this->values)) {
+            $args[] = '['.implode(', ', array_map(
+                fn ($v) => json_encode($v, JSON_UNESCAPED_UNICODE),
                 array_values($this->values)
-            )) . ']';
+            )).']';
         }
 
         return $args;
@@ -221,7 +221,7 @@ class Field
     public function printDebug(): string
     {
         return sprintf(
-            "Field(name: %s, type: %s, nullable: %s, length: %s, precision: %s, scale: %s, default: %s, comment: %s, sortable: %s, searchable: %s, values: [%s], min: %s, max: %s)",
+            'Field(name: %s, type: %s, nullable: %s, length: %s, precision: %s, scale: %s, default: %s, comment: %s, sortable: %s, searchable: %s, values: [%s], min: %s, max: %s)',
             $this->name,
             $this->type->value,
             $this->nullable ? 'true' : 'false',
@@ -232,7 +232,7 @@ class Field
             $this->comment ?? 'null',
             $this->sortable ? 'true' : 'false',
             $this->searchable ? 'true' : 'false',
-            implode(', ', array_map(fn($v) => json_encode($v), $this->values)),
+            implode(', ', array_map(fn ($v) => json_encode($v), $this->values)),
             $this->min ?? 'null',
             $this->max ?? 'null'
         );
