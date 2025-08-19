@@ -214,27 +214,7 @@ PHP;
         $name = $field->name;
 
         // Start building the line
-        $args = ["'$name'"];
-
-        // Add length if exists and type supports it
-        if ($field->length !== null) {
-            $args[] = $field->length;
-        }
-
-        // Add precision and scale if exist and type supports it
-        if ($field->precision !== null && $field->scale !== null) {
-            $args[] = $field->precision;
-            $args[] = $field->scale;
-        }
-
-        // Enum type values
-        if ($field->isEnum() && ! empty($field->values)) {
-            $values = '['.implode(', ', array_map(
-                fn ($v) => json_encode($v, JSON_UNESCAPED_UNICODE),
-                array_values($field->values)
-            )).']';
-            $args[] = $values;
-        }
+        $args = $field->migrationArgs();
 
         $line .= "\$table->{$migrationType}(".implode(', ', $args).')';
 
@@ -253,6 +233,12 @@ PHP;
         if ($field->comment) {
             $comment = addslashes($field->comment);
             $line .= "->comment('{$comment}')";
+        }
+
+        // If the field is a foreign key, add the foreign key constraint
+        if ($field->belongsTo()) {
+            $relatedTable = $field->belongsTo()->getTableName();
+            $line .= "->constrained('{$relatedTable}')->cascadeOnDelete()";
         }
 
         // Return main line

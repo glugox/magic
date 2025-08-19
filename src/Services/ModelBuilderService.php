@@ -49,6 +49,7 @@ class ModelBuilderService
 
         $extends = '\Illuminate\Database\Eloquent\Model';
         $traits = [];
+        $appends = [];
         $fields = $entity->getFields();
 
         // Fillable fields
@@ -105,6 +106,12 @@ class ModelBuilderService
             $traits[] = HasFactory::class;
         }
 
+        // Ensure all models have a name field
+        if (! $entity->hasField('name')) {
+            $traits[] = 'App\Traits\HasName';
+            $appends[] = 'name';
+        }
+
         // If no casts given in preset, infer from fields
         if (empty($casts)) {
             foreach ($fields as $field) {
@@ -132,6 +139,14 @@ class ModelBuilderService
         $traitsUseStr = '';
         if (! empty($traits)) {
             $traitsUseStr = 'use '.implode(', ', array_map(fn ($t) => class_basename($t), $traits)).';';
+        }
+
+        // Appends string
+        // protected $appends = ['name'];
+        $appendsStr = '';
+        if (! empty($appends)) {
+            $appendsFieldsStr = implode(",\n        ", array_map(fn ($a) => "'$a'", $appends));
+            $appendsStr .= "\n\n    protected \$appends = [\n        $appendsFieldsStr\n    ];";
         }
 
         // Namespace use statements
@@ -182,6 +197,8 @@ class $className extends {$extends}
         $castsStr
     ];
 
+    $appendsStr
+
 $relationsCode
 }
 PHP;
@@ -221,9 +238,9 @@ PHP;
         $localKey = $relation->getLocalKey() ? ", '{$relation->getLocalKey()}'" : '';
 
         $relationCall = match ($relation->getType()) {
-            RelationType::HAS_ONE => "return \$this->hasOne($relatedClass::class, $foreignKey$localKey);",
-            RelationType::HAS_MANY => "return \$this->hasMany($relatedClass::class, $foreignKey$localKey);",
-            RelationType::BELONGS_TO => "return \$this->belongsTo($relatedClass::class, $foreignKey$localKey);",
+            RelationType::HAS_ONE => "return \$this->hasOne($relatedClass::class, $foreignKey);",
+            RelationType::HAS_MANY => "return \$this->hasMany($relatedClass::class, $foreignKey);",
+            RelationType::BELONGS_TO => "return \$this->belongsTo($relatedClass::class, $foreignKey);",
             RelationType::BELONGS_TO_MANY => "return \$this->belongsToMany($relatedClass::class);",
             RelationType::MORPH_ONE => "return \$this->morphOne($relatedClass::class, '{$relation->getMorphName()}');",
             RelationType::MORPH_MANY => "return \$this->morphMany($relatedClass::class, '{$relation->getMorphName()}');",

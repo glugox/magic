@@ -15,23 +15,25 @@ class Field
     /**
      * Create a new Field instance.
      *
-     * @param  string  $name  Field name
-     * @param  FieldType  $type  Field type (enum)
-     * @param  bool  $nullable  Whether the field can be null
-     * @param  int|null  $length  String length if applicable
-     * @param  int|null  $precision  Numeric precision
-     * @param  int|null  $scale  Numeric scale
-     * @param  mixed|null  $default  Default value
-     * @param  string|null  $comment  Optional database comment
-     * @param  bool  $sortable  Whether sortable in UI
-     * @param  bool  $searchable  Whether searchable in UI
-     * @param  string[]  $values  Enum or option values
-     * @param  float  $min  Minimum allowed numeric value
-     * @param  float  $max  Maximum allowed numeric value
+     * @param string $name Field name
+     * @param FieldType $type Field type (enum)
+     * @param Entity|null $entityRef The entity this field belongs to
+     * @param bool $nullable Whether the field can be null
+     * @param int|null $length String length if applicable
+     * @param int|null $precision Numeric precision
+     * @param int|null $scale Numeric scale
+     * @param mixed|null $default Default value
+     * @param string|null $comment Optional database comment
+     * @param bool $sortable Whether sortable in UI
+     * @param bool $searchable Whether searchable in UI
+     * @param string[] $values Enum or option values
+     * @param float $min Minimum allowed numeric value
+     * @param float $max Maximum allowed numeric value
      */
     public function __construct(
         public string $name,                 // field name
         public FieldType $type,              // type enum
+        public ?Entity $entityRef = null,    // reference to the parent entity
         public bool $nullable = false,       // can it be null?
         public ?int $length = null,          // string length if applicable
         public ?int $precision = null,       // numeric precision
@@ -42,14 +44,12 @@ class Field
         public bool $searchable = false,     // searchable in UI
         /** @var string[] Allowed enum/options */
         public array $values = [],
-        /** @var float Minimum allowed numeric value */
-        public float $min = 0.0,
-        /** @var float Maximum allowed numeric value */
-        public float $max = 0.0
+        public $min = null,
+        public $max = null
     ) {
         // Validate min/max values
-        $this->min = max(0.0, $this->min);
-        $this->max = max($this->min, $this->max); // ensure max >= min
+        //$this->min = max(0.0, $this->min);
+        //$this->max = max($this->min, $this->max); // ensure max >= min
     }
 
     /**
@@ -71,11 +71,12 @@ class Field
      *     max?: float
      * } $data
      */
-    public static function fromConfig(array $data): self
+    public static function fromConfig(array $data, ?Entity $entity = null): self
     {
         return new self(
             name: $data['name'],
             type: FieldType::from($data['type']),
+            entityRef: $entity,
             nullable: $data['nullable'] ?? false,
             length: $data['length'] ?? null,
             precision: $data['precision'] ?? null,
@@ -85,8 +86,8 @@ class Field
             sortable: $data['sortable'] ?? false,
             searchable: $data['searchable'] ?? false,
             values: $data['values'] ?? [],
-            min: $data['min'] ?? 0.0,
-            max: $data['max'] ?? 0.0,
+            min: $data['min'] ?? null,
+            max: $data['max'] ?? null,
         );
     }
 
@@ -104,10 +105,64 @@ class Field
      */
     public function migrationType(): string
     {
+        // Check for BelongsTo relation first
+        if ($relation = $this->belongsTo()) {
+            // If this field is a foreign key, we return the 'foreignKey' type
+            return 'foreignId';
+        }
+
         return match ($this->type) {
             FieldType::IMAGE => 'string',
             default => $this->type->value // Fallback to the enum value if not matched
         };
+    }
+
+    /**
+     * Get migration arguments for this field.
+     *
+     * @return array<string|int> Returns an array of arguments for the migration method.
+     * For example, for a string field with length 255, it would return ['name', 255].
+     * For an enum field with values, it would return ['name', ["pending", "processing", "shipped", "delivered"], ...].
+     */
+    public function migrationArgs(): array
+    {
+        $args = ["'{$this->name}'"]; // Start with the field name
+        // Add length if applicable
+        if ($this->length !== null) {
+            $args[] = $this->length;
+        }
+        // Add precision and scale if applicable
+        if ($this->precision !== null && $this->scale !== null) {
+            $args[] = $this->precision;
+            $args[] = $this->scale;
+        }
+        // Add enum values if applicable
+        if ($this->isEnum() && !empty($this->values)) {
+            $args[] = '[' . implode(', ', array_map(
+                fn($v) => json_encode($v, JSON_UNESCAPED_UNICODE),
+                array_values($this->values)
+            )) . ']';
+        }
+
+        return $args;
+    }
+
+    /**
+     * Returns BelongsTo relation if this field is a foreign key.
+     */
+    public function belongsTo(): ?Relation
+    {
+        if ($this->entityRef === null) {
+            return null; // No entity reference, cannot determine relation
+        }
+        // Check if the field name ends with '_id' which is a common convention for foreign keys
+        if (Str::endsWith($this->name, '_id')) {
+            // Find the related entity in the entity reference
+            return $this->entityRef->getRelationByField($this);
+
+        }
+
+        return null; // Not a foreign key field
     }
 
     /**
@@ -158,5 +213,36 @@ class Field
             FieldType::DOUBLE,
             FieldType::DECIMAL,
         ], true);
+    }
+
+    /**
+     * Returns the string representation of the field for debugging.
+     */
+    public function printDebug(): string
+    {
+        return sprintf(
+            "Field(name: %s, type: %s, nullable: %s, length: %s, precision: %s, scale: %s, default: %s, comment: %s, sortable: %s, searchable: %s, values: [%s], min: %s, max: %s)",
+            $this->name,
+            $this->type->value,
+            $this->nullable ? 'true' : 'false',
+            $this->length ?? 'null',
+            $this->precision ?? 'null',
+            $this->scale ?? 'null',
+            json_encode($this->default),
+            $this->comment ?? 'null',
+            $this->sortable ? 'true' : 'false',
+            $this->searchable ? 'true' : 'false',
+            implode(', ', array_map(fn($v) => json_encode($v), $this->values)),
+            $this->min ?? 'null',
+            $this->max ?? 'null'
+        );
+    }
+
+    /**
+     * Debug log
+     */
+    public function debugLog(): void
+    {
+        \Log::channel('magic')->debug($this->printDebug());
     }
 }

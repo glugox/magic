@@ -426,7 +426,11 @@ PHP;
         // Numeric integer types
         if ($field->isNumeric()) {
             $min = $field->min ?? 0;
-            $max = $field->max ?? $min + 1000; // fallback if max not defined
+            $max = $field->max ?? ($min + 1000); // fallback if max not defined
+
+            Log::channel('magic')->info("  ----- Ensuring numeric range for field '{$field->name}': min={$min}, max={$max}");
+            $field->debugLog();
+
             $fakerType = str_replace('randomNumber()', "numberBetween({$min}, {$max})", $fakerType);
         }
 
@@ -441,7 +445,7 @@ PHP;
         if ($field->type === FieldType::DATE) {
             $min = $field->min ?? 0;
             $max = $field->max ?? '+1 year';
-            $fakerType = str_replace('date()', "dateBetween('{$min}', '{$max}')", $fakerType);
+            $fakerType = str_replace('date()', "dateTimeBetween('{$min}', '{$max}')", $fakerType);
         }
 
         // Datetime types

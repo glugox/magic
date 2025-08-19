@@ -19,13 +19,15 @@ class Entity
      */
     public static function fromConfig(array $data): self
     {
+        // Create the entity with empty relations initially
+        $entity = new self($data['name'], [], [], $data['table'] ?? null);
+
         $fields = [];
         foreach ($data['fields'] ?? [] as $fieldData) {
-            $fields[] = Field::fromConfig($fieldData);
+            $field = Field::fromConfig($fieldData, $entity);
+            $entity->addField($field);
         }
 
-        // Create the entity with empty relations initially
-        $entity = new self($data['name'], $fields, [], $data['table'] ?? null);
         $relations = [];
         foreach ($data['relations'] ?? [] as $relationData) {
             $relation = new Relation(
@@ -243,7 +245,7 @@ class Entity
     {
         $searchable = [];
         foreach ($this->fields as $field) {
-            if ($field->isSearchable()) {
+            if ($field->searchable) {
                 $searchable[] = $field;
             }
         }
@@ -302,8 +304,14 @@ class Entity
     /**
      * @return Relation[]
      */
-    public function getRelations(): array
+    public function getRelations(?RelationType $type = null): array
     {
+        if (!is_null($type)) {
+            return array_filter($this->relations, function (Relation $relation) use ($type) {
+                return $relation->getType() === $type;
+            });
+        }
+
         return $this->relations;
     }
 
@@ -313,5 +321,31 @@ class Entity
     public function addRelation(Relation $relation): void
     {
         $this->relations[] = $relation;
+    }
+
+    /**
+     * Get the relation by name.
+     */
+    public function getRelationByName(string $name): ?Relation
+    {
+        foreach ($this->relations as $relation) {
+            if ($relation->getTableName()=== $name) {
+                return $relation;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Get the relation by entity field.
+     */
+    public function getRelationByField(Field $field): ?Relation
+    {
+        foreach ($this->relations as $relation) {
+            if ($relation->getForeignKey() === $field->name) {
+                return $relation;
+            }
+        }
+        return null;
     }
 }

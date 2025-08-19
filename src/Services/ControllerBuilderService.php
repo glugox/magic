@@ -5,6 +5,7 @@ namespace Glugox\Magic\Services;
 use Glugox\Magic\Support\Config\Config;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\FieldType;
+use Glugox\Magic\Support\Config\RelationType;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -52,6 +53,10 @@ class ControllerBuilderService
         $modelClass = '\\App\\Models\\'.Str::studly(Str::singular($entity->getName()));
         $controllerClass = Str::studly(Str::singular($entity->getName())).'Controller';
         $vuePage = $entity->getFolderName();
+        $relations = $entity->getRelations(RelationType::BELONGS_TO);
+        $relationsNames = array_map(fn($r) => $r->getRelationName(), $relations);
+        $relationNamesCode = empty($relationsNames) ? '[]' : "['" . implode("', '", $relationsNames) . "']";
+
 
         // Validation rules
         $validationRules = [];
@@ -92,7 +97,13 @@ class $controllerClass extends Controller
     public function index()
     {
         \$request = request();
-        \$query = $modelClass::query();
+
+        // All relation names for eager loading
+        \$relations = $relationNamesCode;
+
+        \$query = count(\$relations) > 0
+            ? $modelClass::with(\$relations)
+            : $modelClass::query();
 
         // Sorting ( sortKey / sortDir )
         \$sortKey = \$request->get('sortKey', 'id');

@@ -2,6 +2,7 @@
 
 namespace Glugox\Magic\Support\Frontend;
 
+use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Config\FieldType;
 use Glugox\Magic\Support\TypeHelper;
@@ -11,7 +12,7 @@ class TsHelper
     /**
      * Write a single table column definition.
      */
-    public static function writeTableColumn(Field $field)
+    public static function writeTableColumn(Field $field, Entity $entity) : string
     {
         $tsType = TypeHelper::migrationTypeToTsType($field->type);
         $strEnableSorting = $field->sortable ? 'true' : 'false';
@@ -21,7 +22,7 @@ class TsHelper
             $fieldHeader = "'{$field->title()}'";
         }
 
-        $cellRenderer = static::writeTableCell($field);
+        $cellRenderer = static::writeTableCell($field, $entity);
 
         return "{
                 id: '{$field->name}',
@@ -85,9 +86,34 @@ HEADER;
      * Write a table cell renderer for a given field.
      * Uses the FieldType enum for correct formatting and masks sensitive fields.
      */
-    private static function writeTableCell(Field $field)
+    private static function writeTableCell(Field $field, Entity $entity) : string
     {
         $type = $field->type; // FieldType enum
+        // If the field is a foreign key, we can return the related entity's name
+        if( $belongsTo = $field->belongsTo() ) {
+            if ($belongsTo) {
+
+                $relatedEntity = $belongsTo->getLocalEntity();
+                $tableCellStr = "
+                    const relatedEntity = cell.row.original.{$belongsTo->getRelationName()};
+                    const href = '{$belongsTo->getHref()}';
+                    const relId = cell.row.original.id;
+                    if (!relatedEntity) return '—';
+
+                    return h('a', {
+                        href: href + '/' + relId,
+                        class: 'flex items-center gap-2 text-blue-600 hover:underline'
+                    }, [
+                        h(Avatar, { name: relatedEntity.name, src: relatedEntity.avatar_url ?? '' }),
+                        h('span', null, relatedEntity.name)
+                    ]);
+                ";
+                return $tableCellStr;
+            }
+        }
+
+        //return "return '{$type->value}'";
+
         $cellRenderer = '';
 
         switch ($type) {

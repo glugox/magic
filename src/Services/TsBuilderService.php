@@ -154,7 +154,7 @@ EOT;
         $columns[] = $this->getInitialColumnDef();
 
         foreach ($entity->getFields() as $field) {
-            $column = TsHelper::writeTableColumn($field);
+            $column = TsHelper::writeTableColumn($field, $entity);
             $columns[] = $column;
         }
 

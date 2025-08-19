@@ -2,6 +2,8 @@
 
 namespace Glugox\Magic\Support\Config;
 
+use Illuminate\Support\Str;
+
 class Relation
 {
     private RelationType $type;      // e.g. 'hasMany', 'belongsTo'
@@ -97,7 +99,16 @@ class Relation
     public function getTableName(): string
     {
         // Convert entity name to snake_case for table name
-        return \Str::snake(\Str::plural($this->entityName));
+        return Str::snake(Str::plural($this->entityName));
+    }
+
+    /**
+     * Get href for the related entity.
+     */
+    public function getHref(): string
+    {
+        // Convert entity name to kebab-case for href
+        return $this->getTableName();
     }
 
     /**
@@ -114,7 +125,7 @@ class Relation
     public function getRelationName(): string
     {
         // Lowercase and pluralize
-        return $this->relationName ??= \Str::plural(\Str::camel($this->entityName));
+        return $this->relationName ??= Str::plural(Str::camel($this->entityName));
     }
 
     /**
@@ -124,14 +135,20 @@ class Relation
     {
         // alphabetical order of related tables (Laravel convention)
         $tables = [
-            \Str::snake($this->localEntity->getName()),
-            \Str::snake($this->entityName),
+            Str::snake($this->localEntity->getName()),
+            Str::snake($this->entityName),
         ];
         sort($tables);
 
         return implode('_', $tables);
     }
 
+    /**
+     * Returns the foreign key for this relation.
+     * If not set, it defaults to snake_case of the entity name + '_id'.
+     * For example, if the entity name is 'Post', the foreign key will be 'post_id'.
+     * If the relation is polymorphic, it will return null.
+     */
     public function getForeignKey(): ?string
     {
         return $this->foreignKey;
@@ -139,7 +156,7 @@ class Relation
 
     public function getLocalKey(): ?string
     {
-        return $this->localKey ??= \Str::snake($this->entityName).'_id';
+        return $this->localKey ??= Str::snake($this->entityName).'_id';
     }
 
     public function getMorphName(): ?string
