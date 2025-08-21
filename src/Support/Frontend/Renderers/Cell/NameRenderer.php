@@ -38,8 +38,6 @@ class NameRenderer extends Renderer
 
     /**
      * Get the type of the renderer.
-     *
-     * @return string
      */
     public function getType(): string
     {

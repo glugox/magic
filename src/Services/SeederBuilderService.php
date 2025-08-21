@@ -257,7 +257,6 @@ PHP;
                 continue;
             }
 
-
             Log::channel('magic')->info("Processing field: {$field->name} of type {$field->type->value}");
 
             // Enforce seeder rulers from config

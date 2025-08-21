@@ -58,15 +58,14 @@ class ControllerBuilderService
 
         // Relations for eager loading
         $relations = $entity->getRelations(RelationType::BELONGS_TO);
-        $relationsNames = array_map(fn($r) => $r->getRelationName(), $relations);
-        $relationNamesCode = empty($relationsNames) ? '[]' : "['" . implode("', '", $relationsNames) . "']";
+        $relationsNames = array_map(fn ($r) => $r->getRelationName(), $relations);
+        $relationNamesCode = empty($relationsNames) ? '[]' : "['".implode("', '", $relationsNames)."']";
 
         // Searchable fields
-        $searchableFields = array_filter($entity->getFields(), fn($field) => $field->searchable);
+        $searchableFields = array_filter($entity->getFields(), fn ($field) => $field->searchable);
         $searchableFieldsCode = empty($searchableFields)
             ? '[]'
-            : "['" . implode("', '", array_map(fn($f) => $f->name, $searchableFields)) . "']";
-
+            : "['".implode("', '", array_map(fn ($f) => $f->name, $searchableFields))."']";
 
         // Validation rules
         $validationRules = [];

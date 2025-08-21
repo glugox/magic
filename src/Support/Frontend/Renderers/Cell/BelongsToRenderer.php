@@ -43,5 +43,4 @@ class BelongsToRenderer extends Renderer
     {
         return 'belongsTo';
     }
-
 }

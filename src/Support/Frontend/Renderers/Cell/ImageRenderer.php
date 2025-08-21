@@ -9,11 +9,10 @@ use Illuminate\Support\Facades\Log;
 
 class ImageRenderer extends Renderer
 {
-
     /**
      * Render the cell value.
      */
-    public function render( Field $field, Entity $entity): RendererResult
+    public function render(Field $field, Entity $entity): RendererResult
     {
         Log::channel('magic')
             ->info(
@@ -22,6 +21,7 @@ class ImageRenderer extends Renderer
                     'renderer' => static::class,
                 ]
             );
+
         return new RendererResult(
             content: $this->getTsForImage(),
             type: $this->getType()
@@ -54,8 +54,6 @@ class ImageRenderer extends Renderer
 
     /**
      * Get the type of the renderer.
-     *
-     * @return string
      */
     public function getType(): string
     {

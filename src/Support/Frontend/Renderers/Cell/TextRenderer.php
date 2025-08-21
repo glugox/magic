@@ -9,11 +9,10 @@ use Illuminate\Support\Facades\Log;
 
 class TextRenderer extends Renderer
 {
-
     /**
      * Render the cell value.
      */
-    public function render( Field $field, Entity $entity): RendererResult
+    public function render(Field $field, Entity $entity): RendererResult
     {
         Log::channel('magic')
             ->info(
@@ -32,8 +31,6 @@ class TextRenderer extends Renderer
 
     /**
      * Get the type of the renderer.
-     *
-     * @return string
      */
     public function getType(): string
     {

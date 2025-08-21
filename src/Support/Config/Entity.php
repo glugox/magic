@@ -3,7 +3,6 @@
 namespace Glugox\Magic\Support\Config;
 
 use Glugox\Magic\Support\Config\Entity\Settings;
-use Illuminate\Support\Str;
 
 class Entity
 {
@@ -80,7 +79,7 @@ class Entity
     public function getFullyQualifiedModelClass(): string
     {
         // Convert entity name to StudlyCase for fully qualified class name
-        return '\\App\\Models\\'. $this->getClassName();
+        return '\\App\\Models\\'.$this->getClassName();
     }
 
     /**
