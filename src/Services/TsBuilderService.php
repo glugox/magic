@@ -7,6 +7,7 @@ use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Frontend\TsHelper;
 use Glugox\Magic\Support\TypeHelper;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Facades\Log;
 
 class TsBuilderService
 {
@@ -150,10 +151,13 @@ EOT;
     {
         $columns = [];
 
+        Log::channel('magic')->info("Generating column definitions for entity: {$entity->getName()}");
+
         // Add select at the beginning
         $columns[] = $this->getInitialColumnDef();
 
         foreach ($entity->getFields() as $field) {
+            Log::channel('magic')->info(" > Processing field: {$field->name} of type: {$field->type->value}");
             $column = TsHelper::writeTableColumn($field, $entity);
             $columns[] = $column;
         }
@@ -169,6 +173,7 @@ EOT;
     {
         $vueFiles = [
             'components/ResourceTable.vue',
+            'components/ResourceForm.vue',
             'components/Avatar.vue',
             'types/magic.ts',
         ];

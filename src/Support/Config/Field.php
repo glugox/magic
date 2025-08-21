@@ -156,13 +156,24 @@ class Field
             return null; // No entity reference, cannot determine relation
         }
         // Check if the field name ends with '_id' which is a common convention for foreign keys
-        if (Str::endsWith($this->name, '_id')) {
+        //if (Str::endsWith($this->name, '_id')) {
             // Find the related entity in the entity reference
-            return $this->entityRef->getRelationByField($this);
+        $relationField = $this->entityRef->getRelationByField($this);
 
-        }
+        //}
 
-        return null; // Not a foreign key field
+        return $relationField; // Not a foreign key field
+    }
+
+    /**
+     * Check if this field is a name field.
+     *
+     * @return bool
+     */
+    public function isName(): bool
+    {
+        // Check if the field name is 'name' or 'title', which are common conventions for name fields
+        return in_array($this->name, ['name', 'title'], true) || Str::endsWith($this->name, '_name');
     }
 
     /**

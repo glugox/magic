@@ -257,8 +257,12 @@ PHP;
                 continue;
             }
 
+
+            Log::channel('magic')->info("Processing field: {$field->name} of type {$field->type->value}");
+
             // Enforce seeder rulers from config
             if ($field->type === FieldType::PASSWORD && ! $this->config->dev->strongPasswords) {
+
                 Log::channel('magic')->info("Using simple password for field '{$field->name}' in entity '{$entity->getName()}'");
                 $passwordHash = config('magic.default_password_hash', '$2y$12$00A.1FrCk3FctOEVIHlkLu5qYNfFdBGJUCyzdMaGcvC9CPTgPoIgK');
 

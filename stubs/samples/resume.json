@@ -9,7 +9,7 @@
                 { "name": "id", "type": "bigIncrements", "nullable": false },
                 { "name": "name", "type": "string", "nullable": false, "sortable": true, "searchable": true },
                 { "name": "email", "type": "string", "nullable": false, "unique": true, "sortable": true, "searchable": true },
-                { "name": "password", "type": "string", "nullable": false, "hidden": true }
+                { "name": "password", "type": "password", "nullable": false, "hidden": true }
             ],
             "relations": [
                 { "type": "hasMany", "entity": "Address", "foreign_key": "user_id" },

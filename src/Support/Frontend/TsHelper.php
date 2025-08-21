@@ -5,6 +5,7 @@ namespace Glugox\Magic\Support\Frontend;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Config\FieldType;
+use Glugox\Magic\Support\Frontend\Renderers\Cell\Renderer;
 use Glugox\Magic\Support\TypeHelper;
 
 class TsHelper
@@ -82,129 +83,11 @@ HEADER;
      * Write a table cell renderer for a given field.
      * This is used to generate the cell content in the table.
      */
-    /**
-     * Write a table cell renderer for a given field.
-     * Uses the FieldType enum for correct formatting and masks sensitive fields.
-     */
     private static function writeTableCell(Field $field, Entity $entity) : string
     {
-        $type = $field->type; // FieldType enum
-        // If the field is a foreign key, we can return the related entity's name
-        if( $belongsTo = $field->belongsTo() ) {
-            if ($belongsTo) {
-
-                $relatedEntity = $belongsTo->getLocalEntity();
-                $tableCellStr = "
-                    const relatedEntity = cell.row.original.{$belongsTo->getRelationName()};
-                    const href = '{$belongsTo->getHref()}';
-                    const relId = cell.row.original.id;
-                    if (!relatedEntity) return '—';
-
-                    return h('a', {
-                        href: href + '/' + relId,
-                        class: 'flex items-center gap-2 text-blue-600 hover:underline'
-                    }, [
-                        h(Avatar, { name: relatedEntity.name, src: relatedEntity.avatar_url ?? '' }),
-                        h('span', null, relatedEntity.name)
-                    ]);
-                ";
-                return $tableCellStr;
-            }
-        }
-
-        //return "return '{$type->value}'";
-
-        $cellRenderer = '';
-
-        switch ($type) {
-            case FieldType::STRING:
-            case FieldType::TEXT:
-            case FieldType::CHAR:
-            case FieldType::MEDIUM_TEXT:
-            case FieldType::LONG_TEXT:
-            case FieldType::EMAIL:
-            case FieldType::IP_ADDRESS:
-            case FieldType::UUID:
-            case FieldType::ENUM:
-                $cellRenderer = "return cell.getValue() ?? ''";
-                break;
-
-            case FieldType::INTEGER:
-            case FieldType::BIG_INTEGER:
-            case FieldType::BIG_INCREMENTS:
-            case FieldType::SMALL_INTEGER:
-            case FieldType::TINY_INTEGER:
-            case FieldType::UNSIGNED_INTEGER:
-            case FieldType::UNSIGNED_BIG_INTEGER:
-            case FieldType::UNSIGNED_SMALL_INTEGER:
-            case FieldType::UNSIGNED_TINY_INTEGER:
-            case FieldType::DECIMAL:
-            case FieldType::FLOAT:
-            case FieldType::DOUBLE:
-                $cellRenderer = "return cell.getValue() !== null ? cell.getValue().toLocaleString() : ''";
-                break;
-
-            case FieldType::BOOLEAN:
-                $cellRenderer = "return h(Checkbox, { 'modelValue': parseBool(cell.getValue()), disabled: true })";
-                break;
-
-            case FieldType::DATE:
-            case FieldType::DATETIME:
-            case FieldType::TIME:
-            case FieldType::TIMESTAMP:
-            case FieldType::YEAR:
-                $cellRenderer = "return cell.getValue() ? new Date(cell.getValue()).toLocaleDateString() : ''";
-                break;
-
-            case FieldType::IMAGE:
-                $cellRenderer = self::getTsForImage();
-                break;
-
-            case FieldType::PASSWORD:
-            case FieldType::FILE:
-            case FieldType::SECRET:
-            case FieldType::TOKEN:
-                // Mask sensitive values
-                $cellRenderer = "return cell.getValue() ? '••••••' : ''";
-                break;
-
-            case FieldType::JSON:
-            case FieldType::JSONB:
-            case FieldType::BINARY:
-            case FieldType::FOREIGN_ID:
-                $cellRenderer = "return cell.getValue() !== null ? JSON.stringify(cell.getValue()) : ''";
-                break;
-
-            default:
-                $cellRenderer = "return cell.getValue() !== null ? cell.getValue().toString() : ''";
-        }
-
-        return $cellRenderer;
-    }
-
-    public static function getTsForImage(): string
-    {
-        $cellRenderer = "
-                {
-
-
-                const value = cell.getValue() as string | null;
-                const finalValue = cell.row.original.name ?? value;
-                if (!finalValue) return '';
-
-                // Render our custom Vue component
-                return h(Avatar, { name: finalValue });
-            }";
-
-        $productionRenderer = "
-                {
-                const value = cell.getValue() as string | null;
-                return value
-                    ? h('img', { src: value, alt: '', class: 'h-10 w-10 object-cover rounded' })
-                    : '';
-    }";
-
-        // Return the renderer based on the environment
-        return env('APP_ENV') === 'local' ? $cellRenderer : $productionRenderer;
+        $renderer = Renderer::getRenderer($field);
+        // If the renderer is a custom one, we can use it directly
+        $renderResult = $renderer->render($field, $entity);
+        return $renderResult->content;
     }
 }

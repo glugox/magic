@@ -2,9 +2,13 @@
 
 namespace Glugox\Magic\Support\Config;
 
+use Glugox\Magic\Support\Config\Entity\Settings;
+use Illuminate\Support\Str;
+
 class Entity
 {
     public function __construct(
+        // Entity name, e.g. "User", "Post"
         private string $name,
         /** @var Field[] */
         private array $fields,
@@ -12,6 +16,8 @@ class Entity
         private array $relations = [],
         /** @var string */
         private ?string $tableName = null,
+        // settings for the entity, e.g. timestamps, soft deletes, etc.
+        private ?Settings $settings = new Settings([])
     ) {}
 
     /**
@@ -43,12 +49,38 @@ class Entity
             $entity->addRelation($relation);
         }
 
+        // Set the entity's settings if provided
+        if (isset($data['settings'])) {
+            $settings = new Settings($data['settings']);
+            $entity->settings = $settings;
+        }
+
         return $entity;
     }
 
     public function getName(): string
     {
         return $this->name;
+    }
+
+    /**
+     * Get the entity's short class name.
+     * Example: "User", "Post"
+     */
+    public function getClassName(): string
+    {
+        // Convert entity name to StudlyCase for class name
+        return $this->name;
+    }
+
+    /**
+     * Get the fully qualified model class name.
+     * Example: "\App\Models\User", "\App\Models\Post"
+     */
+    public function getFullyQualifiedModelClass(): string
+    {
+        // Convert entity name to StudlyCase for fully qualified class name
+        return '\\App\\Models\\'. $this->getClassName();
     }
 
     /**
@@ -266,6 +298,14 @@ class Entity
         }
 
         return $searchable;
+    }
+
+    /*
+     * Get setting vale for a specific key.
+     */
+    public function getSetting(string $key): mixed
+    {
+        return $this->settings->get($key);
     }
 
     /**

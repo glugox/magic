@@ -50,12 +50,22 @@ class ControllerBuilderService
      */
     protected function generateController(Entity $entity): void
     {
-        $modelClass = '\\App\\Models\\'.Str::studly(Str::singular($entity->getName()));
+        $modelClass = $entity->getClassName();
+        $modelClassFull = $entity->getFullyQualifiedModelClass();
+        $modelClassLower = Str::lower($modelClass);
         $controllerClass = Str::studly(Str::singular($entity->getName())).'Controller';
         $vuePage = $entity->getFolderName();
+
+        // Relations for eager loading
         $relations = $entity->getRelations(RelationType::BELONGS_TO);
         $relationsNames = array_map(fn($r) => $r->getRelationName(), $relations);
         $relationNamesCode = empty($relationsNames) ? '[]' : "['" . implode("', '", $relationsNames) . "']";
+
+        // Searchable fields
+        $searchableFields = array_filter($entity->getFields(), fn($field) => $field->searchable);
+        $searchableFieldsCode = empty($searchableFields)
+            ? '[]'
+            : "['" . implode("', '", array_map(fn($f) => $f->name, $searchableFields)) . "']";
 
 
         // Validation rules
@@ -85,7 +95,7 @@ class ControllerBuilderService
 
 namespace App\Http\Controllers;
 
-use $modelClass;
+use $modelClassFull;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -100,6 +110,9 @@ class $controllerClass extends Controller
 
         // All relation names for eager loading
         \$relations = $relationNamesCode;
+
+        // If the entity has searchable fields, we can use them for searching
+        \$searchableFields = $searchableFieldsCode;
 
         \$query = count(\$relations) > 0
             ? $modelClass::with(\$relations)
@@ -116,14 +129,15 @@ class $controllerClass extends Controller
 
         // Search
         \$search = \$request->get('search');
-        if (\$search) {
-            \$query->where(function (\$q) use (\$search) {
-                \$q->where('name', 'like', "%{\$search}%")
-                  ->orWhere('email', 'like', "%{\$search}%");
+        if (\$search && count(\$searchableFields) > 0) {
+            \$query->where(function (\$q) use (\$search, \$searchableFields) {
+                foreach (\$searchableFields as \$field) {
+                    \$q->orWhere(\$field, 'like', "%{\$search}%");
+                }
             });
         }
         \$items = \$query->paginate(
-            \$request->integer('per_page', 15),
+            \$request->integer('per_page', 12),
             ['*'],
             'page',
             \$request->integer('page', 1)
@@ -159,21 +173,31 @@ class $controllerClass extends Controller
     /**
      * Show the form for editing the specified $modelClass.
      */
-    public function edit($modelClass \$item)
+    public function show($modelClass \${$modelClassLower})
     {
         return Inertia::render('$vuePage/Edit', [
-            'item' => \$item,
+            'item' => \${$modelClassLower},
+        ]);
+    }
+
+    /**
+     * Show the form for editing the specified $modelClass.
+     */
+    public function edit($modelClass \${$modelClassLower})
+    {
+        return Inertia::render('$vuePage/Edit', [
+            'item' => \${$modelClassLower},
         ]);
     }
 
     /**
      * Update the specified $modelClass in storage.
      */
-    public function update(Request \$request, $modelClass \$item)
+    public function update(Request \$request, $modelClass \${$modelClassLower})
     {
         \$data = \$request->validate($rulesArrayStr);
 
-        \$item->update(\$data);
+        \${$modelClassLower}->update(\$data);
 
         return redirect()->route(strtolower('$vuePage') . '.index')
             ->with('success', '$vuePage updated successfully.');
@@ -182,9 +206,9 @@ class $controllerClass extends Controller
     /**
      * Remove the specified $modelClass from storage.
      */
-    public function destroy($modelClass \$item)
+    public function destroy($modelClass \${$modelClassLower})
     {
-        \$item->delete();
+        \${$modelClassLower}->delete();
 
         return redirect()->route(strtolower('$vuePage') . '.index')
             ->with('success', '$vuePage deleted successfully.');
