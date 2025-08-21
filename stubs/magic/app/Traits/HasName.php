@@ -11,7 +11,6 @@ trait HasName
      * or if a custom resolveName method exists, and returns
      * the appropriate name. If neither is available, it defaults
      * to a class name with the model ID.
-     *
      */
     public function getNameAttribute(): string
     {
@@ -37,6 +36,6 @@ trait HasName
         // If no specific name field or custom method is defined,
         // return a default name format using the class name and model ID.
         // For example: "Order #123"
-        return class_basename($this) . " #{$this->id}";
+        return class_basename($this)." #{$this->id}";
     }
 }
