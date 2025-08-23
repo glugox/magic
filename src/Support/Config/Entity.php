@@ -264,6 +264,7 @@ class Entity
                 return true;
             }
         }
+
         return false;
     }
 

@@ -13,9 +13,6 @@ use Glugox\Magic\Support\Faker\FakerExtension;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
-use Prism\Prism\Enums\Provider;
-use Prism\Prism\Facades\Tool;
-use Prism\Prism\Prism;
 
 class SeederBuilderService
 {
