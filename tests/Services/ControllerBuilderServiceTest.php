@@ -5,13 +5,14 @@ namespace Tests\Services;
 use Glugox\Magic\Services\ControllerBuilderService;
 use Glugox\Magic\Support\Config\Config;
 use Glugox\Magic\Support\Config\Entity;
+use Glugox\Magic\Tests\TestCase;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
-use Glugox\Magic\Tests\TestCase;
 
 class ControllerBuilderServiceTest extends TestCase
 {
     protected $configMock;
+
     protected $entityMock;
 
     protected function setUp(): void
@@ -32,7 +33,7 @@ class ControllerBuilderServiceTest extends TestCase
         $this->entityMock->method('getRouteName')->willReturn('tests');
     }
 
-    public function testBuildCreatesControllerAndRoutes()
+    public function test_build_creates_controller_and_routes()
     {
         File::shouldReceive('exists')->andReturn(false);
         File::shouldReceive('makeDirectory')->once();

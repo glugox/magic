@@ -181,7 +181,7 @@ class Field
      */
     public function belongsTo(): ?Relation
     {
-        if($this->relation && in_array($this->relation->getType(), [RelationType::BELONGS_TO, RelationType::MORPH_TO], true)) {
+        if ($this->relation && in_array($this->relation->getType(), [RelationType::BELONGS_TO, RelationType::MORPH_TO], true)) {
             return $this->relation;
         }
 

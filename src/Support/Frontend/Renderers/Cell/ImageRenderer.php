@@ -8,11 +8,10 @@ use Glugox\Magic\Support\Frontend\Renderers\RendererResult;
 
 class ImageRenderer extends Renderer
 {
-
     /**
      * Render the cell value.
      */
-    public function render( Field $field, Entity $entity): RendererResult
+    public function render(Field $field, Entity $entity): RendererResult
     {
         return new RendererResult(
             content: $this->getTsForImage(),
@@ -46,8 +45,6 @@ class ImageRenderer extends Renderer
 
     /**
      * Get the type of the renderer.
-     *
-     * @return string
      */
     public function getType(): string
     {

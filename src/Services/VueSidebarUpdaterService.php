@@ -93,6 +93,7 @@ const mainNavItems: NavItem[] = [
 ];
 JS;
     }
+
     /**
      * Add a cleaned-up lucide import after all existing imports.
      * Leaves original imports untouched.
@@ -107,7 +108,7 @@ JS;
         $icons = array_unique($icons);
         sort($icons);
 
-        $iconsCode = 'import { ' . implode(', ', $icons) . " } from 'lucide-vue-next';";
+        $iconsCode = 'import { '.implode(', ', $icons)." } from 'lucide-vue-next';";
 
         // Remove any previously inserted block
         $content = preg_replace(
@@ -124,13 +125,12 @@ JS;
             $before = substr($content, 0, $pos);
             $after = substr($content, $pos);
 
-            $content = $before . "\n// magic:icons-start-+\n{$iconsCode}\n// magic:icons-end\n" . $after;
+            $content = $before."\n// magic:icons-start-+\n{$iconsCode}\n// magic:icons-end\n".$after;
         } else {
             // If no imports exist, just prepend at top
-            $content = "// magic:icons-start-+\n{$iconsCode}\n// magic:icons-end\n" . $content;
+            $content = "// magic:icons-start-+\n{$iconsCode}\n// magic:icons-end\n".$content;
         }
 
         return $content;
     }
-
 }

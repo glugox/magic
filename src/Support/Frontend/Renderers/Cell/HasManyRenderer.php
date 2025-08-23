@@ -8,11 +8,10 @@ use Glugox\Magic\Support\Frontend\Renderers\RendererResult;
 
 class HasManyRenderer extends Renderer
 {
-
     /**
      * Render the cell value.
      */
-    public function render( Field $field, Entity $entity): RendererResult
+    public function render(Field $field, Entity $entity): RendererResult
     {
         $relation = $entity->getRelationByName($field->name);
 
@@ -22,7 +21,7 @@ class HasManyRenderer extends Renderer
 
         // Create instance of entity model
         $entityClass = $entity->getFullyQualifiedModelClass();
-        $item = new $entityClass();
+        $item = new $entityClass;
         $item->exists = true; // Mark as existing to avoid issues
         $item->id = 1; // Dummy ID, adjust as needed
         $count = $item->{$relation->getRelationName()}()->count();
@@ -36,8 +35,6 @@ class HasManyRenderer extends Renderer
 
     /**
      * Get the type of the renderer.
-     *
-     * @return string
      */
     public function getType(): string
     {
