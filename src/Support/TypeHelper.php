@@ -32,6 +32,10 @@ class TypeHelper
             RelationType::BELONGS_TO => FieldType::BELONGS_TO,
             RelationType::HAS_MANY, RelationType::BELONGS_TO_MANY => FieldType::HAS_MANY,
             RelationType::HAS_ONE => FieldType::HAS_ONE,
+            RelationType::MORPH_ONE => FieldType::HAS_ONE,
+            RelationType::MORPH_MANY => FieldType::HAS_MANY,
+            RelationType::MORPH_TO => FieldType::BELONGS_TO,
+            default => FieldType::STRING,
         };
     }
 }

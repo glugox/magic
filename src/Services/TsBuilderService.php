@@ -101,7 +101,7 @@ import {h} from "vue";
 import {Button} from "@/components/ui/button";
 import {ArrowUpDown} from "lucide-vue-next";
 import Avatar from "@/components/Avatar.vue";
-import {parseBool} from "@/lib/utils";
+import {parseBool} from "@/lib/app";
 
 export function get{$entityName}Columns(): ColumnDef<{$entityName}>[] {
     return [
@@ -181,6 +181,7 @@ EOT;
             'components/ResourceForm.vue',
             'components/Avatar.vue',
             'types/magic.ts',
+            'lib/app.ts',
         ];
 
         foreach ($vueFiles as $file) {

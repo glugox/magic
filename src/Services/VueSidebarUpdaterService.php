@@ -108,6 +108,29 @@ JS;
         $icons = array_unique($icons);
         sort($icons);
 
+        // 🔍 Extract already-imported icons from file
+        preg_match_all("/import\s*{\s*([^}]*)}\s*from\s*'lucide-vue-next';/", $content, $matches);
+        $alreadyImported = [];
+        if (!empty($matches[1])) {
+            foreach ($matches[1] as $importGroup) {
+                foreach (explode(',', $importGroup) as $icon) {
+                    $alreadyImported[] = trim($icon);
+                }
+            }
+        }
+
+        // 🚫 Remove duplicates
+        $icons = array_diff($icons, $alreadyImported);
+
+        // If nothing new, just remove the old magic block
+        if (empty($icons)) {
+            return preg_replace(
+                '/\/\/ magic:icons-start-\+.*?\/\/ magic:icons-end\s*/s',
+                '',
+                $content
+            );
+        }
+
         $iconsCode = 'import { '.implode(', ', $icons)." } from 'lucide-vue-next';";
 
         // Remove any previously inserted block
@@ -117,7 +140,7 @@ JS;
             $content
         );
 
-        // Insert after the last import line (the highest match in the file)
+        // Insert after the last import line
         if (preg_match_all('/^import .*;$/m', $content, $matches, PREG_OFFSET_CAPTURE)) {
             $lastImport = end($matches[0]);
             $pos = $lastImport[1] + strlen($lastImport[0]);
@@ -127,7 +150,6 @@ JS;
 
             $content = $before."\n// magic:icons-start-+\n{$iconsCode}\n// magic:icons-end\n".$after;
         } else {
-            // If no imports exist, just prepend at top
             $content = "// magic:icons-start-+\n{$iconsCode}\n// magic:icons-end\n".$content;
         }
 
