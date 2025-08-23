@@ -50,6 +50,9 @@ class Renderer
         FieldType::FILE->value => PasswordRenderer::class,
         FieldType::SECRET->value => PasswordRenderer::class,
         FieldType::TOKEN->value => PasswordRenderer::class,
+
+        // Url types
+        FieldType::URL->value => UrlRenderer::class,
     ];
 
     /**

@@ -71,6 +71,8 @@ class Field
      *     comment?: string|null,
      *     sortable?: bool,
      *     searchable?: bool,
+     *     showInTable?: bool,
+     *     showInForm?: bool,
      *     values?: string[],
      *     min?: float,
      *     max?: float
@@ -90,9 +92,12 @@ class Field
             comment: $data['comment'] ?? null,
             sortable: $data['sortable'] ?? false,
             searchable: $data['searchable'] ?? false,
+            showInTable: $data['showInTable'] ?? true,
+            showInForm: $data['showInForm'] ?? true,
             values: $data['values'] ?? [],
             min: $data['min'] ?? null,
             max: $data['max'] ?? null,
+            relation: null,
         );
     }
 
@@ -141,7 +146,7 @@ class Field
         }
 
         return match ($this->type) {
-            FieldType::IMAGE => 'string',
+            FieldType::IMAGE, FieldType::URL => 'string',
             default => $this->type->value // Fallback to the enum value if not matched
         };
     }
@@ -196,6 +201,14 @@ class Field
         // }
 
         return $relationField; // Not a foreign key field
+    }
+
+    /**
+     * Return true if the field is a BelongsTo relation.
+     */
+    public function isBelongsTo(): bool
+    {
+        return $this->belongsTo() !== null;
     }
 
     /**
@@ -286,5 +299,17 @@ class Field
     public function debugLog(): void
     {
         Log::channel('magic')->debug($this->printDebug());
+    }
+
+    /**
+     * Returns true if this field is a foreign key (i.e., belongs to another entity).
+     * TODO: Make this more certain by checking actual relations.
+     */
+    public function isForeignKey()
+    {
+        // Check if the field name ends with '_id' which is a common convention for foreign keys
+        if (Str::endsWith($this->name, '_id')) {
+            return true;
+        }
     }
 }

@@ -3,6 +3,7 @@
 namespace Glugox\Magic\Support\Config;
 
 use Glugox\Magic\Support\Config\Entity\Settings;
+use Illuminate\Support\Str;
 
 class Entity
 {
@@ -210,6 +211,81 @@ class Entity
     public function getFields(): array
     {
         return $this->fields;
+    }
+
+    /**
+     * Get fields that should be visible in tables/lists.
+     *
+     * @return Field[]
+     */
+    public function getTableFields(): array
+    {
+        $visible = [];
+
+        foreach ($this->fields as $field) {
+
+            // Exclude showInTable false fields
+            if ($field->showInTable === false) {
+                continue;
+            }
+
+            if (! in_array($field->name, ['password', 'remember_token'])) {
+                $visible[] = $field;
+            }
+        }
+
+        // Ensure we have name field in the list
+        if (! $this->hasNameField()) {
+            $nameField = new Field('name', FieldType::STRING);
+            $visible[] = $nameField;
+        }
+
+        // Relations
+        foreach ($this->getRelations() as $relation) {
+            $relationField = Field::fromRelation($relation);
+            $visible[] = $relationField;
+        }
+
+        // Reorder: id first, name second, BELONGS_TO fields next
+        usort($visible, function ($a, $b) {
+            return $this->fieldPriority($a) <=> $this->fieldPriority($b);
+        });
+
+        return $visible;
+    }
+
+    /**
+     * Check if the entity has a name field.
+     */
+    public function hasNameField(): bool
+    {
+        foreach ($this->fields as $field) {
+            if ($field->isName()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Assign priority values to fields for ordering.
+     */
+    protected function fieldPriority(Field $field): int
+    {
+        if ($field->name === 'id') {
+            return 0;
+        }
+
+        if ($field->isName()) {
+            return 1;
+        }
+
+        if ($field->isBelongsTo()) {
+            return 2;
+        }
+
+        // everything else after
+        return 3;
     }
 
     /**

@@ -27,8 +27,7 @@ class BuildAppCommand extends MagicBaseCommand
         'magic:publish-files' => 'Publishing magic files',
         'magic:build-ts' => 'Building TypeScript support files',
         'magic:build-vue-pages' => 'Building Vue pages',
-        'magic:update-vue-pages' => 'Updating Vue sidebar',
-        'migrate:fresh' => 'Running migrations',
+        'magic:update-vue-pages' => 'Updating Vue sidebar'
     ];
 
     /**
@@ -52,6 +51,10 @@ class BuildAppCommand extends MagicBaseCommand
         foreach (self::BUILD_STEPS as $command => $message) {
             $this->runStep($command, $message);
         }
+
+        // Migrate the database
+        $this->block->info('Migrating the database...');
+        $this->call('migrate', ['--force' => true]);
 
         if ($this->getConfig()->dev->seedEnabled) {
             Log::channel('magic')->info("Seeding the database with default seedCount of {$this->getConfig()->dev->seedCount}...");

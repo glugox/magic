@@ -156,26 +156,17 @@ EOT;
         // Add select at the beginning
         $columns[] = $this->getInitialColumnDef();
 
-        foreach ($entity->getFields() as $field) {
+        foreach ($entity->getTableFields() as $field) {
             Log::channel('magic')->info("Processing field: {$field->name} of type: {$field->type->value}");
-            if($field->belongsTo()) {
+            if($field->isForeignKey()) {
                 // Skip belongsTo fields as they are handled in relations
-                Log::channel('magic')->info(" - Skipping belongsTo field: {$field->name}");
+                Log::channel('magic')->info("Skipping belongsTo field: {$field->name}");
                 continue;
             }
 
             $column = TsHelper::writeTableColumn($field, $entity);
             $columns[] = $column;
         }
-
-        // Relations
-        foreach ($entity->getRelations() as $relation) {
-            $relationField = Field::fromRelation($relation);
-            Log::channel('magic')->info(" > Processing relation: {$relation->getRelationName()} as field: {$relationField->name} of type: {$relationField->type->value}");
-            $column = TsHelper::writeTableColumn($relationField, $entity);
-            $columns[] = $column;
-        }
-
         return implode(",\n        ", $columns);
     }
 

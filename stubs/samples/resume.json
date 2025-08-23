@@ -43,7 +43,7 @@
                 { "name": "id", "type": "bigIncrements", "nullable": false },
                 { "name": "user_id", "type": "unsignedBigInteger", "nullable": false },
                 { "name": "title", "type": "string", "nullable": false, "searchable": true },
-                { "name": "summary", "type": "text", "nullable": true, "searchable": true }
+                { "name": "summary", "type": "text", "nullable": true, "searchable": true, "showInTable": false }
             ],
             "relations": [
                 { "type": "belongsTo", "entity": "User", "foreign_key": "user_id" },
@@ -65,7 +65,7 @@
                 { "name": "position", "type": "string", "searchable": true },
                 { "name": "start_date", "type": "date" },
                 { "name": "end_date", "type": "date", "nullable": true },
-                { "name": "description", "type": "text", "nullable": true }
+                { "name": "description", "type": "text", "nullable": true, "showInTable": false }
             ],
             "relations": [
                 { "type": "belongsTo", "entity": "Resume", "foreign_key": "resume_id" }
@@ -121,8 +121,8 @@
                 { "name": "id", "type": "bigIncrements" },
                 { "name": "resume_id", "type": "unsignedBigInteger" },
                 { "name": "title", "type": "string", "searchable": true },
-                { "name": "description", "type": "longText", "nullable": true },
-                { "name": "url", "type": "string", "nullable": true }
+                { "name": "description", "type": "longText", "nullable": true, "showInTable": false },
+                { "name": "url", "type": "url", "nullable": true }
             ],
             "relations": [
                 { "type": "belongsTo", "entity": "Resume", "foreign_key": "resume_id" }

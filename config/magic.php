@@ -3,6 +3,9 @@
 // config file for the Magic package
 return [
 
+    // Prism default model
+    'ollama_model' => env('MAGIC_OLLAMA_MODEL', 'MFDoom/deepseek-r1-tool-calling:latest'),
+
     'logging' => [
         'enabled' => true,
         'level' => 'debug', // Can be 'debug', 'info', 'notice', 'warning', 'error', 'critical', 'alert', 'emergency'

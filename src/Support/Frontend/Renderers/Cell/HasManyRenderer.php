@@ -21,12 +21,14 @@ class HasManyRenderer extends Renderer
         //  return $item->roles()->count();
 
         // Create instance of entity model
-        $entityClass = $entity->getFullyQualifiedModelClass();
+        /*$entityClass = $entity->getFullyQualifiedModelClass();
         $item = new $entityClass();
         $item->exists = true; // Mark as existing to avoid issues
         $item->id = 1; // Dummy ID, adjust as needed
         $count = $item->{$relation->getRelationName()}()->count();
-        $formattedStr = "return '{$count}';";
+        $formattedStr = "return '{$count}';";*/
+
+        $formattedStr = "return 'HasMany...'";
 
         return new RendererResult(
             content: $formattedStr,

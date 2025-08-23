@@ -17,7 +17,9 @@
     ],
     "require": {
         "php": "^8.4",
-        "illuminate/contracts": "^10.0||^11.0||^12.0"
+        "glugox/ai": "dev-main",
+        "illuminate/contracts": "^10.0||^11.0||^12.0",
+        "prism-php/prism": "^0.86.0"
     },
     "require-dev": {
         "larastan/larastan": "^2.9||^3.0",
@@ -70,6 +72,12 @@
             }
         }
     },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "/Users/ervin/Code/github.com/glugox/*"
+        }
+    ],
     "minimum-stability": "dev",
     "prefer-stable": true
 }
