@@ -8,11 +8,10 @@ use Glugox\Magic\Support\Frontend\Renderers\RendererResult;
 
 class DateRenderer extends Renderer
 {
-
     /**
      * Render the cell value.
      */
-    public function render( Field $field, Entity $entity): RendererResult
+    public function render(Field $field, Entity $entity): RendererResult
     {
         $formattedDate = "return cell.getValue() ? new Date(cell.getValue()).toLocaleDateString() : ''";
 
@@ -24,8 +23,6 @@ class DateRenderer extends Renderer
 
     /**
      * Get the type of the renderer.
-     *
-     * @return string
      */
     public function getType(): string
     {

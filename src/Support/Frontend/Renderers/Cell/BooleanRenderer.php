@@ -8,11 +8,10 @@ use Glugox\Magic\Support\Frontend\Renderers\RendererResult;
 
 class BooleanRenderer extends Renderer
 {
-
     /**
      * Render the cell value.
      */
-    public function render( Field $field, Entity $entity): RendererResult
+    public function render(Field $field, Entity $entity): RendererResult
     {
         $formattedValue = "return h(Checkbox, { 'modelValue': parseBool(cell.getValue()), disabled: true })";
 
@@ -24,8 +23,6 @@ class BooleanRenderer extends Renderer
 
     /**
      * Get the type of the renderer.
-     *
-     * @return string
      */
     public function getType(): string
     {

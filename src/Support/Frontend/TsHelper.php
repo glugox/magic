@@ -12,7 +12,7 @@ class TsHelper
     /**
      * Write a single table column definition.
      */
-    public static function writeTableColumn(Field $field, Entity $entity) : string
+    public static function writeTableColumn(Field $field, Entity $entity): string
     {
         $tsType = TypeHelper::migrationTypeToTsType($field->type);
         $strEnableSorting = $field->sortable ? 'true' : 'false';
@@ -82,11 +82,12 @@ HEADER;
      * Write a table cell renderer for a given field.
      * This is used to generate the cell content in the table.
      */
-    private static function writeTableCell(Field $field, Entity $entity) : string
+    private static function writeTableCell(Field $field, Entity $entity): string
     {
         $renderer = Renderer::getRenderer($field);
         // If the renderer is a custom one, we can use it directly
         $renderResult = $renderer->render($field, $entity);
+
         return $renderResult->content;
     }
 }

@@ -23,8 +23,8 @@ class Settings
     /**
      * Get a specific setting value by key.
      *
-     * @param string $key The setting key to retrieve.
-     * @param mixed $default The default value to return if the key does not exist.
+     * @param  string  $key  The setting key to retrieve.
+     * @param  mixed  $default  The default value to return if the key does not exist.
      * @return mixed The value of the setting or the default value.
      */
     public function get(string $key, mixed $default = null): mixed
@@ -35,5 +35,4 @@ class Settings
             default => $default,
         };
     }
-
 }

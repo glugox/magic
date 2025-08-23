@@ -8,11 +8,10 @@ use Glugox\Magic\Support\Frontend\Renderers\RendererResult;
 
 class NumberRenderer extends Renderer
 {
-
     /**
      * Render the cell value.
      */
-    public function render( Field $field, Entity $entity): RendererResult
+    public function render(Field $field, Entity $entity): RendererResult
     {
         $formattedStr = "return cell.getValue() !== null ? cell.getValue().toLocaleString() : ''";
 
@@ -24,8 +23,6 @@ class NumberRenderer extends Renderer
 
     /**
      * Get the type of the renderer.
-     *
-     * @return string
      */
     public function getType(): string
     {
