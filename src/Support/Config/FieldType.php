@@ -40,4 +40,11 @@ enum FieldType: string
     case YEAR = 'year';
     case SECRET = 'secret';
     case TOKEN = 'token';
+
+    // Relation types
+    case BELONGS_TO = 'belongsTo';
+    case HAS_MANY = 'hasMany';
+    case HAS_ONE = 'hasOne';
+    case BELONGS_TO_MANY = 'belongsToMany';
+
 }

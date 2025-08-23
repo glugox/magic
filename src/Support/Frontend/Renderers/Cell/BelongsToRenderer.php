@@ -14,7 +14,6 @@ class BelongsToRenderer extends Renderer
     public function render(Field $field, Entity $entity): RendererResult
     {
         $belongsTo = $field->belongsTo();
-        $relatedEntity = $belongsTo->getLocalEntity();
         $tableCellStr = "
                     const relatedEntity = cell.row.original.{$belongsTo->getRelationName()};
                     const href = '{$belongsTo->getHref()}';

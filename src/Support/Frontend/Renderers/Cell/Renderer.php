@@ -47,7 +47,7 @@ class Renderer
 
         // Password and sensitive types
         FieldType::PASSWORD->value => PasswordRenderer::class,
-        FieldType::FILE->value => FileRenderer::class,
+        FieldType::FILE->value => PasswordRenderer::class,
         FieldType::SECRET->value => PasswordRenderer::class,
         FieldType::TOKEN->value => PasswordRenderer::class,
     ];
@@ -72,6 +72,12 @@ class Renderer
         if ($belongsTo) {
             Log::channel('magic')->info('Field ' . $field->name . ' belongs to entity: ' . $belongsTo->getEntityName(). '. Using BelongsToRenderer.');
             return new BelongsToRenderer();
+        }
+
+        // Relation types
+        if ($field->type === FieldType::HAS_MANY || $field->type === FieldType::BELONGS_TO_MANY) {
+            Log::channel('magic')->info('Field ' . $field->name . ' is a relation of type: ' . $field->type->value . '. Using HasManyRenderer.');
+            return new HasManyRenderer();
         }
 
 

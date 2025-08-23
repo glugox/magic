@@ -5,7 +5,6 @@ namespace Glugox\Magic\Support\Frontend\Renderers\Cell;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Frontend\Renderers\RendererResult;
-use Illuminate\Support\Facades\Log;
 
 class ImageRenderer extends Renderer
 {
@@ -15,13 +14,6 @@ class ImageRenderer extends Renderer
      */
     public function render( Field $field, Entity $entity): RendererResult
     {
-        Log::channel('magic')
-            ->info(
-                'Rendering image cell',
-                [
-                    'renderer' => static::class,
-                ]
-            );
         return new RendererResult(
             content: $this->getTsForImage(),
             type: $this->getType()

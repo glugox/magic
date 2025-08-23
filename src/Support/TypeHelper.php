@@ -3,6 +3,7 @@
 namespace Glugox\Magic\Support;
 
 use Glugox\Magic\Support\Config\FieldType;
+use Glugox\Magic\Support\Config\RelationType;
 use Glugox\Magic\Type\TsType;
 
 class TypeHelper
@@ -19,6 +20,18 @@ class TypeHelper
             FieldType::DATE, FieldType::DATETIME => TsType::DATE,
             FieldType::JSON, FieldType::JSONB => TsType::OBJECT,
             default => TsType::ANY,
+        };
+    }
+
+    /**
+     * Convert RelationType to FieldType
+     */
+    public static function relationTypeToFieldType(RelationType $relationType): FieldType
+    {
+        return match ($relationType) {
+            RelationType::BELONGS_TO => FieldType::BELONGS_TO,
+            RelationType::HAS_MANY, RelationType::BELONGS_TO_MANY => FieldType::HAS_MANY,
+            RelationType::HAS_ONE => FieldType::HAS_ONE,
         };
     }
 }

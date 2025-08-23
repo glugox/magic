@@ -4,6 +4,7 @@ namespace Glugox\Magic\Services;
 
 use Glugox\Magic\Support\Config\Config;
 use Glugox\Magic\Support\Config\Entity;
+use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Frontend\TsHelper;
 use Glugox\Magic\Support\TypeHelper;
 use Illuminate\Filesystem\Filesystem;
@@ -140,7 +141,6 @@ EOT;
             $fieldMeta = TsHelper::writeFieldMeta($field);
             $fields[] = $fieldMeta;
         }
-
         return implode(",\n            ", $fields);
     }
 
@@ -151,14 +151,28 @@ EOT;
     {
         $columns = [];
 
-        Log::channel('magic')->info("Generating column definitions for entity: {$entity->getName()}");
+        Log::channel('magic')->info(">>> Generating column definitions for entity: {$entity->getName()}");
 
         // Add select at the beginning
         $columns[] = $this->getInitialColumnDef();
 
         foreach ($entity->getFields() as $field) {
-            Log::channel('magic')->info(" > Processing field: {$field->name} of type: {$field->type->value}");
+            Log::channel('magic')->info("Processing field: {$field->name} of type: {$field->type->value}");
+            if($field->belongsTo()) {
+                // Skip belongsTo fields as they are handled in relations
+                Log::channel('magic')->info(" - Skipping belongsTo field: {$field->name}");
+                continue;
+            }
+
             $column = TsHelper::writeTableColumn($field, $entity);
+            $columns[] = $column;
+        }
+
+        // Relations
+        foreach ($entity->getRelations() as $relation) {
+            $relationField = Field::fromRelation($relation);
+            Log::channel('magic')->info(" > Processing relation: {$relation->getRelationName()} as field: {$relationField->name} of type: {$relationField->type->value}");
+            $column = TsHelper::writeTableColumn($relationField, $entity);
             $columns[] = $column;
         }
 

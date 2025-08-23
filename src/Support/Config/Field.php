@@ -2,6 +2,8 @@
 
 namespace Glugox\Magic\Support\Config;
 
+use Glugox\Magic\Support\TypeHelper;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 /**
@@ -42,10 +44,13 @@ class Field
         public ?string $comment = null,      // optional DB comment
         public bool $sortable = false,       // sortable in UI
         public bool $searchable = false,     // searchable in UI
+        public bool $showInTable = true,     // show in table views
+        public bool $showInForm = true,      // show in forms
         /** @var string[] Allowed enum/options */
         public array $values = [],
         public $min = null,
-        public $max = null
+        public $max = null,
+        public ?Relation $relation = null,
     ) {
         // Validate min/max values
         // $this->min = max(0.0, $this->min);
@@ -88,6 +93,30 @@ class Field
             values: $data['values'] ?? [],
             min: $data['min'] ?? null,
             max: $data['max'] ?? null,
+        );
+    }
+
+    /**
+     * Creates a new field from relation.
+     */
+    public static function fromRelation(Relation $relation): self
+    {
+        return new self(
+            name: $relation->getRelationName(),
+            type: TypeHelper::relationTypeToFieldType($relation->getType()),
+            entityRef: $relation->getLocalEntity(),
+            nullable: false,
+            length: null,
+            precision: null,
+            scale: null,
+            default: null,
+            comment: 'Foreign key to '.$relation->getEntityName(),
+            sortable: true,
+            searchable: false,
+            values: [],
+            min: null,
+            max: null,
+            relation: $relation,
         );
     }
 
@@ -152,6 +181,10 @@ class Field
      */
     public function belongsTo(): ?Relation
     {
+        if($this->relation && in_array($this->relation->getType(), [RelationType::BELONGS_TO, RelationType::MORPH_TO], true)) {
+            return $this->relation;
+        }
+
         if ($this->entityRef === null) {
             return null; // No entity reference, cannot determine relation
         }
@@ -254,6 +287,6 @@ class Field
      */
     public function debugLog(): void
     {
-        \Log::channel('magic')->debug($this->printDebug());
+        Log::channel('magic')->debug($this->printDebug());
     }
 }

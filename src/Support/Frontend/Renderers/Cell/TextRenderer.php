@@ -5,7 +5,6 @@ namespace Glugox\Magic\Support\Frontend\Renderers\Cell;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Frontend\Renderers\RendererResult;
-use Illuminate\Support\Facades\Log;
 
 class TextRenderer extends Renderer
 {
@@ -15,14 +14,14 @@ class TextRenderer extends Renderer
      */
     public function render( Field $field, Entity $entity): RendererResult
     {
-        Log::channel('magic')
-            ->info(
-                'Rendering text cell',
-                [
-                    'renderer' => static::class,
-                ]
-            );
-        $formattedStr = "return cell.getValue() ? (cell.getValue().slice(0, 50) + '...') : ''";
+        $formattedStr = "
+{
+    const value = cell.getValue() as string | null;
+    if (!value) return '';
+
+    const display = value.length > 32 ? value.slice(0, 32) + '...' : value;
+    return h('p', { title: value, class: 'text-small' }, display);
+}";
 
         return new RendererResult(
             content: $formattedStr,

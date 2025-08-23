@@ -1,7 +1,7 @@
 <template>
     <div
-        class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
-        :style="{ backgroundColor: bgColor }"
+        class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold"
+        :style="{ backgroundColor: bgColor, opacity: 0.5 }"
     >
         {{ initials }}
     </div>

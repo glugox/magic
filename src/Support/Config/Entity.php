@@ -17,7 +17,9 @@ class Entity
         /** @var string */
         private ?string $tableName = null,
         // settings for the entity, e.g. timestamps, soft deletes, etc.
-        private ?Settings $settings = new Settings([])
+        private ?Settings $settings = new Settings([]),
+        // Icon
+        private ?string $icon = null,
     ) {}
 
     /**
@@ -53,6 +55,11 @@ class Entity
         if (isset($data['settings'])) {
             $settings = new Settings($data['settings']);
             $entity->settings = $settings;
+        }
+
+        // Set the entity's icon if provided
+        if (isset($data['icon'])) {
+            $entity->icon = $data['icon'] ?? null;
         }
 
         return $entity;
@@ -106,7 +113,7 @@ class Entity
     public function getForeignKey(): string
     {
         // Usually the foreign key is snake_case of the entity name + '_id'
-        return \Str::snake($this->getName()).'_id';
+        return Str::snake($this->getName()).'_id';
     }
 
     /**
@@ -149,7 +156,7 @@ class Entity
      */
     public function getPluralName(): string
     {
-        return \Str::plural($this->name);
+        return Str::plural($this->name);
     }
 
     /**
@@ -157,7 +164,7 @@ class Entity
      */
     public function getSingularName(): string
     {
-        return \Str::singular($this->name);
+        return Str::singular($this->name);
     }
 
     /**
@@ -173,7 +180,7 @@ class Entity
      */
     public function getIcon(): string
     {
-        return 'LayoutGrid'; // TODO: Implement logic to determine icon based on entity name or from config
+        return $this->icon ?? 'LayoutGrid';
     }
 
     /**

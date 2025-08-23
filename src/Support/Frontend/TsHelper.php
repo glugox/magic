@@ -4,7 +4,6 @@ namespace Glugox\Magic\Support\Frontend;
 
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
-use Glugox\Magic\Support\Config\FieldType;
 use Glugox\Magic\Support\Frontend\Renderers\Cell\Renderer;
 use Glugox\Magic\Support\TypeHelper;
 

@@ -5,7 +5,6 @@ namespace Glugox\Magic\Support\Frontend\Renderers\Cell;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Frontend\Renderers\RendererResult;
-use Illuminate\Support\Facades\Log;
 
 class PasswordRenderer extends Renderer
 {
@@ -15,13 +14,6 @@ class PasswordRenderer extends Renderer
      */
     public function render( Field $field, Entity $entity): RendererResult
     {
-        Log::channel('magic')
-            ->info(
-                'Rendering password cell',
-                [
-                    'renderer' => static::class,
-                ]
-            );
         $formattedStr = "return cell.getValue() ? '••••••' : ''";
 
         return new RendererResult(

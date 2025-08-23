@@ -45,13 +45,16 @@ class VueSidebarUpdaterService
         $itemsCode = $this->generateNavItemsCode();
 
         // Replace the existing array in the file
-        $updatedContent = preg_replace(
+        $content = preg_replace(
             '/const mainNavItems: NavItem\[\] = \[.*?\];/s',
             $itemsCode,
             $content
         );
 
-        File::put($this->sidebarPath, $updatedContent);
+        // Update imports as well
+        $content = $this->updateImports($content);
+
+        File::put($this->sidebarPath, $content);
     }
 
     /**
@@ -72,6 +75,9 @@ class VueSidebarUpdaterService
         File::put($this->appLogoPath, $updatedContent);
     }
 
+    /**
+     * Generate the navigation items code for the sidebar.
+     */
     protected function generateNavItemsCode(): string
     {
         $lines = [];
@@ -87,4 +93,44 @@ const mainNavItems: NavItem[] = [
 ];
 JS;
     }
+    /**
+     * Add a cleaned-up lucide import after all existing imports.
+     * Leaves original imports untouched.
+     */
+    protected function updateImports(string $content): string
+    {
+        // Collect needed icons from entities
+        $icons = [];
+        foreach ($this->config->entities as $entity) {
+            $icons[] = $entity->getIcon();
+        }
+        $icons = array_unique($icons);
+        sort($icons);
+
+        $iconsCode = 'import { ' . implode(', ', $icons) . " } from 'lucide-vue-next';";
+
+        // Remove any previously inserted block
+        $content = preg_replace(
+            '/\/\/ magic:icons-start-\+.*?\/\/ magic:icons-end\s*/s',
+            '',
+            $content
+        );
+
+        // Insert after the last import line (the highest match in the file)
+        if (preg_match_all('/^import .*;$/m', $content, $matches, PREG_OFFSET_CAPTURE)) {
+            $lastImport = end($matches[0]);
+            $pos = $lastImport[1] + strlen($lastImport[0]);
+
+            $before = substr($content, 0, $pos);
+            $after = substr($content, $pos);
+
+            $content = $before . "\n// magic:icons-start-+\n{$iconsCode}\n// magic:icons-end\n" . $after;
+        } else {
+            // If no imports exist, just prepend at top
+            $content = "// magic:icons-start-+\n{$iconsCode}\n// magic:icons-end\n" . $content;
+        }
+
+        return $content;
+    }
+
 }
