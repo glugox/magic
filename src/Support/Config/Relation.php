@@ -7,10 +7,15 @@ use Illuminate\Support\Str;
 class Relation
 {
     public RelationType $type;      // e.g. 'hasMany', 'belongsTo'
+
     private ?string $entityName;    // related entity name
+
     private Entity $localEntity;   // local entity for this relation
+
     private ?string $foreignKey;
+
     private ?string $localKey;
+
     private ?string $relationName; // e.g. 'posts', 'comments', etc.
 
     // getters ...

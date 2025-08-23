@@ -60,7 +60,7 @@ class Renderer
      */
     protected static array $cellRenderersByFieldName = [
         'title' => NameRenderer::class,
-        'name' => NameRenderer::class
+        'name' => NameRenderer::class,
     ];
 
     /*
@@ -68,38 +68,41 @@ class Renderer
      */
     public static function getRenderer(Field $field, ?Entity $entity = null): ?self
     {
-        Log::channel('magic')->info('Getting renderer for field: ' . $field->name . ' of type: ' . $field->type->value);
+        Log::channel('magic')->info('Getting renderer for field: '.$field->name.' of type: '.$field->type->value);
 
         $belongsTo = $field->belongsTo();
         // If the field belongs to another entity, we can use a specific renderer for that entity
         if ($belongsTo) {
-            Log::channel('magic')->info('Field ' . $field->name . ' belongs to entity: ' . $belongsTo->getEntityName(). '. Using BelongsToRenderer.');
-            return new BelongsToRenderer();
+            Log::channel('magic')->info('Field '.$field->name.' belongs to entity: '.$belongsTo->getEntityName().'. Using BelongsToRenderer.');
+
+            return new BelongsToRenderer;
         }
 
         // Relation types
         if ($field->type === FieldType::HAS_MANY || $field->type === FieldType::BELONGS_TO_MANY) {
-            Log::channel('magic')->info('Field ' . $field->name . ' is a relation of type: ' . $field->type->value . '. Using HasManyRenderer.');
-            return new HasManyRenderer();
-        }
+            Log::channel('magic')->info('Field '.$field->name.' is a relation of type: '.$field->type->value.'. Using HasManyRenderer.');
 
+            return new HasManyRenderer;
+        }
 
         // Check if the field name has a specific renderer
         if (isset(self::$cellRenderersByFieldName[$field->name])) {
-            Log::channel('magic')->info('Found specific renderer for field name: ' . $field->name . '. Using ' . self::$cellRenderersByFieldName[$field->name] . '.');
-            return new self::$cellRenderersByFieldName[$field->name]();
+            Log::channel('magic')->info('Found specific renderer for field name: '.$field->name.'. Using '.self::$cellRenderersByFieldName[$field->name].'.');
+
+            return new self::$cellRenderersByFieldName[$field->name];
         }
 
         // Check if the field type has a specific renderer
         if (isset(self::$cellRenderers[$field->type->value])) {
-            Log::channel('magic')->info('Found specific renderer for field type: ' . $field->type->value . '. Using ' . self::$cellRenderers[$field->type->value] . '.');
-            return new self::$cellRenderers[$field->type->value]();
+            Log::channel('magic')->info('Found specific renderer for field type: '.$field->type->value.'. Using '.self::$cellRenderers[$field->type->value].'.');
+
+            return new self::$cellRenderers[$field->type->value];
         }
         // If no specific renderer is found, return a default renderer
-        Log::channel('magic')->info('Did not find a specific renderer for field type: ' . $field->type->value . ' or field name: ' . $field->name . '. Using DefaultRenderer.');
-        return new DefaultRenderer();
-    }
+        Log::channel('magic')->info('Did not find a specific renderer for field type: '.$field->type->value.' or field name: '.$field->name.'. Using DefaultRenderer.');
 
+        return new DefaultRenderer;
+    }
 
     /**
      * Render the cell value.
@@ -114,8 +117,6 @@ class Renderer
 
     /**
      * Get the type of the renderer.
-     *
-     * @return string
      */
     public function getType(): string
     {
