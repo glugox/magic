@@ -111,7 +111,7 @@ JS;
         // 🔍 Extract already-imported icons from file
         preg_match_all("/import\s*{\s*([^}]*)}\s*from\s*'lucide-vue-next';/", $content, $matches);
         $alreadyImported = [];
-        if (!empty($matches[1])) {
+        if (! empty($matches[1])) {
             foreach ($matches[1] as $importGroup) {
                 foreach (explode(',', $importGroup) as $icon) {
                     $alreadyImported[] = trim($icon);
