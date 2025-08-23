@@ -141,6 +141,7 @@ EOT;
             $fieldMeta = TsHelper::writeFieldMeta($field);
             $fields[] = $fieldMeta;
         }
+
         return implode(",\n            ", $fields);
     }
 
@@ -158,15 +159,17 @@ EOT;
 
         foreach ($entity->getTableFields() as $field) {
             Log::channel('magic')->info("Processing field: {$field->name} of type: {$field->type->value}");
-            if($field->isForeignKey()) {
+            if ($field->isForeignKey()) {
                 // Skip belongsTo fields as they are handled in relations
                 Log::channel('magic')->info("Skipping belongsTo field: {$field->name}");
+
                 continue;
             }
 
             $column = TsHelper::writeTableColumn($field, $entity);
             $columns[] = $column;
         }
+
         return implode(",\n        ", $columns);
     }
 
