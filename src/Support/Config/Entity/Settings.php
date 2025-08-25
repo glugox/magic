@@ -35,4 +35,15 @@ class Settings
             default => $default,
         };
     }
+
+    /**
+     * Json representation of the settings.
+     */
+    public function toJson(): string
+    {
+        return json_encode([
+            'has_avatar' => $this->hasAvatar,
+            'is_searchable' => $this->isSearchable,
+        ], JSON_PRETTY_PRINT);
+    }
 }

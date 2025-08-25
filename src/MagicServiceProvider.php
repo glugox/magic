@@ -11,9 +11,11 @@ use Glugox\Magic\Commands\BuildTsCommand;
 use Glugox\Magic\Commands\BuildVuePagesCommand;
 use Glugox\Magic\Commands\FreshCommand;
 use Glugox\Magic\Commands\InstallNodePackagesCommand;
+use Glugox\Magic\Commands\ListSamplesCommand;
 use Glugox\Magic\Commands\PublishFilesCommand;
 use Glugox\Magic\Commands\ResetAppCommand;
 use Glugox\Magic\Commands\ResetLaravelCommand;
+use Glugox\Magic\Commands\SuggestionsCommand;
 use Glugox\Magic\Commands\VueSidebarUpdaterCommand;
 use Glugox\Magic\Support\Log\LogIndentTap;
 use Illuminate\Support\Facades\Config;
@@ -47,6 +49,8 @@ class MagicServiceProvider extends ServiceProvider
                 ResetLaravelCommand::class,
                 InstallNodePackagesCommand::class,
                 PublishFilesCommand::class,
+                SuggestionsCommand::class,
+                ListSamplesCommand::class,
             ]);
         }
     }

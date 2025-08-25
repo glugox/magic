@@ -18,8 +18,18 @@ trait HasName
         // and return its value if it exists.
         // For example:
         // protected $nameField = 'orderNumber';
-        if (property_exists($this, 'nameField') && $this->{$this->nameField}) {
-            return $this->{$this->nameField};
+        if (property_exists($this, 'nameFields')) {
+            $nameFields = (array) $this->nameFields;
+            $nameParts = [];
+            foreach ($nameFields as $field) {
+                if (isset($this->{$field})) {
+                    $nameParts[] = $this->{$field};
+                }
+            }
+            if (!empty($nameParts)) {
+                return implode(' ', $nameParts);
+            }
+            return 'N/A';
         }
 
         // If a custom resolveName method exists, call it to get the name.

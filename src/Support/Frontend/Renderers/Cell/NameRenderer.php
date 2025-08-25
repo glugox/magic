@@ -20,20 +20,33 @@ class NameRenderer extends Renderer
                     const id = cell.row.original.id;
                     const nameVal = cell.getValue() ?? '';
                     const avatarUrl = cell.row.original.avatar_url ?? '';
-
                     return h('a', {
                         href: href + '/' + id,
                         class: 'flex items-center gap-2 text-blue-600 hover:underline'
                     }, [
-                        h(Avatar, { name: nameVal, src: avatarUrl }),
+                        #AvatarPlaceholder#
                         h('span', null, nameVal)
                     ]);
                 ";
+
+        // If this field is the primary name field, show avatar
+        $avatarJs = $this->isPrimaryNameField($field, $entity) ? "h(Avatar, { name: nameVal, src: avatarUrl })," : '';
+        $tableCellStr = str_replace('#AvatarPlaceholder#', $avatarJs, $tableCellStr);
 
         return new RendererResult(
             content: (string) $tableCellStr,
             type: $this->getType()
         );
+    }
+
+    /**
+     * Checks if this field is non primary name field. For example, if the field is 'title' or 'email' or 'username'.
+     * We will choose the first one only to show avatar with name.
+     */
+    public function isPrimaryNameField(Field $field, Entity $entity) : bool
+    {
+        $nameField = $entity->getPrimaryNameField();
+        return $nameField && $field->name === $nameField->name;
     }
 
     /**

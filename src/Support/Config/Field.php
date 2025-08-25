@@ -44,6 +44,7 @@ class Field
         public ?string $comment = null,      // optional DB comment
         public bool $sortable = false,       // sortable in UI
         public bool $searchable = false,     // searchable in UI
+        public bool $isName = false,         // is this a name field, that is used for example to open the entity record when clicked on?
         public bool $showInTable = true,     // show in table views
         public bool $showInForm = true,      // show in forms
         /** @var string[] Allowed enum/options */
@@ -71,6 +72,7 @@ class Field
      *     comment?: string|null,
      *     sortable?: bool,
      *     searchable?: bool,
+     *     isName?: bool,
      *     showInTable?: bool,
      *     showInForm?: bool,
      *     values?: string[],
@@ -92,6 +94,7 @@ class Field
             comment: $data['comment'] ?? null,
             sortable: $data['sortable'] ?? false,
             searchable: $data['searchable'] ?? false,
+            isName: $data['isName'] ?? false,
             showInTable: $data['showInTable'] ?? true,
             showInForm: $data['showInForm'] ?? true,
             values: $data['values'] ?? [],
@@ -118,6 +121,7 @@ class Field
             comment: 'Foreign key to '.$relation->getEntityName(),
             sortable: true,
             searchable: false,
+            isName: false,
             values: [],
             min: null,
             max: null,
@@ -217,7 +221,9 @@ class Field
     public function isName(): bool
     {
         // Check if the field name is 'name' or 'title', which are common conventions for name fields
-        return in_array($this->name, ['name', 'title'], true) || Str::endsWith($this->name, '_name');
+        return $this->isName
+            || in_array($this->name, ['name', 'title'], true)
+            || Str::endsWith($this->name, '_name');
     }
 
     /**
@@ -311,5 +317,30 @@ class Field
         if (Str::endsWith($this->name, '_id')) {
             return true;
         }
+    }
+
+    /**
+     * Json representation of the field.
+     */
+    public function toJson(): string
+    {
+        return json_encode([
+            'name' => $this->name,
+            'type' => $this->type->value,
+            'nullable' => $this->nullable,
+            'length' => $this->length,
+            'precision' => $this->precision,
+            'scale' => $this->scale,
+            'default' => $this->default,
+            'comment' => $this->comment,
+            'sortable' => $this->sortable,
+            'searchable' => $this->searchable,
+            'showInTable' => $this->showInTable,
+            'showInForm' => $this->showInForm,
+            'values' => $this->values,
+            'min' => $this->min,
+            'max' => $this->max,
+        ], JSON_PRETTY_PRINT);
+
     }
 }

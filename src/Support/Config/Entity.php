@@ -251,7 +251,7 @@ class Entity
         }
 
         // Ensure we have name field in the list
-        if (! $this->hasNameField()) {
+        if (!$this->hasNameField()) {
             $nameField = new Field('name', FieldType::STRING);
             $visible[] = $nameField;
         }
@@ -282,6 +282,45 @@ class Entity
         }
 
         return false;
+    }
+
+    /**
+     * Get all name fields of the entity.
+     */
+    public function getNameFields(): array
+    {
+        $nameFields = [];
+        foreach ($this->fields as $field) {
+            if ($field->isName()) {
+                $nameFields[] = $field;
+            }
+        }
+        return $nameFields;
+    }
+
+    /**
+     * Get name fields as names strings.
+     */
+    public function getNameFieldsNames(): array
+    {
+        $nameFields = [];
+        foreach ($this->getNameFields() as $field) {
+            $nameFields[] = $field->name;
+        }
+        return $nameFields;
+    }
+
+    /**
+     * Get the primary name field of the entity.
+     */
+    public function getPrimaryNameField(): ?Field
+    {
+        foreach ($this->fields as $field) {
+            if ($field->isName()) {
+                return $field;
+            }
+        }
+        return null;
     }
 
     /**
@@ -488,5 +527,21 @@ class Entity
         }
 
         return null;
+    }
+
+    /**
+     * Returns json representation of the entity.
+     */
+    public function toJson(): string
+    {
+        $data = [
+            'name' => $this->name,
+            'table' => $this->getTableName(),
+            'icon' => $this->icon,
+            'fields' => array_map(fn($field) => json_decode($field->toJson(), true), $this->fields),
+            'relations' => array_map(fn($relation) => json_decode($relation->toJson(), true), $this->relations),
+            'settings' => $this->settings->toJson(),
+        ];
+        return json_encode($data, JSON_PRETTY_PRINT);
     }
 }

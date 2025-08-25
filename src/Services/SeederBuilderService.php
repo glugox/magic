@@ -345,6 +345,9 @@ PHP;
         );
     }
 
+    /**
+     * If no FakerExtension is found, we can try to guess the best method based on field name and type.
+     */
     public function guessFakerMethod(\Faker\Generator $faker, Field $field): string
     {
 

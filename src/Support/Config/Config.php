@@ -146,4 +146,17 @@ class Config
             Log::channel('magic')->info("Entity: {$entity->getName()}, Table: {$entity->getTableName()}");
         }
     }
+
+    /**
+     * Converts the configuration back to json string.
+     */
+    public function toJson(): string
+    {
+        $data = [
+            'app' => $this->app,
+            'entities' => array_map(fn($entity) => json_decode($entity->toJson(), true), $this->entities),
+            'dev' => $this->dev,
+        ];
+        return json_encode($data, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR);
+    }
 }

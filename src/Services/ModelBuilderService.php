@@ -57,6 +57,7 @@ class ModelBuilderService
         $fillable = $entity->getFillableFieldsNames();
         $hidden = $entity->getHiddenFieldsNames();
         $casts = $entity->getCasts();
+        $nameFields = $entity->getNameFieldsNames();
 
         if (isset($modelPresets[$entityName])) {
             $preset = $modelPresets[$entityName];
@@ -148,6 +149,12 @@ class ModelBuilderService
         if (! empty($appends)) {
             $appendsFieldsStr = implode(",\n        ", array_map(fn ($a) => "'$a'", $appends));
             $appendsStr .= "\n\n    protected \$appends = [\n        $appendsFieldsStr\n    ];";
+        }
+
+        // Name fields
+        if (! empty($nameFields)) {
+            $nameFieldsStr = implode(", ", array_map(fn ($n) => "'$n'", $nameFields));
+            $appendsStr .= "\n\n    protected \$nameFields = [\n        $nameFieldsStr\n    ];";
         }
 
         // Namespace use statements

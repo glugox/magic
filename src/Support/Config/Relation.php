@@ -164,4 +164,18 @@ class Relation
         // For polymorphic relations, return the relation name
         return $this->getRelationName();
     }
+
+    /**
+     * Json representation of the relation.
+     */
+    public function toJson(): string
+    {
+        return json_encode([
+            'type' => $this->type->value,
+            'entity' => $this->entityName,
+            'foreign_key' => $this->foreignKey,
+            'local_key' => $this->localKey,
+            'relation_name' => $this->relationName,
+        ], JSON_PRETTY_PRINT);
+    }
 }

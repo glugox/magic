@@ -30,6 +30,9 @@ abstract class FakerExtension
     {
         $fieldString = $field->name;
         $extensions = self::getExtensions();
+
+        // Check if the field name exists in the extensions array.
+        // That is a direct field match.
         if (isset($extensions[$fieldString])) {
             return new $extensions[$fieldString];
         }

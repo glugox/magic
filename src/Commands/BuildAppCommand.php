@@ -28,6 +28,7 @@ class BuildAppCommand extends MagicBaseCommand
         'magic:build-ts' => 'Building TypeScript support files',
         'magic:build-vue-pages' => 'Building Vue pages',
         'magic:update-vue-pages' => 'Updating Vue sidebar',
+        //'magic:config-suggestions' => 'Suggesting config improvements by AI',
     ];
 
     /**

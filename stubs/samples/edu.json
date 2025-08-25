@@ -7,8 +7,8 @@
             "name": "Student",
             "fields": [
                 { "name": "id", "type": "bigIncrements", "nullable": false },
-                { "name": "first_name", "type": "string", "nullable": false, "sortable": true, "searchable": true },
-                { "name": "last_name", "type": "string", "nullable": false, "sortable": true, "searchable": true },
+                { "name": "first_name", "type": "string", "nullable": false, "sortable": true, "searchable": true, "isName": true },
+                { "name": "last_name", "type": "string", "nullable": false, "sortable": true, "searchable": true, "isName": true },
                 { "name": "email", "type": "string", "nullable": false, "unique": true, "sortable": true, "searchable": true },
                 { "name": "enrollment_date", "type": "date", "nullable": false, "sortable": true }
             ],
