@@ -21,6 +21,7 @@ class ResetByManifestCommand extends MagicBaseCommand
         FileGenerationRegistry::deleteGeneratedFiles();
 
         Log::channel('magic')->info('ResetByManifestCommand complete!');
+
         return 0;
     }
 }

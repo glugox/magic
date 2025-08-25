@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\File;
  */
 class FileGenerationService
 {
-
     /**
      * Generate a file with the given content and register it.
      */
@@ -46,7 +45,7 @@ class FileGenerationService
         foreach ($files as $file) {
             // Destination path keeping subdirectory structure
             $relativePath = $file->getRelativePathname();
-            $targetPath = $destination . DIRECTORY_SEPARATOR . $relativePath;
+            $targetPath = $destination.DIRECTORY_SEPARATOR.$relativePath;
 
             // Ensure directory exists
             File::ensureDirectoryExists(dirname($targetPath));
@@ -59,6 +58,4 @@ class FileGenerationService
 
         return $copiedFiles;
     }
-
-
 }

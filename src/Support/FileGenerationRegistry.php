@@ -9,27 +9,28 @@ use Illuminate\Support\Facades\Log;
  */
 class FileGenerationRegistry
 {
-
     private static array $generatedFiles = [];
+
     private static array $modifiedFiles = [];
+
     private static array $generatedComponents = [];
 
     /**
      * Register a generated file.
      *
-     * @param string $filePath
+     * @param  string  $filePath
      */
     public static function registerFile(string|array $filePath): void
     {
         // Check if $filePath is array
         if (is_array($filePath)) {
             foreach ($filePath as $path) {
-                if (!in_array($path, self::$generatedFiles)) {
+                if (! in_array($path, self::$generatedFiles)) {
                     self::$generatedFiles[] = $path;
                 }
             }
         } else {
-            if (!in_array($filePath, self::$generatedFiles)) {
+            if (! in_array($filePath, self::$generatedFiles)) {
                 self::$generatedFiles[] = $filePath;
             }
         }
@@ -38,8 +39,6 @@ class FileGenerationRegistry
 
     /**
      * Get all registered generated files.
-     *
-     * @return array
      */
     public static function getGeneratedFiles(): array
     {
@@ -48,8 +47,6 @@ class FileGenerationRegistry
 
     /**
      * Register a modified file.
-     *
-     * @param string $filePath
      */
     public static function registerModifiedFile(string $filePath): void
     {
@@ -58,8 +55,6 @@ class FileGenerationRegistry
 
     /**
      * Get all registered modified files.
-     *
-     * @return array
      */
     public static function getModifiedFiles(): array
     {
@@ -68,8 +63,6 @@ class FileGenerationRegistry
 
     /**
      * Register a generated component.
-     *
-     * @param string $componentName
      */
     public static function registerComponent(string $componentName): void
     {
@@ -78,8 +71,6 @@ class FileGenerationRegistry
 
     /**
      * Get all registered generated components.
-     *
-     * @return array
      */
     public static function getGeneratedComponents(): array
     {
@@ -98,7 +89,7 @@ class FileGenerationRegistry
             'modified_files' => self::$modifiedFiles,
         ];
         $manifestPath = storage_path('magic/generated_files.json');
-        if (!is_dir(dirname($manifestPath))) {
+        if (! is_dir(dirname($manifestPath))) {
             mkdir(dirname($manifestPath), 0755, true);
         }
         file_put_contents($manifestPath, json_encode($manifest, JSON_PRETTY_PRINT));
@@ -121,22 +112,21 @@ class FileGenerationRegistry
     public static function deleteGeneratedFiles(): void
     {
         $manifestPath = storage_path('magic/generated_files.json');
-        Log::channel("magic")->debug("Deleting generated files by manifest file : $manifestPath}");
+        Log::channel('magic')->debug("Deleting generated files by manifest file : $manifestPath}");
 
         // Load the manifest
         if (file_exists($manifestPath)) {
             $contents = file_get_contents($manifestPath);
             $data = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
-            if(isset($data['files'])) {
+            if (isset($data['files'])) {
                 foreach ($data['files'] as $file) {
                     if (file_exists($file)) {
-                        Log::channel("magic")->debug("Deleting generated file : $file");
+                        Log::channel('magic')->debug("Deleting generated file : $file");
                         unlink($file);
                     }
                 }
             }
         }
-
 
         /*foreach (self::$generatedFiles as $filePath) {
             if (file_exists($filePath)) {
@@ -148,7 +138,7 @@ class FileGenerationRegistry
 
         if (file_exists($manifestPath)) {
             unlink($manifestPath);
-            Log::channel("magic")->debug("Deleting generated files : $manifestPath");
+            Log::channel('magic')->debug("Deleting generated files : $manifestPath");
         }
     }
 }
