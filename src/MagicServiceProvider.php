@@ -52,7 +52,7 @@ class MagicServiceProvider extends ServiceProvider
                 PublishFilesCommand::class,
                 SuggestionsCommand::class,
                 ListSamplesCommand::class,
-                ResetByManifestCommand::class
+                ResetByManifestCommand::class,
             ]);
         }
     }

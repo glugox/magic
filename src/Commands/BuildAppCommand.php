@@ -50,14 +50,12 @@ class BuildAppCommand extends MagicBaseCommand
         $this->block->info('✨[MAGIC]✨ Building Laravel app...');
 
         // Reset if manifest file exists
-        //$this->call('magic:reset-by-manifest');
+        // $this->call('magic:reset-by-manifest');
 
         // If manifest file exists , throw an error
-        if (file_exists( storage_path( "magic/generated_files.json")))
-        {
-            throw new \Exception("Manifest file exist. Please reset the app first by running  magic:reset");
+        if (file_exists(storage_path('magic/generated_files.json'))) {
+            throw new \Exception('Manifest file exist. Please reset the app first by running  magic:reset');
         }
-
 
         // Run all build steps
         foreach (self::BUILD_STEPS as $command => $message) {

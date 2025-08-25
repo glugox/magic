@@ -127,7 +127,7 @@ class ResetAppCommand extends MagicBaseCommand
     {
         // Delete app.php from routes dir
         $this->logInfo('Resetting routes...');
-        $this->deleteFile(base_path("routes/app.php"), 'Routes');
+        $this->deleteFile(base_path('routes/app.php'), 'Routes');
     }
 
     /**
@@ -168,15 +168,17 @@ class ResetAppCommand extends MagicBaseCommand
     private function resetJsPages(): void
     {
         $jsPagesPath = resource_path('js/pages');
-        if (!is_dir($jsPagesPath)) {
+        if (! is_dir($jsPagesPath)) {
             $this->logWarning('JS pages directory does not exist. Nothing to delete.');
+
             return;
         }
 
         foreach ($this->getConfig()->entities as $entity) {
             $entityDir = $jsPagesPath.'/'.$entity->getDirectoryName();
-            if (!is_dir($entityDir)) {
+            if (! is_dir($entityDir)) {
                 $this->logWarning("JS pages directory for {$entity->getName()} does not exist. Nothing to delete.");
+
                 continue;
             }
 
@@ -197,17 +199,17 @@ class ResetAppCommand extends MagicBaseCommand
     private function resetComponents(): void
     {
         $addedComponents = [
-            "ResourceForm.vue",
-            "ResourceTable.vue",
-            "Avatar.vue",
+            'ResourceForm.vue',
+            'ResourceTable.vue',
+            'Avatar.vue',
         ];
 
         foreach ($addedComponents as $component) {
             $componentsPath = resource_path('js/components/'.$component);
-            if(!file_exists($componentsPath)) {
+            if (! file_exists($componentsPath)) {
                 continue;
             }
-            Log::channel("magic")->info("Removing {$component} component from {$componentsPath}");
+            Log::channel('magic')->info("Removing {$component} component from {$componentsPath}");
             unlink($componentsPath);
         }
     }
@@ -239,9 +241,9 @@ class ResetAppCommand extends MagicBaseCommand
         $fileRelative = str_replace(base_path().'/', '', $path);
         if (file_exists($path)) {
             unlink($path);
-            $this->logInfo("{$type} deleted" . ($name ? " for {$name}" : '') . ": {$fileRelative}");
+            $this->logInfo("{$type} deleted".($name ? " for {$name}" : '').": {$fileRelative}");
         } else {
-            $this->logWarning("{$type}" . ($name ? " for {$name}" : '') . " does not exist. Nothing to delete. ( $path )");
+            $this->logWarning("{$type}".($name ? " for {$name}" : '')." does not exist. Nothing to delete. ( $path )");
         }
     }
 
