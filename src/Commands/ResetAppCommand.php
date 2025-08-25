@@ -27,11 +27,12 @@ class ResetAppCommand extends MagicBaseCommand
     {
         $this->initializeConsole();
 
+        // Delete migrations
+        // This could delete create user migration, so make sure it is run before resetLaravelApp
+        $this->resetMigrations();
+
         // All modified Laravel files are reverted, by copying original Laravel files to app root
         $this->resetLaravelApp();
-
-        // Delete migrations
-        $this->resetMigrations();
 
         // Delete seeders, factories and controllers
         $this->resetModelsSeedersFactoriesControllers();

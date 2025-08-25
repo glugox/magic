@@ -150,7 +150,7 @@ class Field
         }
 
         return match ($this->type) {
-            FieldType::IMAGE, FieldType::URL => 'string',
+            FieldType::IMAGE, FieldType::URL, FieldType::PASSWORD => 'string',
             default => $this->type->value // Fallback to the enum value if not matched
         };
     }
