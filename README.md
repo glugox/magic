@@ -138,6 +138,21 @@ How to use a starter kit:
 php artisan magic:build --starter=task-management
 ```
 
+## Development stage
+
+This package is still not yet available to be installed by composer. You need to copy the repo and add in composer.json:
+
+```json
+"repositories": [
+        {
+            "type": "path",
+            "url": "/Users/ervin/Code/github.com/glugox/*"
+        }
+    ],
+    "minimum-stability": "dev",
+```
+
+
 ## Ready to join?
 
 Contact me at [email](mailto:ervinbeciragic@gmail.com) for any questions or suggestions.
