@@ -66,7 +66,6 @@ class SeederBuilderService
         $className = $entityName.'Factory';
         $namespace = 'Database\Factories';
 
-
         $fakerFields = $this->buildFakerFields($entity);
 
         $stub = <<<PHP
