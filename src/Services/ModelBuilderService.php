@@ -212,7 +212,7 @@ $relationsCode
 PHP;
 
         $filePath = $this->modelPath.'/'.$className.'.php';
-        File::put($filePath, $template);
+        app(FileGenerationService::class)->generateFile($filePath, $template);
 
         $filePathRelative = str_replace(app_path('Models/'), '', $filePath);
         Log::channel('magic')->info("Model created: $filePathRelative");

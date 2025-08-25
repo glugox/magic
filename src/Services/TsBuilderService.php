@@ -4,7 +4,7 @@ namespace Glugox\Magic\Services;
 
 use Glugox\Magic\Support\Config\Config;
 use Glugox\Magic\Support\Config\Entity;
-use Glugox\Magic\Support\Config\Field;
+use Glugox\Magic\Support\FileGenerationRegistry;
 use Glugox\Magic\Support\Frontend\TsHelper;
 use Glugox\Magic\Support\TypeHelper;
 use Illuminate\Filesystem\Filesystem;
@@ -65,7 +65,7 @@ class TsBuilderService
             $fields = ''; // Reset fields for next entity
         }
 
-        $this->files->put($path, $content);
+        app(FileGenerationService::class)->generateFile($path, $content);
     }
 
     /**
@@ -123,7 +123,7 @@ export function get{$entityName}EntityMeta(): Entity {
 }
 
 EOT;
-        $this->files->put($path, $content);
+        app(FileGenerationService::class)->generateFile($path, $content);
     }
 
     /**
@@ -152,7 +152,7 @@ EOT;
     {
         $columns = [];
 
-        Log::channel('magic')->info(">>> Generating column definitions for entity: {$entity->getName()}");
+        Log::channel('magic')->info("Generating column definitions for entity: {$entity->getName()}");
 
         // Add select at the beginning
         $columns[] = $this->getInitialColumnDef();
@@ -179,24 +179,14 @@ EOT;
      */
     private function copyVueFiles()
     {
-        $vueFiles = [
-            'components/ResourceTable.vue',
-            'components/ResourceForm.vue',
-            'components/Avatar.vue',
-            'types/magic.ts',
-            'lib/app.ts',
-        ];
+        /**
+         * We actually need to copy and overwire all files from package's stub/laravel/ folder to the main application.
+         */
+        $sourcePath = __DIR__.'/../../resources/js';
+        $destinationPath = base_path('resources/js');
 
-        foreach ($vueFiles as $file) {
-            $sourcePath = __DIR__."/../../resources/js/{$file}";
-            $destinationPath = resource_path("js/{$file}");
-
-            if (! $this->files->isDirectory(dirname($destinationPath))) {
-                $this->files->makeDirectory(dirname($destinationPath), 0755, true);
-            }
-
-            $this->files->copy($sourcePath, $destinationPath);
-        }
+        $filesCopied = app(FileGenerationService::class)->copyDirectoryWithList($sourcePath, $destinationPath);
+        FileGenerationRegistry::registerFile($filesCopied);
     }
 
     public function getInitialColumnDef(): string

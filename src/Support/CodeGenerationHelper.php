@@ -2,6 +2,8 @@
 
 namespace Glugox\Magic\Support;
 
+use Illuminate\Support\Facades\Log;
+
 class CodeGenerationHelper
 {
     /**
@@ -9,6 +11,7 @@ class CodeGenerationHelper
      */
     public static function appendCodeBlock(string $filePath, string $methodName, array $lines, ?string $tag): bool
     {
+        Log::channel('magic')->info("Appending code block to {$methodName} in {$filePath} with tag '{$tag}'");
         $code = file_get_contents($filePath);
         $tag = $tag ?? 'default';
         $tag = 'Uno:'.$tag;
@@ -75,6 +78,8 @@ class CodeGenerationHelper
             $newCode = substr($code, 0, $methodStart).$methodBody.substr($code, $methodEnd);
 
             return file_put_contents($filePath, $newCode) !== false;
+        } else {
+            Log::channel('magic')->error("Method {$methodName} not found in {$filePath}");
         }
 
         return false;

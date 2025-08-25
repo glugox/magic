@@ -4,216 +4,260 @@ namespace Glugox\Magic\Commands;
 
 use Glugox\Magic\Support\CodeGenerationHelper;
 use Glugox\Magic\Support\ConsoleBlock;
+use Glugox\Magic\Support\FileGenerationRegistry;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
-/**
- * Command to reset the Laravel application by removing generated files
- * and resetting migrations, models, seeders, controllers, TypeScript support files,
- * and other related components.
- */
 class ResetAppCommand extends MagicBaseCommand
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'magic:reset
-    {--config= : Path to JSON config file}
-    {--starter= : Starter template to use}
-    {--set=* : Inline config override in key=value format (dot notation allowed)}';
+        {--config= : Path to JSON config file}
+        {--starter= : Starter template to use}
+        {--set=* : Inline config override in key=value format (dot notation allowed)}';
 
-    protected $description = 'Build Laravel app parts from JSON config';
+    protected $description = 'Reset Laravel app by removing generated files and resetting migrations, models, seeders, controllers, and TypeScript files.';
 
-    /**
-     * Console block for structured output.
-     *
-     * ex output:
-     *
-     * ```
-     *
-     * Resetting migrations...
-     *
-     * ✅ Migrations reset completed!
-     *
-     * ```
-     */
     private ConsoleBlock $block;
 
     /**
-     * @throws \JsonException|\ReflectionException
+     * Main handler
      */
-    public function handle()
+    public function handle(): int
     {
+        $this->initializeConsole();
 
-        // Initialize console block for structured output
-        $this->block = new ConsoleBlock($this);
-        $this->block->info('Resetting Magic...');
+        // All modified Laravel files are reverted, by copying original Laravel files to app root
+        $this->resetLaravelApp();
 
-        $databaseSeederPath = database_path('seeders/DatabaseSeeder.php');
+        // Delete migrations
+        $this->resetMigrations();
 
-        // Reset migrations
-        Log::channel('magic')->info('Resetting migrations...');
-        foreach ($this->getConfig()->entities as $entity) {
-            $tableName = $entity->getTableName();
+        // Delete seeders, factories and controllers
+        $this->resetModelsSeedersFactoriesControllers();
 
-            // Regular create/update migrations for the entity's table
-            $migrationCreateFiles = File::glob(database_path("migrations/*_create_{$tableName}_table.php"));
-            $migrationUpdateFiles = File::glob(database_path("migrations/*_update_{$tableName}_table.php"));
+        // Remove routes/app.php that is added by Magic
+        // Ref to the app.php in web.php is removed by resetLaravelApp()
+        $this->resetRoutes();
 
-            // Pivot table migrations (any table with entity name + underscore or underscore + entity name)
-            $tableNameSingular = Str::singular($tableName);
-            $migrationPivotFiles = array_merge(
-                File::glob(database_path("migrations/*_create_*_{$tableNameSingular}_table.php")),
-                File::glob(database_path("migrations/*_create_{$tableNameSingular}_*_table.php"))
-            );
+        // Remove all *.ts files added by Magic
+        $this->resetTypeScriptFiles();
 
-            // Merge and delete all relevant migrations
-            foreach (array_merge($migrationCreateFiles, $migrationUpdateFiles, $migrationPivotFiles) as $file) {
-                $fileRelative = str_replace(database_path('migrations').'/', '', $file);
-                if (File::exists($file)) {
-                    File::delete($file);
-                    Log::channel('magic')->info("Migration file deleted: {$fileRelative}");
-                } else {
-                    Log::channel('magic')->warning("Migration file does not exist: {$fileRelative} . Nothing to delete.");
-                }
-            }
-        }
-        Log::channel('magic')->info('Migrations reset successfully!');
+        // Delete vue pages for entities including their folders
+        $this->resetJsPages();
 
-        // Remove calls in DatabaseSeeder
-        CodeGenerationHelper::removeRegion($databaseSeederPath);
+        // Delete all added vue component by Magic
+        $this->resetComponents();
 
-        // Reset models and seeders
-        foreach ($this->getConfig()->entities as $entity) {
+        // TODO : This line will probably be only needed besides the below resetDatabase()
+        FileGenerationRegistry::deleteGeneratedFiles();
 
-            // Reset models
-            Log::channel('magic')->info('Resetting model: '.$entity->getName());
-            $modelPath = app_path('Models/'.$entity->getName().'.php');
-            if (file_exists($modelPath)) {
-                unlink($modelPath);
-                Log::channel('magic')->info("Model deleted: {$entity->getName()}");
-            } else {
-                Log::channel('magic')->warning("Model does not exist: {$entity->getName()}. Nothing to delete.");
-            }
+        // After reseting migrations , now we can apply fresh migrations that do not contain Magic migrations, so db will be clean.
+        $this->resetDatabase();
 
-            // Reset seeders
-            Log::channel('magic')->info('Resetting seeder for: '.$entity->getName());
-
-            $seederPath = database_path('seeders/'.$entity->getName().'Seeder.php');
-            if (file_exists($seederPath)) {
-                unlink($seederPath);
-                Log::channel('magic')->info("Seeder deleted for {$entity->getName()}");
-            } else {
-                Log::channel('magic')->warning("Seeder does not exist for: {$entity->getName()}. Nothing to delete.");
-            }
-            // Remove pivot seeders if they exist by checking for related entities
-            foreach ($entity->getRelations() as $relation) {
-                $pivotNameStudly = Str::studly($relation->getPivotName());
-                $pivotSeederPath = database_path('seeders/'.$pivotNameStudly.'PivotSeeder.php');
-                if (file_exists($pivotSeederPath)) {
-                    unlink($pivotSeederPath);
-                    Log::channel('magic')->info("Pivot seeder deleted for: {$pivotNameStudly}");
-                } else {
-                    Log::channel('magic')->warning("Pivot seeder does not exist for: {$pivotNameStudly}. Nothing to delete.");
-                }
-            }
-
-            // Reset factories
-            Log::channel('magic')->info('Resetting factory for: '.$entity->getName());
-            $factoryPath = database_path('factories/'.$entity->getName().'Factory.php');
-            if (file_exists($factoryPath)) {
-                unlink($factoryPath);
-                Log::channel('magic')->info("Factory deleted for: {$entity->getName()}");
-            } else {
-                Log::channel('magic')->warning("Factory does not exist for: {$entity->getName()}. Nothing to delete.");
-            }
-
-            // Reset controllers
-            Log::channel('magic')->info('Resetting controller for: '.$entity->getName());
-            $controllerPath = app_path('Http/Controllers/'.$entity->getName().'Controller.php');
-            if (file_exists($controllerPath)) {
-                unlink($controllerPath);
-                Log::channel('magic')->info("Controller deleted for: {$entity->getName()}");
-            } else {
-                Log::channel('magic')->warning("Controller does not exist for: {$entity->getName()}. Nothing to delete.");
-            }
-        }
-
-        // Reset TypeScript support files
-        Log::channel('magic')->info('Resetting TypeScript support files...');
-        $tsPath = resource_path('js/types/app.ts');
-        if (file_exists($tsPath)) {
-            unlink($tsPath);
-            Log::channel('magic')->info('TypeScript support file deleted successfully!');
-        } else {
-            Log::channel('magic')->warning('TypeScript support file does not exist. Nothing to delete.');
-        }
-
-        // Remove lib files
-        $libPath = resource_path('js/lib/app.ts');
-        if (file_exists($libPath)) {
-            unlink($libPath);
-            Log::channel('magic')->info('JavaScript lib deleted successfully!');
-        } else {
-            Log::channel('magic')->warning('JavaScript lib does not exist. Nothing to delete.');
-        }
-
-        // Remove helper files, all files in the helpers directory
-        $helpersPath = resource_path('js/helpers');
-        if (is_dir($helpersPath)) {
-            $files = glob($helpersPath.'/*');
-            foreach ($files as $file) {
-                if (is_file($file)) {
-                    unlink($file);
-                    $fileRelative = str_replace(resource_path().'/', '', $file);
-                    Log::channel('magic')->info("Helper file {$fileRelative} deleted successfully!");
-                }
-            }
-        } else {
-            Log::channel('magic')->warning('Helpers directory does not exist. Nothing to delete.');
-        }
-
-        // Remove js pages for entities
-        $jsPagesPath = resource_path('js/pages');
-        if (is_dir($jsPagesPath)) {
-            // Delete files for each entity in separate directory
-            // named after the entity
-            foreach ($this->getConfig()->entities as $entity) {
-                $entityDir = $jsPagesPath.'/'.$entity->getDirectoryName();
-                if (is_dir($entityDir)) {
-                    $files = glob($entityDir.'/*');
-                    foreach ($files as $file) {
-                        if (is_file($file)) {
-                            unlink($file);
-                            $fileRelative = str_replace(resource_path().'/', '', $file);
-                            Log::channel('magic')->info("JS page {$fileRelative} deleted successfully!");
-                        }
-                    }
-                    // Remove the directory itself
-                    rmdir($entityDir);
-                    Log::channel('magic')->info("JS pages directory for {$entity->getName()} deleted successfully!");
-                } else {
-                    Log::channel('magic')->warning("JS pages directory for {$entity->getName()} does not exist. Nothing to delete.");
-                }
-            }
-        } else {
-            Log::channel('magic')->warning('JS pages directory does not exist. Nothing to delete.');
-        }
-
-        // Reset Laravel app parts
-        Log::channel('magic')->info('Resetting Laravel app parts...');
-        $this->call('magic:reset-laravel');
-        Log::channel('magic')->info('Laravel app parts reset successfully!');
-
-        // Call migrate:reset to ensure database is clean
-        $this->call('migrate:fresh', ['--force' => true]);
-        Log::channel('magic')->info('Database migrations reset successfully!');
-
-        Log::channel('magic')->info('Reset complete!');
+        $this->logInfo('Reset complete!');
 
         return 0;
+    }
+
+    /**
+     * Initialize console block for structured output.
+     */
+    private function initializeConsole(): void
+    {
+        $this->block = new ConsoleBlock($this);
+        $this->block->info('Resetting Magic...');
+    }
+
+    /*
+     * Reset migrations by deleting migration files and removing calls in DatabaseSeeder.
+     */
+    private function resetMigrations(): void
+    {
+        $this->logInfo('Resetting migrations...');
+
+        foreach ($this->getConfig()->entities as $entity) {
+            $this->deleteEntityMigrations($entity);
+        }
+
+        // Remove calls in DatabaseSeeder
+        CodeGenerationHelper::removeRegion(database_path('seeders/DatabaseSeeder.php'));
+
+        $this->logInfo('Migrations reset successfully!');
+    }
+
+    /**
+     * Delete migration files related to the given entity.
+     */
+    private function deleteEntityMigrations($entity): void
+    {
+        $tableName = $entity->getTableName();
+        $tableNameSingular = Str::singular($tableName);
+
+        $migrationFiles = array_merge(
+            File::glob(database_path("migrations/*_create_{$tableName}_table.php")),
+            File::glob(database_path("migrations/*_update_{$tableName}_table.php")),
+            File::glob(database_path("migrations/*_create_*_{$tableNameSingular}_table.php")),
+            File::glob(database_path("migrations/*_create_{$tableNameSingular}_*_table.php"))
+        );
+
+        foreach ($migrationFiles as $file) {
+            $this->deleteFile($file, 'Migration');
+        }
+    }
+
+    /**
+     * Reset models, seeders, factories, and controllers by deleting their files.
+     */
+    private function resetModelsSeedersFactoriesControllers(): void
+    {
+        foreach ($this->getConfig()->entities as $entity) {
+            $this->deleteFile(app_path("Models/{$entity->getName()}.php"), 'Model', $entity->getName());
+            $this->deleteFile(database_path("seeders/{$entity->getName()}Seeder.php"), 'Seeder', $entity->getName());
+            $this->deletePivotSeeders($entity);
+            $this->deleteFile(database_path("factories/{$entity->getName()}Factory.php"), 'Factory', $entity->getName());
+            $this->deleteFile(app_path("Http/Controllers/{$entity->getName()}Controller.php"), 'Controller', $entity->getName());
+        }
+    }
+
+    /**
+     * Reset routes definitions
+     */
+    private function resetRoutes(): void
+    {
+        // Delete app.php from routes dir
+        $this->logInfo('Resetting routes...');
+        $this->deleteFile(base_path("routes/app.php"), 'Routes');
+    }
+
+    /**
+     * Delete pivot seeders for the given entity's relations.
+     */
+    private function deletePivotSeeders($entity): void
+    {
+        foreach ($entity->getRelations() as $relation) {
+            $pivotNameStudly = Str::studly($relation->getPivotName());
+            $this->deleteFile(database_path("seeders/{$pivotNameStudly}PivotSeeder.php"), 'Pivot Seeder', $pivotNameStudly);
+        }
+    }
+
+    /**
+     * Reset TypeScript support files and helper files.
+     */
+    private function resetTypeScriptFiles(): void
+    {
+        $this->deleteFile(resource_path('js/types/app.ts'), 'TypeScript support file');
+        $this->deleteFile(resource_path('js/lib/app.ts'), 'JavaScript lib');
+        $this->deleteFile(resource_path('js/types/magic.ts'), 'TypeScript support file');
+
+        $helpersPath = resource_path('js/helpers');
+        if (is_dir($helpersPath)) {
+            foreach (glob($helpersPath.'/*') as $file) {
+                if (is_file($file)) {
+                    $this->deleteFile($file, 'Helper file');
+                }
+            }
+        } else {
+            $this->logWarning('Helpers directory does not exist. Nothing to delete.');
+        }
+    }
+
+    /**
+     * Reset JS pages by deleting generated page files for each entity.
+     */
+    private function resetJsPages(): void
+    {
+        $jsPagesPath = resource_path('js/pages');
+        if (!is_dir($jsPagesPath)) {
+            $this->logWarning('JS pages directory does not exist. Nothing to delete.');
+            return;
+        }
+
+        foreach ($this->getConfig()->entities as $entity) {
+            $entityDir = $jsPagesPath.'/'.$entity->getDirectoryName();
+            if (!is_dir($entityDir)) {
+                $this->logWarning("JS pages directory for {$entity->getName()} does not exist. Nothing to delete.");
+                continue;
+            }
+
+            foreach (glob($entityDir.'/*') as $file) {
+                if (is_file($file)) {
+                    $this->deleteFile($file, 'JS page');
+                }
+            }
+
+            rmdir($entityDir);
+            $this->logInfo("JS pages directory for {$entity->getName()} deleted successfully!");
+        }
+    }
+
+    /**
+     * resetComponents
+     */
+    private function resetComponents(): void
+    {
+        $addedComponents = [
+            "ResourceForm.vue",
+            "ResourceTable.vue",
+            "Avatar.vue",
+        ];
+
+        foreach ($addedComponents as $component) {
+            $componentsPath = resource_path('js/components/'.$component);
+            if(!file_exists($componentsPath)) {
+                continue;
+            }
+            Log::channel("magic")->info("Removing {$component} component from {$componentsPath}");
+            unlink($componentsPath);
+        }
+    }
+
+    /**
+     * Reset Laravel app parts by calling the magic:reset-laravel command.
+     */
+    private function resetLaravelApp(): void
+    {
+        $this->logInfo('Resetting Laravel app parts...');
+        $this->call('magic:reset-laravel');
+        $this->logInfo('Laravel app parts reset successfully!');
+    }
+
+    /**
+     * Reset the database by running migrate:fresh.
+     */
+    private function resetDatabase(): void
+    {
+        $this->call('migrate:fresh', ['--force' => true]);
+        $this->logInfo('Database migrations reset successfully!');
+    }
+
+    /**
+     * Delete a file and log the action.
+     */
+    private function deleteFile(string $path, string $type, string $name = ''): void
+    {
+        $fileRelative = str_replace(base_path().'/', '', $path);
+        if (file_exists($path)) {
+            unlink($path);
+            $this->logInfo("{$type} deleted" . ($name ? " for {$name}" : '') . ": {$fileRelative}");
+        } else {
+            $this->logWarning("{$type}" . ($name ? " for {$name}" : '') . " does not exist. Nothing to delete. ( $path )");
+        }
+    }
+
+    /**
+     * Log an info message to both the log file and console block.
+     */
+    private function logInfo(string $message): void
+    {
+        Log::channel('magic')->info($message);
+    }
+
+    /**
+     * Log a warning message to both the log file and console block.
+     */
+    private function logWarning(string $message): void
+    {
+        Log::channel('magic')->warning($message);
     }
 }

@@ -14,6 +14,7 @@ use Glugox\Magic\Commands\InstallNodePackagesCommand;
 use Glugox\Magic\Commands\ListSamplesCommand;
 use Glugox\Magic\Commands\PublishFilesCommand;
 use Glugox\Magic\Commands\ResetAppCommand;
+use Glugox\Magic\Commands\ResetByManifestCommand;
 use Glugox\Magic\Commands\ResetLaravelCommand;
 use Glugox\Magic\Commands\SuggestionsCommand;
 use Glugox\Magic\Commands\VueSidebarUpdaterCommand;
@@ -51,6 +52,7 @@ class MagicServiceProvider extends ServiceProvider
                 PublishFilesCommand::class,
                 SuggestionsCommand::class,
                 ListSamplesCommand::class,
+                ResetByManifestCommand::class
             ]);
         }
     }

@@ -216,8 +216,7 @@ class $controllerClass extends Controller
 PHP;
 
         $filePath = $this->controllerPath.'/'.$controllerClass.'.php';
-
-        File::put($filePath, $template);
+        app(FileGenerationService::class)->generateFile($filePath, $template);
 
         $relPath = str_replace(app_path('Http/Controllers/'), '', $filePath);
         Log::channel('magic')->info("Controller created: {$relPath}");
@@ -242,7 +241,7 @@ PHP;
 
         $routesContent = "<?php\n\nuse Illuminate\Support\Facades\Route;\n\n".implode("\n", $routeLines)."\n";
 
-        File::put($this->routesFilePath, $routesContent);
+        app(FileGenerationService::class)->generateFile($this->routesFilePath, $routesContent);
 
         Log::channel('magic')->info("Routes generated and saved to: {$this->routesFilePath}");
 
@@ -259,7 +258,7 @@ PHP;
 
         if (! File::exists($webPhpPath)) {
             // Create minimal web.php if missing
-            File::put($webPhpPath, "<?php\n\n$requireLine\n");
+            app(FileGenerationService::class)->generateFile($webPhpPath, "<?php\n\n$requireLine\n");
             Log::channel('magic')->info('Created routes/web.php and added require for app.php');
 
             return;
@@ -271,6 +270,7 @@ PHP;
             // Append require line at the end
             File::append($webPhpPath, "\n$requireLine\n");
             Log::channel('magic')->info('Added require to routes/web.php');
+            FileGenerationService::registerModifiedFile($webPhpPath);
         }
     }
 }

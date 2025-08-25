@@ -99,7 +99,7 @@ $dbStatements
 PHP;
         }
 
-        File::put($migrationPath, $template);
+        app(FileGenerationService::class)->generateFile($migrationPath, $template);
 
         $migrationPathRelative = str_replace(database_path('migrations/'), '', $migrationPath);
         Log::channel('magic')->info(($isUpdate ? 'Update' : 'Create')." migration created: $migrationPathRelative");
@@ -154,7 +154,7 @@ $columnsCode
 };
 PHP;
 
-                File::put($migrationPath, $template);
+                app(FileGenerationService::class)->generateFile($migrationPath, $template);
 
                 $migrationPathRelative = str_replace(database_path('migrations/'), '', $migrationPath);
                 Log::channel('magic')->info("Pivot migration created: $migrationPathRelative");

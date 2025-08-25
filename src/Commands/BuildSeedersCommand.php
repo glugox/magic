@@ -34,7 +34,7 @@ class BuildSeedersCommand extends MagicBaseCommand
      */
     public function handle()
     {
-        $service = new SeederBuilderService($this->files, $this->getConfig());
+        $service = new SeederBuilderService($this->getConfig());
         $service->build();
 
         Log::channel('magic')->info('Build complete!');

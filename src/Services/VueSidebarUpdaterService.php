@@ -54,7 +54,7 @@ class VueSidebarUpdaterService
         // Update imports as well
         $content = $this->updateImports($content);
 
-        File::put($this->sidebarPath, $content);
+        app(FileGenerationService::class)->generateFile($this->sidebarPath, $content, true);
     }
 
     /**
@@ -72,7 +72,7 @@ class VueSidebarUpdaterService
             $content
         );
 
-        File::put($this->appLogoPath, $updatedContent);
+        app(FileGenerationService::class)->generateFile($this->appLogoPath, $updatedContent, true);
     }
 
     /**

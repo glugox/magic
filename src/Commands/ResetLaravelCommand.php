@@ -2,7 +2,7 @@
 
 namespace Glugox\Magic\Commands;
 
-use Illuminate\Filesystem\Filesystem;
+use Glugox\Magic\Services\FileGenerationService;
 use Illuminate\Support\Facades\Log;
 
 class ResetLaravelCommand extends MagicBaseCommand
@@ -23,35 +23,12 @@ class ResetLaravelCommand extends MagicBaseCommand
     {
         Log::channel('magic')->info('Starting Laravel reset...');
 
-        $source = __DIR__.'/../../stubs/laravel';
-        $destination = base_path();
+        $sourcePath = __DIR__.'/../../stubs/laravel';
+        $destinationPath = base_path();
 
-        $files = new Filesystem;
-
-        $this->copyDirectoryRecursively($source, $destination, $files);
-
+        app(FileGenerationService::class)->copyDirectoryWithList($sourcePath, $destinationPath);
         Log::channel('magic')->info('Reset Laravel complete!');
 
         return 0;
-    }
-
-    protected function copyDirectoryRecursively(string $source, string $destination, Filesystem $files): void
-    {
-        $items = $files->allFiles($source);
-
-        foreach ($items as $item) {
-            $relativePath = $item->getRelativePathname();
-            $targetPath = $destination.'/'.$relativePath;
-
-            // Ensure directory exists
-            $files->ensureDirectoryExists(dirname($targetPath));
-
-            // Copy the file, overwrite if exists
-            if ($files->copy($item->getRealPath(), $targetPath)) {
-                Log::channel('magic')->info("Copied: {$relativePath}");
-            } else {
-                Log::channel('magic')->error("Failed to copy: {$relativePath}");
-            }
-        }
     }
 }

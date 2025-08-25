@@ -3,6 +3,7 @@
 namespace Glugox\Magic\Commands;
 
 use Glugox\Magic\Support\ConsoleBlock;
+use Glugox\Magic\Support\FileGenerationRegistry;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\Console\Command\Command as CommandAlias;
 
@@ -48,6 +49,16 @@ class BuildAppCommand extends MagicBaseCommand
         $this->block = new ConsoleBlock($this);
         $this->block->info('✨[MAGIC]✨ Building Laravel app...');
 
+        // Reset if manifest file exists
+        //$this->call('magic:reset-by-manifest');
+
+        // If manifest file exists , throw an error
+        if (file_exists( storage_path( "magic/generated_files.json")))
+        {
+            throw new \Exception("Manifest file exist. Please reset the app first by running  magic:reset");
+        }
+
+
         // Run all build steps
         foreach (self::BUILD_STEPS as $command => $message) {
             $this->runStep($command, $message);
@@ -64,6 +75,7 @@ class BuildAppCommand extends MagicBaseCommand
             $this->warn('Database seeding is disabled in the config.');
         }
 
+        FileGenerationRegistry::writeManifest();
         Log::channel('magic')->info('✅ Build complete!');
 
         return CommandAlias::SUCCESS;

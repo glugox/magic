@@ -10,7 +10,6 @@ use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Config\FieldType;
 use Glugox\Magic\Support\Config\Relation;
 use Glugox\Magic\Support\Faker\FakerExtension;
-use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 
@@ -25,7 +24,6 @@ class SeederBuilderService
     private ?array $fakerMethods = null;
 
     public function __construct(
-        protected Filesystem $files,
         protected Config $config
     ) {
         // Ensure the factories directory exists
@@ -100,7 +98,7 @@ class SeederBuilderService
         PHP;
 
         $path = database_path("factories/{$className}.php");
-        $this->files->put($path, $stub);
+        app(FileGenerationService::class)->generateFile($path, $stub);
     }
 
     /**
@@ -148,7 +146,7 @@ $relationsCode
 PHP;
 
         $path = $this->seedersPath."/{$className}.php";
-        $this->files->put($path, $stub);
+        app(FileGenerationService::class)->generateFile($path, $stub);
 
         // Log the seeder creation
         $pathRelative = str_replace($this->seedersPath.'/', '', $path);
@@ -214,7 +212,7 @@ class $seederClass extends Seeder
 PHP;
 
         $path = $this->seedersPath."/{$seederClass}.php";
-        $this->files->put($path, $stub);
+        app(FileGenerationService::class)->generateFile($path, $stub);
 
         // Log the pivot seeder creation
         $pathRelative = str_replace($this->seedersPath.'/', '', $path);
@@ -342,6 +340,10 @@ PHP;
             ],
             'seeders'
         );
+
+        // Register file modification, this also needs to stay even if we don't modify the file
+        // because we are anyway adding the use statement below for each model seeder
+        FileGenerationService::registerModifiedFile($this->seedersPath.'/DatabaseSeeder.php');
     }
 
     /**
