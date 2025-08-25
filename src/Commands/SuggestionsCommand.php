@@ -23,18 +23,19 @@ class SuggestionsCommand extends MagicBaseCommand
     {
         $jsonConfig = $this->getConfig()->toJson();
 
-        $ai = new AiManager();
+        $ai = new AiManager;
 
         $suggestionText = $ai->ask(
             "Please provide suggestions to improve the following JSON configuration for a Laravel application. Focus on best practices, potential issues, and enhancements that could be made:\n\n{$jsonConfig}\n\nSuggestions:"
         );
 
-        //$suggestionText = $ai->ask("Hello!");
+        // $suggestionText = $ai->ask("Hello!");
 
         $this->info("AI Suggestions:\n");
         $this->line($suggestionText->text());
 
         Log::channel('magic')->info('Suggestions complete!');
+
         return 0;
     }
 }

@@ -251,7 +251,7 @@ class Entity
         }
 
         // Ensure we have name field in the list
-        if (!$this->hasNameField()) {
+        if (! $this->hasNameField()) {
             $nameField = new Field('name', FieldType::STRING);
             $visible[] = $nameField;
         }
@@ -295,6 +295,7 @@ class Entity
                 $nameFields[] = $field;
             }
         }
+
         return $nameFields;
     }
 
@@ -307,6 +308,7 @@ class Entity
         foreach ($this->getNameFields() as $field) {
             $nameFields[] = $field->name;
         }
+
         return $nameFields;
     }
 
@@ -320,6 +322,7 @@ class Entity
                 return $field;
             }
         }
+
         return null;
     }
 
@@ -538,10 +541,11 @@ class Entity
             'name' => $this->name,
             'table' => $this->getTableName(),
             'icon' => $this->icon,
-            'fields' => array_map(fn($field) => json_decode($field->toJson(), true), $this->fields),
-            'relations' => array_map(fn($relation) => json_decode($relation->toJson(), true), $this->relations),
+            'fields' => array_map(fn ($field) => json_decode($field->toJson(), true), $this->fields),
+            'relations' => array_map(fn ($relation) => json_decode($relation->toJson(), true), $this->relations),
             'settings' => $this->settings->toJson(),
         ];
+
         return json_encode($data, JSON_PRETTY_PRINT);
     }
 }

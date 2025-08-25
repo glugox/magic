@@ -153,7 +153,7 @@ class ModelBuilderService
 
         // Name fields
         if (! empty($nameFields)) {
-            $nameFieldsStr = implode(", ", array_map(fn ($n) => "'$n'", $nameFields));
+            $nameFieldsStr = implode(', ', array_map(fn ($n) => "'$n'", $nameFields));
             $appendsStr .= "\n\n    protected \$nameFields = [\n        $nameFieldsStr\n    ];";
         }
 

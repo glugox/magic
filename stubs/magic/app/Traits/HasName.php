@@ -26,9 +26,10 @@ trait HasName
                     $nameParts[] = $this->{$field};
                 }
             }
-            if (!empty($nameParts)) {
+            if (! empty($nameParts)) {
                 return implode(' ', $nameParts);
             }
+
             return 'N/A';
         }
 

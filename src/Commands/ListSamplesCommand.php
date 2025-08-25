@@ -2,7 +2,6 @@
 
 namespace Glugox\Magic\Commands;
 
-use Glugox\Ai\AiManager;
 use Illuminate\Support\Facades\Log;
 
 class ListSamplesCommand extends MagicBaseCommand
@@ -18,17 +17,19 @@ class ListSamplesCommand extends MagicBaseCommand
 
     public function handle()
     {
-        $samplesDir = __DIR__ . '/../../stubs/samples';
-        if (!is_dir($samplesDir)) {
+        $samplesDir = __DIR__.'/../../stubs/samples';
+        if (! is_dir($samplesDir)) {
             $this->error("Samples directory not found: {$samplesDir}");
+
             return 1;
         }
 
         $files = scandir($samplesDir);
-        $jsonFiles = array_filter($files, fn($file) => str_ends_with($file, '.json'));
+        $jsonFiles = array_filter($files, fn ($file) => str_ends_with($file, '.json'));
 
         if (empty($jsonFiles)) {
             $this->info("No JSON config samples found in: {$samplesDir}");
+
             return 0;
         }
 
@@ -39,6 +40,7 @@ class ListSamplesCommand extends MagicBaseCommand
         }
 
         Log::channel('magic')->info('Listed JSON config samples.');
+
         return 0;
     }
 }

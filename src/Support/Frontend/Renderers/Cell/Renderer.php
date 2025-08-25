@@ -71,8 +71,9 @@ class Renderer
         Log::channel('magic')->info('Getting renderer for field: '.$field->name.' of type: '.$field->type->value);
 
         // Check explicitly if the field is a name field
-        if( $field->isName()) {
+        if ($field->isName()) {
             Log::channel('magic')->info('Field '.$field->name.' is identified as a name field. Using NameRenderer.');
+
             return new NameRenderer;
         }
 
