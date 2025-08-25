@@ -5,6 +5,7 @@ namespace Glugox\Magic\Support\Faker;
 use Faker\Generator;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Faker\Extensions\ImageExtension;
+use Glugox\Magic\Support\Faker\Extensions\PasswordExtension;
 
 abstract class FakerExtension
 {
@@ -17,6 +18,7 @@ abstract class FakerExtension
     {
         return [
             'image' => ImageExtension::class,
+            'password' => PasswordExtension::class,
             // Add other extensions here as needed
         ];
     }

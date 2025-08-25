@@ -186,9 +186,25 @@ class Entity
     /**
      * Add a field to the entity.
      */
-    public function addField(Field $field): void
+    public function addField(Field|array $field): void
     {
+        if (is_array($field)) {
+            $field = Field::fromConfig($field, $this);
+        }
         $this->fields[] = $field;
+    }
+
+    /**
+     * Adds field only if it does not exist already.
+     */
+    public function addFieldIfNotExists(Field|array $field): void
+    {
+        if (is_array($field)) {
+            $field = Field::fromConfig($field, $this);
+        }
+        if (! $this->hasField($field->name)) {
+            $this->fields[] = $field;
+        }
     }
 
     /**

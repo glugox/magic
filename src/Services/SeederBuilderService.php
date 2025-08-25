@@ -66,6 +66,7 @@ class SeederBuilderService
         $className = $entityName.'Factory';
         $namespace = 'Database\Factories';
 
+
         $fakerFields = $this->buildFakerFields($entity);
 
         $stub = <<<PHP
@@ -85,6 +86,16 @@ class SeederBuilderService
                 return [
         $fakerFields
                 ];
+            }
+
+            /**
+             * Indicate that the model's email address should be unverified.
+             */
+            public function unverified(): static
+            {
+                return \$this->state(fn (array \$attributes) => [
+                    'email_verified_at' => null,
+                ]);
             }
         }
         PHP;
@@ -249,8 +260,19 @@ PHP;
     {
         $lines = [];
         $typesNotForFaker = [FieldType::JSON, FieldType::JSONB, FieldType::FILE];
+        $modelPresets = config('magic.model_presets', []);
 
         Log::channel('magic')->info("Building Faker fields for entity: {$entity->getName()}");
+        if (isset($modelPresets[$entity->getName()])) {
+            Log::channel('magic')->info("Using model preset for entity: {$entity->getName()}");
+            $preset = $modelPresets[$entity->getName()]['default_fields'];
+            if (is_array($preset)) {
+                foreach ($preset as $fieldName => $presetValue) {
+                    $entity->addFieldIfNotExists($presetValue);
+                    Log::channel('magic')->info("  --- Adding field: {$fieldName}");
+                }
+            }
+        }
 
         foreach ($entity->getFields() as $field) {
 
@@ -259,17 +281,6 @@ PHP;
             }
 
             Log::channel('magic')->info("Processing field: {$field->name} of type {$field->type->value}");
-
-            // Enforce seeder rulers from config
-            if ($field->type === FieldType::PASSWORD && ! $this->config->dev->strongPasswords) {
-
-                Log::channel('magic')->info("Using simple password for field '{$field->name}' in entity '{$entity->getName()}'");
-                $passwordHash = config('magic.default_password_hash', '$2y$12$00A.1FrCk3FctOEVIHlkLu5qYNfFdBGJUCyzdMaGcvC9CPTgPoIgK');
-
-                $lines[] = "            '{$field->name}' => '$passwordHash', // Simple password for testing ('password')";
-
-                continue;
-            }
 
             // Check if field is a belongsTo relation
             /** @var Relation $belongsTo */
@@ -348,7 +359,6 @@ PHP;
         $wordAssocToType = [
             'color' => 'hexColor()',
             'text' => 'text()',
-            'email' => 'safeEmail()',
             'phone' => 'phoneNumber()',
             'address' => 'address()',
             'location' => 'address()',
@@ -432,7 +442,7 @@ PHP;
             $min = $field->min ?? 0;
             $max = $field->max ?? ($min + 1000); // fallback if max not defined
 
-            Log::channel('magic')->info("  ----- Ensuring numeric range for field '{$field->name}': min={$min}, max={$max}");
+            Log::channel('magic')->info("Ensuring numeric range for field '{$field->name}': min={$min}, max={$max}");
             $field->debugLog();
 
             $fakerType = str_replace('randomNumber()', "numberBetween({$min}, {$max})", $fakerType);

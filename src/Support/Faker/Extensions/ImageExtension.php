@@ -14,7 +14,6 @@ class ImageExtension extends FakerExtension
     {
         // Generate a random image URL using Faker
         // return "'https://picsum.photos/200/200?random=' . \$this->faker->unique()->numberBetween(1, 1000)";
-
         // 'image' => 'https://picsum.photos/id/' . $this->faker->numberBetween(1, 1000) . '/200/200.jpg',
 
         return "'https://picsum.photos/id/' . \$this->faker->numberBetween(1, 1000) . '/200/200.jpg'";

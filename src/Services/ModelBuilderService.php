@@ -107,6 +107,7 @@ class ModelBuilderService
         }
 
         // Ensure all models have a name field
+        // TODO: Do this only for resources
         if (! $entity->hasField('name')) {
             $traits[] = 'App\Traits\HasName';
             $appends[] = 'name';
