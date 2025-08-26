@@ -1,6 +1,7 @@
 {
     "name": "glugox/magic",
     "description": "Tools for creating magic!",
+    "type": "library",
     "keywords": [
         "glugox",
         "laravel",
@@ -72,12 +73,6 @@
             }
         }
     },
-    "repositories": [
-        {
-            "type": "path",
-            "url": "/Users/ervin/Code/github.com/glugox/*"
-        }
-    ],
     "minimum-stability": "dev",
     "prefer-stable": true
 }

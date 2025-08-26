@@ -101,6 +101,25 @@ Run the standard Laravel commands to start your application:
 nom run dev && php artisan serve
 ```
 
+## Quick Start
+
+1. Create a new Laravel project (if you don't have one already):
+
+```bash
+laravel new my-magic-app
+```
+
+- Choose Vue starter when prompted.
+- Choose Laravel's built-in authentication when prompted.
+- Choose Pest for testing when prompted.
+- Allow Laravel to install the necessary packages when prompted.
+
+2. Navigate to your project directory:
+
+```bash
+cd my-magic-app
+```
+
 ## Magic Features
 
 - **Entity Management**: Define entities with fields, relations, and casts.

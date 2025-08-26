@@ -41,6 +41,7 @@ class BuildAppCommand extends MagicBaseCommand
     /**
      * @throws \JsonException
      * @throws \ReflectionException
+     * @throws \Exception
      */
     public function handle(): int
     {
