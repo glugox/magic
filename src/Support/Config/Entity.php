@@ -9,24 +9,32 @@ class Entity
 {
     public function __construct(
         // Entity name, e.g. "User", "Post"
-        private string $name,
+        public string $name,
         /** @var Field[] */
-        private array $fields,
+        public array $fields,
         /** @var Relation[] */
-        private array $relations = [],
+        public array $relations = [],
         /** @var string */
-        private ?string $tableName = null,
+        public ?string $tableName = null,
         // settings for the entity, e.g. timestamps, soft deletes, etc.
-        private ?Settings $settings = new Settings([]),
+        public ?Settings $settings = new Settings([]),
         // Icon
-        private ?string $icon = null,
+        public ?string $icon = null,
     ) {}
 
     /**
      * Create an Entity object from an array of properties.
      */
-    public static function fromConfig(array $data): self
+    public static function fromConfig(array|string $data): self
     {
+        // Convert JSON string to array if needed
+        if (is_string($data)) {
+            $data = json_decode($data, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new \InvalidArgumentException('Invalid JSON string provided for Entity configuration.');
+            }
+        }
+
         // Create the entity with empty relations initially
         $entity = new self($data['name'], [], [], $data['table'] ?? null);
 
@@ -267,6 +275,30 @@ class Entity
             return $this->fieldPriority($a) <=> $this->fieldPriority($b);
         });
 
+        return $visible;
+    }
+
+    /**
+     * Get the names of fields that should be visible in forms.
+     */
+    public function getFormFields(): array
+    {
+        $visible = [];
+        foreach ($this->fields as $field) {
+            // Exclude showInForm false fields
+            if ($field->showInForm === false) {
+                continue;
+            }
+
+            if (! in_array($field->name, ['id', 'created_at', 'updated_at', 'password', 'remember_token'])) {
+                $visible[] = $field;
+            }
+        }
+        // Relations
+        foreach ($this->getRelations() as $relation) {
+            $relationField = Field::fromRelation($relation);
+            $visible[] = $relationField;
+        }
         return $visible;
     }
 

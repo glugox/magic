@@ -38,4 +38,18 @@ class TypeHelper
             default => FieldType::STRING,
         };
     }
+
+    /**
+     * Return empty value for a given FieldType
+     */
+    public static function emptyValueForFieldType(FieldType $fieldType): mixed
+    {
+        return match ($fieldType) {
+            FieldType::STRING, FieldType::TEXT, FieldType::CHAR, FieldType::EMAIL, FieldType::MEDIUM_TEXT, FieldType::LONG_TEXT => '',
+            FieldType::INTEGER, FieldType::BIG_INTEGER, FieldType::BIG_INCREMENTS, FieldType::UNSIGNED_BIG_INTEGER => 0,
+            FieldType::BOOLEAN => false,
+            FieldType::JSON, FieldType::JSONB, FieldType::HAS_MANY => [],
+            default => null,
+        };
+    }
 }

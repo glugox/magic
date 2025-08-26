@@ -90,4 +90,24 @@ HEADER;
 
         return $renderResult->content;
     }
+
+    /**
+     * Write default value for a given field.
+     *
+     */
+    public static function writeValue(mixed $default) : string
+    {
+        if (is_string($default)) {
+            return "'".addslashes($default)."'";
+        } elseif (is_bool($default)) {
+            return $default ? 'true' : 'false';
+        } elseif (is_null($default)) {
+            return 'null';
+        } elseif (is_array($default)) {
+            $items = array_map(fn($item) => static::writeValue($item), $default);
+            return '['.implode(', ', $items).']';
+        } else {
+            return (string)$default;
+        }
+    }
 }

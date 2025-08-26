@@ -1,0 +1,62 @@
+<?php
+
+
+use Glugox\Magic\Actions\ParseEntityConfig;
+use Glugox\Magic\Support\Config\Config;
+use Glugox\Magic\Support\Config\Entity;
+use Glugox\Magic\Support\Config\Field;
+use Glugox\Magic\Support\Config\Relation;
+
+it(/**
+ * @throws JsonException
+ */ 'parses a JSON string into TsEntity', function () {
+    $json = '{
+    "app": {
+        "name": "EduTrack"
+    },
+    "entities": [
+        {
+            "name": "Student",
+            "fields": [
+                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "first_name", "type": "string", "nullable": false, "sortable": true, "searchable": true, "isName": true },
+                { "name": "last_name", "type": "string", "nullable": false, "sortable": true, "searchable": true, "isName": true },
+                { "name": "email", "type": "string", "nullable": false, "unique": true, "sortable": true, "searchable": true },
+                { "name": "enrollment_date", "type": "date", "nullable": false, "sortable": true }
+            ],
+            "relations": [
+                { "type": "hasMany", "entity": "Enrollment", "foreign_key": "student_id" },
+                { "type": "belongsToMany", "entity": "Course", "pivot": "enrollments", "foreign_key": "student_id", "related_key": "course_id" }
+            ]
+        },
+        {
+            "name": "Course",
+            "fields": [
+                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "title", "type": "string", "nullable": false, "sortable": true, "searchable": true },
+                { "name": "description", "type": "text", "nullable": true, "searchable": true },
+                { "name": "credits", "type": "integer", "nullable": false, "sortable": true }
+            ],
+            "relations": [
+                { "type": "belongsToMany", "entity": "Student", "pivot": "enrollments", "foreign_key": "course_id", "related_key": "student_id" },
+                { "type": "hasMany", "entity": "Assignment", "foreign_key": "course_id" }
+            ]
+        }
+    ],
+    "dev": {
+        "seedEnabled": true,
+        "seedCount": 50
+    }
+}
+';
+
+    $action = new ParseEntityConfig();
+    $config = $action($json);
+
+    expect($config)->toBeInstanceOf(Config::class)
+        ->and($config->entities[0])->toBeInstanceOf(Entity::class)
+        ->and(count($config->entities[0]->fields))->toBe(5)
+        ->and($config->entities[0]->fields[0])->toBeInstanceOf(Field::class)
+        ->and($config->entities[0]->relations[0])->toBeInstanceOf(Relation::class)
+        ->and($config->entities[0]->relations[0]->getRelationName())->toBe('enrollments');
+});

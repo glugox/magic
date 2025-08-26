@@ -51,9 +51,10 @@ class Config
      *
      * @throws \JsonException
      */
-    public static function fromJson(string $json): self
+    public static function fromJson(string|array $json): self
     {
-        $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+        // Decode JSON if it's a string
+        $data = is_string($json) ? json_decode($json, true, 512, JSON_THROW_ON_ERROR) : $json;
 
         $entities = [];
         foreach ($data['entities'] ?? [] as $entityData) {

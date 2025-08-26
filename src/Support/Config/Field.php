@@ -82,15 +82,16 @@ class Field
      */
     public static function fromConfig(array $data, ?Entity $entity = null): self
     {
+        $type = FieldType::from($data['type']);
         return new self(
             name: $data['name'],
-            type: FieldType::from($data['type']),
+            type: $type,
             entityRef: $entity,
             nullable: $data['nullable'] ?? false,
             length: $data['length'] ?? null,
             precision: $data['precision'] ?? null,
             scale: $data['scale'] ?? null,
-            default: $data['default'] ?? null,
+            default: $data['default'] ?? TypeHelper::emptyValueForFieldType($type),
             comment: $data['comment'] ?? null,
             sortable: $data['sortable'] ?? false,
             searchable: $data['searchable'] ?? false,
@@ -109,15 +110,16 @@ class Field
      */
     public static function fromRelation(Relation $relation): self
     {
+        $fieldType = TypeHelper::relationTypeToFieldType($relation->getType());
         return new self(
             name: $relation->getRelationName(),
-            type: TypeHelper::relationTypeToFieldType($relation->getType()),
+            type: $fieldType,
             entityRef: $relation->getLocalEntity(),
             nullable: false,
             length: null,
             precision: null,
             scale: null,
-            default: null,
+            default: TypeHelper::emptyValueForFieldType($fieldType),
             comment: 'Foreign key to '.$relation->getEntityName(),
             sortable: true,
             searchable: false,
