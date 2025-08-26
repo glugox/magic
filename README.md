@@ -10,97 +10,6 @@ With Magic, you can build full-featured Laravel applications directly from confi
 🔧 How it works
 ![magic-demo.svg](magic-demo.svg)
 
-## Installation
-
-### 1. Install via Composer
-
-```bash
-composer require glugox/magic
-```
-
-### 2. Publish the configuration file
-
-```bash
-php artisan vendor:publish --provider="Glugox\Magic\MagicServiceProvider"
-```
-
-### 3. Configure the package
-Edit the `config/magic.php` file to set up your application configuration. This file allows you to define various settings and behaviors for your app.
-
-### 4. Create your app configuration file 
-You need app configuration file as json file in which you can define your app configuration like
-```json
-{
-    "app": {
-        "name": "UNO"
-    },
-    "entities": [
-        {
-            "name": "User",
-            "fields": [
-                { "name": "id", "type": "bigIncrements", "nullable": false },
-                { "name": "name", "type": "string", "nullable": false, "sortable": true, "searchable": true },
-                { "name": "email", "type": "string", "nullable": false, "unique": true, "sortable": true, "searchable": true },
-                { "name": "password", "type": "string", "nullable": false, "hidden": true }
-            ],
-            "relations": [
-                { "type": "hasMany", "entity": "Address", "foreign_key": "user_id" },
-                { "type": "hasMany", "entity": "Resume", "foreign_key": "user_id" }
-            ],
-            "casts": {
-                "email_verified_at": "datetime"
-            }
-        },
-        {
-            "name": "Address",
-            "fields": [
-                { "name": "id", "type": "bigIncrements", "nullable": false },
-                { "name": "user_id", "type": "unsignedBigInteger", "nullable": false },
-                { "name": "street", "type": "string", "nullable": false, "searchable": true },
-                { "name": "city", "type": "string", "nullable": false, "searchable": true },
-                { "name": "country", "type": "string", "nullable": false, "searchable": true },
-                { "name": "postal_code", "type": "string", "nullable": true, "searchable": true }
-            ],
-            "relations": [
-                { "type": "belongsTo", "entity": "User", "foreign_key": "user_id" }
-            ]
-        },
-        {
-            "name": "Resume",
-            "fields": [
-                { "name": "id", "type": "bigIncrements", "nullable": false },
-                { "name": "user_id", "type": "unsignedBigInteger", "nullable": false },
-                { "name": "title", "type": "string", "nullable": false, "searchable": true },
-                { "name": "content", "type": "longText", "nullable": false, "searchable": true }
-            ],
-            "relations": [
-                { "type": "belongsTo", "entity": "User", "foreign_key": "user_id" }
-            ]
-        }
-    ],
-    "dev": {
-        "seedEnabled": true,
-        "seedCount": 20
-    }
-}
-```
-You can place this file wherever you want, but make sure to update the `config/magic.php` file with the correct path to your configuration file,
-or you can pass the path to the command line when running the magic command.
-
-### 5. Run the magic (command)
-
-```bash
-php artisan magic:build --config=path/to/your/config.json
-```
-
-### 6. Woala! Your app is ready!
-
-Run the standard Laravel commands to start your application:
-
-```bash
-nom run dev && php artisan serve
-```
-
 ## Quick Start
 
 1. Create a new Laravel project (if you don't have one already):
@@ -149,6 +58,9 @@ php artisan magic:build --starter=inventory
 ```bash
 php artisan magic:build --config=path/to/your/config.json
 ```
+
+To see how to create your own configuration file, check the [sample configurations](./stubs/samples) directory.
+
 
 8. Start your application:
 
