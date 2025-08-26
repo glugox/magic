@@ -4,7 +4,7 @@ namespace Tests\Helpers;
 
 use Glugox\Magic\Support\Config\Entity;
 
-if (!function_exists('makeDummyEntity')) {
+if (! function_exists('makeDummyEntity')) {
     function makeDummyEntity(): Entity
     {
         return Entity::fromConfig(

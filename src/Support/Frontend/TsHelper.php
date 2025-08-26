@@ -93,9 +93,8 @@ HEADER;
 
     /**
      * Write default value for a given field.
-     *
      */
-    public static function writeValue(mixed $default) : string
+    public static function writeValue(mixed $default): string
     {
         if (is_string($default)) {
             return "'".addslashes($default)."'";
@@ -104,10 +103,11 @@ HEADER;
         } elseif (is_null($default)) {
             return 'null';
         } elseif (is_array($default)) {
-            $items = array_map(fn($item) => static::writeValue($item), $default);
+            $items = array_map(fn ($item) => static::writeValue($item), $default);
+
             return '['.implode(', ', $items).']';
         } else {
-            return (string)$default;
+            return (string) $default;
         }
     }
 }

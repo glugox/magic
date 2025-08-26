@@ -83,6 +83,7 @@ class Field
     public static function fromConfig(array $data, ?Entity $entity = null): self
     {
         $type = FieldType::from($data['type']);
+
         return new self(
             name: $data['name'],
             type: $type,
@@ -111,6 +112,7 @@ class Field
     public static function fromRelation(Relation $relation): self
     {
         $fieldType = TypeHelper::relationTypeToFieldType($relation->getType());
+
         return new self(
             name: $relation->getRelationName(),
             type: $fieldType,

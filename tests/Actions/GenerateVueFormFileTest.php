@@ -2,13 +2,13 @@
 
 use Glugox\Magic\Actions\GenerateVueFormFile;
 use Glugox\Magic\Support\Frontend\VueFile;
-use function Tests\Helpers\makeDummyEntity;
 
+use function Tests\Helpers\makeDummyEntity;
 
 it('generates a Vue form file for a simple schema', function () {
     $entity = makeDummyEntity();
 
-    $action = new GenerateVueFormFile();
+    $action = new GenerateVueFormFile;
     $file = $action($entity);
     $content = (string) $file;
 
@@ -40,11 +40,10 @@ it('generates a Vue form file for a simple schema', function () {
     // boolean -> checkbox
 });
 
-
 it('includes a submit handler and a basic button', function () {
     $entity = makeDummyEntity();
 
-    $file = new GenerateVueFormFile()($entity);
+    $file = new GenerateVueFormFile($entity);
     $content = (string) $file;
 
     expect($content)->toContain('function submit(')

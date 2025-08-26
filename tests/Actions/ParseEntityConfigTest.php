@@ -1,6 +1,5 @@
 <?php
 
-
 use Glugox\Magic\Actions\ParseEntityConfig;
 use Glugox\Magic\Support\Config\Config;
 use Glugox\Magic\Support\Config\Entity;
@@ -50,7 +49,7 @@ it(/**
 }
 ';
 
-    $action = new ParseEntityConfig();
+    $action = new ParseEntityConfig;
     $config = $action($json);
 
     expect($config)->toBeInstanceOf(Config::class)

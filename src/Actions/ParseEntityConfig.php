@@ -7,7 +7,6 @@ use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Support\Config\Config;
 use Glugox\Magic\Traits\AsDescribableAction;
 
-
 #[ActionDescription(
     name: 'parse_entity_config',
     description: 'Parses a JSON configuration into a Config object, data class for config, entities ( that contain fields ), etc.',
@@ -18,8 +17,8 @@ class ParseEntityConfig implements DescribableAction
     use AsDescribableAction;
 
     /**
-     * @param string|array $input JSON string or array
-     * @return Config
+     * @param  string|array  $input  JSON string or array
+     *
      * @throws \JsonException
      */
     public function __invoke(string|array $input): Config

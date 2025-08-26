@@ -24,7 +24,7 @@ trait AsDescribableAction
         $ref = new ReflectionClass($this);
         $attrs = $ref->getAttributes(ActionDescription::class);
 
-        if (!empty($attrs)) {
+        if (! empty($attrs)) {
             $instance = $attrs[0]->newInstance();
 
             return new ActionDescriptionData(
@@ -39,5 +39,4 @@ trait AsDescribableAction
             description: 'No description provided'
         );
     }
-
 }
