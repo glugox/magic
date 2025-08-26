@@ -120,6 +120,42 @@ laravel new my-magic-app
 cd my-magic-app
 ```
 
+3. Install the Magic package via Composer:
+
+```bash
+composer require glugox/magic
+```
+4. Publish the configuration file:
+
+```bash
+php artisan vendor:publish --provider="Glugox\Magic\MagicServiceProvider"
+```
+
+5. For quick start Magic has some demo samples which are just json configuration files located in the `stubs/samples` directory. You can use one of these samples to quickly set up your application.
+To list all available samples, you can run:
+
+```bash 
+php artisan magic:list-samples
+```
+
+6. Run the magic build command with your chosen sample or your own configuration file:
+
+```bash
+php artisan magic:build --starter=inventory
+```
+
+7. If you have your own json configuration file, you can run:
+
+```bash
+php artisan magic:build --config=path/to/your/config.json
+```
+
+8. Start your application:
+
+```bash
+npm run dev && php artisan serve
+```
+
 ## Magic Features
 
 - **Entity Management**: Define entities with fields, relations, and casts.
@@ -156,21 +192,6 @@ How to use a starter kit:
 ```bash
 php artisan magic:build --starter=task-management
 ```
-
-## Development stage
-
-This package is still not yet available to be installed by composer. You need to copy the repo and add in composer.json:
-
-```json
-"repositories": [
-        {
-            "type": "path",
-            "url": "/Users/ervin/Code/github.com/glugox/*"
-        }
-    ],
-    "minimum-stability": "dev",
-```
-
 
 ## Ready to join?
 
