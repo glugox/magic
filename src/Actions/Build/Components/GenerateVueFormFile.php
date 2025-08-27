@@ -11,7 +11,6 @@ use Glugox\Magic\Support\File\VueFile;
 use Glugox\Magic\Support\Frontend\TsHelper;
 use Glugox\Magic\Traits\AsDescribableAction;
 
-
 #[ActionDescription(
     name: 'generate_vue_form_file',
     description: 'Generates a VueFile PHP class that has string representation of full content for a vue component, from a FormSchema object',
@@ -21,13 +20,13 @@ class GenerateVueFormFile implements DescribableAction
 {
     use AsDescribableAction;
 
-
     public function __invoke(Entity $entity): VueFile
     {
         $script = $this->generateScript($entity);
         $template = $this->generateTemplate($entity);
+
         return VueFile::fromArray([
-            'fileName' => $entity->getName() . 'Form.vue',
+            'fileName' => $entity->getName().'Form.vue',
             'directory' => 'components/forms',
             'script' => $script,
             'template' => $template,
@@ -97,7 +96,7 @@ HTML;
     private function buildDefaults(Entity $entity): string
     {
         return collect($entity->getFormFields())
-            ->map(fn(Field $f) => "{$f->name}: " . TsHelper::writeValue($f->default))
+            ->map(fn (Field $f) => "{$f->name}: ".TsHelper::writeValue($f->default))
             ->join(",\n    ");
     }
 }

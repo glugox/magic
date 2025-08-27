@@ -299,6 +299,7 @@ class Entity
             $relationField = Field::fromRelation($relation);
             $visible[] = $relationField;
         }
+
         return $visible;
     }
 
