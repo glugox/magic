@@ -69,22 +69,23 @@ class Config
 
     /**
      * Convert the configuration from json file path to Config object.
+     *
      * @throws \JsonException
      */
     public static function fromJsonFile(string $filePath): self
     {
-        if (!file_exists($filePath)) {
+        if (! file_exists($filePath)) {
             throw new \RuntimeException("Configuration file not found: {$filePath}");
         }
         $json = file_get_contents($filePath);
         if ($json === false) {
             throw new \RuntimeException("Failed to read configuration file: {$filePath}");
         }
+
         return static::fromJson($json);
     }
 
     /**
-     * @param array $overrides
      * @return Config Applies overrides to the configuration array.
      *
      * Applies overrides to the configuration array.

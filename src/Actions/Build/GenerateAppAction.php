@@ -19,8 +19,6 @@ class GenerateAppAction implements DescribableAction
     use AsDescribableAction;
 
     /**
-     * @param array $options
-     * @return BuildContext
      * @throws \ReflectionException
      * @throws \Exception
      */
@@ -29,8 +27,8 @@ class GenerateAppAction implements DescribableAction
         // Step 1: Parse the configuration file
         /** @var Config $config */
         $config = app(ResolveAppConfigAction::class)($options);
-        if (!$config->isValid()) {
-            throw new \Exception("Invalid configuration provided.");
+        if (! $config->isValid()) {
+            throw new \Exception('Invalid configuration provided.');
         }
         // Step 1: Initialize BuildContext with options and config
         $buildContext = BuildContext::fromOptions($options)->setConfig($config);

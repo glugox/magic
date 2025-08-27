@@ -1,6 +1,7 @@
 <?php
 
 use Glugox\Magic\Actions\Build\Migration\GenerateMigrationForEntityAction;
+
 use function Glugox\Magic\Tests\Helpers\makeDummyProductEntityConfig;
 
 beforeEach(function () {
@@ -14,7 +15,6 @@ it('generates migration for entity', function () {
 
     // Action
     app(GenerateMigrationForEntityAction::class)($entity);
-
 
     $files = glob(database_path('migrations/*_create_products_table.php'));
     $this->assertNotEmpty($files, 'Migration file not found');

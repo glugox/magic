@@ -14,7 +14,7 @@ class FilesGenerationUpdate
         public array $updated = [],
         public array $deleted = [],
     ) {
-        ///
+        // /
     }
 
     /**
@@ -72,7 +72,7 @@ class FilesGenerationUpdate
                 'created' => $this->created,
                 'updated' => $this->updated,
                 'deleted' => $this->deleted,
-            ]
+            ],
         ];
         file_put_contents($manifestPath, json_encode($data, JSON_PRETTY_PRINT));
     }

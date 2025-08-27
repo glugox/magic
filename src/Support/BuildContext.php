@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Log;
 
 class BuildContext
 {
-
     /**
      * Config object resolved from the config file, starter, and overrides.
      */
@@ -33,7 +32,7 @@ class BuildContext
         public ?string $starter = null,
         public array $overrides = []
     ) {
-        $this->filesGenerationUpdate = new FilesGenerationUpdate();
+        $this->filesGenerationUpdate = new FilesGenerationUpdate;
     }
 
     /**
@@ -54,16 +53,19 @@ class BuildContext
     public function setConfig(Config $config): self
     {
         $this->config = $config;
+
         return $this;
     }
 
     /**
      * Return Config object.
+     *
      * @throws \ReflectionException
      */
     public function getConfig(): ?Config
     {
         $this->ensureConfigLoaded();
+
         return $this->config;
     }
 
@@ -74,7 +76,7 @@ class BuildContext
     {
         // Ensure we have an array of file paths
         $filePaths = is_array($filePath) ? $filePath : [$filePath];
-        Log::channel('magic')->info("Generated file(s): " . implode(", ", $filePaths));
+        Log::channel('magic')->info('Generated file(s): '.implode(', ', $filePaths));
 
         foreach ($filePaths as $path) {
             $this->filesGenerationUpdate->addCreated($path);
@@ -87,6 +89,7 @@ class BuildContext
     public function mergeFilesGenerationUpdate(FilesGenerationUpdate $other): self
     {
         $this->filesGenerationUpdate->merge($other);
+
         return $this;
     }
 
@@ -95,7 +98,7 @@ class BuildContext
      */
     public function hasErrors(): bool
     {
-        return !empty($this->errors);
+        return ! empty($this->errors);
     }
 
     /**

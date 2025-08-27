@@ -9,7 +9,6 @@ use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\File\FilesGenerationUpdate;
 use Glugox\Magic\Traits\AsDescribableAction;
 
-
 #[ActionDescription(
     name: 'generate_migrations',
     description: 'Generates a migration files for all entities found in Config into /database/migrations',
@@ -30,6 +29,7 @@ class GenerateMigrationsAction implements DescribableAction
             // Register what is created/updated/deleted
             $context->mergeFilesGenerationUpdate($filesGenerationUpdate);
         }
+
         return $context;
     }
 }

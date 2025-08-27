@@ -2,7 +2,6 @@
 
 namespace Glugox\Magic\Actions\Build;
 
-
 use Glugox\Magic\Actions\Files\GenerateFileAction;
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
@@ -34,16 +33,13 @@ class UpdateVuePagesAction implements DescribableAction
      */
     protected string $sidebarPath;
 
-    public function __construct() {
+    public function __construct()
+    {
         // Path to your Vue file
         $this->sidebarPath = base_path('resources/js/components/AppSidebar.vue');
         $this->appLogoPath = base_path('resources/js/components/AppLogo.vue');
     }
 
-    /**
-     * @param BuildContext $context
-     * @return BuildContext
-     */
     public function __invoke(BuildContext $context): BuildContext
     {
         $this->context = $context;

@@ -28,7 +28,6 @@ class VueSidebarUpdaterCommand extends MagicBaseCommand
         parent::__construct();
     }
 
-
     public function handle(): int
     {
         app(UpdateVuePagesAction::class)(BuildContext::fromOptions($this->options()));

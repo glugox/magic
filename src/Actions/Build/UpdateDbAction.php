@@ -17,10 +17,6 @@ class UpdateDbAction implements DescribableAction
 {
     use AsDescribableAction;
 
-    /**
-     * @param BuildContext $context
-     * @return BuildContext
-     */
     public function __invoke(BuildContext $context): BuildContext
     {
         // Step 1. Run migrations to ensure the database schema is up to date

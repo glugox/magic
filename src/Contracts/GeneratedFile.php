@@ -7,7 +7,6 @@ namespace Glugox\Magic\Contracts;
  */
 interface GeneratedFile
 {
-
     /**
      * String representation of the generated file.
      */

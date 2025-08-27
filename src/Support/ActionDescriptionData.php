@@ -25,6 +25,6 @@ readonly class ActionDescriptionData
          *
          * @example ["entity" => "The entity configuration JSON"]
          */
-        public array  $parameters = []
+        public array $parameters = []
     ) {}
 }

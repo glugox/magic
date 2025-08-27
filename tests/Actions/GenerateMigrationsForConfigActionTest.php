@@ -6,7 +6,7 @@ use Glugox\Magic\Support\Config\Config;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
-//uses(TestCase::class)->group('migrations');
+// uses(TestCase::class)->group('migrations');
 
 beforeEach(function () {
     config()->set('logging.channels.magic_console.level', 'error');
@@ -14,7 +14,7 @@ beforeEach(function () {
 
 afterEach(function () {
     // Clean up generated files
-    $files = glob(database_path('migrations') . '/*.php');
+    $files = glob(database_path('migrations').'/*.php');
     foreach ($files as $file) {
         unlink($file);
     }
@@ -22,7 +22,7 @@ afterEach(function () {
 
 function sampleConfigs(): array
 {
-    return collect(File::files(__DIR__ . '/../../stubs/samples'))
+    return collect(File::files(__DIR__.'/../../stubs/samples'))
         ->filter(fn ($file) => $file->getExtension() === 'json')
         ->map(fn ($file) => $file->getPathname())
         ->values()
@@ -41,7 +41,7 @@ it('generates migration for each sample config', function () {
 
         $config = Config::fromJson($configArray);
         $buildContext = BuildContext::fromOptions([
-            'config' => $configJsonPath
+            'config' => $configJsonPath,
         ])->setConfig($config);
 
         // Run action

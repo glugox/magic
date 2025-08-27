@@ -16,10 +16,6 @@ class GenerateManifestAction implements DescribableAction
 {
     use AsDescribableAction;
 
-    /**
-     * @param BuildContext $context
-     * @return BuildContext
-     */
     public function __invoke(BuildContext $context): BuildContext
     {
 

@@ -2,7 +2,7 @@
 
 use Glugox\Magic\Actions\Build\GenerateAppAction;
 
-//uses(TestCase::class)->group('migrations');
+// uses(TestCase::class)->group('migrations');
 
 /*beforeEach(function () {
     config()->set('logging.channels.magic_console.level', 'error');
@@ -17,4 +17,3 @@ use Glugox\Magic\Actions\Build\GenerateAppAction;
     $ok = 1;
 
 });*/
-

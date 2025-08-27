@@ -46,7 +46,6 @@ class GenerateSeedersAction implements DescribableAction
      */
     protected array $generatedPivotSeeders = [];
 
-
     /**
      * Build all seeders based on the configuration.
      */
@@ -65,6 +64,7 @@ class GenerateSeedersAction implements DescribableAction
 
         return $this->context;
     }
+
     /**
      * Constructor to set up paths.
      */
@@ -503,5 +503,4 @@ PHP;
 
         return $fakerType;
     }
-
 }

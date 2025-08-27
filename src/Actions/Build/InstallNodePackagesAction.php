@@ -37,10 +37,6 @@ class InstallNodePackagesAction implements DescribableAction
         // add more npm packages here...
     ];
 
-    /**
-     * @param BuildContext $context
-     * @return BuildContext
-     */
     public function __invoke(BuildContext $context): BuildContext
     {
         Log::channel('magic')->info('Checking Node.js dependencies...');

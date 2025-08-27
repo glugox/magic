@@ -5,7 +5,6 @@ namespace Glugox\Magic\Actions\Build\Migration;
 use Glugox\Magic\Actions\Files\GenerateFileAction;
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
-use Glugox\Magic\Support\Action\ActionResult;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Config\FieldType;
@@ -35,7 +34,7 @@ class GenerateMigrationForEntityAction implements DescribableAction
     protected function generateMigrationForEntity(Entity $entity): FilesGenerationUpdate
     {
         // We will return the list of generated/updated/deleted files
-        $update = new FilesGenerationUpdate();
+        $update = new FilesGenerationUpdate;
 
         $tableName = $entity->getTableName();
         $isUpdate = Schema::hasTable($tableName);
@@ -124,12 +123,11 @@ PHP;
     }
 
     /**
-     * @param Entity $entity
      * @return FilesGenerationUpdate Generate pivot tables for many-to-many relations.
      */
-    protected function generatePivotTables(Entity $entity) : FilesGenerationUpdate
+    protected function generatePivotTables(Entity $entity): FilesGenerationUpdate
     {
-        $update = new FilesGenerationUpdate();
+        $update = new FilesGenerationUpdate;
 
         foreach ($entity->getRelations() as $relation) {
             if ($relation->isManyToMany()) {

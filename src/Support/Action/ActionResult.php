@@ -23,7 +23,6 @@ class ActionResult
      */
     public const string STATUS_SKIPPED = 'skipped';
 
-
     /**
      * Constructor for ActionResult.
      */
@@ -43,8 +42,7 @@ class ActionResult
          * Optional message providing additional context about the action result.
          */
         protected ?string $message = null,
-    )
-    {}
+    ) {}
 
     /**
      * Return self from array.
@@ -81,5 +79,4 @@ class ActionResult
     {
         return new self(data: $data, status: self::STATUS_SKIPPED, message: $message);
     }
-
 }

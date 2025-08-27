@@ -38,6 +38,7 @@ class BuildControllersCommand extends MagicBaseCommand
         $buildContext = app(GenerateControllersAction::class)(BuildContext::fromOptions($this->options()));
         if ($buildContext->hasErrors()) {
             Log::channel('magic')->error('Build controllers failed: '.$buildContext->error());
+
             return 1;
         }
 
