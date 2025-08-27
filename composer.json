@@ -40,7 +40,10 @@
         "psr-4": {
             "Glugox\\Magic\\": "src/",
             "Glugox\\Magic\\Database\\Factories\\": "database/factories/"
-        }
+        },
+        "files": [
+            "src/Helpers/magic.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

@@ -2,7 +2,7 @@
 
 namespace Glugox\Magic\Commands;
 
-use Glugox\Magic\Support\FileGenerationRegistry;
+use Glugox\Magic\Support\File\FilesGenerationUpdate;
 use Illuminate\Support\Facades\Log;
 
 class ResetByManifestCommand extends MagicBaseCommand
@@ -16,9 +16,12 @@ class ResetByManifestCommand extends MagicBaseCommand
 
     protected $description = 'If manifest files exists, will use it to delete files';
 
+    /**
+     * @throws \JsonException
+     */
     public function handle()
     {
-        FileGenerationRegistry::deleteGeneratedFiles();
+        FilesGenerationUpdate::deleteGeneratedFiles();
 
         Log::channel('magic')->info('ResetByManifestCommand complete!');
 

@@ -2,9 +2,10 @@
 
 namespace Glugox\Magic\Commands;
 
+use Glugox\Magic\Actions\Config\ResolveAppConfigAction;
 use Glugox\Magic\Support\CodeGenerationHelper;
 use Glugox\Magic\Support\ConsoleBlock;
-use Glugox\Magic\Support\FileGenerationRegistry;
+use Glugox\Magic\Support\File\FilesGenerationUpdate;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -18,13 +19,37 @@ class ResetAppCommand extends MagicBaseCommand
 
     protected $description = 'Reset Laravel app by removing generated files and resetting migrations, models, seeders, controllers, and TypeScript files.';
 
+    /**
+     * Config object
+     */
+    private $config;
+
     private ConsoleBlock $block;
 
     /**
      * Main handler
+     * throws \ReflectionException
+     * throws \Exception
+     * throws \JsonException
+     * @throws \JsonException
      */
     public function handle(): int
     {
+
+        // Resolve config
+        try {
+            $this->config = app(ResolveAppConfigAction::class)($this->options());
+        } catch (\JsonException $e) {
+            $this->error('Failed to parse JSON config file: '.$e->getMessage());
+        } catch (\ReflectionException $e) {
+            $this->error('Reflection exception: '.$e->getMessage());
+        } catch (\Exception $e) {
+            $this->error('Error resolving config: '.$e->getMessage());
+        }
+
+        // Build new BuildContext with resolved config
+        //$context = BuildContext::fromOptions($this->options())->setConfig($this->config);
+
         $this->initializeConsole();
 
         // Delete migrations
@@ -51,9 +76,9 @@ class ResetAppCommand extends MagicBaseCommand
         $this->resetComponents();
 
         // TODO : This line will probably be only needed besides the below resetDatabase()
-        FileGenerationRegistry::deleteGeneratedFiles();
+        FilesGenerationUpdate::deleteGeneratedFiles();
 
-        // After reseting migrations , now we can apply fresh migrations that do not contain Magic migrations, so db will be clean.
+        // After resetting migrations , now we can apply fresh migrations that do not contain Magic migrations, so db will be clean.
         $this->resetDatabase();
 
         $this->logInfo('Reset complete!');
@@ -77,7 +102,7 @@ class ResetAppCommand extends MagicBaseCommand
     {
         $this->logInfo('Resetting migrations...');
 
-        foreach ($this->getConfig()->entities as $entity) {
+        foreach ($this->config->entities as $entity) {
             $this->deleteEntityMigrations($entity);
         }
 
@@ -112,7 +137,7 @@ class ResetAppCommand extends MagicBaseCommand
      */
     private function resetModelsSeedersFactoriesControllers(): void
     {
-        foreach ($this->getConfig()->entities as $entity) {
+        foreach ($this->config->entities as $entity) {
             $this->deleteFile(app_path("Models/{$entity->getName()}.php"), 'Model', $entity->getName());
             $this->deleteFile(database_path("seeders/{$entity->getName()}Seeder.php"), 'Seeder', $entity->getName());
             $this->deletePivotSeeders($entity);
@@ -175,7 +200,7 @@ class ResetAppCommand extends MagicBaseCommand
             return;
         }
 
-        foreach ($this->getConfig()->entities as $entity) {
+        foreach ($this->config->entities as $entity) {
             $entityDir = $jsPagesPath.'/'.$entity->getDirectoryName();
             if (! is_dir($entityDir)) {
                 $this->logWarning("JS pages directory for {$entity->getName()} does not exist. Nothing to delete.");

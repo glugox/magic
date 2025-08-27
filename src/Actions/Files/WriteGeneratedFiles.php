@@ -1,10 +1,11 @@
 <?php
 
-namespace Glugox\Magic\Actions;
+namespace Glugox\Magic\Actions\Files;
 
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
-use Glugox\Magic\Support\Frontend\VueFile;
+use Glugox\Magic\Contracts\GeneratedFile;
+use Glugox\Magic\Support\File\VueFile;
 use Glugox\Magic\Traits\AsDescribableAction;
 
 
@@ -21,7 +22,7 @@ class WriteGeneratedFiles implements DescribableAction
      * @param VueFile $input JSON string or array
      * @return bool
      */
-    public function __invoke(VueFile $input): bool
+    public function __invoke(GeneratedFile $input): bool
     {
         $directory = __DIR__ . '/../../generated';
         if (!is_dir($directory)) {

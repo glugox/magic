@@ -1,31 +1,75 @@
 <?php
 
-namespace Glugox\Magic\Services;
+namespace Glugox\Magic\Actions\Build;
 
 use Faker\Factory;
+use Glugox\Magic\Actions\Files\GenerateFileAction;
+use Glugox\Magic\Attributes\ActionDescription;
+use Glugox\Magic\Contracts\DescribableAction;
+use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\CodeGenerationHelper;
-use Glugox\Magic\Support\Config\Config;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Config\FieldType;
 use Glugox\Magic\Support\Config\Relation;
 use Glugox\Magic\Support\Faker\FakerExtension;
+use Glugox\Magic\Traits\AsDescribableAction;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 
-class SeederBuilderService
+#[ActionDescription(
+    name: 'generate_seeders',
+    description: 'Generates Laravel factories and seeders (including pivot seeders) based on the given entity configuration.',
+    parameters: ['config' => 'The parsed configuration object (Config) containing entities, fields, and relations']
+)]
+class GenerateSeedersAction implements DescribableAction
 {
+    use AsDescribableAction;
+
+    /**
+     * The build context containing the configuration and other relevant data.
+     */
+    protected BuildContext $context;
+
+    /**
+     * Paths for factories
+     */
     protected string $factoriesPath;
 
+    /**
+     * Paths for seeders
+     */
     protected string $seedersPath;
 
-    protected array $generatedPivotSeeders = []; // track already generated pivot seeders
+    /**
+     * Keep track of generated pivot seeders to avoid duplicates
+     */
+    protected array $generatedPivotSeeders = [];
 
-    private ?array $fakerMethods = null;
 
-    public function __construct(
-        protected Config $config
-    ) {
+    /**
+     * Build all seeders based on the configuration.
+     */
+    public function __invoke(BuildContext $context): BuildContext
+    {
+        // Store context for later use
+        $this->context = $context;
+
+        // Add seeding code to create admin user
+        $this->generateAdminUserSeeder();
+
+        foreach ($this->context->getConfig()->entities as $entity) {
+            $this->generateFactory($entity);
+            $this->generateSeeder($entity);
+        }
+
+        return $this->context;
+    }
+    /**
+     * Constructor to set up paths.
+     */
+    public function __construct()
+    {
         // Ensure the factories directory exists
         $this->factoriesPath = database_path('factories');
         if (! File::exists($this->factoriesPath)) {
@@ -36,21 +80,6 @@ class SeederBuilderService
         $this->seedersPath = database_path('seeders');
         if (! File::exists($this->seedersPath)) {
             File::makeDirectory($this->seedersPath, 0755, true);
-        }
-    }
-
-    /**
-     * Build all models based on the configuration.
-     */
-    public function build(): void
-    {
-
-        // Add seeding code to create admin user
-        $this->generateAdminUserSeeder();
-
-        foreach ($this->config->entities as $entity) {
-            $this->generateFactory($entity);
-            $this->generateSeeder($entity);
         }
     }
 
@@ -98,7 +127,8 @@ class SeederBuilderService
         PHP;
 
         $path = database_path("factories/{$className}.php");
-        app(FileGenerationService::class)->generateFile($path, $stub);
+        app(GenerateFileAction::class)($path, $stub);
+        $this->context->registerGeneratedFile($path);
     }
 
     /**
@@ -107,7 +137,7 @@ class SeederBuilderService
     protected function generateSeeder(Entity $entity): void
     {
         $entityName = $entity->getName();
-        $seedCount = $this->config->dev->seedCount;
+        $seedCount = $this->context->getConfig()->dev->seedCount;
         $className = $entityName.'Seeder';
         $namespace = 'Database\Seeders';
 
@@ -146,7 +176,8 @@ $relationsCode
 PHP;
 
         $path = $this->seedersPath."/{$className}.php";
-        app(FileGenerationService::class)->generateFile($path, $stub);
+        app(GenerateFileAction::class)($path, $stub);
+        $this->context->registerGeneratedFile($path);
 
         // Log the seeder creation
         $pathRelative = str_replace($this->seedersPath.'/', '', $path);
@@ -170,7 +201,7 @@ PHP;
     {
 
         $pivotTable = $relation->getPivotName();
-        $seedCount = $this->config->dev->seedCount;
+        $seedCount = $this->context->getConfig()->dev->seedCount;
 
         // Skip if we already generated this pivot table seeder
         if (in_array($pivotTable, $this->generatedPivotSeeders)) {
@@ -212,7 +243,8 @@ class $seederClass extends Seeder
 PHP;
 
         $path = $this->seedersPath."/{$seederClass}.php";
-        app(FileGenerationService::class)->generateFile($path, $stub);
+        app(GenerateFileAction::class)($path, $stub);
+        $this->context->registerGeneratedFile($path);
 
         // Log the pivot seeder creation
         $pathRelative = str_replace($this->seedersPath.'/', '', $path);
@@ -340,10 +372,6 @@ PHP;
             ],
             'seeders'
         );
-
-        // Register file modification, this also needs to stay even if we don't modify the file
-        // because we are anyway adding the use statement below for each model seeder
-        FileGenerationService::registerModifiedFile($this->seedersPath.'/DatabaseSeeder.php');
     }
 
     /**
@@ -354,7 +382,7 @@ PHP;
 
         $name = strtolower($field->name);
         $mapFromConfig = config('magic.faker_mappings', []);
-        $mapFromJsonConfig = $this->config->dev->fakerMappings ?? [];
+        $mapFromJsonConfig = $this->context->getConfig()->dev->fakerMappings ?? [];
         $map = array_merge($mapFromConfig, $mapFromJsonConfig);
 
         // If the name of the field contains a word that is associated with a Faker method,
@@ -475,4 +503,5 @@ PHP;
 
         return $fakerType;
     }
+
 }

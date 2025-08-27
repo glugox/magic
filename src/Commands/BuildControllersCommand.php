@@ -2,7 +2,8 @@
 
 namespace Glugox\Magic\Commands;
 
-use Glugox\Magic\Services\ControllerBuilderService;
+use Glugox\Magic\Actions\Build\GenerateControllersAction;
+use Glugox\Magic\Support\BuildContext;
 use Illuminate\Support\Facades\Log;
 
 class BuildControllersCommand extends MagicBaseCommand
@@ -30,10 +31,15 @@ class BuildControllersCommand extends MagicBaseCommand
     /**
      * @throws \JsonException
      */
-    public function handle()
+    public function handle(): int
     {
-        $migrationBuilderService = new ControllerBuilderService($this->getConfig());
-        $migrationBuilderService->build();
+
+        // Action call -- Use GenerateControllersAction in future
+        $buildContext = app(GenerateControllersAction::class)(BuildContext::fromOptions($this->options()));
+        if ($buildContext->hasErrors()) {
+            Log::channel('magic')->error('Build controllers failed: '.$buildContext->error());
+            return 1;
+        }
 
         Log::channel('magic')->info('Build controllers complete!');
 

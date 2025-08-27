@@ -2,7 +2,8 @@
 
 namespace Glugox\Magic\Commands;
 
-use Illuminate\Filesystem\Filesystem;
+use Glugox\Magic\Actions\Build\PublishFilesAction;
+use Glugox\Magic\Support\BuildContext;
 use Illuminate\Support\Facades\Log;
 
 class PublishFilesCommand extends MagicBaseCommand
@@ -23,35 +24,10 @@ class PublishFilesCommand extends MagicBaseCommand
     {
         Log::channel('magic')->info('Starting Magic file publishing...');
 
-        $source = __DIR__.'/../../stubs/magic';
-        $destination = base_path();
-
-        $files = new Filesystem;
-
-        $this->copyDirectoryRecursively($source, $destination, $files);
+        app(PublishFilesAction::class)(BuildContext::fromOptions($this->options()));
 
         Log::channel('magic')->info('Magic file publishing complete!');
 
         return 0;
-    }
-
-    protected function copyDirectoryRecursively(string $source, string $destination, Filesystem $files): void
-    {
-        $items = $files->allFiles($source);
-
-        foreach ($items as $item) {
-            $relativePath = $item->getRelativePathname();
-            $targetPath = $destination.'/'.$relativePath;
-
-            // Ensure directory exists
-            $files->ensureDirectoryExists(dirname($targetPath));
-
-            // Copy the file, overwrite if exists
-            if ($files->copy($item->getRealPath(), $targetPath)) {
-                Log::channel('magic')->info("Copied: {$relativePath}");
-            } else {
-                Log::channel('magic')->error("Failed to copy: {$relativePath}");
-            }
-        }
     }
 }

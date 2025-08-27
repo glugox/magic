@@ -3,6 +3,7 @@
 namespace Glugox\Magic\Commands;
 
 use Glugox\Ai\AiManager;
+use Glugox\Magic\Actions\Config\ResolveAppConfigAction;
 use Illuminate\Support\Facades\Log;
 
 class SuggestionsCommand extends MagicBaseCommand
@@ -19,9 +20,15 @@ class SuggestionsCommand extends MagicBaseCommand
 
     protected $description = 'AI powered suggestions for improving your JSON config';
 
-    public function handle()
+    /**
+     * @throws \ReflectionException
+     * @throws \JsonException
+     */
+    public function handle(): int
     {
-        $jsonConfig = $this->getConfig()->toJson();
+        // Resolve config
+        $config = app(ResolveAppConfigAction::class)($this->options());
+        $jsonConfig = $config->toJson();
 
         $ai = new AiManager;
 

@@ -2,7 +2,8 @@
 
 namespace Glugox\Magic\Commands;
 
-use Glugox\Magic\Services\VueSidebarUpdaterService;
+use Glugox\Magic\Actions\Build\UpdateVuePagesAction;
+use Glugox\Magic\Support\BuildContext;
 use Illuminate\Support\Facades\Log;
 
 class VueSidebarUpdaterCommand extends MagicBaseCommand
@@ -27,13 +28,10 @@ class VueSidebarUpdaterCommand extends MagicBaseCommand
         parent::__construct();
     }
 
-    /**
-     * @throws \JsonException
-     */
-    public function handle()
+
+    public function handle(): int
     {
-        $service = new VueSidebarUpdaterService($this->getConfig());
-        $service->update();
+        app(UpdateVuePagesAction::class)(BuildContext::fromOptions($this->options()));
 
         Log::channel('magic')->info('Update Vue sidebar complete!');
 

@@ -1,25 +1,35 @@
 <?php
 
-namespace Glugox\Magic\Services;
+namespace Glugox\Magic\Actions\Build;
 
-use Glugox\Magic\Support\Config\Config;
+use Glugox\Magic\Actions\Files\GenerateFileAction;
+use Glugox\Magic\Attributes\ActionDescription;
+use Glugox\Magic\Contracts\DescribableAction;
+use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Config\FieldType;
 use Glugox\Magic\Support\Config\Relation;
 use Glugox\Magic\Support\Config\RelationType;
+use Glugox\Magic\Traits\AsDescribableAction;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
-class ModelBuilderService
+#[ActionDescription(
+    name: 'generate_models_for_config',
+    description: 'Generates Eloquent model classes for all entities defined in the given Config.',
+    parameters: ['context' => 'The BuildContext containing the Config object, the configuration instance that has info for app and all entities.']
+)]
+class GenerateModelsAction implements DescribableAction
 {
+    use AsDescribableAction;
+
     protected string $modelPath;
 
-    public function __construct(
-        protected Config $config
-    ) {
+    public function __construct()
+    {
         $this->modelPath = app_path('Models');
         if (! File::exists($this->modelPath)) {
             File::makeDirectory($this->modelPath, 0755, true);
@@ -29,11 +39,13 @@ class ModelBuilderService
     /**
      * Build all models based on the configuration.
      */
-    public function build(): void
+    public function __invoke(BuildContext $context): BuildContext
     {
-        foreach ($this->config->entities as $entity) {
+        foreach ($context->getConfig()->entities as $entity) {
             $this->generateModel($entity);
         }
+
+        return $context;
     }
 
     /**
@@ -52,21 +64,18 @@ class ModelBuilderService
         $appends = [];
         $fields = $entity->getFields();
 
-        // Fillable fields
-        // Start from the defined fields
         $fillable = $entity->getFillableFieldsNames();
-        $hidden = $entity->getHiddenFieldsNames();
-        $casts = $entity->getCasts();
+        $hidden   = $entity->getHiddenFieldsNames();
+        $casts    = $entity->getCasts();
         $nameFields = $entity->getNameFieldsNames();
 
         if (isset($modelPresets[$entityName])) {
             $preset = $modelPresets[$entityName];
 
             $extends = $preset['extends'] ?? $extends;
-            $traits = $preset['traits'] ?? $traits;
+            $traits  = $preset['traits'] ?? $traits;
 
-            // If preset has default fields, use them.
-            // Add them to the entity fields if they are not already present.
+            // Default fields
             $defaultFields = $preset['default_fields'] ?? [];
             foreach ($defaultFields as $defaultField) {
                 $name = $defaultField['name'];
@@ -76,45 +85,39 @@ class ModelBuilderService
             }
 
             // Merge preset fillable
-            $presetFillable = $preset['fillable'] ?? [];
-            foreach ($presetFillable as $item) {
+            foreach ($preset['fillable'] ?? [] as $item) {
                 if (! in_array($item, $fillable)) {
                     $fillable[] = $item;
                 }
             }
 
             // Merge preset hidden
-            $presetHidden = $preset['hidden'] ?? [];
-            foreach ($presetHidden as $item) {
+            foreach ($preset['hidden'] ?? [] as $item) {
                 if (! in_array($item, $hidden)) {
                     $hidden[] = $item;
                 }
             }
 
             // Merge preset casts
-            $presetCasts = $preset['casts'] ?? [];
-            foreach ($presetCasts as $key => $value) {
+            foreach ($preset['casts'] ?? [] as $key => $value) {
                 if (! isset($casts[$key])) {
                     $casts[$key] = $value;
                 }
             }
         }
 
-        // Determine if we should have factory for this model.
-        // TODO: Get from configuration if we should use HasFactory trait. In other words,
-        // if we want to generate factories for this model.
+        // Ensure HasFactory
         if (! in_array(HasFactory::class, $traits)) {
             $traits[] = HasFactory::class;
         }
 
-        // Ensure all models have a name field
-        // TODO: Do this only for resources
+        // Ensure "name" field
         if (! $entity->hasField('name')) {
             $traits[] = 'App\Traits\HasName';
             $appends[] = 'name';
         }
 
-        // If no casts given in preset, infer from fields
+        // Infer casts if empty
         if (empty($casts)) {
             foreach ($fields as $field) {
                 $type = $field->type;
@@ -134,8 +137,8 @@ class ModelBuilderService
 
         // Format arrays
         $fillableStr = implode(",\n        ", array_map(fn ($f) => "'$f'", $fillable));
-        $hiddenStr = implode(",\n        ", array_map(fn ($h) => "'$h'", $hidden));
-        $castsStr = implode(",\n        ", array_map(fn ($k, $v) => "'$k' => '$v'", array_keys($casts), $casts));
+        $hiddenStr   = implode(",\n        ", array_map(fn ($h) => "'$h'", $hidden));
+        $castsStr    = implode(",\n        ", array_map(fn ($k, $v) => "'$k' => '$v'", array_keys($casts), $casts));
 
         // Traits
         $traitsUseStr = '';
@@ -143,21 +146,19 @@ class ModelBuilderService
             $traitsUseStr = 'use '.implode(', ', array_map(fn ($t) => class_basename($t), $traits)).';';
         }
 
-        // Appends string
-        // protected $appends = ['name'];
+        // Appends
         $appendsStr = '';
         if (! empty($appends)) {
             $appendsFieldsStr = implode(",\n        ", array_map(fn ($a) => "'$a'", $appends));
             $appendsStr .= "\n\n    protected \$appends = [\n        $appendsFieldsStr\n    ];";
         }
 
-        // Name fields
         if (! empty($nameFields)) {
             $nameFieldsStr = implode(', ', array_map(fn ($n) => "'$n'", $nameFields));
             $appendsStr .= "\n\n    protected \$nameFields = [\n        $nameFieldsStr\n    ];";
         }
 
-        // Namespace use statements
+        // Use statements for traits
         $useStatements = [];
         foreach ($traits as $trait) {
             $useStatements[] = "use {$trait};";
@@ -172,35 +173,19 @@ namespace App\Models;
 $useStatementsStr
 /**
  * $className model class.
- *
- * @Description
  */
 class $className extends {$extends}
 {
     $traitsUseStr
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
+
     protected \$fillable = [
         $fillableStr
     ];
 
-    /**
-     * The attributes that should be hidden for arrays.
-     *
-     * @var array
-     */
     protected \$hidden = [
         $hiddenStr
     ];
 
-    /**
-     * The attributes that should be cast to native types.
-     *
-     * @var array
-     */
     protected \$casts = [
         $castsStr
     ];
@@ -212,15 +197,10 @@ $relationsCode
 PHP;
 
         $filePath = $this->modelPath.'/'.$className.'.php';
-        app(FileGenerationService::class)->generateFile($filePath, $template);
+        app(GenerateFileAction::class)($filePath, $template);
 
         $filePathRelative = str_replace(app_path('Models/'), '', $filePath);
         Log::channel('magic')->info("Model created: $filePathRelative");
-    }
-
-    protected function shortClassName(string $fqcn): string
-    {
-        return class_basename($fqcn);
     }
 
     protected function mapFieldTypeToCast(FieldType $type): ?string
@@ -235,15 +215,12 @@ PHP;
         };
     }
 
-    /**
-     * Build the relation method code based on the relation type.
-     */
     protected function buildRelationMethod(Relation $relation): string
     {
-        $methodName = $relation->getRelationName();
+        $methodName   = $relation->getRelationName();
         $relatedClass = $relation->getEntityName();
-        $foreignKey = $relation->getForeignKey() ? "'{$relation->getForeignKey()}'" : '';
-        $localKey = $relation->getLocalKey() ? ", '{$relation->getLocalKey()}'" : '';
+        $foreignKey   = $relation->getForeignKey() ? "'{$relation->getForeignKey()}'" : '';
+        $localKey     = $relation->getLocalKey() ? ", '{$relation->getLocalKey()}'" : '';
 
         $relationCall = match ($relation->getType()) {
             RelationType::HAS_ONE => "return \$this->hasOne($relatedClass::class, $foreignKey);",

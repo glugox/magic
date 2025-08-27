@@ -2,7 +2,8 @@
 
 namespace Glugox\Magic\Commands;
 
-use Glugox\Magic\Services\VuePageBuilderService;
+use Glugox\Magic\Actions\Build\GenerateVuePagesAction;
+use Glugox\Magic\Support\BuildContext;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Log;
 
@@ -33,8 +34,9 @@ class BuildVuePagesCommand extends MagicBaseCommand
      */
     public function handle()
     {
-        $service = new VuePageBuilderService($this->files, $this->getConfig());
-        $service->build();
+
+        // Action call -- Use GenerateVuePagesAction
+        app(GenerateVuePagesAction::class)(BuildContext::fromOptions($this->options()));
 
         Log::channel('magic')->info('Build Vue pages complete!');
 

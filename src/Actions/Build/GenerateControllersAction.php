@@ -1,22 +1,47 @@
 <?php
 
-namespace Glugox\Magic\Services;
+namespace Glugox\Magic\Actions\Build;
 
-use Glugox\Magic\Support\Config\Config;
+use Glugox\Magic\Actions\Files\GenerateFileAction;
+use Glugox\Magic\Attributes\ActionDescription;
+use Glugox\Magic\Contracts\DescribableAction;
+use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\FieldType;
 use Glugox\Magic\Support\Config\RelationType;
+use Glugox\Magic\Traits\AsDescribableAction;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
-class ControllerBuilderService
+#[ActionDescription(
+    name: 'generate_controllers',
+    description: 'Generates controller classes for all entities defined in the given Config.',
+    parameters: ['context' => 'The BuildContext containing the Config object, the configuration instance that has info for app and all entities.']
+)]
+class GenerateControllersAction implements DescribableAction
 {
+    use AsDescribableAction;
+
+    /**
+     * Context with config
+     */
+    protected BuildContext $context;
+
+    /**
+     * Controller path (e.g., app/Http/Controllers)
+     */
     protected string $controllerPath;
 
+    /**
+     * Routes file path (e.g., routes/web.php)
+     */
     protected string $routesFilePath;
 
-    public function __construct(protected Config $config)
+    /**
+     * Constructor
+     */
+    public function __construct()
     {
         $this->controllerPath = app_path('Http/Controllers');
         $this->routesFilePath = base_path('routes/app.php');
@@ -26,13 +51,17 @@ class ControllerBuilderService
     }
 
     /**
-     * Build controllers for all entities defined in the config.
-     * And build routes for them.
+     * @param BuildContext $context
+     * @return BuildContext
      */
-    public function build(): void
+    public function __invoke(BuildContext $context): BuildContext
     {
+        $this->context = $context;
+
         $this->buildControllers();
         $this->generateRoutes();
+
+        return $this->context;
     }
 
     /**
@@ -40,7 +69,7 @@ class ControllerBuilderService
      */
     public function buildControllers(): void
     {
-        foreach ($this->config->entities as $entity) {
+        foreach ($this->context->getConfig()->entities as $entity) {
             $this->generateController($entity);
         }
     }
@@ -216,7 +245,8 @@ class $controllerClass extends Controller
 PHP;
 
         $filePath = $this->controllerPath.'/'.$controllerClass.'.php';
-        app(FileGenerationService::class)->generateFile($filePath, $template);
+        app(GenerateFileAction::class)($filePath, $template);
+        $this->context->registerGeneratedFile($filePath);
 
         $relPath = str_replace(app_path('Http/Controllers/'), '', $filePath);
         Log::channel('magic')->info("Controller created: {$relPath}");
@@ -232,7 +262,7 @@ PHP;
     {
         $routeLines = [];
 
-        foreach ($this->config->entities as $entity) {
+        foreach ($this->context->getConfig()->entities as $entity) {
             $name = $entity->getRouteName();
             $controller = '\\App\\Http\\Controllers\\'.Str::studly(Str::singular($name)).'Controller';
 
@@ -241,7 +271,8 @@ PHP;
 
         $routesContent = "<?php\n\nuse Illuminate\Support\Facades\Route;\n\n".implode("\n", $routeLines)."\n";
 
-        app(FileGenerationService::class)->generateFile($this->routesFilePath, $routesContent);
+        app(GenerateFileAction::class)($this->routesFilePath, $routesContent);
+        $this->context->registerGeneratedFile($this->routesFilePath);
 
         Log::channel('magic')->info("Routes generated and saved to: {$this->routesFilePath}");
 
@@ -258,7 +289,7 @@ PHP;
 
         if (! File::exists($webPhpPath)) {
             // Create minimal web.php if missing
-            app(FileGenerationService::class)->generateFile($webPhpPath, "<?php\n\n$requireLine\n");
+            app(GenerateFileAction::class)($webPhpPath, "<?php\n\n$requireLine\n");
             Log::channel('magic')->info('Created routes/web.php and added require for app.php');
 
             return;
@@ -269,8 +300,8 @@ PHP;
         if (! str_contains($webPhpContent, $requireLine)) {
             // Append require line at the end
             File::append($webPhpPath, "\n$requireLine\n");
+            $this->context->registerUpdatedFile($webPhpPath);
             Log::channel('magic')->info('Added require to routes/web.php');
-            FileGenerationService::registerModifiedFile($webPhpPath);
         }
     }
 }

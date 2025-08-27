@@ -1,32 +1,68 @@
 <?php
 
-namespace Glugox\Magic\Services;
+namespace Glugox\Magic\Actions\Build;
 
-use Glugox\Magic\Support\Config\Config;
+use Glugox\Magic\Actions\Files\CopyDirectoryAction;
+use Glugox\Magic\Actions\Files\GenerateFileAction;
+use Glugox\Magic\Attributes\ActionDescription;
+use Glugox\Magic\Contracts\DescribableAction;
+use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\Config\Entity;
-use Glugox\Magic\Support\FileGenerationRegistry;
 use Glugox\Magic\Support\Frontend\TsHelper;
 use Glugox\Magic\Support\TypeHelper;
-use Illuminate\Filesystem\Filesystem;
+use Glugox\Magic\Traits\AsDescribableAction;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 
-class TsBuilderService
+#[ActionDescription(
+    name: 'publish_files',
+    description: 'Publishes Magic package files to the main application, including support files like types.ts and entity helpers.',
+    parameters: ['context' => 'The BuildContext containing the Config object, the configuration instance that has info for app and all entities.']
+)]
+class PublishFilesAction implements DescribableAction
 {
+    use AsDescribableAction;
+
+    /**
+     * Context with config
+     */
+    protected BuildContext $context;
+
+    /**
+     * Path to the resources/js directory
+     */
     protected string $jsPath;
 
-    public function __construct(
-        protected Filesystem $files,
-        protected Config $config
-    ) {
+    /**
+     * Constructor
+     */
+    public function __construct()
+    {
         $this->jsPath = resource_path('js');
     }
 
     /**
-     * Build js/ts support files for entities, etc.
+     * @param BuildContext $context
+     * @return BuildContext
      */
-    public function build()
+    public function __invoke(BuildContext $context): BuildContext
     {
+
+        $this->context = $context;
+        Log::channel('magic')->info('Starting Magic file publishing...');
+
+        $source = __DIR__.'/../../../stubs/magic';
+        $destination = base_path();
+
+        // Use the CopyDirectoryAction to copy files
+        app(CopyDirectoryAction::class)($source, $destination);
+
+        // Generate support files like types.ts and entity helpers
         $this->generateSupportFiles();
+
+        Log::channel('magic')->info('Magic file publishing complete!');
+
+        return $context;
     }
 
     /**
@@ -45,16 +81,15 @@ class TsBuilderService
     private function generateTypesFile()
     {
         $path = resource_path('js/types/app.ts');
-        if (! $this->files->isDirectory(dirname($path))) {
-            $this->files->makeDirectory(dirname($path), 0755, true);
-        }
 
+        // Ensure the directory exists
+        File::ensureDirectoryExists(dirname($path));
         $content = '';
 
         // Generate entity and field interfaces
         $content .= "\n\n";
         $fields = '';
-        foreach ($this->config->entities as $entity) {
+        foreach ($this->context->getConfig()->entities as $entity) {
             $entityName = $entity->getName();
             $content .= "export interface {$entityName} {\n";
             foreach ($entity->getFields() as $field) {
@@ -65,7 +100,9 @@ class TsBuilderService
             $fields = ''; // Reset fields for next entity
         }
 
-        app(FileGenerationService::class)->generateFile($path, $content);
+        // Action call -- Use the GenerateFileAction to create or overwrite the file
+        app(GenerateFileAction::class)($path, $content);
+        $this->context->registerGeneratedFile($path);
     }
 
     /**
@@ -73,7 +110,7 @@ class TsBuilderService
      */
     private function generateEntityHelperFiles()
     {
-        foreach ($this->config->entities as $entity) {
+        foreach ($this->context->getConfig()->entities as $entity) {
             $this->generateEntityHelperFile($entity);
         }
     }
@@ -88,9 +125,8 @@ class TsBuilderService
         $fileName = $folderName.'_helper.ts';
         $path = "{$this->jsPath}/helpers/{$fileName}";
 
-        if (! $this->files->isDirectory(dirname($path))) {
-            $this->files->makeDirectory(dirname($path), 0755, true);
-        }
+        // Ensure the directory exists
+        File::ensureDirectoryExists(dirname($path));
 
         $content = <<<EOT
 
@@ -123,7 +159,8 @@ export function get{$entityName}EntityMeta(): Entity {
 }
 
 EOT;
-        app(FileGenerationService::class)->generateFile($path, $content);
+        app(GenerateFileAction::class)($path, $content);
+        $this->context->registerGeneratedFile($path);
     }
 
     /**
@@ -182,11 +219,12 @@ EOT;
         /**
          * We actually need to copy and overwire all files from package's stub/laravel/ folder to the main application.
          */
-        $sourcePath = __DIR__.'/../../resources/js';
+        $sourcePath = __DIR__.'/../../../resources/js';
         $destinationPath = base_path('resources/js');
 
-        $filesCopied = app(FileGenerationService::class)->copyDirectoryWithList($sourcePath, $destinationPath);
-        FileGenerationRegistry::registerFile($filesCopied);
+        $filesCopied = app(CopyDirectoryAction::class)($sourcePath, $destinationPath);
+        $this->context->registerGeneratedFile($filesCopied);
+
     }
 
     public function getInitialColumnDef(): string

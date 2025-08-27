@@ -7,7 +7,6 @@ use Glugox\Magic\Commands\BuildControllersCommand;
 use Glugox\Magic\Commands\BuildMigrationsCommand;
 use Glugox\Magic\Commands\BuildModelsCommand;
 use Glugox\Magic\Commands\BuildSeedersCommand;
-use Glugox\Magic\Commands\BuildTsCommand;
 use Glugox\Magic\Commands\BuildVuePagesCommand;
 use Glugox\Magic\Commands\FreshCommand;
 use Glugox\Magic\Commands\InstallNodePackagesCommand;
@@ -46,7 +45,6 @@ class MagicServiceProvider extends ServiceProvider
                 VueSidebarUpdaterCommand::class,
                 BuildSeedersCommand::class,
                 FreshCommand::class,
-                BuildTsCommand::class,
                 ResetLaravelCommand::class,
                 InstallNodePackagesCommand::class,
                 PublishFilesCommand::class,

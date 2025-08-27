@@ -91,7 +91,7 @@ class Field
             length: $data['length'] ?? null,
             precision: $data['precision'] ?? null,
             scale: $data['scale'] ?? null,
-            default: $data['default'] ?? TypeHelper::emptyValueForFieldType($type),
+            default: $data['default'] ?? null,
             comment: $data['comment'] ?? null,
             sortable: $data['sortable'] ?? false,
             searchable: $data['searchable'] ?? false,
@@ -119,7 +119,7 @@ class Field
             length: null,
             precision: null,
             scale: null,
-            default: TypeHelper::emptyValueForFieldType($fieldType),
+            default: null,
             comment: 'Foreign key to '.$relation->getEntityName(),
             sortable: true,
             searchable: false,
@@ -176,12 +176,13 @@ class Field
             $args[] = $this->precision;
             $args[] = $this->scale;
         }
+
         // Add enum values if applicable
         if ($this->isEnum() && ! empty($this->values)) {
             $args[] = '['.implode(', ', array_map(
-                fn ($v) => json_encode($v, JSON_UNESCAPED_UNICODE),
-                array_values($this->values)
-            )).']';
+                    fn ($v) => "'" . str_replace("'", "\\'", $v) . "'",
+                    array_values($this->values)
+                )).']';
         }
 
         return $args;

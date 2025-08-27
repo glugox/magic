@@ -1,31 +1,55 @@
 <?php
 
-namespace Glugox\Magic\Services;
+namespace Glugox\Magic\Actions\Build;
 
-use Glugox\Magic\Support\Config\Config;
+use Glugox\Magic\Actions\Files\GenerateFileAction;
+use Glugox\Magic\Attributes\ActionDescription;
+use Glugox\Magic\Contracts\DescribableAction;
+use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\Config\Entity;
-use Illuminate\Filesystem\Filesystem;
+use Glugox\Magic\Traits\AsDescribableAction;
+use Illuminate\Support\Facades\File;
 
-class VuePageBuilderService
+#[ActionDescription(
+    name: 'generate_vue_pages',
+    description: 'Generates Vue.js pages for all entities defined in the given Config.',
+    parameters: ['context' => 'The BuildContext containing the Config object, the configuration instance that has info for app and all entities.']
+)]
+class GenerateVuePagesAction implements DescribableAction
 {
+    use AsDescribableAction;
+
+    /**
+     * Context with config
+     */
+    protected BuildContext $context;
+
+    /**
+     * Path to the Vue pages directory
+     */
     protected string $pagesPath;
 
-    public function __construct(
-        protected Filesystem $files,
-        protected Config $config
-    ) {
+    /**
+     * Constructor
+     */
+    public function __construct()
+    {
         $this->pagesPath = resource_path('js/pages');
     }
 
     /**
-     * Build Vue pages for each entity in the config.
+     * @param BuildContext $buildContext
+     * @return BuildContext
      */
-    public function build()
+    public function __invoke(BuildContext $buildContext): BuildContext
     {
-        foreach ($this->config->entities as $entity) {
+        $this->context = $buildContext;
+        foreach ($this->context->getConfig()->entities as $entity) {
             $this->generateIndexPage($entity);
             $this->generateFormPage($entity);
         }
+
+        return $buildContext;
     }
 
     /**
@@ -36,13 +60,14 @@ class VuePageBuilderService
 
         $folderName = $entity->getFolderName();
         $path = "{$this->pagesPath}/{$folderName}/Index.vue";
-        if (! $this->files->isDirectory(dirname($path))) {
-            $this->files->makeDirectory(dirname($path), 0755, true);
-        }
+
+        // Ensure directory exists
+        File::ensureDirectoryExists(dirname($path));
 
         $template = $this->getIndexTemplate($entity);
 
-        $this->files->put($path, $template);
+        // Action call -- Use the GenerateFileAction to create the file
+        app(GenerateFileAction::class)($path, $template);
     }
 
     /**
@@ -52,19 +77,15 @@ class VuePageBuilderService
     {
         $entityName = $entity->getName();
         $folderName = $entity->getFolderName();
-        $className = $entityName;
 
         $path = "{$this->pagesPath}/{$folderName}/Edit.vue";
 
-        if (! $this->files->isDirectory(dirname($path))) {
-            $this->files->makeDirectory(dirname($path), 0755, true);
-        }
-
-        $columns = $entity->getFieldsJson();
+        // Ensure directory exists
+        File::ensureDirectoryExists(dirname($path));
 
         $template = $this->getFormTemplate($entity);
 
-        $this->files->put($path, $template);
+        app(GenerateFileAction::class)($path, $template);
     }
 
     /**

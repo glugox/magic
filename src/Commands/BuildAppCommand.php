@@ -2,8 +2,8 @@
 
 namespace Glugox\Magic\Commands;
 
+use Glugox\Magic\Actions\Build\GenerateAppAction;
 use Glugox\Magic\Support\ConsoleBlock;
-use Glugox\Magic\Support\FileGenerationRegistry;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\Console\Command\Command as CommandAlias;
 
@@ -17,29 +17,6 @@ class BuildAppCommand extends MagicBaseCommand
     protected $description = 'Build Laravel app parts from JSON config';
 
     /**
-     * The build steps to run in order.
-     */
-    private const array BUILD_STEPS = [
-        'magic:build-migrations' => 'Building migrations',
-        'magic:build-models' => 'Building models',
-        'magic:build-seeders' => 'Building seeders',
-        'magic:build-controllers' => 'Building controllers',
-        'magic:install-node-packages' => 'Installing Node.js packages',
-        'magic:publish-files' => 'Publishing magic files',
-        'magic:build-ts' => 'Building TypeScript support files',
-        'magic:build-vue-pages' => 'Building Vue pages',
-        'magic:update-vue-pages' => 'Updating Vue sidebar',
-        // 'magic:config-suggestions' => 'Suggesting config improvements by AI',
-    ];
-
-    /**
-     * Console block for structured output.
-     * Displays messages as a header.
-     */
-    private ConsoleBlock $block;
-
-    /**
-     * @throws \JsonException
      * @throws \ReflectionException
      * @throws \Exception
      */
@@ -47,8 +24,8 @@ class BuildAppCommand extends MagicBaseCommand
     {
 
         // Initialize console block for structured output
-        $this->block = new ConsoleBlock($this);
-        $this->block->info('✨[MAGIC]✨ Building Laravel app...');
+        $block = new ConsoleBlock($this);
+        $block->info('✨[MAGIC]✨ Building Laravel app...');
 
         // Reset if manifest file exists
         // $this->call('magic:reset-by-manifest');
@@ -58,41 +35,14 @@ class BuildAppCommand extends MagicBaseCommand
             throw new \Exception('Manifest file exist. Please reset the app first by running  magic:reset');
         }
 
-        // Run all build steps
-        foreach (self::BUILD_STEPS as $command => $message) {
-            $this->runStep($command, $message);
+        // V2 - Actions
+        $buildContext = app(GenerateAppAction::class)($this->options());
+        if ($buildContext->hasErrors()) {
+            Log::channel('magic')->error('Build failed: '.$buildContext->error());
+            return CommandAlias::FAILURE;
         }
 
-        // Migrate the database
-        $this->block->info('Migrating the database...');
-        $this->call('migrate', ['--force' => true]);
-
-        if ($this->getConfig()->dev->seedEnabled) {
-            Log::channel('magic')->info("Seeding the database with default seedCount of {$this->getConfig()->dev->seedCount}...");
-            $this->call('db:seed', ['--force' => true]);
-        } else {
-            $this->warn('Database seeding is disabled in the config.');
-        }
-
-        FileGenerationRegistry::writeManifest();
         Log::channel('magic')->info('✅ Build complete!');
-
         return CommandAlias::SUCCESS;
-    }
-
-    /**
-     * Run a single build step with consistent messaging.
-     */
-    private function runStep(string $command, string $message): void
-    {
-        $this->block->info($message.'...');
-        // Log::channel('magic')->info('Sleeping only for demo purposes...');
-        // sleep(1.3);
-        $this->call($command, [
-            '--config' => $this->getConfigPath(),
-            '--starter' => $this->option('starter'),
-            '--set' => $this->option('set'),
-        ]
-        );
     }
 }

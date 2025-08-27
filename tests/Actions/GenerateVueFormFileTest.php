@@ -1,12 +1,12 @@
 <?php
 
-use Glugox\Magic\Actions\GenerateVueFormFile;
-use Glugox\Magic\Support\Frontend\VueFile;
-use function Tests\Helpers\makeDummyEntity;
+use Glugox\Magic\Actions\Build\Components\GenerateVueFormFile;
+use Glugox\Magic\Support\File\VueFile;
+use function Glugox\Magic\Tests\Helpers\makeDummyUserEntityConfig;
 
 
 it('generates a Vue form file for a simple schema', function () {
-    $entity = makeDummyEntity();
+    $entity = makeDummyUserEntityConfig();
 
     $action = new GenerateVueFormFile();
     $file = $action($entity);
@@ -18,8 +18,8 @@ it('generates a Vue form file for a simple schema', function () {
         ->and($content)->toContain('<template>')
         ->and($content)->toContain('@submit.prevent')
         ->and($content)->toContain('const form = ref')
-        ->and($content)->toContain('name: \'\'')
-        ->and($content)->toContain('email: \'\'')
+        ->and($content)->toContain('name: null')
+        ->and($content)->toContain('email: null')
         ->and($content)->toContain('is_active: false')
         ->and($content)->toContain('v-model="form.name"')
         ->and($content)->toContain('v-model="form.email"')
@@ -42,7 +42,7 @@ it('generates a Vue form file for a simple schema', function () {
 
 
 it('includes a submit handler and a basic button', function () {
-    $entity = makeDummyEntity();
+    $entity = makeDummyUserEntityConfig();
 
     $file = new GenerateVueFormFile()($entity);
     $content = (string) $file;

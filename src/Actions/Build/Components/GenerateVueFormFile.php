@@ -1,14 +1,14 @@
 <?php
 
-namespace Glugox\Magic\Actions;
+namespace Glugox\Magic\Actions\Build\Components;
 
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Config\FieldType;
+use Glugox\Magic\Support\File\VueFile;
 use Glugox\Magic\Support\Frontend\TsHelper;
-use Glugox\Magic\Support\Frontend\VueFile;
 use Glugox\Magic\Traits\AsDescribableAction;
 
 

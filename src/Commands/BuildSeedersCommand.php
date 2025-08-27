@@ -2,7 +2,8 @@
 
 namespace Glugox\Magic\Commands;
 
-use Glugox\Magic\Services\SeederBuilderService;
+use Glugox\Magic\Actions\Build\GenerateSeedersAction;
+use Glugox\Magic\Support\BuildContext;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Log;
 
@@ -34,8 +35,8 @@ class BuildSeedersCommand extends MagicBaseCommand
      */
     public function handle()
     {
-        $service = new SeederBuilderService($this->getConfig());
-        $service->build();
+        // Action call -- Use GenerateSeedersAction
+        app(GenerateSeedersAction::class)(BuildContext::fromOptions($this->options()));
 
         Log::channel('magic')->info('Build complete!');
 

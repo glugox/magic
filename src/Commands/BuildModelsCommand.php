@@ -2,7 +2,8 @@
 
 namespace Glugox\Magic\Commands;
 
-use Glugox\Magic\Services\ModelBuilderService;
+use Glugox\Magic\Actions\Build\GenerateModelsAction;
+use Glugox\Magic\Support\BuildContext;
 use Illuminate\Support\Facades\Log;
 
 class BuildModelsCommand extends MagicBaseCommand
@@ -32,8 +33,9 @@ class BuildModelsCommand extends MagicBaseCommand
      */
     public function handle()
     {
-        $migrationBuilderService = new ModelBuilderService($this->getConfig());
-        $migrationBuilderService->build();
+
+        // Action call -- Use GenerateModelsAction
+        app(GenerateModelsAction::class)(BuildContext::fromOptions($this->options()));
 
         Log::channel('magic')->info('Build models complete!');
 

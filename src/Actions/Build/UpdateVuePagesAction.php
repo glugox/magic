@@ -1,31 +1,57 @@
 <?php
 
-namespace Glugox\Magic\Services;
+namespace Glugox\Magic\Actions\Build;
 
-use Glugox\Magic\Support\Config\Config;
+
+use Glugox\Magic\Actions\Files\GenerateFileAction;
+use Glugox\Magic\Attributes\ActionDescription;
+use Glugox\Magic\Contracts\DescribableAction;
+use Glugox\Magic\Support\BuildContext;
+use Glugox\Magic\Traits\AsDescribableAction;
 use Illuminate\Support\Facades\File;
 
-class VueSidebarUpdaterService
+#[ActionDescription(
+    name: 'update_vue_pages',
+    description: 'Updates Vue.js files like sidebar and app logo with the latest configuration details, such as navigation items and application name.',
+    parameters: ['context' => 'The BuildContext containing the Config object, the configuration instance that has info for app and all entities.']
+)]
+class UpdateVuePagesAction implements DescribableAction
 {
+    use AsDescribableAction;
+
+    /**
+     * Context with config
+     */
+    protected BuildContext $context;
+
+    /**
+     * Path to the AppLogo.vue file
+     */
     protected string $appLogoPath;
 
+    /**
+     * Path to the AppSidebar.vue file
+     */
     protected string $sidebarPath;
 
-    public function __construct(
-        protected Config $config
-    ) {
+    public function __construct() {
         // Path to your Vue file
         $this->sidebarPath = base_path('resources/js/components/AppSidebar.vue');
         $this->appLogoPath = base_path('resources/js/components/AppLogo.vue');
     }
 
     /**
-     * Update Vue files.
+     * @param BuildContext $context
+     * @return BuildContext
      */
-    public function update()
+    public function __invoke(BuildContext $context): BuildContext
     {
+        $this->context = $context;
+
         $this->updateSidebar();
         $this->updateAppName();
+
+        return $this->context;
     }
 
     /**
@@ -54,7 +80,8 @@ class VueSidebarUpdaterService
         // Update imports as well
         $content = $this->updateImports($content);
 
-        app(FileGenerationService::class)->generateFile($this->sidebarPath, $content, true);
+        app(GenerateFileAction::class)($this->sidebarPath, $content);
+        $this->context->registerUpdatedFile($this->sidebarPath);
     }
 
     /**
@@ -62,7 +89,7 @@ class VueSidebarUpdaterService
      */
     public function updateAppName(): void
     {
-        $appName = $this->config->app->name;
+        $appName = $this->context->getConfig()->app->name;
         $content = File::get($this->appLogoPath);
 
         // Replace the app name in the file
@@ -72,7 +99,9 @@ class VueSidebarUpdaterService
             $content
         );
 
-        app(FileGenerationService::class)->generateFile($this->appLogoPath, $updatedContent, true);
+        // Action call -- use the GenerateFileAction to update the file
+        app(GenerateFileAction::class)($this->appLogoPath, $updatedContent);
+        $this->context->registerUpdatedFile($this->appLogoPath);
     }
 
     /**
@@ -81,7 +110,7 @@ class VueSidebarUpdaterService
     protected function generateNavItemsCode(): string
     {
         $lines = [];
-        foreach ($this->config->entities as $entity) {
+        foreach ($this->context->getConfig()->entities as $entity) {
             $lines[] = "    { title: '{$entity->getPluralName()}', href: '{$entity->getHref()}', icon: {$entity->getIcon()} },";
         }
 
@@ -102,7 +131,7 @@ JS;
     {
         // Collect needed icons from entities
         $icons = [];
-        foreach ($this->config->entities as $entity) {
+        foreach ($this->context->getConfig()->entities as $entity) {
             $icons[] = $entity->getIcon();
         }
         $icons = array_unique($icons);

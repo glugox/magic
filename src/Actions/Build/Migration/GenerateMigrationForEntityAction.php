@@ -1,40 +1,55 @@
 <?php
 
-namespace Glugox\Magic\Services;
+namespace Glugox\Magic\Actions\Build\Migration;
 
-use Glugox\Magic\Support\Config\Config;
+use Glugox\Magic\Actions\Files\GenerateFileAction;
+use Glugox\Magic\Attributes\ActionDescription;
+use Glugox\Magic\Contracts\DescribableAction;
+use Glugox\Magic\Support\Action\ActionResult;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Config\FieldType;
+use Glugox\Magic\Support\File\FilesGenerationUpdate;
+use Glugox\Magic\Traits\AsDescribableAction;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 
-class MigrationBuilderService
+#[ActionDescription(
+    name: 'generate_migration_for_entity',
+    description: 'Generates a migration file for a single entity into /database/migrations',
+    parameters: ['entity' => 'The entity configuration']
+)]
+class GenerateMigrationForEntityAction implements DescribableAction
 {
-    public function __construct(
-        protected Config $config
-    ) {}
+    use AsDescribableAction;
 
-    public function build()
+    public function __invoke(Entity $entity): FilesGenerationUpdate
     {
-        foreach ($this->config->entities as $entity) {
-            $this->generateMigrationForEntity($entity);
-            $this->generatePivotTables($entity);
-        }
+        $filesGenerationUpdate = $this->generateMigrationForEntity($entity);
+        $pivotTableUpdate = $this->generatePivotTables($entity);
+
+        return $filesGenerationUpdate->merge($pivotTableUpdate);
     }
 
-    protected function generateMigrationForEntity(Entity $entity)
+    protected function generateMigrationForEntity(Entity $entity): FilesGenerationUpdate
     {
+        // We will return the list of generated/updated/deleted files
+        $update = new FilesGenerationUpdate();
+
         $tableName = $entity->getTableName();
         $isUpdate = Schema::hasTable($tableName);
 
         // 1. Check if migration already exists
         $migrationFiles = File::glob(database_path("migrations/*_create_{$tableName}_table.php"));
         if (! $isUpdate && ! empty($migrationFiles)) {
-            Log::channel('magic')->info("Skipping migration for '$tableName' — already exists.");
-
-            return;
+            // Delete the existing migration files for create (they are obsolete)
+            foreach ($migrationFiles as $file) {
+                File::delete($file);
+                $update->addDeleted($file);
+                $fileRelative = str_replace(database_path('migrations/'), '', $file);
+                Log::channel('magic')->debug("Deleted obsolete migration file: $fileRelative");
+            }
         }
 
         // 2. Decide create vs update
@@ -99,17 +114,22 @@ $dbStatements
 PHP;
         }
 
-        app(FileGenerationService::class)->generateFile($migrationPath, $template);
+        app(GenerateFileAction::class)($migrationPath, $template);
+        $update->addCreated($migrationPath);
 
         $migrationPathRelative = str_replace(database_path('migrations/'), '', $migrationPath);
-        Log::channel('magic')->info(($isUpdate ? 'Update' : 'Create')." migration created: $migrationPathRelative");
+        Log::channel('magic')->debug(($isUpdate ? 'Update' : 'Create')." migration created: $migrationPathRelative");
+
+        return $update;
     }
 
     /**
-     * @return void Generate pivot tables for many-to-many relations.
+     * @param Entity $entity
+     * @return FilesGenerationUpdate Generate pivot tables for many-to-many relations.
      */
-    protected function generatePivotTables(Entity $entity)
+    protected function generatePivotTables(Entity $entity) : FilesGenerationUpdate
     {
+        $update = new FilesGenerationUpdate();
 
         foreach ($entity->getRelations() as $relation) {
             if ($relation->isManyToMany()) {
@@ -121,9 +141,13 @@ PHP;
                 // 1. Check if migration already exists
                 $migrationFiles = File::glob(database_path("migrations/*_create_{$pivotTableName}_table.php"));
                 if (! empty($migrationFiles)) {
-                    Log::channel('magic')->info("Skipping migration for '$pivotTableName' — already exists.");
-
-                    return;
+                    // Delete the existing migration files for create (they are obsolete)
+                    foreach ($migrationFiles as $file) {
+                        File::delete($file);
+                        $update->addDeleted($file);
+                        $fileRelative = str_replace(database_path('migrations/'), '', $file);
+                        Log::channel('magic')->debug("Deleted obsolete migration file: $fileRelative");
+                    }
                 }
 
                 $columnsCode = <<<PHP
@@ -154,12 +178,15 @@ $columnsCode
 };
 PHP;
 
-                app(FileGenerationService::class)->generateFile($migrationPath, $template);
+                app(GenerateFileAction::class)($migrationPath, $template);
+                $update->addCreated($migrationPath);
 
                 $migrationPathRelative = str_replace(database_path('migrations/'), '', $migrationPath);
-                Log::channel('magic')->info("Pivot migration created: $migrationPathRelative");
+                Log::channel('magic')->debug("Pivot migration created: $migrationPathRelative");
             }
         }
+
+        return $update;
     }
 
     /**
@@ -225,7 +252,7 @@ PHP;
 
         // Default value
         if ($field->default !== null) {
-            $default = var_export($field->default, true);
+            $default = exportPhpValue($field->default);
             $line .= "->default({$default})";
         }
 

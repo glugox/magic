@@ -2,7 +2,8 @@
 
 namespace Glugox\Magic\Commands;
 
-use Glugox\Magic\Services\MigrationBuilderService;
+use Glugox\Magic\Actions\Build\GenerateMigrationsAction;
+use Glugox\Magic\Support\BuildContext;
 use Illuminate\Support\Facades\Log;
 
 class BuildMigrationsCommand extends MagicBaseCommand
@@ -30,10 +31,11 @@ class BuildMigrationsCommand extends MagicBaseCommand
     /**
      * @throws \JsonException
      */
-    public function handle()
+    public function handle(): int
     {
-        $migrationBuilderService = new MigrationBuilderService($this->getConfig());
-        $migrationBuilderService->build();
+
+        // Action call -- Use GenerateMigrationsAction
+        app(GenerateMigrationsAction::class)(BuildContext::fromOptions($this->options()));
 
         Log::channel('magic')->info('Build migrations complete!');
 

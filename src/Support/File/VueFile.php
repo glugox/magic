@@ -1,8 +1,10 @@
 <?php
 
-namespace Glugox\Magic\Support\Frontend;
+namespace Glugox\Magic\Support\File;
 
-class VueFile
+use Glugox\Magic\Contracts\GeneratedFile;
+
+class VueFile extends GeneratedFileBase implements GeneratedFile
 {
     public function __construct(
 

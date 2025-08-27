@@ -2,7 +2,7 @@
 
 namespace Glugox\Magic\Commands;
 
-use Glugox\Magic\Services\FileGenerationService;
+use Glugox\Magic\Actions\Files\CopyDirectoryAction;
 use Illuminate\Support\Facades\Log;
 
 class ResetLaravelCommand extends MagicBaseCommand
@@ -19,14 +19,14 @@ class ResetLaravelCommand extends MagicBaseCommand
 
     protected $description = 'Reset Laravel app parts';
 
-    public function handle()
+    public function handle(): int
     {
         Log::channel('magic')->info('Starting Laravel reset...');
 
         $sourcePath = __DIR__.'/../../stubs/laravel';
         $destinationPath = base_path();
 
-        app(FileGenerationService::class)->copyDirectoryWithList($sourcePath, $destinationPath);
+        app(CopyDirectoryAction::class)($sourcePath, $destinationPath);
         Log::channel('magic')->info('Reset Laravel complete!');
 
         return 0;
