@@ -33,7 +33,7 @@ cd my-magic-app
 3. Install the Magic package via Composer:
 
 ```bash
-composer require glugox/magic
+composer require glugox/magic --dev
 ```
 4. Publish the configuration file:
 
