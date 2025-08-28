@@ -20,8 +20,8 @@ class InstallNodePackagesAction implements DescribableAction
     use AsDescribableAction;
 
     protected array $npmPackages = [
-        'axios',
-        'dayjs',
+        /*'axios',
+        'dayjs',*/
         // add more npm packages here...
     ];
 
