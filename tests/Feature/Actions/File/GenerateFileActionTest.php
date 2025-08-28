@@ -1,8 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\File;
-
 use Glugox\Magic\Actions\Files\GenerateFileAction;
+use Illuminate\Support\Facades\File;
 
 test('it generates a model file', function () {
     $path = base_path('app/Models/User.php');

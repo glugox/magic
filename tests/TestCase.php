@@ -16,7 +16,7 @@ class TestCase extends Orchestra
 
         // Ensure each parallel process has its own tmp dir
         $processToken = getenv('TEST_TOKEN') ?: 'default'; // each parallel worker has a unique token
-        $this->tmpDir = __DIR__ . '/.tmp/' . $processToken;
+        $this->tmpDir = __DIR__.'/.tmp/'.$processToken;
 
         File::ensureDirectoryExists($this->tmpDir);
 
