@@ -10,7 +10,7 @@ beforeEach(function () {
 it('writes manifest and returns context', function () {
     $this->contextMock->shouldReceive('writeManifest')->once();
 
-    $action = new GenerateManifestAction();
+    $action = new GenerateManifestAction;
     $result = $action($this->contextMock);
 
     expect($result)->toBe($this->contextMock);
@@ -19,7 +19,7 @@ it('writes manifest and returns context', function () {
 it('handles exception during manifest writing gracefully', function () {
     $this->contextMock->shouldReceive('writeManifest')->andThrow(new Exception('Manifest error'));
 
-    $action = new GenerateManifestAction();
+    $action = new GenerateManifestAction;
 
     $exceptionThrown = false;
     try {

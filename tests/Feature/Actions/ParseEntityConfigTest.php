@@ -1,6 +1,5 @@
 <?php
 
-
 use Glugox\Magic\Actions\Config\ResolveAppConfigAction;
 use Glugox\Magic\Support\Config\Config;
 use Glugox\Magic\Support\Config\Entity;
@@ -9,12 +8,12 @@ use Glugox\Magic\Support\Config\Relation;
 
 it('parses a JSON file path into Config object', function () {
 
-    $tmpFilePath = "fixtures/config.json";
+    $tmpFilePath = 'fixtures/config.json';
     prepareConfigInFile($tmpFilePath);
 
-    $action = new ResolveAppConfigAction();
+    $action = new ResolveAppConfigAction;
     $config = $action([
-        'config' => base_path($tmpFilePath)
+        'config' => base_path($tmpFilePath),
     ]);
 
     expect($config)->toBeInstanceOf(Config::class)

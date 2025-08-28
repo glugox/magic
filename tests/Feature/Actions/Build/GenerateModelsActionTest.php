@@ -6,8 +6,6 @@ use Glugox\Magic\Support\Config\Config;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
-
-
 it('generates model for each sample config', function () {
     $configFiles = sampleConfigsFilePaths();
 
@@ -15,7 +13,7 @@ it('generates model for each sample config', function () {
 
         $config = Config::fromJsonFile($configJsonPath);
         $buildContext = BuildContext::fromOptions([
-            'config' => $configJsonPath
+            'config' => $configJsonPath,
         ])->setConfig($config);
 
         // Run action

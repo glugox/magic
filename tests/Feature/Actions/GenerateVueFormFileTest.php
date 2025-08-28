@@ -8,7 +8,7 @@ use function Glugox\Magic\Tests\Helpers\makeDummyUserEntityConfig;
 it('generates a Vue form file for a simple schema', function () {
 
     $config = getFixtureConfig();
-    $entity = $config->getEntity("User");
+    $entity = $config->getEntity('User');
 
     expect($entity)->not->toBe(null);
 
@@ -30,9 +30,9 @@ it('generates a Vue form file for a simple schema', function () {
         ->and($content)->toContain('v-model="form.active"')
         ->and($content)->toContain('<input');
 
-        // Add these when input components are implemented
-        //->and($content)->toContain('type="email"')
-        //->and($content)->toContain('type="checkbox"');
+    // Add these when input components are implemented
+    // ->and($content)->toContain('type="email"')
+    // ->and($content)->toContain('type="checkbox"');
 
     // script + template scaffold
 

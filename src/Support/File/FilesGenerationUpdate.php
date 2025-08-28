@@ -79,6 +79,7 @@ class FilesGenerationUpdate
 
     /**
      * Deletes all files listed in the manifest file
+     *
      * @throws \JsonException
      */
     public static function deleteGeneratedFiles(): void

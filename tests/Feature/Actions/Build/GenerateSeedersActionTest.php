@@ -7,7 +7,6 @@ use Glugox\Magic\Support\Config\Config;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
-
 it('generates seeder for each sample config', function () {
 
     // Mock
@@ -18,14 +17,13 @@ it('generates seeder for each sample config', function () {
     $mock->shouldNotReceive('removeRegion');
     $this->app->instance(CodeGenerationHelper::class, $mock);
 
-
     $configFiles = sampleConfigsFilePaths();
 
     foreach ($configFiles as $configJsonPath) {
 
         $config = Config::fromJsonFile($configJsonPath);
         $buildContext = BuildContext::fromOptions([
-            'config' => $configJsonPath
+            'config' => $configJsonPath,
         ])->setConfig($config);
 
         // Run action

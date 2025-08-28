@@ -1,13 +1,11 @@
 <?php
 
-
 use Glugox\Magic\Actions\Build\GenerateControllersAction;
-use Glugox\Magic\Support\BuildContext;
 
 it('generates controller and routes for entities', function () {
 
     // Prepare
-    $action = new GenerateControllersAction();
+    $action = new GenerateControllersAction;
     $buildContext = getFixtureBuildContext();
 
     // Act

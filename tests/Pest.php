@@ -23,7 +23,7 @@ function prepareConfigInFile(string $string): void
  */
 function sampleConfigsFilePaths($max = 3): array
 {
-    $configFilePath = "fixtures/config.json";
+    $configFilePath = 'fixtures/config.json';
     prepareConfigInFile($configFilePath);
 
     return [$configFilePath];
@@ -34,7 +34,7 @@ function sampleConfigsFilePaths($max = 3): array
  */
 function getFixtureBuildContext(): BuildContext
 {
-    $buildContext = new BuildContext();
+    $buildContext = new BuildContext;
     $buildContext->setConfig(getFixtureConfig());
 
     return $buildContext;
