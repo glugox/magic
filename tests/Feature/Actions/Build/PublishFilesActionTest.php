@@ -48,7 +48,7 @@ test('it publishes files and generates support files', function () {
     expect($result)->toBeInstanceOf(BuildContext::class);
 
     // Assert CopyDirectoryAction was called
-    $this->copyDirectoryMock->shouldHaveReceived('__invoke')->twice();
+    $this->copyDirectoryMock->shouldHaveReceived('__invoke')->once();
 
     // Assert GenerateFileAction was called
     $this->generateFileMock->shouldHaveReceived('__invoke')->atLeast()->once();

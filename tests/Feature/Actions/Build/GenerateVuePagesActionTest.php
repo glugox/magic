@@ -5,7 +5,7 @@ use Glugox\Magic\Actions\Build\GenerateVuePagesAction;
 it('generates Vue pages for entities', function () {
 
     // Prepare
-    $action = new GenerateVuePagesAction();
+    $action = app(GenerateVuePagesAction::class);
     $buildContext = getFixtureBuildContext();
 
     // Act
