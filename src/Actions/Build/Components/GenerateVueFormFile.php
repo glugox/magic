@@ -20,6 +20,13 @@ class GenerateVueFormFile implements DescribableAction
 {
     use AsDescribableAction;
 
+    /**
+     * Constructor
+     */
+    public function __construct(
+        protected TsHelper $tsHelper
+    ) {}
+
     public function __invoke(Entity $entity): VueFile
     {
         $script = $this->generateScript($entity);
@@ -96,7 +103,7 @@ HTML;
     private function buildDefaults(Entity $entity): string
     {
         return collect($entity->getFormFields())
-            ->map(fn (Field $f) => "{$f->name}: ".TsHelper::writeValue($f->default))
+            ->map(fn (Field $f) => "{$f->name}: ".$this->tsHelper->writeValue($f->default))
             ->join(",\n    ");
     }
 }

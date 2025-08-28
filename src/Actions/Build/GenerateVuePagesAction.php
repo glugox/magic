@@ -64,6 +64,7 @@ class GenerateVuePagesAction implements DescribableAction
 
         // Action call -- Use the GenerateFileAction to create the file
         app(GenerateFileAction::class)($path, $template);
+        $this->context->registerGeneratedFile($path);
     }
 
     /**

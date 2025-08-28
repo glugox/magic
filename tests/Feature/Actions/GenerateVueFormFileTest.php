@@ -12,7 +12,7 @@ it('generates a Vue form file for a simple schema', function () {
 
     expect($entity)->not->toBe(null);
 
-    $action = new GenerateVueFormFile;
+    $action = app(GenerateVueFormFile::class);
     $file = $action($entity);
     $content = (string) $file;
 

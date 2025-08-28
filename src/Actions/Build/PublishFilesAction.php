@@ -36,8 +36,10 @@ class PublishFilesAction implements DescribableAction
     /**
      * Constructor
      */
-    public function __construct()
-    {
+    public function __construct(
+        private readonly TypeHelper $typeHelper,
+        private readonly TsHelper $tsHelper,
+    ){
         $this->jsPath = resource_path('js');
     }
 
@@ -89,7 +91,7 @@ class PublishFilesAction implements DescribableAction
             $entityName = $entity->getName();
             $content .= "export interface {$entityName} {\n";
             foreach ($entity->getFields() as $field) {
-                $tsType = TypeHelper::migrationTypeToTsType($field->type);
+                $tsType = $this->typeHelper->migrationTypeToTsType($field->type);
                 $fields .= "    {$field->name}: {$tsType->value};\n";
             }
             $content .= $fields."}\n\n";
@@ -171,7 +173,7 @@ EOT;
     {
         $fields = [];
         foreach ($entity->getFields() as $field) {
-            $fieldMeta = TsHelper::writeFieldMeta($field);
+            $fieldMeta = $this->tsHelper->writeFieldMeta($field);
             $fields[] = $fieldMeta;
         }
 
@@ -199,7 +201,7 @@ EOT;
                 continue;
             }
 
-            $column = TsHelper::writeTableColumn($field, $entity);
+            $column = $this->tsHelper->writeTableColumn($field, $entity);
             $columns[] = $column;
         }
 

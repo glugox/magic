@@ -11,8 +11,12 @@ class TypeHelper
     /**
      * Convert migration type to TypeScript type.
      */
-    public static function migrationTypeToTsType(FieldType $migrationType): TsType
+    public function migrationTypeToTsType(FieldType|string $migrationType): TsType
     {
+        if (is_string($migrationType)) {
+            $migrationType = FieldType::tryFrom($migrationType) ?? FieldType::STRING;
+        }
+
         return match ($migrationType) {
             FieldType::STRING, FieldType::TEXT, FieldType::CHAR, FieldType::MEDIUM_TEXT, FieldType::LONG_TEXT => TsType::STRING,
             FieldType::INTEGER, FieldType::BIG_INTEGER, FieldType::BIG_INCREMENTS, FieldType::UNSIGNED_BIG_INTEGER => TsType::NUMBER,
@@ -26,7 +30,7 @@ class TypeHelper
     /**
      * Convert RelationType to FieldType
      */
-    public static function relationTypeToFieldType(RelationType $relationType): FieldType
+    public function relationTypeToFieldType(RelationType $relationType): FieldType
     {
         return match ($relationType) {
             RelationType::BELONGS_TO => FieldType::BELONGS_TO,
@@ -42,7 +46,7 @@ class TypeHelper
     /**
      * Return empty value for a given FieldType
      */
-    public static function emptyValueForFieldType(FieldType $fieldType): mixed
+    public function emptyValueForFieldType(FieldType $fieldType): mixed
     {
         return match ($fieldType) {
             FieldType::STRING, FieldType::TEXT, FieldType::CHAR, FieldType::EMAIL, FieldType::MEDIUM_TEXT, FieldType::LONG_TEXT => '',

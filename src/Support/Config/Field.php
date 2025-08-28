@@ -111,7 +111,9 @@ class Field
      */
     public static function fromRelation(Relation $relation): self
     {
-        $fieldType = TypeHelper::relationTypeToFieldType($relation->getType());
+        // Determine field type based on relation type
+        $fieldType = app(TypeHelper::class)
+            ->relationTypeToFieldType($relation->getType());
 
         return new self(
             name: $relation->getRelationName(),

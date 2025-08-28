@@ -10,19 +10,26 @@ use Glugox\Magic\Support\TypeHelper;
 class TsHelper
 {
     /**
+     * Constructor
+     */
+    public function __construct(
+        protected TypeHelper $typeHelper
+    ){}
+
+    /**
      * Write a single table column definition.
      */
-    public static function writeTableColumn(Field $field, Entity $entity): string
+    public function writeTableColumn(Field $field, Entity $entity): string
     {
-        $tsType = TypeHelper::migrationTypeToTsType($field->type);
+        $tsType = $this->typeHelper->migrationTypeToTsType($field->type);
         $strEnableSorting = $field->sortable ? 'true' : 'false';
         if ($field->sortable) {
-            $fieldHeader = static::writeSortableColumnHeader($field);
+            $fieldHeader = $this->writeSortableColumnHeader($field);
         } else {
             $fieldHeader = "'{$field->title()}'";
         }
 
-        $cellRenderer = static::writeTableCell($field, $entity);
+        $cellRenderer = $this->writeTableCell($field, $entity);
 
         return "{
                 id: '{$field->name}',
@@ -40,7 +47,7 @@ class TsHelper
     /**
      * Write sortable column header for a given entity.
      */
-    public static function writeSortableColumnHeader(Field $field): string
+    public function writeSortableColumnHeader(Field $field): string
     {
         $fieldTitle = $field->title();
         $header = <<< HEADER
@@ -60,9 +67,9 @@ HEADER;
      * Write field metadata for a given field.
      * This is used to generate TypeScript interfaces or types.
      */
-    public static function writeFieldMeta(Field $field)
+    public function writeFieldMeta(Field $field)
     {
-        $tsType = TypeHelper::migrationTypeToTsType($field->type);
+        $tsType = $this->typeHelper->migrationTypeToTsType($field->type);
 
         return "{
             name: '{$field->name}',
@@ -82,7 +89,7 @@ HEADER;
      * Write a table cell renderer for a given field.
      * This is used to generate the cell content in the table.
      */
-    private static function writeTableCell(Field $field, Entity $entity): string
+    private function writeTableCell(Field $field, Entity $entity): string
     {
         $renderer = Renderer::getRenderer($field);
         // If the renderer is a custom one, we can use it directly
@@ -94,7 +101,7 @@ HEADER;
     /**
      * Write default value for a given field.
      */
-    public static function writeValue(mixed $default): string
+    public function writeValue(mixed $default): string
     {
         if (is_string($default)) {
             return "'".addslashes($default)."'";
@@ -103,7 +110,7 @@ HEADER;
         } elseif (is_null($default)) {
             return 'null';
         } elseif (is_array($default)) {
-            $items = array_map(fn ($item) => static::writeValue($item), $default);
+            $items = array_map(fn ($item) => $this->writeValue($item), $default);
 
             return '['.implode(', ', $items).']';
         } else {
