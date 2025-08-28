@@ -7,7 +7,6 @@ use Glugox\Magic\Contracts\GeneratedFile;
 
 class GeneratedFileBase implements GeneratedFile
 {
-
     /**
      * File name with extension
      * e.g., "MyComponent.vue"
@@ -32,7 +31,7 @@ class GeneratedFileBase implements GeneratedFile
      */
     public function writeToFile(): void
     {
-        $filePath = rtrim($this->directory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $this->fileName;
+        $filePath = rtrim($this->directory, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$this->fileName;
         app(WriteGeneratedFiles::class)(
             input: $this
         );

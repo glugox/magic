@@ -65,15 +65,15 @@ class GenerateModelsAction implements DescribableAction
         $fields = $entity->getFields();
 
         $fillable = $entity->getFillableFieldsNames();
-        $hidden   = $entity->getHiddenFieldsNames();
-        $casts    = $entity->getCasts();
+        $hidden = $entity->getHiddenFieldsNames();
+        $casts = $entity->getCasts();
         $nameFields = $entity->getNameFieldsNames();
 
         if (isset($modelPresets[$entityName])) {
             $preset = $modelPresets[$entityName];
 
             $extends = $preset['extends'] ?? $extends;
-            $traits  = $preset['traits'] ?? $traits;
+            $traits = $preset['traits'] ?? $traits;
 
             // Default fields
             $defaultFields = $preset['default_fields'] ?? [];
@@ -137,8 +137,8 @@ class GenerateModelsAction implements DescribableAction
 
         // Format arrays
         $fillableStr = implode(",\n        ", array_map(fn ($f) => "'$f'", $fillable));
-        $hiddenStr   = implode(",\n        ", array_map(fn ($h) => "'$h'", $hidden));
-        $castsStr    = implode(",\n        ", array_map(fn ($k, $v) => "'$k' => '$v'", array_keys($casts), $casts));
+        $hiddenStr = implode(",\n        ", array_map(fn ($h) => "'$h'", $hidden));
+        $castsStr = implode(",\n        ", array_map(fn ($k, $v) => "'$k' => '$v'", array_keys($casts), $casts));
 
         // Traits
         $traitsUseStr = '';
@@ -217,10 +217,10 @@ PHP;
 
     protected function buildRelationMethod(Relation $relation): string
     {
-        $methodName   = $relation->getRelationName();
+        $methodName = $relation->getRelationName();
         $relatedClass = $relation->getEntityName();
-        $foreignKey   = $relation->getForeignKey() ? "'{$relation->getForeignKey()}'" : '';
-        $localKey     = $relation->getLocalKey() ? ", '{$relation->getLocalKey()}'" : '';
+        $foreignKey = $relation->getForeignKey() ? "'{$relation->getForeignKey()}'" : '';
+        $localKey = $relation->getLocalKey() ? ", '{$relation->getLocalKey()}'" : '';
 
         $relationCall = match ($relation->getType()) {
             RelationType::HAS_ONE => "return \$this->hasOne($relatedClass::class, $foreignKey);",

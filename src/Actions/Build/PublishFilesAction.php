@@ -41,10 +41,6 @@ class PublishFilesAction implements DescribableAction
         $this->jsPath = resource_path('js');
     }
 
-    /**
-     * @param BuildContext $context
-     * @return BuildContext
-     */
     public function __invoke(BuildContext $context): BuildContext
     {
 

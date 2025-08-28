@@ -39,6 +39,7 @@ class ResetAppCommand extends MagicBaseCommand
      * throws \ReflectionException
      * throws \Exception
      * throws \JsonException
+     *
      * @throws \JsonException
      */
     public function handle(): int
@@ -56,7 +57,7 @@ class ResetAppCommand extends MagicBaseCommand
         }
 
         // Build new BuildContext with resolved config
-        //$context = BuildContext::fromOptions($this->options())->setConfig($this->config);
+        // $context = BuildContext::fromOptions($this->options())->setConfig($this->config);
 
         $this->initializeConsole();
 

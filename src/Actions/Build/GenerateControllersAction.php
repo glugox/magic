@@ -50,10 +50,6 @@ class GenerateControllersAction implements DescribableAction
         }
     }
 
-    /**
-     * @param BuildContext $context
-     * @return BuildContext
-     */
     public function __invoke(BuildContext $context): BuildContext
     {
         $this->context = $context;

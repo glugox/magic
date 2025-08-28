@@ -39,10 +39,12 @@ class BuildAppCommand extends MagicBaseCommand
         $buildContext = app(GenerateAppAction::class)($this->options());
         if ($buildContext->hasErrors()) {
             Log::channel('magic')->error('Build failed: '.$buildContext->error());
+
             return CommandAlias::FAILURE;
         }
 
         Log::channel('magic')->info('✅ Build complete!');
+
         return CommandAlias::SUCCESS;
     }
 }

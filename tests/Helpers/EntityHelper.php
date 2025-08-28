@@ -4,7 +4,7 @@ namespace Glugox\Magic\Tests\Helpers;
 
 use Glugox\Magic\Support\Config\Entity;
 
-if (!function_exists('makeDummyEntity')) {
+if (! function_exists('makeDummyEntity')) {
     function makeDummyUserEntityConfig(): Entity
     {
         return Entity::fromConfig(
@@ -31,11 +31,10 @@ if (!function_exists('makeDummyEntity')) {
     }
 }
 
-
 /**
  * A more complex entity configuration for testing. (Products with various field types and relations)
  */
-if (!function_exists('makeDummyProductEntityConfig')) {
+if (! function_exists('makeDummyProductEntityConfig')) {
     function makeDummyProductEntityConfig(): Entity
     {
         return Entity::fromConfig(
@@ -67,4 +66,3 @@ if (!function_exists('makeDummyProductEntityConfig')) {
         );
     }
 }
-

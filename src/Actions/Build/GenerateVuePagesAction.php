@@ -37,10 +37,6 @@ class GenerateVuePagesAction implements DescribableAction
         $this->pagesPath = resource_path('js/pages');
     }
 
-    /**
-     * @param BuildContext $buildContext
-     * @return BuildContext
-     */
     public function __invoke(BuildContext $buildContext): BuildContext
     {
         $this->context = $buildContext;

@@ -182,9 +182,9 @@ class Field
         // Add enum values if applicable
         if ($this->isEnum() && ! empty($this->values)) {
             $args[] = '['.implode(', ', array_map(
-                    fn ($v) => "'" . str_replace("'", "\\'", $v) . "'",
-                    array_values($this->values)
-                )).']';
+                fn ($v) => "'".str_replace("'", "\\'", $v)."'",
+                array_values($this->values)
+            )).']';
         }
 
         return $args;

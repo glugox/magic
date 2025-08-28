@@ -64,6 +64,7 @@ class GenerateSeedersAction implements DescribableAction
 
         return $this->context;
     }
+
     /**
      * Constructor to set up paths.
      */
@@ -502,5 +503,4 @@ PHP;
 
         return $fakerType;
     }
-
 }
