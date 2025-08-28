@@ -2,6 +2,7 @@
 
 [![PHP Version](https://img.shields.io/badge/php-%5E8.4-blue)](https://php.net)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+![Coverage](https://codecov.io/gh/glugox/magic/branch/main/graph/badge.svg)
 
 Lightweight PHP/Laravel toolkit designed to auto-generate all essential application files from entity configurations stored in [JSON files](stubs/samples/inventory.json). It streamlines tasks like database seeding and realistic data generation using Faker, making it perfect for testing, prototyping, and automation.
 
