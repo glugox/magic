@@ -17,6 +17,7 @@ use Glugox\Magic\Commands\ResetByManifestCommand;
 use Glugox\Magic\Commands\ResetLaravelCommand;
 use Glugox\Magic\Commands\SuggestionsCommand;
 use Glugox\Magic\Commands\VueSidebarUpdaterCommand;
+use Glugox\Magic\Support\CodeGenerationHelper;
 use Glugox\Magic\Support\Log\LogIndentTap;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
@@ -68,6 +69,9 @@ class MagicServiceProvider extends ServiceProvider
 
         // Register magic logging channel
         $this->registerMagicLogChannel();
+
+        // Singletons DI
+        $this->app->singleton(CodeGenerationHelper::class);
     }
 
     /**

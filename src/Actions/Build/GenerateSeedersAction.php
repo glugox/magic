@@ -46,7 +46,6 @@ class GenerateSeedersAction implements DescribableAction
      */
     protected array $generatedPivotSeeders = [];
 
-
     /**
      * Build all seeders based on the configuration.
      */
@@ -68,7 +67,7 @@ class GenerateSeedersAction implements DescribableAction
     /**
      * Constructor to set up paths.
      */
-    public function __construct()
+    public function __construct(protected CodeGenerationHelper $codeHelper)
     {
         // Ensure the factories directory exists
         $this->factoriesPath = database_path('factories');
@@ -252,7 +251,7 @@ PHP;
 
         // Append pivot seeder call at the **end** of DatabaseSeeder
         $filePath = $this->seedersPath.'/DatabaseSeeder.php';
-        CodeGenerationHelper::appendCodeBlock(
+        $this->codeHelper->appendCodeBlock(
             $filePath,
             'run',
             [
@@ -271,7 +270,7 @@ PHP;
 
         $filePath = $this->seedersPath.'/DatabaseSeeder.php';
 
-        CodeGenerationHelper::appendCodeBlock(
+        $this->codeHelper->appendCodeBlock(
             $filePath,
             'run',
             [
@@ -363,7 +362,7 @@ PHP;
     private function generateAdminUserSeeder(): void
     {
         // Generate creating of admin user
-        CodeGenerationHelper::appendCodeBlock(
+        $this->codeHelper->appendCodeBlock(
             $this->seedersPath.'/DatabaseSeeder.php',
             'run',
             [

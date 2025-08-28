@@ -3,18 +3,29 @@
 namespace Glugox\Magic\Tests;
 
 use Glugox\Magic\MagicServiceProvider;
-use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\File;
 use Orchestra\Testbench\TestCase as Orchestra;
 
 class TestCase extends Orchestra
 {
+    private string $tmpDir;
+
     protected function setUp(): void
     {
         parent::setUp();
 
-        Factory::guessFactoryNamesUsing(
-            fn (string $modelName) => 'Glugox\\Magic\\Database\\Factories\\'.class_basename($modelName).'Factory'
-        );
+        // Ensure each parallel process has its own tmp dir
+        $processToken = getenv('TEST_TOKEN') ?: 'default'; // each parallel worker has a unique token
+        $this->tmpDir = __DIR__ . '/.tmp/' . $processToken;
+
+        File::ensureDirectoryExists($this->tmpDir);
+
+        // This make sure that when we call base_path() in the tests, it uses the tmp dir
+        // It also makes sure that any published files (like migrations) go to the tmp dir (database_path, etc.)
+        $this->app->setBasePath($this->tmpDir);
+
+        // Set to show less debug messages during tests
+        config()->set('logging.channels.magic_console.level', 'error');
     }
 
     protected function getPackageProviders($app)
@@ -27,11 +38,18 @@ class TestCase extends Orchestra
     public function getEnvironmentSetUp($app)
     {
         config()->set('database.default', 'testing');
+    }
 
-        /*
-         foreach (\Illuminate\Support\Facades\File::allFiles(__DIR__ . '/database/migrations') as $migration) {
-            (include $migration->getRealPath())->up();
-         }
-         */
+    /**
+     * Cleanup directories
+     */
+    protected function tearDown(): void
+    {
+        // Cleanup only *this process’s* tmp dir
+        if (is_dir($this->tmpDir)) {
+            File::deleteDirectory($this->tmpDir);
+        }
+
+        parent::tearDown();
     }
 }

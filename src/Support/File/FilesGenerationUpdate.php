@@ -63,7 +63,7 @@ class FilesGenerationUpdate
     /**
      * Writes the manifest to a JSON file
      */
-    public function writeManifest()
+    public function writeManifest(): void
     {
         $manifestPath = storage_path('magic/manifest.json');
         $data = [
@@ -79,6 +79,7 @@ class FilesGenerationUpdate
 
     /**
      * Deletes all files listed in the manifest file
+     * @throws \JsonException
      */
     public static function deleteGeneratedFiles(): void
     {

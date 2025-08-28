@@ -9,7 +9,7 @@ class CodeGenerationHelper
     /**
      * Append a code block to a method in a file.
      */
-    public static function appendCodeBlock(string $filePath, string $methodName, array $lines, ?string $tag): bool
+    public function appendCodeBlock(string $filePath, string $methodName, array $lines, ?string $tag): bool
     {
         Log::channel('magic')->info("Appending code block to {$methodName} in {$filePath} with tag '{$tag}'");
         $code = file_get_contents($filePath);
@@ -88,7 +88,7 @@ class CodeGenerationHelper
     /**
      * Remove a region block from a method in a file.
      */
-    public static function removeRegion(string $filePath, ?string $tag = null): bool
+    public function removeRegion(string $filePath, ?string $tag = null): bool
     {
         $content = file_get_contents($filePath);
         if ($tag) {

@@ -91,6 +91,14 @@ class BuildContext
     }
 
     /**
+     * Returns registry of what happened during the build process.
+     */
+    public function getFilesGenerationUpdate()
+    {
+        return $this->filesGenerationUpdate;
+    }
+
+    /**
      * Returns true if the build has errors.
      */
     public function hasErrors(): bool

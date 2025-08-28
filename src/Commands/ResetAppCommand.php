@@ -27,6 +27,14 @@ class ResetAppCommand extends MagicBaseCommand
     private ConsoleBlock $block;
 
     /**
+     * Constructor
+     */
+    public function __construct(protected CodeGenerationHelper $codeHelper)
+    {
+        parent::__construct();
+    }
+
+    /**
      * Main handler
      * throws \ReflectionException
      * throws \Exception
@@ -107,7 +115,7 @@ class ResetAppCommand extends MagicBaseCommand
         }
 
         // Remove calls in DatabaseSeeder
-        CodeGenerationHelper::removeRegion(database_path('seeders/DatabaseSeeder.php'));
+        $this->codeHelper->removeRegion(database_path('seeders/DatabaseSeeder.php'));
 
         $this->logInfo('Migrations reset successfully!');
     }

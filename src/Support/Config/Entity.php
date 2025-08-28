@@ -576,7 +576,7 @@ class Entity
             'icon' => $this->icon,
             'fields' => array_map(fn ($field) => json_decode($field->toJson(), true), $this->fields),
             'relations' => array_map(fn ($relation) => json_decode($relation->toJson(), true), $this->relations),
-            'settings' => $this->settings->toJson(),
+            'settings' => json_decode($this->settings->toJson()),
         ];
 
         return json_encode($data, JSON_PRETTY_PRINT);

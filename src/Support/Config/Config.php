@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Glugox\Magic\Support\Config;
 
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 
 class Config
@@ -73,6 +74,7 @@ class Config
      */
     public static function fromJsonFile(string $filePath): self
     {
+        $filePath = self::ensureBasePath($filePath);
         if (!file_exists($filePath)) {
             throw new \RuntimeException("Configuration file not found: {$filePath}");
         }
@@ -177,5 +179,38 @@ class Config
         ];
 
         return json_encode($data, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * Writes the content json to file path provided.
+     */
+    public function saveToFile(string $tmpFilePath)
+    {
+        File::ensureDirectoryExists(dirname($tmpFilePath));
+        file_put_contents($tmpFilePath, $this->toJson());
+    }
+
+    /**
+     * Returns entity by entity name , eg. "User", "Post".
+     */
+    public function getEntity(string $string)
+    {
+        return array_find($this->entities, fn($entity) => $entity->getName() === $string);
+    }
+
+    /**
+     * Ensures we have only one base path
+     * in the beginning of the path.
+     */
+    public static function ensureBasePath(string $path): string
+    {
+        $base = base_path();
+
+        // Already absolute inside base
+        if (str_starts_with($path, $base) || str_starts_with($path, '/')) {
+            return $path;
+        }
+
+        return base_path($path);
     }
 }

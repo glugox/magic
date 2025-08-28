@@ -31,6 +31,13 @@ class GenerateFileAction implements DescribableAction
         $isUpdate = File::exists($filePath);
 
         Log::channel('magic')->info("Generating file: " . $filePath. ($isUpdate ? ' (updated)' : ' (new)'));
+
+        // Ensure the directory exists
+        $directory = dirname($filePath);
+        if (!File::exists($directory)) {
+            File::makeDirectory($directory, 0755, true);
+        }
+
         File::put($filePath, $content);
 
         return $filePath;
