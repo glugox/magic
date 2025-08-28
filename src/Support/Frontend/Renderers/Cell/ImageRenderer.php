@@ -21,15 +21,15 @@ class ImageRenderer extends Renderer
 
     private function getTsForImage(): string
     {
-        $cellRenderer = "
-                {
-                const value = cell.getValue() as string | null;
-                const finalValue = cell.row.original.name ?? value;
-                if (!finalValue) return '';
+        $lines = [
+            "const value: string = cell.getValue() as string ?? '';",
+            "const finalValue:string = String(cell.row.original.name) ?? String(value);",
+            "if (!finalValue) return '';",
+            "return h(Avatar, { name: finalValue, src: \"\" });"
+        ];
 
-                // Render our custom Vue component
-                return h(Avatar, { name: finalValue });
-            }";
+        $indent = str_repeat(" ", 15);
+        $cellRenderer = implode("\n$indent", $lines);
 
         $productionRenderer = "
                 {

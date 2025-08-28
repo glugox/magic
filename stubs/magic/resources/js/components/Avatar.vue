@@ -9,7 +9,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-const props = defineProps<{ name: string }>()
+const props = defineProps<{ name: string, src: string }>()
 
 // Computes the initials from the provided name
 const initials = computed(() => {

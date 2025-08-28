@@ -14,20 +14,30 @@ class BelongsToRenderer extends Renderer
     public function render(Field $field, Entity $entity): RendererResult
     {
         $belongsTo = $field->belongsTo();
-        $tableCellStr = "
-                    const relatedEntity = cell.row.original.{$belongsTo->getRelationName()};
-                    const href = '{$belongsTo->getHref()}';
-                    const relId = cell.row.original.id;
-                    if (!relatedEntity) return '—';
+        $showAvatar = true;
+        $avatarDefinition = "const avatarUrl = '';";
+        $avatarJs = $showAvatar ? 'h(Avatar, { name: nameVal, src: "" }),' : '';
+        $indent = str_repeat(' ', 15);
+        $indent2 = str_repeat(' ', 2);
+        $tableCellLines = [
+            "const relatedEntity = cell.row.original.{$belongsTo->getRelationName()};",
+            "const href = '{$belongsTo->getHref()}';",
+            "const relId = cell.row.original.id;",
+            "if (!relatedEntity) return '—';",
+            "const nameVal: string = relatedEntity.name;",
+            $avatarDefinition,
+            "return h('a', {",
+            $indent2 . "href: href + '/' + relId,",
+            $indent2. "class: 'flex items-center gap-2 text-blue-600 hover:underline'",
+            "}, [",
+            $indent2 . "#AvatarPlaceholder#",
+            $indent2 . "h('span', null, nameVal)",
+            "]);"
+        ];
 
-                    return h('a', {
-                        href: href + '/' + relId,
-                        class: 'flex items-center gap-2 text-blue-600 hover:underline'
-                    }, [
-                        h(Avatar, { name: relatedEntity.name, src: relatedEntity.avatar_url ?? '' }),
-                        h('span', null, relatedEntity.name)
-                    ]);
-                ";
+        $tableCellStr = implode("\n$indent", $tableCellLines);
+
+        $tableCellStr = str_replace('#AvatarPlaceholder#', $avatarJs, $tableCellStr);
 
         return new RendererResult(
             content: $tableCellStr,

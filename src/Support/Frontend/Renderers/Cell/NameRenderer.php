@@ -13,24 +13,29 @@ class NameRenderer extends Renderer
      */
     public function render(Field $field, Entity $entity): RendererResult
     {
-        // If the value is an object, use its name property
-        $tableCellStr = "
-
-                    const href = '{$entity->getHref()}';
-                    const id = cell.row.original.id;
-                    const nameVal = cell.getValue() ?? '';
-                    const avatarUrl = cell.row.original.avatar_url ?? '';
-                    return h('a', {
-                        href: href + '/' + id,
-                        class: 'flex items-center gap-2 text-blue-600 hover:underline'
-                    }, [
-                        #AvatarPlaceholder#
-                        h('span', null, nameVal)
-                    ]);
-                ";
-
         // If this field is the primary name field, show avatar
-        $avatarJs = $this->isPrimaryNameField($field, $entity) ? 'h(Avatar, { name: nameVal, src: avatarUrl }),' : '';
+        $showAvatar = $this->isPrimaryNameField($field, $entity);
+        $avatarDefinition = "const avatarUrl = '';";
+        $avatarJs = $showAvatar ? 'h(Avatar, { name: nameVal, src: avatarUrl }),' : '';
+
+        $indent = str_repeat(' ', 15);
+        $indent2 = str_repeat(' ', 2);
+        $tableCellLines = [
+            "const href = '{$entity->getHref()}';",
+            "const id = cell.row.original.id;",
+            "const nameVal: string = cell.getValue() ? String(cell.getValue()) : '';",
+            $avatarDefinition,
+            "return h('a', {",
+            $indent2 . "href: href + '/' + id,",
+            $indent2. "class: 'flex items-center gap-2 text-blue-600 hover:underline'",
+            "}, [",
+            $indent2 . "#AvatarPlaceholder#",
+            $indent2 . "h('span', null, nameVal)",
+            "]);"
+            ];
+
+        $tableCellStr = implode("\n$indent", $tableCellLines);
+
         $tableCellStr = str_replace('#AvatarPlaceholder#', $avatarJs, $tableCellStr);
 
         return new RendererResult(

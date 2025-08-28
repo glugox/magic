@@ -181,9 +181,10 @@ class ResetAppCommand extends MagicBaseCommand
      */
     private function resetTypeScriptFiles(): void
     {
-        $this->deleteFile(resource_path('js/types/app.ts'), 'TypeScript support file');
+        // TODO: Get paths from config
+        $this->deleteFile(resource_path('js/types/entities.ts'), 'TypeScript support file');
+        $this->deleteFile(resource_path('js/types/support.ts'), 'TypeScript support file');
         $this->deleteFile(resource_path('js/lib/app.ts'), 'JavaScript lib');
-        $this->deleteFile(resource_path('js/types/magic.ts'), 'TypeScript support file');
 
         $helpersPath = resource_path('js/helpers');
         if (is_dir($helpersPath)) {

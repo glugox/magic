@@ -73,6 +73,13 @@ class InstallNodePackagesAction implements DescribableAction
         return $context;
     }
 
+    /**
+     * Check if a shadcn-vue component is installed by looking for its file or directory.
+     * A component can be a single .vue file or a directory with multiple files.
+     * E.g., for 'table', it checks for resources/js/components/ui/table.vue
+     *
+     * TODO: Do we need to check for folder by component name as well? Eg. for 'date-picker', check for resources/js/components/ui/date-picker/ ?
+     */
     public function isShadcnInstalled(string $component): bool
     {
         $uiPath = resource_path("js/components/ui/{$component}.vue");
@@ -80,11 +87,18 @@ class InstallNodePackagesAction implements DescribableAction
         return file_exists($uiPath) || is_dir(resource_path("js/components/ui/{$component}"));
     }
 
+    /**
+     * Check if a package is installed by looking into package.json
+     * dependencies and devDependencies.
+     */
     public function isPackageInstalled(string $package, array $packageJson): bool
     {
         return isset($packageJson['dependencies'][$package]) || isset($packageJson['devDependencies'][$package]);
     }
 
+    /**
+     * Run a Symfony Process command and handle output and errors.
+     */
     public function runProcess(array $command, string $message): void
     {
         $process = new Process($command, base_path());

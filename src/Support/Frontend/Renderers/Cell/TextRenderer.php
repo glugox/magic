@@ -13,14 +13,16 @@ class TextRenderer extends Renderer
      */
     public function render(Field $field, Entity $entity): RendererResult
     {
-        $formattedStr = "
-{
-    const value = cell.getValue() as string | null;
-    if (!value) return '';
+        $lines = [
+            "const value = cell.getValue() as string | null;",
+            "if (!value) return '';",
+            "const display = value.length > 32 ? value.slice(0, 32) + '...' : value;",
+            "return h('p', { title: value, class: 'text-small' }, display);",
+        ];
 
-    const display = value.length > 32 ? value.slice(0, 32) + '...' : value;
-    return h('p', { title: value, class: 'text-small' }, display);
-}";
+        $indent = 15;
+        $indentStr = str_repeat(' ', $indent);
+        $formattedStr = \implode("\n$indentStr", $lines);
 
         return new RendererResult(
             content: $formattedStr,

@@ -49,12 +49,6 @@ class PublishFilesAction implements DescribableAction
         $this->context = $context;
         Log::channel('magic')->info('Starting Magic file publishing...');
 
-        $source = __DIR__.'/../../../stubs/magic';
-        $destination = base_path();
-
-        // Use the CopyDirectoryAction to copy files
-        app(CopyDirectoryAction::class)($source, $destination);
-
         // Generate support files like types.ts and entity helpers
         $this->generateSupportFiles();
 
@@ -68,17 +62,24 @@ class PublishFilesAction implements DescribableAction
      */
     private function generateSupportFiles()
     {
-        $this->generateTypesFile();
+        $this->generateEntitiesTsFiles();
         $this->generateEntityHelperFiles();
         $this->copyVueFiles();
     }
 
     /**
      * Generate the types file for all entities.
+     * Example:
+     * export interface User {
+     *     id: number;
+     *     name: string;
+     *     ...
+     * }
      */
-    private function generateTypesFile()
+    private function generateEntitiesTsFiles()
     {
-        $path = resource_path('js/types/app.ts');
+        // This would be something like resources/js/types/entities.ts
+        $path = config('magic.paths.entity_types_file');
 
         // Ensure the directory exists
         File::ensureDirectoryExists(dirname($path));
@@ -90,10 +91,17 @@ class PublishFilesAction implements DescribableAction
         foreach ($this->context->getConfig()->entities as $entity) {
             $entityName = $entity->getName();
             $content .= "export interface {$entityName} {\n";
-            foreach ($entity->getFields() as $field) {
+            foreach ($entity->getTsFields() as $field) {
                 $tsType = $this->typeHelper->migrationTypeToTsType($field->type);
                 $fields .= "    {$field->name}: {$tsType->value};\n";
             }
+
+            // Relations
+            foreach ($entity->getRelations() as $relation) {
+                $tsType = $this->typeHelper->relationToTsString($relation);
+                $fields .= "    {$relation->getRelationName()}: {$tsType};\n";
+            }
+
             $content .= $fields."}\n\n";
             $fields = ''; // Reset fields for next entity
         }
@@ -105,6 +113,11 @@ class PublishFilesAction implements DescribableAction
 
     /**
      * Generate helper files for each entity.
+     * For example , functions to get column definitions for tables, etc.
+     * The function helpers are written for each entity in a separate file for type safety
+     * open for modification, and better organization.
+     *
+     * @throws \ReflectionException
      */
     private function generateEntityHelperFiles()
     {
@@ -122,13 +135,14 @@ class PublishFilesAction implements DescribableAction
         $folderName = $entity->getFolderName();
         $fileName = $folderName.'_helper.ts';
         $path = "{$this->jsPath}/helpers/{$fileName}";
+        $entityImports = $this->tsHelper->writeEntityImports($entity);
+        $supportImports = $this->tsHelper->writeEntityHelperSupportImports($entity);
+
 
         // Ensure the directory exists
         File::ensureDirectoryExists(dirname($path));
 
         $content = <<<EOT
-
-import {type Entity, type Field, type {$entityName}} from "@/types/magic";
 import {ColumnDef} from "@tanstack/vue-table";
 import { Checkbox } from "@/components/ui/checkbox"
 import {h} from "vue";
@@ -136,10 +150,12 @@ import {Button} from "@/components/ui/button";
 import {ArrowUpDown} from "lucide-vue-next";
 import Avatar from "@/components/Avatar.vue";
 import {parseBool} from "@/lib/app";
+$entityImports
+$supportImports
 
 export function get{$entityName}Columns(): ColumnDef<{$entityName}>[] {
     return [
-        {$this->getColumnDef($entity)}
+        {$this->getColumnDef($entity, 8)}
     ];
 }
 
@@ -183,14 +199,14 @@ EOT;
     /**
      * Generate the column definition for the entity.
      */
-    private function getColumnDef(Entity $entity): string
+    private function getColumnDef(Entity $entity, $indent = 0): string
     {
         $columns = [];
 
         Log::channel('magic')->info("Generating column definitions for entity: {$entity->getName()}");
 
         // Add select at the beginning
-        $columns[] = $this->getInitialColumnDef();
+        $columns[] = $this->getInitialColumnDef($indent);
 
         foreach ($entity->getTableFields() as $field) {
             Log::channel('magic')->info("Processing field: {$field->name} of type: {$field->type->value}");
@@ -205,7 +221,8 @@ EOT;
             $columns[] = $column;
         }
 
-        return implode(",\n        ", $columns);
+        //$indentStr = str_repeat("\t", $indent);
+        return implode(",\n", $columns);
     }
 
     /**
@@ -214,34 +231,31 @@ EOT;
      */
     private function copyVueFiles()
     {
-        /**
-         * We actually need to copy and overwire all files from package's stub/laravel/ folder to the main application.
-         */
-        $sourcePath = __DIR__.'/../../../resources/js';
-        $destinationPath = base_path('resources/js');
+        $source = __DIR__.'/../../../stubs/magic';
+        $destination = base_path();
 
-        $filesCopied = app(CopyDirectoryAction::class)($sourcePath, $destinationPath);
+        // Use the CopyDirectoryAction to copy files
+        $filesCopied = app(CopyDirectoryAction::class)($source, $destination);
         $this->context->registerGeneratedFile($filesCopied);
 
     }
 
-    public function getInitialColumnDef(): string
+    public function getInitialColumnDef($indent=0): string
     {
-        return "
-        {
-        id: 'select',
-        header: ({ table }) => h(Checkbox, {
-            'modelValue': table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate'),
-            'onUpdate:modelValue': value => table.toggleAllPageRowsSelected(!!value),
-            'ariaLabel': 'Select all',
-        }),
-        cell: ({ row }) => h(Checkbox, {
-            'modelValue': row.getIsSelected(),
-            'onUpdate:modelValue': value => row.toggleSelected(!!value),
-            'ariaLabel': 'Select row',
-        }),
-        enableSorting: false,
-        enableHiding: false,
-    }";
+        return "{
+            id: 'select',
+            header: ({ table }) => h(Checkbox, {
+                'modelValue': table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate'),
+                'onUpdate:modelValue': value => table.toggleAllPageRowsSelected(!!value),
+                'ariaLabel': 'Select all',
+            }),
+            cell: ({ row }) => h(Checkbox, {
+                'modelValue': row.getIsSelected(),
+                'onUpdate:modelValue': value => row.toggleSelected(!!value),
+                'ariaLabel': 'Select row',
+            }),
+            enableSorting: false,
+            enableHiding: false,
+        }";
     }
 }

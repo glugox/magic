@@ -279,6 +279,35 @@ class Entity
     }
 
     /**
+     * Get fields that should be visible in TS objects
+     *
+     * @return Field[]
+     */
+    public function getTsFields(): array
+    {
+        $visible = [];
+
+        foreach ($this->fields as $field) {
+            if (! in_array($field->name, ['password', 'remember_token'])) {
+                $visible[] = $field;
+            }
+        }
+
+        // Ensure we have name field in the list
+        if (! $this->hasNameField()) {
+            $nameField = new Field('name', FieldType::STRING);
+            $visible[] = $nameField;
+        }
+
+        // Reorder: id first, name second, BELONGS_TO fields next
+        usort($visible, function ($a, $b) {
+            return $this->fieldPriority($a) <=> $this->fieldPriority($b);
+        });
+
+        return $visible;
+    }
+
+    /**
      * Get the names of fields that should be visible in forms.
      */
     public function getFormFields(): array

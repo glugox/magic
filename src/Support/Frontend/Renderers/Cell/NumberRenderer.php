@@ -13,10 +13,16 @@ class NumberRenderer extends Renderer
      */
     public function render(Field $field, Entity $entity): RendererResult
     {
-        $formattedStr = "return cell.getValue() !== null ? cell.getValue().toLocaleString() : ''";
+        $formattedStr = [
+            '// Glugox\Magic\Support\Frontend\Renderers\Cell\NumberRenderer:',
+            "const cellValue = cell.getValue() ?? null; return cellValue !== null ? cellValue.toLocaleString() : ''"
+        ];
+
+        $indent = 15;
+        $indentStr = str_repeat(' ', $indent);
 
         return new RendererResult(
-            content: $formattedStr,
+            content: implode("\n$indentStr", $formattedStr),
             type: $this->getType()
         );
     }

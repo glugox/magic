@@ -3,6 +3,7 @@
 namespace Glugox\Magic\Support;
 
 use Glugox\Magic\Support\Config\FieldType;
+use Glugox\Magic\Support\Config\Relation;
 use Glugox\Magic\Support\Config\RelationType;
 use Glugox\Magic\Type\TsType;
 
@@ -41,6 +42,31 @@ class TypeHelper
             RelationType::MORPH_TO => FieldType::BELONGS_TO,
             default => FieldType::STRING,
         };
+    }
+
+    /**
+     * Convert RelationType to TS type
+     */
+    public function relationToTsString(Relation $relation) : string
+    {
+        switch ($relation->getType())
+        {
+            case RelationType::BELONGS_TO:
+            case RelationType::HAS_ONE:
+                return $relation->getEntityName();
+
+            case RelationType::BELONGS_TO_MANY:
+            case RelationType::HAS_MANY:
+                return $relation->getEntityName() . '[]';
+
+            case RelationType::MORPH_ONE:
+            case RelationType::MORPH_MANY:
+            case RelationType::MORPH_TO:
+                return 'any';
+
+            default:
+                return $relation->getType()->name;
+        }
     }
 
     /**

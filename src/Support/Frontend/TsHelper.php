@@ -17,6 +17,47 @@ class TsHelper
     ){}
 
     /**
+     * Write import statements for a given entity.
+     * import { type User } from '@/types/entities';",
+     */
+    public function writeEntityImports(Entity $entity): string
+    {
+        $imports = [
+            "import { type {$entity->name} } from '@/types/entities';",
+        ];
+        /*foreach ($entity->getFields() as $field) {
+
+        }*/
+        return implode("\n", $imports)."\n";
+    }
+
+    /**
+     * writeIndexPageSupportImports
+     */
+    public function writeIndexPageSupportImports(Entity $entity): string
+    {
+        $imports = [
+            "import { parseBool } from '@/lib/app';",
+            "import { type Entity, type Field } from '@/types/support';",
+            // Eg. import { getUserColumns, getUserEntityMeta } from '@/helpers/users_helper';
+            "import { get{$entity->name}Columns, get{$entity->name}EntityMeta } from √;",
+        ];
+        return implode("\n", $imports)."\n";
+    }
+
+    /**
+     * In entity helper files like @/helpers/users_helper'
+     * we need some support imports.
+     */
+    public function writeEntityHelperSupportImports()
+    {
+        $imports = [
+            "import { type Entity, type Field } from '@/types/support';",
+        ];
+        return implode("\n", $imports)."\n";
+    }
+
+    /**
      * Write a single table column definition.
      */
     public function writeTableColumn(Field $field, Entity $entity): string
@@ -31,17 +72,18 @@ class TsHelper
 
         $cellRenderer = $this->writeTableCell($field, $entity);
 
-        return "{
-                id: '{$field->name}',
-                header: {$fieldHeader},
-                accessorKey: '{$field->name}',
-                cell: ({ cell }) => {
-                   // Render the cell content based on the field front type : $tsType->value ( server type: {$field->type->value} )
-                   $cellRenderer
-                },
-                enableSorting: {$strEnableSorting},
-                enableHiding: true,
-            }";
+        return "
+        {
+            id: '{$field->name}',
+            header: {$fieldHeader},
+            accessorKey: '{$field->name}',
+            cell: ({ cell }) => {
+               // Render the cell content based on the field front type : $tsType->value ( server type: {$field->type->value} )
+               $cellRenderer
+            },
+            enableSorting: {$strEnableSorting},
+            enableHiding: true,
+        }";
     }
 
     /**
@@ -50,17 +92,13 @@ class TsHelper
     public function writeSortableColumnHeader(Field $field): string
     {
         $fieldTitle = $field->title();
-        $header = <<< HEADER
-({ column }) => {
-            return h(Button, {
-                variant: 'ghost',
-                onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-            }, () => ['{$fieldTitle}', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })])
-        }
-HEADER;
-
-        return $header;
-
+        return "
+            ({ column }) => {
+                return h(Button, {
+                    variant: 'ghost',
+                    onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+                }, () => ['{$fieldTitle}', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })])
+            }";
     }
 
     /**

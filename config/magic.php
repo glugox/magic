@@ -3,6 +3,16 @@
 // config file for the Magic package
 return [
 
+    'paths' => [
+        // Support types file
+        // In which file we should keep global type like Entity, Field, etc.
+        'support_types_file' => env('MAGIC_SUPPORT_TYPES_FILE', resource_path('js/types/support.ts')),
+
+        // Entity specific types file
+        // In which file we should keep entity specific types.
+        'entity_types_file' => env('MAGIC_ENTITY_TYPES_FILE', resource_path('js/types/entities.ts')),
+    ],
+
     // Prism default model
     'ollama_model' => env('MAGIC_OLLAMA_MODEL', 'MFDoom/deepseek-r1-tool-calling:latest'),
 

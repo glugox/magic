@@ -7,6 +7,7 @@ use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\Config\Entity;
+use Glugox\Magic\Support\Frontend\TsHelper;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Illuminate\Support\Facades\File;
 
@@ -32,8 +33,9 @@ class GenerateVuePagesAction implements DescribableAction
     /**
      * Constructor
      */
-    public function __construct()
-    {
+    public function __construct(
+        protected TsHelper $tsHelper
+    ){
         $this->pagesPath = resource_path('js/pages');
     }
 
@@ -95,12 +97,14 @@ class GenerateVuePagesAction implements DescribableAction
         $folderName = $entity->getFolderName();
         $href = $entity->getHref();
         $columnsJson = $entity->getFieldsJson();
+        $entityImports = $this->tsHelper->writeEntityImports($entity);
+        $supportImports = $this->tsHelper->writeIndexPageSupportImports($entity);
 
         return <<<PHP
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { type {$entityName} } from "@/types/app";
+$entityImports
 import { type PaginationObject, type TableFilters } from "@/types/magic";
 import { Head } from '@inertiajs/vue3';
 import { get{$entityName}Columns, get{$entityName}EntityMeta } from '@/helpers/{$folderName}_helper';

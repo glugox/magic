@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from "vue"
 import { router } from "@inertiajs/vue3"
-import { getCoreRowModel, useVueTable, SortingState, FlexRender } from "@tanstack/vue-table"
+import { getCoreRowModel, useVueTable, SortingState, FlexRender, ColumnDef } from "@tanstack/vue-table"
 
 import { Avatar } from "@/components/Avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -27,7 +27,7 @@ interface PaginationObject {
 
 const { data, columns, filters, entityMeta } = defineProps<{
     data: PaginationObject,
-    columns ?: any[],
+    columns: ColumnDef<any,any>[],
     filters?: TableFilters,
     entityMeta?: Entity
 }>()
@@ -40,12 +40,12 @@ const search = ref(data.search ?? "")
 const lastPage = ref(data.last_page ?? 1)
 const prevPageUrl = ref(data.prev_page_url ?? null)
 const nextPageUrl = ref(data.next_page_url ?? null)
-const sorting = ref<SortingState>(filters.sortKey
+const sorting = ref<SortingState>(filters?.sortKey
     ? [{ id: filters.sortKey, desc: filters.sortDir === "desc" }]
     : []
 )
-const sortKey = ref(filters.sortKey ?? null)
-const sortDir = ref(filters.sortDir ?? null)
+const sortKey = ref(filters?.sortKey ?? null)
+const sortDir = ref(filters?.sortDir ?? null)
 
 // Debounce function to limit the frequency of API calls
 // TODO: Move to a utility file
@@ -55,14 +55,6 @@ const debounced = (fn: Function, ms = 400) => {
         clearTimeout(t)
         // @ts-ignore
         t = setTimeout(() => fn(...args), ms)
-    }
-}
-
-const gotoPrevPage = () => {
-    // set page and call send
-    if (prevPageUrl.value) {
-        page.value = prevPage.value
-        send()
     }
 }
 

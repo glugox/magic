@@ -13,7 +13,13 @@ class DateRenderer extends Renderer
      */
     public function render(Field $field, Entity $entity): RendererResult
     {
-        $formattedDate = "return cell.getValue() ? new Date(cell.getValue()).toLocaleDateString() : ''";
+        $tableCellLines = [
+            "const strVal: string = cell.getValue() ? String(cell.getValue()) : '';",
+            "return new Date(strVal).toLocaleDateString()"
+            ];
+
+        $indent = str_repeat(" ", 15);
+        $formattedDate = \implode("\n$indent", $tableCellLines);
 
         return new RendererResult(
             content: $formattedDate,
