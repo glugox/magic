@@ -49,7 +49,7 @@ it('generates a Vue form file for a simple schema', function () {
 it('includes a submit handler and a basic button', function () {
     $entity = makeDummyUserEntityConfig();
 
-    $file = new GenerateVueFormFile($entity);
+    $file = app(GenerateVueFormFile::class)($entity);
     $content = (string) $file;
 
     expect($content)->toContain('function submit(')
