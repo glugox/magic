@@ -104,13 +104,12 @@ class GenerateVuePagesAction implements DescribableAction
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-$entityImports
-import { type PaginationObject, type TableFilters } from "@/types/magic";
 import { Head } from '@inertiajs/vue3';
-import { get{$entityName}Columns, get{$entityName}EntityMeta } from '@/helpers/{$folderName}_helper';
 import PlaceholderPattern from '@/components/PlaceholderPattern.vue'
 import ResourceTable from '@/components/ResourceTable.vue';
 import {ColumnDef} from "@tanstack/vue-table";
+$entityImports
+$supportImports
 
 interface Props {
     data: PaginationObject;
@@ -153,6 +152,7 @@ const entityMeta = get{$entityName}EntityMeta();
                     :columns="columns"
                     :entity-meta="entityMeta"
                     :filters="filters"
+                    :controller="{$entity->name}Controller"
                     />
             </div>
         </div>
@@ -172,60 +172,64 @@ PHP;
         $folderName = $entity->getFolderName();
         $href = $entity->getHref();
         $columnsJson = $entity->getFieldsJson();
+        $entityImports = $this->tsHelper->writeEntityImports($entity);
+        $supportImports = $this->tsHelper->writeFormPageSupportImports($entity);
 
+
+        // V2
         return <<<PHP
 <script setup lang="ts">
+import { update } from '@/actions/App/Http/Controllers/Settings/ProfileController';
+import { edit } from '@/routes/profile';
+import { send } from '@/routes/verification';
+import { Form, Head, Link, usePage } from '@inertiajs/vue3';
+
+import DeleteUser from '@/components/DeleteUser.vue';
+import HeadingSmall from '@/components/HeadingSmall.vue';
+import InputError from '@/components/InputError.vue';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/AppLayout.vue';
+import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { type User } from "@/types/app";
-import { type PaginationObject, type TableFilters } from "@/types/magic";
-import { Head } from '@inertiajs/vue3';
-import { get{$entityName}Columns, get{$entityName}EntityMeta } from '@/helpers/{$folderName}_helper';
-import PlaceholderPattern from '@/components/PlaceholderPattern.vue'
-import {ColumnDef} from "@tanstack/vue-table";
+
 import ResourceForm from '@/components/ResourceForm.vue';
+$entityImports
+$supportImports
 
 interface Props {
     item?: Record<string, any>
 }
-
 const { item }: Props = defineProps<Props>();
 
-const breadcrumbs: BreadcrumbItem[] = [
+const breadcrumbItems: BreadcrumbItem[] = [
     {
-        title: '{$title}',
-        href: '{$href}',
+        title: 'Profile settings',
+        href: edit().url,
     },
 ];
 
-const columns: ColumnDef<{$entityName}>[] = get{$entityName}Columns();
+const page = usePage();
 const entityMeta = get{$entityName}EntityMeta();
 
 </script>
 
 <template>
-    <Head title="{$title}" />
+    <AppLayout :breadcrumbs="breadcrumbItems">
+        <Head title="Profile settings" />
 
-    <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
-            <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-                <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                    <PlaceholderPattern />
-                </div>
-                <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                    <PlaceholderPattern />
-                </div>
-                <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                    <PlaceholderPattern />
-                </div>
-            </div>
-            <div class="relative p-4 min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
+        <SettingsLayout>
+            <div class="flex flex-col space-y-6">
+                <HeadingSmall title="{$entity->name} information" description="Update {$entity->name} details" />
+
                 <ResourceForm
                     :entityMeta="entityMeta"
                     :item="item"
+                    :controller="{$entity->name}Controller"
                     />
             </div>
-        </div>
+        </SettingsLayout>
     </AppLayout>
 </template>
 

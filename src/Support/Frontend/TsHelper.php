@@ -24,6 +24,7 @@ class TsHelper
     {
         $imports = [
             "import { type {$entity->name} } from '@/types/entities';",
+            "import {$entity->name}Controller from '@/actions/App/Http/Controllers/{$entity->name}Controller'"
         ];
         /*foreach ($entity->getFields() as $field) {
 
@@ -40,7 +41,23 @@ class TsHelper
             "import { parseBool } from '@/lib/app';",
             "import { type Entity, type Field } from '@/types/support';",
             // Eg. import { getUserColumns, getUserEntityMeta } from '@/helpers/users_helper';
-            "import { get{$entity->name}Columns, get{$entity->name}EntityMeta } from √;",
+            "import { get{$entity->name}Columns, get{$entity->name}EntityMeta } from '@/helpers/{$entity->getFolderName()}_helper'",
+            "import { type PaginationObject, type TableFilters } from '@/types/support';"
+        ];
+        return implode("\n", $imports)."\n";
+    }
+
+    /**
+     *
+     */
+    public function writeFormPageSupportImports(Entity $entity): string
+    {
+        $imports = [
+            "import { parseBool } from '@/lib/app';",
+            "import { type Entity, type Field } from '@/types/support';",
+            // Eg. import { getUserColumns, getUserEntityMeta } from '@/helpers/users_helper';
+            "import { get{$entity->name}Columns, get{$entity->name}EntityMeta } from '@/helpers/{$entity->getFolderName()}_helper'",
+            "import { type PaginationObject, type TableFilters } from '@/types/support';"
         ];
         return implode("\n", $imports)."\n";
     }
@@ -113,6 +130,7 @@ class TsHelper
             name: '{$field->name}',
             type: '{$tsType->value}',
             nullable: ".($field->nullable ? 'true' : 'false').',
+            sometimes: '.($field->sometimes ? 'true' : 'false').',
             length: '.($field->length !== null ? $field->length : 'null').',
             precision: '.($field->precision !== null ? $field->precision : 'null').',
             scale: '.($field->scale !== null ? $field->scale : 'null').',

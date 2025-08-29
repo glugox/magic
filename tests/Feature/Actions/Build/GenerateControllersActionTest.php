@@ -5,7 +5,7 @@ use Glugox\Magic\Actions\Build\GenerateControllersAction;
 it('generates controller and routes for entities', function () {
 
     // Prepare
-    $action = new GenerateControllersAction;
+    $action = app(GenerateControllersAction::class);
     $buildContext = getFixtureBuildContext();
 
     // Act

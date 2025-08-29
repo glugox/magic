@@ -5,6 +5,7 @@ namespace Glugox\Magic\Actions\Build;
 use Glugox\Magic\Actions\Files\GenerateFileAction;
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
+use Glugox\Magic\Helpers\ValidationHelper;
 use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\FieldType;
@@ -41,7 +42,7 @@ class GenerateControllersAction implements DescribableAction
     /**
      * Constructor
      */
-    public function __construct()
+    public function __construct(protected ValidationHelper $validationHelper)
     {
         $this->controllerPath = app_path('Http/Controllers');
         $this->routesFilePath = base_path('routes/app.php');
@@ -92,27 +93,13 @@ class GenerateControllersAction implements DescribableAction
             ? '[]'
             : "['".implode("', '", array_map(fn ($f) => $f->name, $searchableFields))."']";
 
-        // Validation rules
-        $validationRules = [];
-        foreach ($entity->getFields() as $field) {
-            $rules = [];
-            if (! $field->nullable) {
-                $rules[] = 'required';
-            } else {
-                $rules[] = 'sometimes';
-            }
-            $rules[] = match ($field->type) {
-                FieldType::EMAIL => 'email',
-                FieldType::INTEGER => 'integer',
-                FieldType::DECIMAL, FieldType::FLOAT, FieldType::DOUBLE => 'numeric',
-                FieldType::BOOLEAN => 'boolean',
-                FieldType::DATE, FieldType::DATETIME => 'date',
-                default => 'string',
-            };
-            $validationRules[$field->name] = implode('|', $rules);
-        }
-        $rulesArrayStr = var_export($validationRules, true);
-        $rulesArrayStr = str_replace(['array (', ')'], ['[', ']'], $rulesArrayStr);
+
+        $validationRulesCreate = $this->validationHelper->makeCreate($entity);
+        $validationRulesUpdate = $this->validationHelper->makeUpdate($entity);
+
+        // Prepare for writing in php file
+        $rulesArrayStrCreate = exportPhpValue($validationRulesCreate, 2);
+        $rulesArrayStrUpdate = exportPhpValue($validationRulesUpdate, 2);
 
         $template = <<<PHP
 <?php
@@ -186,7 +173,7 @@ class $controllerClass extends Controller
      */
     public function store(Request \$request)
     {
-        \$data = \$request->validate($rulesArrayStr);
+        \$data = \$request->validate($rulesArrayStrCreate);
 
         $modelClass::create(\$data);
 
@@ -219,7 +206,7 @@ class $controllerClass extends Controller
      */
     public function update(Request \$request, $modelClass \${$modelClassLower})
     {
-        \$data = \$request->validate($rulesArrayStr);
+        \$data = \$request->validate($rulesArrayStrUpdate);
 
         \${$modelClassLower}->update(\$data);
 

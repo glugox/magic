@@ -2,34 +2,18 @@
 import { ref, watch, computed } from "vue"
 import { router } from "@inertiajs/vue3"
 import { getCoreRowModel, useVueTable, SortingState, FlexRender, ColumnDef } from "@tanstack/vue-table"
-
-import { Avatar } from "@/components/Avatar";
+import Avatar from "@/components/Avatar.vue";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
-import { Entity } from '@/types/magic'
-
-interface PaginationObject {
-    data: any[]
-    total: number
-    current_page: number
-    per_page: number
-    search?: string
-    sort_key?: string
-    last_page?: number
-    sort_dir?: "asc" | "desc"
-    prev_page?: number
-    next_page?: number
-    prev_page_url?: string | null
-    next_page_url?: string | null
-    [key: string]: any
-}
+import { Entity, TableFilters, PaginationObject, Controller } from '@/types/support'
 
 
-const { data, columns, filters, entityMeta } = defineProps<{
+const { data, columns, filters, entityMeta, controller } = defineProps<{
     data: PaginationObject,
     columns: ColumnDef<any,any>[],
     filters?: TableFilters,
-    entityMeta?: Entity
+    entityMeta?: Entity,
+    controller: Controller
 }>()
 
 const rows = ref(data.data)
@@ -60,7 +44,7 @@ const debounced = (fn: Function, ms = 400) => {
 
 const send = () => {
     console.log("Sending request with params:", {
-        url: route(entityMeta.resourcePath),
+        url: controller.index(),
         page: page.value,
         perPage: perPage.value,
         sortKey: sortKey.value,
@@ -68,13 +52,13 @@ const send = () => {
         search: search.value
     })
     router.get(
-        route(entityMeta.resourcePath),
+        controller.index(), // Wayfinder function builds the route object
         {
             page: page.value,
             perPage: perPage.value,
-            sortKey: sortKey.value || null,
-            sortDir: sortDir.value || null,
-            search: search.value || null,
+            sortKey: sortKey.value,
+            sortDir: sortDir.value,
+            search: search.value
         },
         { preserveState: true, preserveScroll: true, replace: true }
     )

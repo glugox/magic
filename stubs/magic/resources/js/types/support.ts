@@ -19,12 +19,29 @@ export interface Entity {
     fields: Field[]
 }
 
+export interface Controller {
+    index: Function,
+    show: (id: number) => any,
+    create: Function,
+    store: Function,
+    edit: (id: number) => any,
+    update: (id: number) => any,
+    destroy: (id: number) => any,
+}
+
 export interface PaginationObject {
     data: any[]
     total: number
     current_page: number
     per_page: number
-    filters: any
+    search?: string
+    sort_key?: string
+    last_page?: number
+    sort_dir?: "asc" | "desc"
+    prev_page?: number
+    next_page?: number
+    prev_page_url?: string | null
+    next_page_url?: string | null
     [key: string]: any
 }
 export interface TableFilters {

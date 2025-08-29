@@ -4,6 +4,7 @@ namespace Glugox\Magic\Support\Config;
 
 enum FieldType: string
 {
+    case  ID = 'id';
     case BIG_INCREMENTS = 'bigIncrements';
     case BIG_INTEGER = 'bigInteger';
     case BINARY = 'binary';
@@ -48,4 +49,7 @@ enum FieldType: string
     case HAS_ONE = 'hasOne';
     case BELONGS_TO_MANY = 'belongsToMany';
 
+    case USERNAME = 'username';
+    case PHONE = 'phone';
+    case SLUG = 'slug';
 }

@@ -6,7 +6,7 @@
         {
             "name": "User",
             "fields": [
-                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "id", "type": "id", "nullable": false },
                 { "name": "name", "type": "string", "nullable": false, "sortable": true, "searchable": true },
                 { "name": "email", "type": "string", "nullable": false, "unique": true, "sortable": true, "searchable": true },
                 { "name": "password", "type": "password", "nullable": false, "hidden": true },
@@ -24,7 +24,7 @@
         {
             "name": "Role",
             "fields": [
-                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "id", "type": "id", "nullable": false },
                 { "name": "name", "type": "string", "nullable": false, "unique": true }
             ],
             "relations": [
@@ -34,7 +34,7 @@
         {
             "name": "Warehouse",
             "fields": [
-                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "id", "type": "id", "nullable": false },
                 { "name": "name", "type": "string", "nullable": false, "searchable": true },
                 { "name": "location", "type": "string", "nullable": false },
                 { "name": "capacity", "type": "integer", "nullable": false, "min": 0, "max": 200 },
@@ -48,7 +48,7 @@
         {
             "name": "Category",
             "fields": [
-                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "id", "type": "id", "nullable": false },
                 { "name": "name", "type": "string", "nullable": false, "searchable": true },
                 { "name": "description", "type": "text", "nullable": true }
             ],
@@ -59,7 +59,7 @@
         {
             "name": "Product",
             "fields": [
-                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "id", "type": "id", "nullable": false },
                 { "name": "warehouse_id", "type": "unsignedBigInteger", "nullable": false },
                 { "name": "name", "type": "string", "nullable": false, "searchable": true, "sortable": true },
                 { "name": "sku", "type": "string", "nullable": false, "unique": true },
@@ -80,7 +80,7 @@
         {
             "name": "Order",
             "fields": [
-                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "id", "type": "id", "nullable": false },
                 { "name": "user_id", "type": "unsignedBigInteger", "nullable": false },
                 { "name": "order_number", "type": "string", "nullable": false, "unique": true },
                 { "name": "status", "type": "enum", "nullable": false, "values": ["pending", "processing", "shipped", "delivered"] },
@@ -96,7 +96,7 @@
         {
             "name": "OrderItem",
             "fields": [
-                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "id", "type": "id", "nullable": false },
                 { "name": "order_id", "type": "unsignedBigInteger", "nullable": false },
                 { "name": "product_id", "type": "unsignedBigInteger", "nullable": false },
                 { "name": "quantity", "type": "integer", "nullable": false, "min": 1, "max": 10 },
@@ -110,7 +110,7 @@
         {
             "name": "Shipment",
             "fields": [
-                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "id", "type": "id", "nullable": false },
                 { "name": "order_id", "type": "unsignedBigInteger", "nullable": false },
                 { "name": "shipped_at", "type": "dateTime", "nullable": true },
                 { "name": "delivered_at", "type": "dateTime", "nullable": true },
@@ -124,7 +124,7 @@
         {
             "name": "CarrierDetail",
             "fields": [
-                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "id", "type": "id", "nullable": false },
                 { "name": "shipment_id", "type": "unsignedBigInteger", "nullable": false },
                 { "name": "tracking_number", "type": "string", "nullable": true },
                 { "name": "service_level", "type": "string", "nullable": true }
@@ -136,7 +136,7 @@
         {
             "name": "Attachment",
             "fields": [
-                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "id", "type": "id", "nullable": false },
                 { "name": "attachable_id", "type": "unsignedBigInteger", "nullable": false },
                 { "name": "attachable_type", "type": "string", "nullable": false },
                 { "name": "file_path", "type": "string", "nullable": false },
@@ -149,7 +149,7 @@
         {
             "name": "Review",
             "fields": [
-                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "id", "type": "id", "nullable": false },
                 { "name": "reviewable_id", "type": "unsignedBigInteger", "nullable": false },
                 { "name": "reviewable_type", "type": "string", "nullable": false },
                 { "name": "rating", "type": "integer", "nullable": false, "min": 0, "max": 10 },

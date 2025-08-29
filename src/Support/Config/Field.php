@@ -21,6 +21,7 @@ class Field
      * @param  FieldType  $type  Field type (enum)
      * @param  Entity|null  $entityRef  The entity this field belongs to
      * @param  bool  $nullable  Whether the field can be null
+     * @param  bool  $sometimes  Validate only if set, can be unset
      * @param  int|null  $length  String length if applicable
      * @param  int|null  $precision  Numeric precision
      * @param  int|null  $scale  Numeric scale
@@ -36,7 +37,9 @@ class Field
         public string $name,                 // field name
         public FieldType $type,              // type enum
         public ?Entity $entityRef = null,    // reference to the parent entity
+        public bool $required = false,       // is it required? (not nullable and not sometimes)
         public bool $nullable = false,       // can it be null?
+        public bool $sometimes = false,      // Validate only if set, can be unset
         public ?int $length = null,          // string length if applicable
         public ?int $precision = null,       // numeric precision
         public ?int $scale = null,           // numeric scale
@@ -64,7 +67,9 @@ class Field
      * @param array{
      *     name: string,
      *     type: string,
+     *     required?: bool,
      *     nullable?: bool,
+     *     sometimes?: bool,
      *     length?: int|null,
      *     precision?: int|null,
      *     scale?: int|null,
@@ -88,7 +93,9 @@ class Field
             name: $data['name'],
             type: $type,
             entityRef: $entity,
+            required: $data['required'] ?? false,
             nullable: $data['nullable'] ?? false,
+            sometimes: $data['sometimes'] ?? false,
             length: $data['length'] ?? null,
             precision: $data['precision'] ?? null,
             scale: $data['scale'] ?? null,
@@ -120,6 +127,7 @@ class Field
             type: $fieldType,
             entityRef: $relation->getLocalEntity(),
             nullable: false,
+            sometimes: false,
             length: null,
             precision: null,
             scale: null,
@@ -288,23 +296,56 @@ class Field
      */
     public function printDebug(): string
     {
-        return sprintf(
-            'Field(name: %s, type: %s, nullable: %s, length: %s, precision: %s, scale: %s, default: %s, comment: %s, sortable: %s, searchable: %s, values: [%s], min: %s, max: %s)',
-            $this->name,
-            $this->type->value,
-            $this->nullable ? 'true' : 'false',
-            $this->length ?? 'null',
-            $this->precision ?? 'null',
-            $this->scale ?? 'null',
-            json_encode($this->default),
-            $this->comment ?? 'null',
-            $this->sortable ? 'true' : 'false',
-            $this->searchable ? 'true' : 'false',
-            implode(', ', array_map(fn ($v) => json_encode($v), $this->values)),
-            $this->min ?? 'null',
-            $this->max ?? 'null'
-        );
+        $parts = [];
+
+        // Always show name and type
+        $parts[] = "name: {$this->name}";
+        $parts[] = "type: {$this->type->value}";
+
+        // Only show flags if true
+        if ($this->nullable) {
+            $parts[] = "nullable";
+        }
+        if ($this->sometimes) {
+            $parts[] = "sometimes";
+        }
+        if ($this->sortable) {
+            $parts[] = "sortable";
+        }
+        if ($this->searchable) {
+            $parts[] = "searchable";
+        }
+
+        // Only show properties if they are set
+        if ($this->length !== null) {
+            $parts[] = "length: {$this->length}";
+        }
+        if ($this->precision !== null) {
+            $parts[] = "precision: {$this->precision}";
+        }
+        if ($this->scale !== null) {
+            $parts[] = "scale: {$this->scale}";
+        }
+        if ($this->default !== null) {
+            $parts[] = "default: " . json_encode($this->default);
+        }
+        if (!empty($this->comment)) {
+            $parts[] = "comment: {$this->comment}";
+        }
+        if (!empty($this->values)) {
+            $vals = implode(', ', array_map(fn($v) => json_encode($v), $this->values));
+            $parts[] = "values: [{$vals}]";
+        }
+        if ($this->min !== null) {
+            $parts[] = "min: {$this->min}";
+        }
+        if ($this->max !== null) {
+            $parts[] = "max: {$this->max}";
+        }
+
+        return 'Field(' . implode(', ', $parts) . ')';
     }
+
 
     /**
      * Debug log
@@ -335,6 +376,7 @@ class Field
             'name' => $this->name,
             'type' => $this->type->value,
             'nullable' => $this->nullable,
+            'sometimes' => $this->sometimes,
             'length' => $this->length,
             'precision' => $this->precision,
             'scale' => $this->scale,

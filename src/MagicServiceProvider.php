@@ -17,6 +17,7 @@ use Glugox\Magic\Commands\ResetByManifestCommand;
 use Glugox\Magic\Commands\ResetLaravelCommand;
 use Glugox\Magic\Commands\SuggestionsCommand;
 use Glugox\Magic\Commands\VueSidebarUpdaterCommand;
+use Glugox\Magic\Helpers\ValidationHelper;
 use Glugox\Magic\Support\CodeGenerationHelper;
 use Glugox\Magic\Support\Frontend\TsHelper;
 use Glugox\Magic\Support\Log\LogIndentTap;
@@ -76,6 +77,7 @@ class MagicServiceProvider extends ServiceProvider
         $this->app->singleton(CodeGenerationHelper::class);
         $this->app->singleton(TypeHelper::class);
         $this->app->singleton(TsHelper::class);
+        $this->app->singleton(ValidationHelper::class);
     }
 
     /**

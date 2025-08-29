@@ -1,121 +1,67 @@
 <script setup lang="ts">
-import { ref } from "vue"
-import { router, usePage } from "@inertiajs/vue3"
-import { Button } from "@/components/ui/button"
-import { Entity } from "@/types/magic"
+import { ref } from 'vue';
+import { Form, router, usePage } from '@inertiajs/vue3';
+import { Button } from '@/components/ui/button';
+import { Entity } from '@/types/support';
+import FormField from '@/components/FormField.vue';
 
 // Props
-const { item, entityMeta } = defineProps<{
-    item?: Record<string, any>
-    entityMeta: Entity
-}>()
+const { item, entityMeta, controller } = defineProps<{
+    item?: Record<string, any>;
+    entityMeta: Entity;
+    controller: any;
+}>();
 
 // Get Laravel errors from Inertia page props
-const page = usePage()
-const errors = page.props.errors as Record<string, string>
+const page = usePage();
+const errors = page.props.errors as Record<string, string>;
 
 // Build a reactive form object from entityMeta.fields
-const form = ref<Record<string, any>>({})
+const form = ref<Record<string, any>>({});
 
 // Initialize form with either existing item or defaults
 entityMeta.fields.forEach((field: any) => {
-    console.log("Initializing field:", field.name, "with default:", field.default)
-    form.value[field.name] = item ? item[field.name] : field.default ?? ""
-})
+    console.log('Initializing field:', field.name, 'with default:', field.default);
+    form.value[field.name] = item ? item[field.name] : (field.default ?? '');
+});
 
-console.log("Form initialized with:", form.value)
+console.log('Form initialized with:', form.value);
 
 // Submit handler
 const submit = () => {
-    const isEdit = !!item?.id
-    const url = isEdit
-        ? route(`${entityMeta.resourcePath}.update`, item.id)
-        : route(`${entityMeta.resourcePath}.store`)
+    const isEdit = !!item?.id;
+    const url = isEdit ? controller.update(item.id) : controller.store();
 
-    const method = isEdit ? "put" : "post"
+    const method = isEdit ? 'put' : 'post';
 
     router[method](url, form.value, {
         preserveScroll: true,
         onSuccess: () => {
             // maybe redirect or flash message
-        }
-    })
-}
+        },
+    });
+};
 </script>
 
 <template>
-    <form @submit.prevent="submit" class="space-y-4 p-4">
-        <div
+    <Form :action="controller.update(item?.id)" method="post" class="space-y-6" v-slot="{ errors, processing, recentlySuccessful }">
+        <FormField
             v-for="field in entityMeta.fields"
-            :key="field.name"
-            class="flex flex-col"
-        >
-            <label :for="field.name" class="font-medium">
-                {{ field.label ?? field.name }}
-            </label>
+            :item="item" :errors="errors"
+            :key="field.name" :field="field" v-model="form[field.name]"
+        />
 
-            <!-- Dynamically render input types -->
-            <input
-                v-if="field.type === 'string'"
-                v-model="form[field.name]"
-                :id="field.name"
-                type="text"
-                class="border rounded px-2 py-1"
-            />
+        <div class="flex items-center gap-4">
+            <Button :disabled="processing">Save</Button>
 
-            <input
-                v-else-if="field.type === 'number'"
-                v-model.number="form[field.name]"
-                :id="field.name"
-                type="number"
-                class="border rounded px-2 py-1"
-            />
-
-            <input
-                v-else-if="field.type === 'date'"
-                v-model="form[field.name]"
-                :id="field.name"
-                type="date"
-                class="border rounded px-2 py-1"
-            />
-
-            <select
-                v-else-if="field.type === 'select'"
-                v-model="form[field.name]"
-                :id="field.name"
-                class="border rounded px-2 py-1"
+            <Transition
+                enter-active-class="transition ease-in-out"
+                enter-from-class="opacity-0"
+                leave-active-class="transition ease-in-out"
+                leave-to-class="opacity-0"
             >
-                <option
-                    v-for="opt in field.options ?? []"
-                    :key="opt.value"
-                    :value="opt.value"
-                >
-                    {{ opt.label }}
-                </option>
-            </select>
-
-            <!-- fallback -->
-            <input
-                v-else
-                v-model="form[field.name]"
-                :id="field.name"
-                type="text"
-                class="border rounded px-2 py-1"
-            />
-
-            <!-- Validation errors -->
-            <p v-if="errors[field.name]" class="text-red-500 text-sm">
-                {{ errors[field.name] }}
-            </p>
+                <p v-show="recentlySuccessful" class="text-sm text-neutral-600">Saved.</p>
+            </Transition>
         </div>
-
-        <div class="flex gap-2">
-            <Button type="submit">
-                {{ item ? "Update" : "Create" }}
-            </Button>
-            <Button type="button" variant="secondary" @click="() => history.back()">
-                Cancel
-            </Button>
-        </div>
-    </form>
+    </Form>
 </template>

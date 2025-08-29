@@ -522,6 +522,7 @@ class Entity
                 'name' => $field->name,
                 'type' => $field->type->value,
                 'nullable' => $field->nullable,
+                'sometimes' => $field->sometimes,
                 'length' => $field->length,
                 'precision' => $field->precision,
                 'scale' => $field->scale,
