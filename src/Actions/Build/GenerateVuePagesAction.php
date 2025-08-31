@@ -7,6 +7,7 @@ use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\Config\Entity;
+use Glugox\Magic\Support\Config\Relation;
 use Glugox\Magic\Support\Frontend\TsHelper;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Illuminate\Support\Facades\File;
@@ -45,6 +46,11 @@ class GenerateVuePagesAction implements DescribableAction
         foreach ($this->context->getConfig()->entities as $entity) {
             $this->generateIndexPage($entity);
             $this->generateFormPage($entity);
+
+            // Create child pages for relations if any
+            foreach ($entity->getRelations() as $relation) {
+                $this->generateRelationPages($entity, $relation);
+            }
         }
 
         return $buildContext;
@@ -55,15 +61,14 @@ class GenerateVuePagesAction implements DescribableAction
      */
     protected function generateIndexPage(Entity $entity)
     {
-
         $folderName = $entity->getFolderName();
         $path = "{$this->pagesPath}/{$folderName}/Index.vue";
 
-        // Ensure directory exists
-        File::ensureDirectoryExists(dirname($path));
-
+        // Build the template for the index page
         $template = $this->getIndexTemplate($entity);
 
+        // Ensure directory exists
+        File::ensureDirectoryExists(dirname($path));
         // Action call -- Use the GenerateFileAction to create the file
         app(GenerateFileAction::class)($path, $template);
         $this->context->registerGeneratedFile($path);
@@ -74,18 +79,41 @@ class GenerateVuePagesAction implements DescribableAction
      */
     protected function generateFormPage(Entity $entity)
     {
-        $entityName = $entity->getName();
         $folderName = $entity->getFolderName();
-
         $path = "{$this->pagesPath}/{$folderName}/Edit.vue";
+
+        // Build the template for the form page
+        $template = $this->getFormTemplate($entity);
 
         // Ensure directory exists
         File::ensureDirectoryExists(dirname($path));
-
-        $template = $this->getFormTemplate($entity);
-
         app(GenerateFileAction::class)($path, $template);
+        $this->context->registerGeneratedFile($path);
     }
+
+    /**
+     * Generate pages for entity relations.
+     */
+    protected function generateRelationPages(Entity $entity, Relation $relation)
+    {
+        // For simplicity, let's assume we only create an Index page for the relation
+        $relatedEntityName = $relation->getRelatedEntityName();
+        if (!$relatedEntityName) {
+            return;
+        }
+
+        $folderName = $entity->getFolderName();
+        $path = "{$this->pagesPath}/{$folderName}/{$relation->getRelationName()}/Index.vue";
+
+        // Build the template for the relation index page
+        $template = $this->getRelationIndexTemplate($entity, $relation); // You might want a different template for relations
+
+        // Ensure directory exists
+        File::ensureDirectoryExists(dirname($path));
+        app(GenerateFileAction::class)($path, $template);
+        $this->context->registerGeneratedFile($path);
+    }
+
 
     /**
      * Get the Index.vue template content.
@@ -93,7 +121,82 @@ class GenerateVuePagesAction implements DescribableAction
     protected function getIndexTemplate(Entity $entity): string
     {
         $entityName = $entity->getName();
-        $title = $entity->getPluralName();
+        $title = $entity->getSingularName();
+        $folderName = $entity->getFolderName();
+        $href = $entity->getHref();
+        $columnsJson = $entity->getFieldsJson();
+        $entityImports = $this->tsHelper->writeEntityImports($entity);
+        $supportImports = $this->tsHelper->writeIndexPageSupportImports($entity);
+
+        return <<<PHP
+<script setup lang="ts">
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type BreadcrumbItem } from '@/types';
+import { Head } from '@inertiajs/vue3';
+import PlaceholderPattern from '@/components/PlaceholderPattern.vue'
+import ResourceTable from '@/components/ResourceTable.vue';
+import {ColumnDef} from "@tanstack/vue-table";
+$entityImports
+$supportImports
+
+interface Props {
+    data: PaginationObject;
+    filters?: TableFilters;
+}
+
+const { data }: Props = defineProps<Props>();
+
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: '{$title}',
+        href: '{$href}',
+    },
+];
+
+const columns: ColumnDef<{$entityName}>[] = get{$entityName}Columns();
+const entityMeta = get{$entityName}EntityMeta();
+
+</script>
+
+<template>
+    <Head title="{$title}" />
+
+    <AppLayout :breadcrumbs="breadcrumbs">
+        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
+            <!--<div class="grid auto-rows-min gap-4 md:grid-cols-3">
+                <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
+                    <PlaceholderPattern />
+                </div>
+                <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
+                    <PlaceholderPattern />
+                </div>
+                <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
+                    <PlaceholderPattern />
+                </div>
+            </div>-->
+            <div class="relative p-4 min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
+                <ResourceTable
+                    :data="data"
+                    :columns="columns"
+                    :entity-meta="entityMeta"
+                    :filters="filters"
+                    :controller="{$entity->name}Controller"
+                    />
+            </div>
+        </div>
+    </AppLayout>
+</template>
+
+PHP;
+    }
+
+    /**
+     * Get the Relation Index.vue template content.
+     */
+    protected function getRelationIndexTemplate(Entity $entity, Relation $relation): string
+    {
+        $entityName = $entity->getName();
+        $title = $entity->getSingularName();
         $folderName = $entity->getFolderName();
         $href = $entity->getHref();
         $columnsJson = $entity->getFieldsJson();
@@ -174,40 +277,42 @@ PHP;
         $columnsJson = $entity->getFieldsJson();
         $entityImports = $this->tsHelper->writeEntityImports($entity);
         $supportImports = $this->tsHelper->writeFormPageSupportImports($entity);
+        $relationSidebarItems = $this->tsHelper->writeRelationSidebarItems($entity, $this->context->getConfig());
 
 
         // V2
         return <<<PHP
 <script setup lang="ts">
-import { update } from '@/actions/App/Http/Controllers/Settings/ProfileController';
-import { edit } from '@/routes/profile';
-import { send } from '@/routes/verification';
-import { Form, Head, Link, usePage } from '@inertiajs/vue3';
-
-import DeleteUser from '@/components/DeleteUser.vue';
+import { edit } from '@/routes/{$folderName}';
+import { Head, usePage } from '@inertiajs/vue3';
 import HeadingSmall from '@/components/HeadingSmall.vue';
-import InputError from '@/components/InputError.vue';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/AppLayout.vue';
-import SettingsLayout from '@/layouts/settings/Layout.vue';
-import { type BreadcrumbItem } from '@/types';
+import ResourceLayout from '@/layouts/resource/Layout.vue';
+import { type BreadcrumbItem, type NavItem } from '@/types';
 
 import ResourceForm from '@/components/ResourceForm.vue';
 $entityImports
 $supportImports
 
 interface Props {
-    item?: Record<string, any>
+    item: {$entityName};
 }
 const { item }: Props = defineProps<Props>();
 
 const breadcrumbItems: BreadcrumbItem[] = [
     {
-        title: 'Profile settings',
-        href: edit().url,
+        title: '{$title}',
+        href: edit(item.id).url,
     },
+];
+
+const entityBaseRoute = edit(item.id);
+const sidebarNavItems: NavItem[] = [
+    {
+        title: 'General Information',
+        href: edit(item.id),
+    },
+    $relationSidebarItems
 ];
 
 const page = usePage();
@@ -217,9 +322,9 @@ const entityMeta = get{$entityName}EntityMeta();
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
-        <Head title="Profile settings" />
+        <Head title="{$entityName}" />
 
-        <SettingsLayout>
+        <ResourceLayout :sidebar-nav-items="sidebarNavItems">
             <div class="flex flex-col space-y-6">
                 <HeadingSmall title="{$entity->name} information" description="Update {$entity->name} details" />
 
@@ -229,7 +334,7 @@ const entityMeta = get{$entityName}EntityMeta();
                     :controller="{$entity->name}Controller"
                     />
             </div>
-        </SettingsLayout>
+        </ResourceLayout>
     </AppLayout>
 </template>
 

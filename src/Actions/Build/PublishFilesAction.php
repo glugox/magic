@@ -162,7 +162,7 @@ export function get{$entityName}Columns(): ColumnDef<{$entityName}>[] {
 export function get{$entityName}EntityMeta(): Entity {
     return {
         name: '{$entityName}',
-        resourcePath: '{$entity->getResourcePath()}',
+        indexRouteName: '{$entity->getIndexRouteName()}',
         singularName: '{$entity->getSingularName()}',
         pluralName: '{$entity->getPluralName()}',
         fields: [
@@ -188,7 +188,7 @@ EOT;
     private function getColumnsMeta(Entity $entity)
     {
         $fields = [];
-        foreach ($entity->getFields() as $field) {
+        foreach ($entity->getFormFields() as $field) {
             $fieldMeta = $this->tsHelper->writeFieldMeta($field);
             $fields[] = $fieldMeta;
         }

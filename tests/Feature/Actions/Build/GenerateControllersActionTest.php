@@ -12,6 +12,6 @@ it('generates controller and routes for entities', function () {
     $buildContext = $action($buildContext);
 
     expect($buildContext->getFilesGenerationUpdate()->created)->toBeGreaterThan(0)
-        ->and($buildContext->getFilesGenerationUpdate()->created)->toHaveLength(12);
+        ->and($buildContext->getFilesGenerationUpdate()->created)->toHaveLength(32);
 
 });

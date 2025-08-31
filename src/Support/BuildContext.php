@@ -59,8 +59,6 @@ class BuildContext
 
     /**
      * Return Config object.
-     *
-     * @throws \ReflectionException
      */
     public function getConfig(): ?Config
     {
@@ -130,18 +128,20 @@ class BuildContext
 
     /**
      * Ensure the config is loaded.
-     *
-     * @throws \ReflectionException
-     * @throws \Exception
+
      */
     private function ensureConfigLoaded(): void
     {
         if ($this->config === null) {
-            $this->config = app(ResolveAppConfigAction::class)([
-                'config' => $this->configPath,
-                'starter' => $this->starter,
-                'set' => $this->overrides,
-            ]);
+            try {
+                $this->config = app(ResolveAppConfigAction::class)([
+                    'config' => $this->configPath,
+                    'starter' => $this->starter,
+                    'set' => $this->overrides,
+                ]);
+            } catch (\JsonException|\ReflectionException $e) {
+                Log::channel('magic')->critical("Failed to load config file: {$e->getMessage()}");
+            }
         }
     }
 }

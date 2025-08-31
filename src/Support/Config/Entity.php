@@ -11,9 +11,9 @@ class Entity
         // Entity name, e.g. "User", "Post"
         public string $name,
         /** @var Field[] */
-        public array $fields,
+        public ?array $fields = [],
         /** @var Relation[] */
-        public array $relations = [],
+        public ?array $relations = [],
         /** @var string */
         public ?string $tableName = null,
         // settings for the entity, e.g. timestamps, soft deletes, etc.
@@ -144,7 +144,7 @@ class Entity
     /**
      * Get the resource path for the entity.
      */
-    public function getResourcePath(): string
+    public function getIndexRouteName(): string
     {
         // Convert entity name to kebab-case for resource path
         return $this->getFolderName().'.index';
@@ -152,6 +152,7 @@ class Entity
 
     /**
      * Get the href for the entity.
+     * Example: "/users", "/posts"
      */
     public function getHref(): string
     {

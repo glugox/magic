@@ -8,7 +8,7 @@ use function Glugox\Magic\Tests\Helpers\makeDummyUserEntityConfig;
 it('generates a Vue form file for a simple schema', function () {
 
     $config = getFixtureConfig();
-    $entity = $config->getEntity('User');
+    $entity = $config->getEntityByName('User');
 
     expect($entity)->not->toBe(null);
 

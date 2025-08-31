@@ -8,31 +8,17 @@ class Relation
 {
     public RelationType $type;      // e.g. 'hasMany', 'belongsTo'
 
-    private ?string $entityName;    // related entity name
-
-    private Entity $localEntity;   // local entity for this relation
-
-    private ?string $foreignKey;
-
-    private ?string $localKey;
-
-    private ?string $relationName; // e.g. 'posts', 'comments', etc.
 
     // getters ...
     public function __construct(
-        RelationType|string $type,
-        Entity $localEntity,
-        ?string $entityName = null,
-        ?string $foreignKey = null,
-        ?string $localKey = null,
-        ?string $relationName = null,
+        RelationType|string      $type,
+        private readonly Entity  $localEntity,
+        private readonly ?string $entityName = null,
+        private readonly ?string $foreignKey = null,
+        private ?string          $localKey = null,
+        private ?string          $relationName = null,
     ) {
-        $this->type = RelationType::from($type);
-        $this->localEntity = $localEntity;
-        $this->entityName = $entityName;
-        $this->foreignKey = $foreignKey;
-        $this->localKey = $localKey;
-        $this->relationName = $relationName;
+        $this->type = $type instanceof RelationType ? $type : RelationType::from($type);
     }
 
     public function getType(): RelationType
@@ -91,13 +77,28 @@ class Relation
     /**
      * Get the name of the related entity. Ex. 'User', 'Post', etc.
      */
-    public function getEntityName(): ?string
+    public function getRelatedEntityName(): ?string
     {
         return $this->entityName;
     }
 
+    /**
+     * Get the name of the related table in snake_case. Ex. 'users', 'posts', etc.
+     * // It differs from relation name which is camelCase and pluralized.
+     */
     public function getTableName(): string
     {
+
+        // If entity name is not set, return empty string
+        if (! $this->entityName) {
+           // If relation is MorphTo, return local entity's table name
+           if ($this->type === RelationType::MORPH_TO) {
+               return $this->getLocalEntity()->getTableName();
+           }
+
+           throw new \RuntimeException("Entity name is not set for relation of type {$this->type->value}");
+        }
+
         // Convert entity name to snake_case for table name
         return Str::snake(Str::plural($this->entityName));
     }
@@ -178,4 +179,5 @@ class Relation
             'relation_name' => $this->relationName,
         ], JSON_PRETTY_PRINT);
     }
+
 }

@@ -192,14 +192,6 @@ class Config
     }
 
     /**
-     * Returns entity by entity name , eg. "User", "Post".
-     */
-    public function getEntity(string $string)
-    {
-        return array_find($this->entities, fn ($entity) => $entity->getName() === $string);
-    }
-
-    /**
      * Ensures we have only one base path
      * in the beginning of the path.
      */
@@ -213,5 +205,13 @@ class Config
         }
 
         return base_path($path);
+    }
+
+    /**
+     * Get entity by its name.
+     */
+    public function getEntityByName(string $relatedEntityName) : ?Entity
+    {
+        return array_find($this->entities, fn ($entity) => $entity->getName() === $relatedEntityName);
     }
 }

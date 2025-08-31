@@ -197,7 +197,7 @@ PHP;
     /**
      * Generate a seeder for belongsToMany pivot tables
      */
-    protected function generatePivotSeeder(Entity $entity, $relation): void
+    protected function generatePivotSeeder(Entity $entity, Relation $relation): void
     {
 
         $pivotTable = $relation->getPivotName();
@@ -211,7 +211,7 @@ PHP;
         $this->generatedPivotSeeders[] = $pivotTable;
 
         $entityName = $entity->getName();
-        $relatedEntity = $relation->getEntityName();
+        $relatedEntity = $relation->getRelatedEntityName();
         $relationMethod = $relation->getRelationName();
 
         $seederClass = \Str::studly($pivotTable).'PivotSeeder';
@@ -317,7 +317,7 @@ PHP;
                 ->first(fn ($rel) => $rel->isBelongsTo() && $rel->getForeignKey() === $field->name);
 
             if ($belongsTo) {
-                $relatedEntity = $belongsTo->getEntityName();
+                $relatedEntity = $belongsTo->getRelatedEntityName();
                 $lines[] = "            '{$field->name}' => \\App\\Models\\{$relatedEntity}::inRandomOrder()->first()?->id ?? \\App\\Models\\{$relatedEntity}::factory(),";
 
                 continue;

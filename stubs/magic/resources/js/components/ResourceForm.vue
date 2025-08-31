@@ -24,30 +24,14 @@ entityMeta.fields.forEach((field: any) => {
     console.log('Initializing field:', field.name, 'with default:', field.default);
     form.value[field.name] = item ? item[field.name] : (field.default ?? '');
 });
-
-console.log('Form initialized with:', form.value);
-
-// Submit handler
-const submit = () => {
-    const isEdit = !!item?.id;
-    const url = isEdit ? controller.update(item.id) : controller.store();
-
-    const method = isEdit ? 'put' : 'post';
-
-    router[method](url, form.value, {
-        preserveScroll: true,
-        onSuccess: () => {
-            // maybe redirect or flash message
-        },
-    });
-};
 </script>
 
 <template>
     <Form :action="controller.update(item?.id)" method="post" class="space-y-6" v-slot="{ errors, processing, recentlySuccessful }">
         <FormField
             v-for="field in entityMeta.fields"
-            :item="item" :errors="errors"
+            :item="item"
+            :error="errors[field.name]"
             :key="field.name" :field="field" v-model="form[field.name]"
         />
 

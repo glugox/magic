@@ -9,6 +9,7 @@ use Glugox\Magic\Helpers\ValidationHelper;
 use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\FieldType;
+use Glugox\Magic\Support\Config\Relation;
 use Glugox\Magic\Support\Config\RelationType;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Illuminate\Support\Facades\File;
@@ -68,6 +69,11 @@ class GenerateControllersAction implements DescribableAction
     {
         foreach ($this->context->getConfig()->entities as $entity) {
             $this->generateController($entity);
+
+            // Generate relation controllers if needed
+            foreach ($entity->getRelations() as $relation) {
+                $this->generateRelationControllers($entity, $relation);
+            }
         }
     }
 
@@ -204,7 +210,7 @@ class $controllerClass extends Controller
     /**
      * Update the specified $modelClass in storage.
      */
-    public function update(Request \$request, $modelClass \${$modelClassLower})
+    public function update(Request \$request, $modelClass \$$modelClassLower)
     {
         \$data = \$request->validate($rulesArrayStrUpdate);
 
@@ -233,6 +239,88 @@ PHP;
 
         $relPath = str_replace(app_path('Http/Controllers/'), '', $filePath);
         Log::channel('magic')->info("Controller created: {$relPath}");
+    }
+
+    public function generateRelationControllers(Entity $entity, Relation $relation): void
+    {
+        $template = $this->buildRelationControllers($entity, $relation);
+        if (empty($template)) {
+            return;
+        }
+
+        // Example file path: app/Http/Controllers/UserRolesController.php
+        $filePath = $this->controllerPath.'/' . $entity->getSingularName() . '/' .Str::studly($entity->getName()).Str::studly($relation->getRelatedEntityName()).'Controller.php';
+        app(GenerateFileAction::class)($filePath, $template);
+        $this->context->registerGeneratedFile($filePath);
+    }
+
+    /**
+     * Each resource, eg. User, can have relations. In order to manage them,
+     * we will have to generate additional controllers.
+     * For example, if User hasMany Posts, we need a UserPostsController.
+     * This method will generate such controllers.
+     */
+    public function buildRelationControllers(Entity $entity, Relation $relation): string
+    {
+        // Example: User hasMany Posts
+        // We need to generate UserPostsController
+        $relatedEntityName = $relation->getRelatedEntityName();
+        if (! $relatedEntityName) {
+            return '';
+        }
+
+        $relatedEntity = $this->context->getConfig()->getEntityByName($relatedEntityName);
+        if (! $relatedEntity) {
+            Log::channel('magic')->warning("Related entity {$relation->getRelatedEntityName()} not found for relation in {$entity->getName()}");
+            return '';
+        }
+        $parentModelClass = $entity->getClassName();
+
+
+        $parentModelClassLower = Str::lower($parentModelClass);
+        $parentModelFolderName = $entity->getFolderName();
+
+        $parentModelClassFull = $entity->getFullyQualifiedModelClass();
+        $relatedModelClass = $relatedEntity->getClassName();
+        $relatedModelClassFull = $relatedEntity->getFullyQualifiedModelClass();
+        $controllerClass = Str::studly($entity->getName()).Str::studly($relatedEntity->getSingularName()).'Controller';
+        $relationName = $relation->getRelationName();
+        $relationNamePlural = $relatedEntity->getPluralName();
+
+
+
+        // Prepare template based on relation type
+        $template = <<<PHP
+<?php
+
+namespace App\Http\Controllers;
+
+use $parentModelClassFull;
+use $relatedModelClassFull;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+
+class $controllerClass extends Controller
+{
+    public function edit($parentModelClass \$$parentModelClassLower)
+    {
+        return inertia('$parentModelFolderName/relations/Edit$relationNamePlural', [
+            '$parentModelClassLower' => \${$parentModelClassLower}->only(['id', 'name']),
+            '$relationName' => $relatedModelClass::all(),
+            '{$relationName}_ids' => \${$parentModelClassLower}->{$relationName}->pluck('id'),
+        ]);
+    }
+
+    public function update(Request \$request, $parentModelClass \$$parentModelClassLower)
+    {
+        \${$parentModelClassLower}->{$relationName}()->sync(\$request->input('$relationName', []));
+        return back()->with('success', '$relatedModelClass updated.');
+    }
+}
+PHP;
+
+        return $template;
+
     }
 
     /**

@@ -80,7 +80,7 @@ class Renderer
         $belongsTo = $field->belongsTo();
         // If the field belongs to another entity, we can use a specific renderer for that entity
         if ($belongsTo) {
-            Log::channel('magic')->info('Field '.$field->name.' belongs to entity: '.$belongsTo->getEntityName().'. Using BelongsToRenderer.');
+            Log::channel('magic')->info('Field '.$field->name.' belongs to entity: '.$belongsTo->getRelatedEntityName().'. Using BelongsToRenderer.');
 
             return new BelongsToRenderer;
         }

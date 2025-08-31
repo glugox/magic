@@ -1,7 +1,9 @@
 export interface Field {
     name: string
     type: 'string' | 'number' | 'boolean' | 'any' | 'object' | 'Date'
+    label: string
     nullable: boolean
+    sometimes: boolean
     length: number | null
     precision: number | null
     scale: number | null

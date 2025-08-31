@@ -132,7 +132,7 @@ class Field
             precision: null,
             scale: null,
             default: null,
-            comment: 'Foreign key to '.$relation->getEntityName(),
+            comment: 'Foreign key to '.$relation->getRelatedEntityName(),
             sortable: true,
             searchable: false,
             isName: false,
@@ -146,7 +146,7 @@ class Field
     /**
      * Human-readable title of the field.
      */
-    public function title(): string
+    public function label(): string
     {
         return Str::title(Str::replace('_', ' ', $this->name));
     }

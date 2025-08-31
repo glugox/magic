@@ -2,10 +2,12 @@
 
 namespace Glugox\Magic\Support\Frontend;
 
+use Glugox\Magic\Support\Config\Config;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Frontend\Renderers\Cell\Renderer;
 use Glugox\Magic\Support\TypeHelper;
+use Illuminate\Support\Facades\Log;
 
 class TsHelper
 {
@@ -48,16 +50,13 @@ class TsHelper
     }
 
     /**
-     *
+     * In form pages we need some support imports.
      */
     public function writeFormPageSupportImports(Entity $entity): string
     {
         $imports = [
-            "import { parseBool } from '@/lib/app';",
-            "import { type Entity, type Field } from '@/types/support';",
             // Eg. import { getUserColumns, getUserEntityMeta } from '@/helpers/users_helper';
-            "import { get{$entity->name}Columns, get{$entity->name}EntityMeta } from '@/helpers/{$entity->getFolderName()}_helper'",
-            "import { type PaginationObject, type TableFilters } from '@/types/support';"
+            "import { get{$entity->name}EntityMeta } from '@/helpers/{$entity->getFolderName()}_helper'",
         ];
         return implode("\n", $imports)."\n";
     }
@@ -84,7 +83,7 @@ class TsHelper
         if ($field->sortable) {
             $fieldHeader = $this->writeSortableColumnHeader($field);
         } else {
-            $fieldHeader = "'{$field->title()}'";
+            $fieldHeader = "'{$field->label()}'";
         }
 
         $cellRenderer = $this->writeTableCell($field, $entity);
@@ -108,7 +107,7 @@ class TsHelper
      */
     public function writeSortableColumnHeader(Field $field): string
     {
-        $fieldTitle = $field->title();
+        $fieldTitle = $field->label();
         return "
             ({ column }) => {
                 return h(Button, {
@@ -129,6 +128,7 @@ class TsHelper
         return "{
             name: '{$field->name}',
             type: '{$tsType->value}',
+            label: '{$field->label()}',
             nullable: ".($field->nullable ? 'true' : 'false').',
             sometimes: '.($field->sometimes ? 'true' : 'false').',
             length: '.($field->length !== null ? $field->length : 'null').',
@@ -172,5 +172,46 @@ class TsHelper
         } else {
             return (string) $default;
         }
+    }
+
+    /**
+     * Write relation sidebar items for a given entity.
+     * This is used on resource edit form pages to create sidebar navigation items.
+     * So we have sidebar items like Orders, Products, etc.
+     *
+     * Writes something like:
+     *
+     * {
+     * title: 'Relationships',
+     * href: edit(item.id),
+     * },
+     * {
+     * title: 'Settings',
+     * href: edit(item.id),
+     * },
+     */
+    public function writeRelationSidebarItems(Entity $entity, Config $config): string
+    {
+        $items = [];
+        $entityHref = $entity->getHref();
+        foreach ($entity->getRelations() as $relation) {
+            $relatedEntityName = $relation->getRelatedEntityName();
+            if(!$relatedEntityName) {
+                Log::channel('magic')->warning("Relation {$relation->getRelationName()} of entity {$entity->name} has no related entity name.");
+                continue;
+
+            }
+            $relatedEntity = $config->getEntityByName($relatedEntityName);
+            if ($relatedEntity) {
+                $relationTitle = $relatedEntity->getPluralName();
+                $relationFolder = $relatedEntity->getFolderName();
+                $href = $entityHref . "/{$relationFolder}";
+                $items[] = "{
+                    title: '{$relationTitle}',
+                    href:  edit(item.id).url + `/{$relationFolder}`,
+                }";
+            }
+        }
+        return implode(",\n", $items);
     }
 }

@@ -224,7 +224,13 @@ class ResetAppCommand extends MagicBaseCommand
                 }
             }
 
-            rmdir($entityDir);
+            // Try to remove the entity directory if empty
+            /*try {
+                //File::deleteDirectory($jsPagesPath);
+            } catch (\Exception $e) {
+                $this->logWarning("Could not remove directory {$entityDir}. It may not be empty. Error: ".$e->getMessage());
+            }*/
+
             $this->logInfo("JS pages directory for {$entity->getName()} deleted successfully!");
         }
     }

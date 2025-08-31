@@ -218,7 +218,7 @@ PHP;
     protected function buildRelationMethod(Relation $relation): string
     {
         $methodName = $relation->getRelationName();
-        $relatedClass = $relation->getEntityName();
+        $relatedClass = $relation->getRelatedEntityName();
         $foreignKey = $relation->getForeignKey() ? "'{$relation->getForeignKey()}'" : '';
         $localKey = $relation->getLocalKey() ? ", '{$relation->getLocalKey()}'" : '';
 
@@ -230,12 +230,12 @@ PHP;
             RelationType::MORPH_ONE => "return \$this->morphOne($relatedClass::class, '{$relation->getMorphName()}');",
             RelationType::MORPH_MANY => "return \$this->morphMany($relatedClass::class, '{$relation->getMorphName()}');",
             RelationType::MORPH_TO => 'return $this->morphTo();',
-            default => "// Unknown relation type '{$relation->getType()->name}' for {$relation->getEntityName()}",
+            default => "// Unknown relation type '{$relation->getType()->name}' for {$relation->getRelatedEntityName()}",
         };
 
         return <<<PHP
     /**
-     * Relation method for {$relation->getType()->name} to {$relation->getEntityName()}.
+     * Relation method for {$relation->getType()->name} to {$relation->getRelatedEntityName()}.
      */
     public function $methodName()
     {
