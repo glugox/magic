@@ -48,7 +48,7 @@ class GenerateVuePagesAction implements DescribableAction
             $this->generateFormPage($entity);
 
             // Create child pages for relations if any
-            foreach ($entity->getRelations() as $relation) {
+            foreach ($entity->getRelationsWithValidEntity() as $relation) {
                 $this->generateRelationPages($entity, $relation);
             }
         }
@@ -96,11 +96,6 @@ class GenerateVuePagesAction implements DescribableAction
      */
     protected function generateRelationPages(Entity $entity, Relation $relation)
     {
-        // For simplicity, let's assume we only create an Index page for the relation
-        $relatedEntityName = $relation->getRelatedEntityName();
-        if (!$relatedEntityName) {
-            return;
-        }
 
         $folderName = $entity->getFolderName();
         $path = "{$this->pagesPath}/{$folderName}/{$relation->getRelationName()}/Index.vue";
@@ -195,31 +190,47 @@ PHP;
      */
     protected function getRelationIndexTemplate(Entity $entity, Relation $relation): string
     {
-        $entityName = $entity->getName();
-        $title = $entity->getSingularName();
-        $folderName = $entity->getFolderName();
-        $href = $entity->getHref();
-        $columnsJson = $entity->getFieldsJson();
-        $entityImports = $this->tsHelper->writeEntityImports($entity);
-        $supportImports = $this->tsHelper->writeIndexPageSupportImports($entity);
+        // Eg. User projects relation, where User is the main entity
+        $mainEntityName = $entity->getName();
+        // eg. Project
+        $relatedEntity = $relation->getRelatedEntity();
+        // Eg. Project
+        $relatedEntityName = $relatedEntity->getName();
+        // Eg. Projects
+        $title = $relatedEntity->getSingularName();
+        // Eg. projects
+        $relationName = $relation->getRelationName();
+        // Eg. /projects
+        $href = $relatedEntity->getHref();
+        $columnsJson = $relatedEntity->getFieldsJson();
+        $mainEntityImports = $this->tsHelper->writeEntityImports($entity);
+        $relatedEntityImports = $this->tsHelper->writeEntityImports($relatedEntity);
+        $supportImports = $this->tsHelper->writeIndexPageSupportImports($relatedEntity);
+        $relationSidebarItems = $this->tsHelper->writeRelationSidebarItems($relatedEntity, $this->context->getConfig());
+        $folderName = $relatedEntity->getFolderName();
 
         return <<<PHP
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
+import ResourceLayout from '@/layouts/resource/Layout.vue';
+import { type BreadcrumbItem, type NavItem } from '@/types';
+import { edit, show } from '@/routes/{$folderName}';
 import { Head } from '@inertiajs/vue3';
 import PlaceholderPattern from '@/components/PlaceholderPattern.vue'
 import ResourceTable from '@/components/ResourceTable.vue';
 import {ColumnDef} from "@tanstack/vue-table";
-$entityImports
+import HeadingSmall from '@/components/HeadingSmall.vue';
+$mainEntityImports
+$relatedEntityImports
 $supportImports
 
 interface Props {
-    data: PaginationObject;
+    item: {$mainEntityName};
+    $relationName: PaginationObject;
     filters?: TableFilters;
 }
 
-const { data }: Props = defineProps<Props>();
+const { item, $relationName }: Props = defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -228,8 +239,15 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const columns: ColumnDef<{$entityName}>[] = get{$entityName}Columns();
-const entityMeta = get{$entityName}EntityMeta();
+const columns: ColumnDef<{$relatedEntityName}>[] = get{$relatedEntityName}Columns();
+const entityMeta = get{$relatedEntityName}EntityMeta();
+const sidebarNavItems: NavItem[] = [
+    {
+        title: 'General Information',
+        href: edit(item.id),
+    },
+    $relationSidebarItems
+];
 
 </script>
 
@@ -237,28 +255,22 @@ const entityMeta = get{$entityName}EntityMeta();
     <Head title="{$title}" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
-            <!--<div class="grid auto-rows-min gap-4 md:grid-cols-3">
-                <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                    <PlaceholderPattern />
-                </div>
-                <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                    <PlaceholderPattern />
-                </div>
-                <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                    <PlaceholderPattern />
-                </div>
-            </div>-->
-            <div class="relative p-4 min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
+
+        <Head title="User" />
+
+        <ResourceLayout :sidebar-nav-items="sidebarNavItems">
+            <div class="flex flex-col space-y-6">
+                <HeadingSmall title="User information" description="Update User details" />
+
                 <ResourceTable
-                    :data="data"
+                    :data="$relationName"
                     :columns="columns"
                     :entity-meta="entityMeta"
                     :filters="filters"
-                    :controller="{$entity->name}Controller"
+                    :controller="{$relatedEntity->name}Controller"
                     />
             </div>
-        </div>
+        </ResourceLayout>
     </AppLayout>
 </template>
 
@@ -280,10 +292,9 @@ PHP;
         $relationSidebarItems = $this->tsHelper->writeRelationSidebarItems($entity, $this->context->getConfig());
 
 
-        // V2
         return <<<PHP
 <script setup lang="ts">
-import { edit } from '@/routes/{$folderName}';
+import { edit, show } from '@/routes/{$folderName}';
 import { Head, usePage } from '@inertiajs/vue3';
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import AppLayout from '@/layouts/AppLayout.vue';

@@ -50,6 +50,7 @@ class Entity
                 $relationData['type'],
                 $entity,
                 $relationData['entity'] ?? null,
+                null, // related entity will be set later in processRelations
                 $relationData['foreign_key'] ?? null,
                 $relationData['local_key'] ?? null,
                 $relationData['name'] ?? null
@@ -73,6 +74,37 @@ class Entity
         return $entity;
     }
 
+    /**
+     * Process relations to ensure all necessary properties are set.
+     */
+    public function processRelations(Config $config): void
+    {
+        foreach ($this->relations as $relation) {
+            // If related entity is not set, skip processing
+            if (empty($relation->getRelatedEntityName())) {
+                continue;
+            }
+
+            // Find the related entity in the config
+            $relatedEntity = null;
+            foreach ($config->entities as $entity) {
+                if ($entity->getName() === $relation->getRelatedEntityName()) {
+                    $relatedEntity = $entity;
+                    $relation->setRelatedEntity($relatedEntity);
+                    break;
+                }
+            }
+
+            if (! $relatedEntity) {
+                throw new \RuntimeException("Related entity '{$relation->getRelatedEntityName()}' not found for relation in entity '{$this->getName()}'.");
+            }
+        }
+    }
+
+    /**
+     * Get the entity's name.
+     * Example: "User", "Post"
+     */
     public function getName(): string
     {
         return $this->name;
@@ -100,6 +132,7 @@ class Entity
 
     /**
      * Get directory name for the entity.
+     * Example: "users", "posts", "failed_jobs"
      */
     public function getDirectoryName(): string
     {
@@ -108,6 +141,7 @@ class Entity
 
     /**
      * Get db table name for the entity.
+     * Example: "users", "posts"
      */
     public function getTableName(): string
     {
@@ -126,6 +160,7 @@ class Entity
 
     /**
      * Get the route name for the entity.
+     * Example: "users", "posts"
      */
     public function getRouteName(): string
     {
@@ -135,6 +170,7 @@ class Entity
 
     /**
      * Get folder name for the entity.
+     * Example: "users", "posts", "failed_jobs"
      */
     public function getFolderName(): string
     {
@@ -143,6 +179,8 @@ class Entity
 
     /**
      * Get the resource path for the entity.
+     * Example: "users.index", "posts.index"
+     * This is definition that can be passed to route() helper to generate URLs.
      */
     public function getIndexRouteName(): string
     {
@@ -162,6 +200,7 @@ class Entity
 
     /**
      * Entity name in plural form.
+     * Ex. "Users", "Posts"
      */
     public function getPluralName(): string
     {
@@ -170,6 +209,7 @@ class Entity
 
     /**
      * Entity name in singular form.
+     * Ex. "User", "Post"
      */
     public function getSingularName(): string
     {
@@ -558,6 +598,17 @@ class Entity
         }
 
         return $this->relations;
+    }
+
+    /**
+     * Get relations that have a valid related entity defined.
+     * @return Relation[]
+     */
+    public function getRelationsWithValidEntity(): array
+    {
+        return array_filter($this->relations, function (Relation $relation) {
+            return ! empty($relation->getRelatedEntityName());
+        });
     }
 
     /**

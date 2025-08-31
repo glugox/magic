@@ -56,7 +56,7 @@ class GenerateControllersAction implements DescribableAction
     {
         $this->context = $context;
 
-        $this->buildControllers();
+        $this->generateControllers();
         $this->generateRoutes();
 
         return $this->context;
@@ -65,7 +65,7 @@ class GenerateControllersAction implements DescribableAction
     /**
      * Generate controllers for all entities defined in the config.
      */
-    public function buildControllers(): void
+    public function generateControllers(): void
     {
         foreach ($this->context->getConfig()->entities as $entity) {
             $this->generateController($entity);
@@ -274,27 +274,32 @@ PHP;
             Log::channel('magic')->warning("Related entity {$relation->getRelatedEntityName()} not found for relation in {$entity->getName()}");
             return '';
         }
+        // Example: User
         $parentModelClass = $entity->getClassName();
-
-
+        // Example: user
         $parentModelClassLower = Str::lower($parentModelClass);
+        // Example: users
         $parentModelFolderName = $entity->getFolderName();
-
+        // Example: \App\Models\User
         $parentModelClassFull = $entity->getFullyQualifiedModelClass();
+        // Example: Post
         $relatedModelClass = $relatedEntity->getClassName();
+        // Example: \App\Models\Post
         $relatedModelClassFull = $relatedEntity->getFullyQualifiedModelClass();
+        // Example: UserPostController
         $controllerClass = Str::studly($entity->getName()).Str::studly($relatedEntity->getSingularName()).'Controller';
+        // Example: posts
         $relationName = $relation->getRelationName();
+        // Example: Posts
         $relationNamePlural = $relatedEntity->getPluralName();
-
-
 
         // Prepare template based on relation type
         $template = <<<PHP
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\\{$entity->getSingularName()};
 
+use App\Http\Controllers\Controller;
 use $parentModelClassFull;
 use $relatedModelClassFull;
 use Illuminate\Http\Request;
@@ -304,9 +309,9 @@ class $controllerClass extends Controller
 {
     public function edit($parentModelClass \$$parentModelClassLower)
     {
-        return inertia('$parentModelFolderName/relations/Edit$relationNamePlural', [
-            '$parentModelClassLower' => \${$parentModelClassLower}->only(['id', 'name']),
-            '$relationName' => $relatedModelClass::all(),
+        return inertia('$parentModelFolderName/$relationName/Index', [
+            'item' => \${$parentModelClassLower}->only(['id', 'name']),
+            '$relationName' => $relatedModelClass::paginate(),
             '{$relationName}_ids' => \${$parentModelClassLower}->{$relationName}->pluck('id'),
         ]);
     }
@@ -333,6 +338,7 @@ PHP;
     {
         $routeLines = [];
 
+        // First, let's register main resource controllers routes
         foreach ($this->context->getConfig()->entities as $entity) {
             $name = $entity->getRouteName();
             $controller = '\\App\\Http\\Controllers\\'.Str::studly(Str::singular($name)).'Controller';
@@ -340,6 +346,19 @@ PHP;
             $routeLines[] = "Route::resource('$name', '$controller');";
         }
 
+        // Now lets register relation controllers routes
+        foreach ($this->context->getConfig()->entities as $entity) {
+            $routeLines[] = '';
+            $routeLines[] = " // Routes for entity: {$entity->getName()} relations";
+            foreach ($entity->getRelationsWithValidEntity() as $relation) {
+                $relationName = $relation->getRelationName();
+                $fQCN = $relation->getControllerFullQualifiedName();
+
+                $routeLines[] = " // Routes for relation: {$entity->getName()} -> {$relation->getRelationName()} ({$relation->type->value})";
+                $routeLines[] = "Route::get('{$relation->getRouteDefinitionPath()}', [{$fQCN}::class, 'edit'])->name('{$entity->getRouteName()}.edit-$relationName');";
+                $routeLines[] = "Route::put('{$relation->getRouteDefinitionPath()}', [{$fQCN}::class, 'update'])->name('{$entity->getRouteName()}.update-$relationName');";
+            }
+        }
         $routesContent = "<?php\n\nuse Illuminate\Support\Facades\Route;\n\n".implode("\n", $routeLines)."\n";
 
         app(GenerateFileAction::class)($this->routesFilePath, $routesContent);

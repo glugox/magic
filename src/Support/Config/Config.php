@@ -36,6 +36,8 @@ class Config
         $this->entities = $entities;
         $this->app = $app;
         $this->dev = $dev ?? new Dev;
+
+        $this->processEntities();
     }
 
     /**
@@ -213,5 +215,15 @@ class Config
     public function getEntityByName(string $relatedEntityName) : ?Entity
     {
         return array_find($this->entities, fn ($entity) => $entity->getName() === $relatedEntityName);
+    }
+
+    /**
+     * Process entities to resolve relations and other settings.
+     */
+    private function processEntities()
+    {
+        foreach ($this->entities as $entity) {
+            $entity->processRelations($this);
+        }
     }
 }

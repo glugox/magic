@@ -208,7 +208,7 @@ class TsHelper
                 $href = $entityHref . "/{$relationFolder}";
                 $items[] = "{
                     title: '{$relationTitle}',
-                    href:  edit(item.id).url + `/{$relationFolder}`,
+                    href:  show(item.id).url + `/{$relationFolder}`,
                 }";
             }
         }

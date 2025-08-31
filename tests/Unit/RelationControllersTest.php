@@ -9,12 +9,14 @@ use Glugox\Magic\Support\Config\RelationType;
 it('generates a relation controller template when related entity exists', function () {
     // Fake config entities
     $userEntity = new Entity('User');
+    $roleEntity = new Entity('Role');
 
     // Add relation User -> Role (hasMany, belongsToMany, etc.)
     $relation = new Relation(
         type: RelationType::BELONGS_TO_MANY,
         localEntity: $userEntity,
         entityName: 'Role',
+        relatedEntity: $roleEntity,
     );
     $userEntity->addRelation($relation);
 

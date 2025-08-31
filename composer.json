@@ -1,6 +1,7 @@
 {
     "name": "glugox/magic",
     "description": "Tools for creating magic!",
+    "version": "1.0.0",
     "type": "library",
     "keywords": [
         "glugox",

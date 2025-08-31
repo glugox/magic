@@ -15,7 +15,7 @@ export interface Field {
 
 export interface Entity {
     name: string
-    resourcePath: string
+    indexRouteName: string
     singularName: string
     pluralName: string
     fields: Field[]

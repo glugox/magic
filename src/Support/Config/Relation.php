@@ -14,6 +14,7 @@ class Relation
         RelationType|string      $type,
         private readonly Entity  $localEntity,
         private readonly ?string $entityName = null,
+        private ?Entity          $relatedEntity = null,
         private readonly ?string $foreignKey = null,
         private ?string          $localKey = null,
         private ?string          $relationName = null,
@@ -83,6 +84,28 @@ class Relation
     }
 
     /**
+     * Sets the related entity
+     */
+    public function setRelatedEntity(Entity $entity): void
+    {
+        $this->relatedEntity = $entity;
+    }
+
+    /**
+     * Get the related entity object.
+     * If the related entity is not set, it throws an exception.
+     *
+     * @throws \RuntimeException
+     */
+    public function getRelatedEntity(): Entity
+    {
+        if (! $this->relatedEntity) {
+            throw new \RuntimeException("Related entity is not set for relation of type {$this->type->value}");
+        }
+        return $this->relatedEntity;
+    }
+
+    /**
      * Get the name of the related table in snake_case. Ex. 'users', 'posts', etc.
      * // It differs from relation name which is camelCase and pluralized.
      */
@@ -142,6 +165,34 @@ class Relation
         sort($tables);
 
         return implode('_', $tables);
+    }
+
+    /**
+     * Returns controller name for the related entity.
+     * // we need to be able to easily generate these php lines in order to write them to routes file
+     * Route::get('users/{user}/roles', [\App\Http\Controllers\User\UserRoleController::class, 'edit'])
+     * ->name('users.roles.edit');
+     * Route::put('users/{user}/roles', [\App\Http\Controllers\User\UserRoleController::class, 'update'])
+     * ->name('users.roles.update');
+     */
+    public function getControllerFullQualifiedName(): string
+    {
+        $localEntityName = $this->localEntity->getName();
+        $relatedEntityName = $this->entityName;
+
+        return "\\App\\Http\\Controllers\\{$localEntityName}\\{$localEntityName}{$relatedEntityName}Controller";
+    }
+
+    /**
+     * Returns route definition name for the relation.
+     * Ex. 'users/{user}/roles'
+     */
+    public function getRouteDefinitionPath(): string
+    {
+        $localEntityNamePlural = Str::snake($this->localEntity->getPluralName());
+        $localEntityNameSingular = Str::snake($this->localEntity->getName());
+        $relatedEntityName = Str::snake($this->getRelationName());
+        return "{$localEntityNamePlural}/{{$localEntityNameSingular}}/{$relatedEntityName}";
     }
 
     /**
