@@ -2,6 +2,7 @@
 
 namespace Glugox\Magic\Support\File;
 
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 
 class FilesGenerationUpdate
@@ -74,6 +75,7 @@ class FilesGenerationUpdate
                 'deleted' => $this->deleted,
             ],
         ];
+        File::ensureDirectoryExists(dirname($manifestPath));
         file_put_contents($manifestPath, json_encode($data, JSON_PRETTY_PRINT));
     }
 
