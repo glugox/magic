@@ -5,6 +5,7 @@ namespace Glugox\Magic\Actions\Build;
 use Glugox\Magic\Actions\Files\GenerateFileAction;
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
+use Glugox\Magic\Enums\CrudActionType;
 use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Relation;
@@ -44,8 +45,14 @@ class GenerateVuePagesAction implements DescribableAction
     {
         $this->context = $buildContext;
         foreach ($this->context->getConfig()->entities as $entity) {
+            // List resource pages , displaying items in table
             $this->generateIndexPage($entity);
-            $this->generateFormPage($entity);
+
+            // Create form page for edit
+            $this->generateEditFormPage($entity);
+
+            // Create form page for create (can be same as edit)
+            $this->generateCreateFormPage($entity);
 
             // Create child pages for relations if any
             foreach ($entity->getRelationsWithValidEntity() as $relation) {
@@ -77,14 +84,29 @@ class GenerateVuePagesAction implements DescribableAction
     /**
      * Generate the Create/Edit form page.
      */
-    protected function generateFormPage(Entity $entity)
+    protected function generateEditFormPage(Entity $entity)
     {
         $folderName = $entity->getFolderName();
         $path = "{$this->pagesPath}/{$folderName}/Edit.vue";
 
         // Build the template for the form page
-        $template = $this->getFormTemplate($entity);
+        $template = $this->getEditFormTemplate($entity);
 
+        // Ensure directory exists
+        File::ensureDirectoryExists(dirname($path));
+        app(GenerateFileAction::class)($path, $template);
+        $this->context->registerGeneratedFile($path);
+    }
+
+    /**
+     * Generate the Create form page.
+     */
+    protected function generateCreateFormPage(Entity $entity)
+    {
+        $folderName = $entity->getFolderName();
+        $path = "{$this->pagesPath}/{$folderName}/Create.vue";
+        // For now, use the same template as Edit
+        $template = $this->getCreateFormTemplate($entity);
         // Ensure directory exists
         File::ensureDirectoryExists(dirname($path));
         app(GenerateFileAction::class)($path, $template);
@@ -272,17 +294,14 @@ PHP;
     /**
      * Get the Form.vue template content.
      */
-    protected function getFormTemplate(Entity $entity): string
+    protected function getEditFormTemplate(Entity $entity): string
     {
         $entityName = $entity->getName();
         $title = $entity->getPluralName();
         $folderName = $entity->getFolderName();
-        $href = $entity->getHref();
-        $columnsJson = $entity->getFieldsJson();
         $entityImports = $this->tsHelper->writeEntityImports($entity);
         $supportImports = $this->tsHelper->writeFormPageSupportImports($entity);
         $relationSidebarItems = $this->tsHelper->writeRelationSidebarItems($entity, $this->context->getConfig());
-
 
         return <<<PHP
 <script setup lang="ts">
@@ -308,8 +327,6 @@ const breadcrumbItems: BreadcrumbItem[] = [
         href: edit(item.id).url,
     },
 ];
-
-const entityBaseRoute = edit(item.id);
 const sidebarNavItems: NavItem[] = [
     {
         title: 'General Information',
@@ -320,17 +337,14 @@ const sidebarNavItems: NavItem[] = [
 
 const page = usePage();
 const entityMeta = get{$entityName}EntityMeta();
-
 </script>
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
         <Head title="{$entityName}" />
-
         <ResourceLayout :title="item.name" description="$entityName" :sidebar-nav-items="sidebarNavItems">
             <div class="flex flex-col space-y-6">
                 <HeadingSmall title="{$entity->name} information" description="Update {$entity->name} details" />
-
                 <ResourceForm
                     :entityMeta="entityMeta"
                     :item="item"
@@ -340,8 +354,68 @@ const entityMeta = get{$entityName}EntityMeta();
         </ResourceLayout>
     </AppLayout>
 </template>
-
 PHP;
+    }
 
+    /**
+     * Get the Create.vue template content.
+     */
+    protected function getCreateFormTemplate(Entity $entity): string
+    {
+        // Eg. User
+        $entityName = $entity->getName();
+        // Eg. Users
+        $title = $entity->getPluralName();
+        // Eg. users
+        $folderName = $entity->getFolderName();
+        $entityImports = $this->tsHelper->writeEntityImports($entity);
+        $supportImports = $this->tsHelper->writeFormPageSupportImports($entity);
+        $relationSidebarItems = $this->tsHelper->writeRelationSidebarItems($entity, $this->context->getConfig(), CrudActionType::CREATE);
+
+        return <<<PHP
+<script setup lang="ts">
+import { create } from '@/routes/{$folderName}';
+import { Head, usePage } from '@inertiajs/vue3';
+import HeadingSmall from '@/components/HeadingSmall.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
+import ResourceLayout from '@/layouts/resource/Layout.vue';
+import { type BreadcrumbItem, type NavItem } from '@/types';
+
+import ResourceForm from '@/components/ResourceForm.vue';
+$entityImports
+$supportImports
+
+interface Props {
+
+}
+defineProps<Props>();
+
+const breadcrumbItems: BreadcrumbItem[] = [
+    {
+        title: '{$title}',
+        href: '#',
+    },
+];
+
+const sidebarNavItems: NavItem[] = [];
+const page = usePage();
+const entityMeta = get{$entityName}EntityMeta();
+</script>
+
+<template>
+    <AppLayout :breadcrumbs="breadcrumbItems">
+        <Head title="{$entityName}" />
+        <ResourceLayout title="New {$entityName}" description="$entityName" :sidebar-nav-items="sidebarNavItems">
+            <div class="flex flex-col space-y-6">
+                <HeadingSmall title="{$entity->name} information" description="Fill {$entity->name} details" />
+                <ResourceForm
+                    :entityMeta="entityMeta"
+                    :controller="{$entity->name}Controller"
+                    />
+            </div>
+        </ResourceLayout>
+    </AppLayout>
+</template>
+PHP;
     }
 }

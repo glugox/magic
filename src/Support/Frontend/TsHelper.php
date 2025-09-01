@@ -2,6 +2,7 @@
 
 namespace Glugox\Magic\Support\Frontend;
 
+use Glugox\Magic\Enums\CrudActionType;
 use Glugox\Magic\Support\Config\Config;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
@@ -200,36 +201,40 @@ class TsHelper
      * href: edit(item.id),
      * },
      */
-    public function writeRelationSidebarItems(Entity $entity, Config $config): string
+    public function writeRelationSidebarItems(Entity $entity, Config $config, ?CrudActionType $crudActionType = CrudActionType::UPDATE): string
     {
         $items = [];
-        $entityHref = $entity->getHref();
         foreach ($entity->getRelations() as $relation) {
 
             // Do not show belongsTo relations
             if ($relation->type === RelationType::BELONGS_TO || $relation->type === RelationType::HAS_ONE) {
                continue;
             }
-
             $relatedEntityName = $relation->getRelatedEntityName();
             if(!$relatedEntityName) {
                 Log::channel('magic')->warning("Relation {$relation->getRelationName()} of entity {$entity->name} has no related entity name.");
                 continue;
-
             }
+
+            switch ($crudActionType) {
+                case CrudActionType::CREATE:
+                    $baseUrlTs = 'create().url';
+                    break;
+                default:
+                    $baseUrlTs = 'show(item.id).url';
+                    break;
+            }
+
             $relatedEntity = $config->getEntityByName($relatedEntityName);
             if ($relatedEntity) {
                 $relationTitle = $relatedEntity->getPluralName();
                 $relationFolder = $relatedEntity->getFolderName();
-                $href = $entityHref . "/{$relationFolder}";
-
                 $items[] = <<<VUE
             {
                 title: '{$relationTitle}',
-                href:  show(item.id).url + `/{$relationFolder}`,
+                href:  {$baseUrlTs} + `/{$relationFolder}`,
             }
 VUE;
-
             }
         }
         return implode(",\n", $items);

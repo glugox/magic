@@ -4,7 +4,7 @@ namespace Glugox\Magic\Validation;
 
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Config\FieldType;
-use Glugox\Magic\Validation\RuleSet\RuleSetCategoryType;
+use Glugox\Magic\Enums\CrudActionType;
 
 class RuleSet
 {
@@ -30,7 +30,7 @@ class RuleSet
         return $rules;
     }
 
-    public static function rulesFor(Field $field, ?RuleSetCategoryType $ruleSetCategory = null): array
+    public static function rulesFor(Field $field, ?CrudActionType $ruleSetCategory = null): array
     {
         $userRules = self::userRulesForField($field, $ruleSetCategory);
 
@@ -145,9 +145,9 @@ class RuleSet
         $rules = array_merge($rules, $rulesFromField);
 
         // Manage required / nullable / sometimes based on rule set category
-        if ($ruleSetCategory === RuleSetCategoryType::CREATE) {
+        if ($ruleSetCategory === CrudActionType::CREATE) {
            $appearRule = 'required';
-        } elseif ($ruleSetCategory === RuleSetCategoryType::UPDATE) {
+        } elseif ($ruleSetCategory === CrudActionType::UPDATE) {
            $appearRule = 'nullable';
         }
 
@@ -163,7 +163,7 @@ class RuleSet
     /**
      * Validate or adjust rules if needed
      */
-    private static function validateRules(array $rules, Field $field, ?RuleSetCategoryType $ruleSetCategory)
+    private static function validateRules(array $rules, Field $field, ?CrudActionType $ruleSetCategory)
     {
         // TODO: Implement any additional validation or adjustment of rules if needed
         return $rules;

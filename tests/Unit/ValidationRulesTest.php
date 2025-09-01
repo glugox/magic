@@ -2,7 +2,7 @@
 
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Validation\RuleSet;
-use Glugox\Magic\Validation\RuleSet\RuleSetCategoryType;
+use Glugox\Magic\Enums\CrudActionType;
 
 it('applies base ruleset for field type', function () {
 
@@ -12,7 +12,7 @@ it('applies base ruleset for field type', function () {
         'nullable' => false,
         'sometimes' => false,
     ]);
-    $rules = RuleSet::rulesFor($field, RuleSetCategoryType::CREATE);
+    $rules = RuleSet::rulesFor($field, CrudActionType::CREATE);
 
     expect($rules)->toBeArray()
         ->toContain('required')

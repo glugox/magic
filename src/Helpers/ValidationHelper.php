@@ -5,13 +5,13 @@ namespace Glugox\Magic\Helpers;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Validation\RuleSet;
-use Glugox\Magic\Validation\RuleSet\RuleSetCategoryType;
+use Glugox\Magic\Enums\CrudActionType;
 
 class ValidationHelper
 {
     public function make(
         Entity $entity,
-        ?RuleSetCategoryType $categoryType = RuleSetCategoryType::CREATE
+        ?CrudActionType $categoryType = CrudActionType::CREATE
     ): array
     {
         $rules = [];
@@ -29,7 +29,7 @@ class ValidationHelper
      */
     public function makeCreate(Entity $entity): array
     {
-        return $this->make($entity, RuleSetCategoryType::CREATE);
+        return $this->make($entity, CrudActionType::CREATE);
     }
 
     /**
@@ -37,12 +37,12 @@ class ValidationHelper
      */
     public function makeUpdate(Entity $entity): array
     {
-        return $this->make($entity, RuleSetCategoryType::UPDATE);
+        return $this->make($entity, CrudActionType::UPDATE);
     }
 
     protected function rulesForField(
         Field $field,
-        ?RuleSetCategoryType $categoryType = RuleSetCategoryType::CREATE
+        ?CrudActionType $categoryType = CrudActionType::CREATE
     ): array
     {
         $rules = RuleSet::rulesFor($field, $categoryType);

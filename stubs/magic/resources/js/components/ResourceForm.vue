@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed} from 'vue';
 import { Form, router, usePage } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Entity } from '@/types/support';
@@ -24,10 +24,15 @@ entityMeta.fields.forEach((field: any) => {
     console.log('Initializing field:', field.name, 'with default:', field.default);
     form.value[field.name] = item ? item[field.name] : (field.default ?? '');
 });
+
+// Decide which action to call (create vs update)
+const formAction = computed(() => {
+    return item ? controller.update(item.id) : controller.store();
+});
 </script>
 
 <template>
-    <Form :action="controller.update(item?.id)" method="post" class="space-y-6" v-slot="{ errors, processing, recentlySuccessful }">
+    <Form :action="formAction" method="post" class="space-y-6" v-slot="{ errors, processing, recentlySuccessful }">
         <FormField
             v-for="field in entityMeta.fields"
             :item="item"
@@ -36,7 +41,9 @@ entityMeta.fields.forEach((field: any) => {
         />
 
         <div class="flex items-center gap-4">
-            <Button :disabled="processing">Save</Button>
+            <Button :disabled="processing">
+                {{ item ? 'Update' : 'Create' }}
+            </Button>
 
             <Transition
                 enter-active-class="transition ease-in-out"

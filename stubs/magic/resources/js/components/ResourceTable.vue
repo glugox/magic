@@ -131,11 +131,15 @@ watch(search, () => {
                 placeholder="Search…"
                 class="border rounded px-2 py-1 w-64"
             />
-            <select v-model.number="perPage" class="border rounded px-2 py-1">
-                <option :value="10">10</option>
-                <option :value="25">25</option>
-                <option :value="50">50</option>
-            </select>
+            <!-- Add new entity button -->
+            <Button
+                v-if="entityMeta && controller && controller.create"
+                :href="controller.create().url"
+                as="a"
+                class="ml-auto"
+            >
+                New {{ entityMeta.singularName }}
+            </Button>
         </div>
 
         <!-- Table -->
