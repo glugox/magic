@@ -29,10 +29,14 @@ entityMeta.fields.forEach((field: any) => {
 const formAction = computed(() => {
     return item ? controller.update(item.id) : controller.store();
 });
+// Decide form method
+const formMethod = computed(() => {
+    return item ? 'put' : 'post';
+});
 </script>
 
 <template>
-    <Form :action="formAction" method="post" class="space-y-6" v-slot="{ errors, processing, recentlySuccessful }">
+    <Form :action="formAction" :method="formMethod" class="space-y-6" v-slot="{ errors, processing, recentlySuccessful }">
         <FormField
             v-for="field in entityMeta.fields"
             :item="item"

@@ -231,6 +231,14 @@ class Field
     }
 
     /**
+     * Check if this field is an id field.
+     */
+    public function isId(): bool
+    {
+        return $this->name === 'id';
+    }
+
+    /**
      * Check if this field is a name field.
      */
     public function isName(): bool

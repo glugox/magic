@@ -145,7 +145,7 @@ class RuleSet
         $rules = array_merge($rules, $rulesFromField);
 
         // Manage required / nullable / sometimes based on rule set category
-        if ($ruleSetCategory === CrudActionType::CREATE) {
+        if ($ruleSetCategory === CrudActionType::CREATE && !$field->isId()) {
            $appearRule = 'required';
         } elseif ($ruleSetCategory === CrudActionType::UPDATE) {
            $appearRule = 'nullable';
