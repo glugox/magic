@@ -82,7 +82,13 @@ if (! function_exists("exportPhpValue")) {
         }
 
         // 4️⃣ For non-arrays: delegate to var_export() for correct PHP syntax
-        // Handles strings, integers, floats, booleans, null
+        if (is_object($value)) {
+            if (method_exists($value, '__toString')) {
+                return var_export((string)$value, true);
+            }
+            return '/* Object of ' . get_class($value) . ' */';
+        }
+
         return var_export($value, true);
     }
 

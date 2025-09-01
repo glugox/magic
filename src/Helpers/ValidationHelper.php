@@ -4,50 +4,50 @@ namespace Glugox\Magic\Helpers;
 
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
-use Glugox\Magic\Validation\RuleSet;
+use Glugox\Magic\Validation\EntityRuleSet;
+use Glugox\Magic\Validation\RuleSetHelper;
 use Glugox\Magic\Enums\CrudActionType;
+use Glugox\Magic\Validation\ValidationRule;
+use Glugox\Magic\Validation\ValidationRuleSet;
 
 class ValidationHelper
 {
+    /**
+     * @param Entity $entity
+     * @return EntityRuleSet  Aggregated validation rules for the entity like ['field1' => ['required', 'string', 'max:255'], 'field2' => ['nullable', 'integer', 'min:0'] ... ]
+     */
     public function make(
-        Entity $entity,
-        ?CrudActionType $categoryType = CrudActionType::CREATE
-    ): array
+        Entity $entity
+    ): EntityRuleSet
     {
-        $rules = [];
+        $entityRuleSet = new EntityRuleSet();
         foreach ($entity->getFields() as $field) {
-            $fieldRules = $this->rulesForField($field, $categoryType);
-            if (!empty($fieldRules)) {
-                $rules[$field->name] = $fieldRules;
-            }
+            $rulesCreate = new ValidationRuleSet(
+                fieldName: $field->name,
+                rules: $this->rulesForField($field, CrudActionType::CREATE)
+            );
+            $rulesUpdate = new ValidationRuleSet(
+                fieldName: $field->name,
+                rules: $this->rulesForField($field, CrudActionType::UPDATE)
+            );
+            $entityRuleSet->setCreateRuleSetForField($field->name, $rulesCreate);
+            $entityRuleSet->setUpdateRuleSetForField($field->name, $rulesUpdate);
         }
-        return $rules;
+        return $entityRuleSet;
     }
 
     /**
-     * Make rules for creating an entity
+     * @param Field $field
+     * @param CrudActionType|null $categoryType
+     * @return ValidationRule[]  Aggregated validation rules like ['required', 'string', 'max:255']
      */
-    public function makeCreate(Entity $entity): array
-    {
-        return $this->make($entity, CrudActionType::CREATE);
-    }
-
-    /**
-     * Make rules for updating an entity
-     */
-    public function makeUpdate(Entity $entity): array
-    {
-        return $this->make($entity, CrudActionType::UPDATE);
-    }
-
     protected function rulesForField(
         Field $field,
         ?CrudActionType $categoryType = CrudActionType::CREATE
     ): array
     {
-        $rules = RuleSet::rulesFor($field, $categoryType);
+       return RuleSetHelper::rulesFor($field, $categoryType);
 
-        return array_values($rules);
     }
 }
 

@@ -3,12 +3,14 @@
 namespace Glugox\Magic\Support\Frontend;
 
 use Glugox\Magic\Enums\CrudActionType;
+use Glugox\Magic\Helpers\ValidationHelper;
 use Glugox\Magic\Support\Config\Config;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Config\RelationType;
 use Glugox\Magic\Support\Frontend\Renderers\Cell\Renderer;
 use Glugox\Magic\Support\TypeHelper;
+use Glugox\Magic\Validation\EntityRuleSet;
 use Illuminate\Support\Facades\Log;
 
 class TsHelper
@@ -17,7 +19,8 @@ class TsHelper
      * Constructor
      */
     public function __construct(
-        protected TypeHelper $typeHelper
+        protected TypeHelper $typeHelper,
+        protected ValidationHelper $validationHelper,
     ){}
 
     /**
@@ -126,12 +129,19 @@ class TsHelper
      * Write field metadata for a given field.
      * This is used to generate TypeScript interfaces or types.
      */
-    public function writeFieldMeta(Field $field)
+    public function writeFieldMeta(Field $field, EntityRuleSet $entityValidationRuleSet)
     {
         $tsType = $this->typeHelper->migrationTypeToTsType($field->type);
 
-        // Aggregate rules for Laravel style validation
-        $rules = $this->aggregateFieldValidationRules($field);
+        $rulesCreateRuleSet = $entityValidationRuleSet->getCreateRuleSetForField($field->name);
+        $rulesUpdateRuleSet = $entityValidationRuleSet->getUpdateRuleSetForField($field->name);
+
+        $rulesStr = "
+            rules: {
+                create : [".implode(', ', array_map(fn($r) => "'$r'", $rulesCreateRuleSet ? $rulesCreateRuleSet->getRules() : []))."],
+                update : [".implode(', ', array_map(fn($r) => "'$r'", $rulesUpdateRuleSet ? $rulesUpdateRuleSet->getRules() : [])) ."]
+            }
+        ";
 
 
         return "{
@@ -144,12 +154,21 @@ class TsHelper
             length: '.($field->length !== null ? $field->length : 'null').',
             precision: '.($field->precision !== null ? $field->precision : 'null').',
             scale: '.($field->scale !== null ? $field->scale : 'null').',
-            rules: ['.implode(', ', array_map(fn($r) => "'$r'", $rules)).'],
+            '.$rulesStr.',
             default: '.($field->default !== null ? "'{$field->default}'" : 'null').',
             comment: '.($field->comment !== null ? "'{$field->comment}'" : 'null').',
             sortable: '.($field->sortable ? 'true' : 'false').',
             searchable: '.($field->searchable ? 'true' : 'false').'
         }';
+    }
+
+    /**
+     * Write Field's validation rules for a given field.
+     */
+    public function writeFieldValidationRules(Field $field): string
+    {
+        $rules = $this->validationHelper->make($field->getEntity())->getCreateRulesForField($field);
+        return implode('|', $rules);
     }
 
     /**
@@ -238,47 +257,5 @@ VUE;
             }
         }
         return implode(",\n", $items);
-    }
-
-    /**
-     * @param Field $field
-     * @return array<string>  Aggregated validation rules like ['required', 'string', 'max:255']
-     */
-    private function aggregateFieldValidationRules(Field $field) : array
-    {
-        $rules = [];
-        if ($field->required) {
-            $rules[] = 'required';
-        }
-        if ($field->nullable) {
-            $rules[] = 'nullable';
-        }
-        if ($field->sometimes) {
-            $rules[] = 'sometimes';
-        }
-        if ($field->length !== null) {
-            $rules[] = "max:{$field->length}";
-        }
-        if ($field->precision !== null && $field->scale !== null) {
-            $rules[] = "digits:{$field->precision}";
-        }
-
-        // Add type based rules
-        $typeRule = match ($field->type) {
-            'string', 'text', 'enum' => 'string',
-            'integer', 'bigint', 'smallint' => 'integer',
-            'float', 'double', 'decimal' => 'numeric',
-            'boolean' => 'boolean',
-            'date' => 'date',
-            'datetime', 'timestamp' => 'date',
-            'time' => 'date_format:H:i:s',
-            'json' => 'json',
-            default => null,
-        };
-
-        if ($typeRule) {
-            $rules[] = $typeRule;
-        }
-        return $rules;
     }
 }

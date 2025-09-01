@@ -6,6 +6,7 @@ use Glugox\Magic\Actions\Files\CopyDirectoryAction;
 use Glugox\Magic\Actions\Files\GenerateFileAction;
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
+use Glugox\Magic\Helpers\ValidationHelper;
 use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Frontend\TsHelper;
@@ -39,6 +40,7 @@ class PublishFilesAction implements DescribableAction
     public function __construct(
         private readonly TypeHelper $typeHelper,
         private readonly TsHelper $tsHelper,
+        private readonly ValidationHelper $validationHelper,
     ){
         $this->jsPath = resource_path('js');
     }
@@ -188,8 +190,9 @@ EOT;
     private function getColumnsMeta(Entity $entity)
     {
         $fields = [];
+        $entityValidationRuleSet = $this->validationHelper->make($entity);
         foreach ($entity->getFormFields() as $field) {
-            $fieldMeta = $this->tsHelper->writeFieldMeta($field);
+            $fieldMeta = $this->tsHelper->writeFieldMeta($field, $entityValidationRuleSet);
             $fields[] = $fieldMeta;
         }
 

@@ -1,7 +1,7 @@
 <?php
 
 use Glugox\Magic\Support\Config\Field;
-use Glugox\Magic\Validation\RuleSet;
+use Glugox\Magic\Validation\RuleSetHelper;
 use Glugox\Magic\Enums\CrudActionType;
 
 it('applies base ruleset for field type', function () {
@@ -12,9 +12,10 @@ it('applies base ruleset for field type', function () {
         'nullable' => false,
         'sometimes' => false,
     ]);
-    $rules = RuleSet::rulesFor($field, CrudActionType::CREATE);
+    $rules = RuleSetHelper::rulesFor($field, CrudActionType::CREATE);
+    $rulesArr = array_map(function ($rule) { return (string)$rule; }, $rules);
 
-    expect($rules)->toBeArray()
+    expect($rulesArr)->toBeArray()
         ->toContain('required')
         ->toContain('string')
         ->toContain('max:255');
@@ -29,9 +30,10 @@ it('removes required and adds nullable if field is nullable', function () {
         'sometimes' => false,
     ]);
 
-    $rules = RuleSet::rulesFor($nullableField);
+    $rules = RuleSetHelper::rulesFor($nullableField);
+    $rulesArr = array_map(function ($rule) { return (string)$rule; }, $rules);
 
-    expect($rules)->not->toContain('required')
+    expect($rulesArr)->not->toContain('required')
         ->toContain('nullable')
         ->toContain('string')
         ->toContain('max:255');
@@ -45,9 +47,10 @@ it('adds sometimes if field is marked sometimes', function () {
         'sometimes' => true,
     ]);
 
-    $rules = RuleSet::rulesFor($sometimeField);
+    $rules = RuleSetHelper::rulesFor($sometimeField);
+    $rulesArr = array_map(function ($rule) { return (string)$rule; }, $rules);
 
-    expect($rules)->toContain('sometimes')
+    expect($rulesArr)->toContain('sometimes')
         ->toContain('string')
         ->toContain('min:8')
         ->toContain('confirmed');
@@ -61,9 +64,10 @@ it('nullable and sometimes together', function () {
         'sometimes' => true,
     ]);
 
-    $rules = RuleSet::rulesFor($nullableButSometimeField);
+    $rules = RuleSetHelper::rulesFor($nullableButSometimeField);
+    $rulesArr = array_map(function ($rule) { return (string)$rule; }, $rules);
 
-    expect($rules)->toContain('nullable')
+    expect($rulesArr)->toContain('nullable')
         ->not->toContain('sometimes')
         ->not->toContain('required')
         ->toContain('string')

@@ -6,33 +6,44 @@ use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Config\FieldType;
 use Glugox\Magic\Enums\CrudActionType;
 
-class RuleSet
+class RuleSetHelper
 {
+    /**
+     * Get user-defined rules for a given field and category type
+     * @return ValidationRule[]
+     */
     public static function userRulesForField(Field $field, $categoryType) : array
     {
         $rules = [];
         if ($field->required) {
-            $rules[] = 'required';
+            $rules[] = new ValidationRule('required');
         } elseif ($field->nullable) {
-            $rules[] = 'nullable';
+            $rules[] = new ValidationRule('nullable');
         } elseif ($field->sometimes) {
-            $rules[] = 'sometimes';
+            $rules[] = new ValidationRule('sometimes');
         }
 
         // Min / Max
         if (isset($field->min)) {
-            $rules[] = 'min:' . $field->min;
+            $rules[] = new ValidationRule('min:' . $field->min);
         }
         if (isset($field->max)) {
-            $rules[] = 'max:' . $field->max;
+            $rules[] = new ValidationRule('max:' . $field->max);
         }
 
         return $rules;
     }
 
+    /**
+     * Get validation rules for a given field and action type
+     *
+     * @param Field $field The field configuration
+     * @param CrudActionType|null $ruleSetCategory The action type (create, update, etc.)
+     * @return ValidationRule[] The array of validation rules
+     */
     public static function rulesFor(Field $field, ?CrudActionType $ruleSetCategory = null): array
     {
-        $userRules = self::userRulesForField($field, $ruleSetCategory);
+        $rules = self::userRulesForField($field, $ruleSetCategory);
 
         $presetRules = match ($field->type) {
 
@@ -127,7 +138,12 @@ class RuleSet
         };
 
         // Merge preset rules and user-defined rules
-        $rules = array_merge($presetRules, $userRules);
+        if (count($presetRules) > 0) {
+            foreach ($presetRules as $rule) {
+                $rules[] = new ValidationRule($rule);
+            }
+        }
+
         $rules = self::validateRules($rules, $field, $ruleSetCategory);
 
         $hasRequiredRule = in_array('required', $rules);
@@ -142,13 +158,16 @@ class RuleSet
 
 
         $rulesFromField = $field->rules ?? [];
-        $rules = array_merge($rules, $rulesFromField);
+        // Merge rules from field definition
+        foreach ($rulesFromField as $rule) {
+            $rules[] = new ValidationRule($rule);
+        }
 
         // Manage required / nullable / sometimes based on rule set category
         if ($ruleSetCategory === CrudActionType::CREATE && !$field->isId()) {
-           $appearRule = 'required';
+           $appearRule = new ValidationRule('required');
         } elseif ($ruleSetCategory === CrudActionType::UPDATE) {
-           $appearRule = 'nullable';
+           $appearRule = new ValidationRule('sometimes');
         }
 
         // Add the appear rule if none of the appear rules are present
@@ -162,8 +181,15 @@ class RuleSet
 
     /**
      * Validate or adjust rules if needed
+     *
+     * @param ValidationRule[] $rules The array of rules to validate
+     * @param Field $field The field configuration
+     * @param CrudActionType|null $ruleSetCategory The action type (create, update
+     * etc.)
+     * @return ValidationRule[] The validated or adjusted array of rules
+     *
      */
-    private static function validateRules(array $rules, Field $field, ?CrudActionType $ruleSetCategory)
+    private static function validateRules(array $rules, Field $field, ?CrudActionType $ruleSetCategory) : array
     {
         // TODO: Implement any additional validation or adjustment of rules if needed
         return $rules;

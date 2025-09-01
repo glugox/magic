@@ -12,6 +12,8 @@ use Glugox\Magic\Support\Config\FieldType;
 use Glugox\Magic\Support\Config\Relation;
 use Glugox\Magic\Support\Config\RelationType;
 use Glugox\Magic\Traits\AsDescribableAction;
+use Glugox\Magic\Validation\EntityRuleSet;
+use Glugox\Magic\Validation\ValidationRuleSet;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -106,8 +108,14 @@ class GenerateControllersAction implements DescribableAction
             : "['".implode("', '", array_map(fn ($f) => $f->name, $searchableFields))."']";
 
 
-        $validationRulesCreate = $this->validationHelper->makeCreate($entity);
-        $validationRulesUpdate = $this->validationHelper->makeUpdate($entity);
+        /*$validationRulesCreate = $this->validationHelper->makeCreate($entity);
+        $validationRulesUpdate = $this->validationHelper->makeUpdate($entity);*/
+
+        /** @var EntityRuleSet $validationRules */
+        $validationRules = $this->validationHelper->make($entity);
+
+        $validationRulesCreate = $validationRules->getCreateRules() ?? [];
+        $validationRulesUpdate = $validationRules->getUpdateRules() ?? [];
 
         // Prepare for writing in php file
         $rulesArrayStrCreate = exportPhpValue($validationRulesCreate, 2);
