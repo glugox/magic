@@ -283,6 +283,108 @@ PHP;
      */
     public function buildRelationControllers(Entity $entity, Relation $relation): string
     {
+        $relatedEntityName = $relation->getRelatedEntityName();
+        if (! $relatedEntityName) {
+            return '';
+        }
+
+        $relatedEntity = $this->context->getConfig()->getEntityByName($relatedEntityName);
+        if (! $relatedEntity) {
+            Log::channel('magic')->warning("Related entity {$relation->getRelatedEntityName()} not found for relation in {$entity->getName()}");
+            return '';
+        }
+
+        $parentModelClass = $entity->getClassName();                       // User
+        $parentModelClassLower = Str::lower($parentModelClass);            // user
+        $parentModelFolderName = $entity->getFolderName();                 // Users
+        $parentModelClassFull = $entity->getFullyQualifiedModelClass();    // \App\Models\User
+
+        $relatedModelClass = $relatedEntity->getClassName();               // Post
+        $relatedModelClassFull = $relatedEntity->getFullyQualifiedModelClass(); // \App\Models\Post
+
+        $controllerClass = Str::studly($entity->getName()) . Str::studly($relatedEntity->getSingularName()) . 'Controller';
+        $relationName = $relation->getRelationName();                      // posts
+
+        // Default template
+        $methodBody = "// TODO: implement relation controller logic";
+
+        // Adjust template based on relation type
+        if ($relation->isHasMany()) {
+            $methodBody = <<<PHP
+        \${$parentModelClassLower}->load('$relationName');
+
+        return Inertia::render('$parentModelFolderName/$relationName/Index', [
+            'item' => \${$parentModelClassLower}->only(['id', 'name']),
+            '$relationName' => $relatedModelClass::where('{$relation->getForeignKey()}', \${$parentModelClassLower}->id)->paginate(),
+        ]);
+        PHP;
+        }
+
+        if ($relation->isHasOne()) {
+            $methodBody = <<<PHP
+        \$related = \${$parentModelClassLower}->$relationName;
+
+        return Inertia::render('$parentModelFolderName/$relationName/Index', [
+            'item' => \${$parentModelClassLower}->only(['id', 'name']),
+            '$relationName' => \$related,
+        ]);
+        PHP;
+        }
+
+        if ($relation->isBelongsTo()) {
+            $methodBody = <<<PHP
+        \$related = \${$parentModelClassLower}->$relationName;
+
+        return Inertia::render('$parentModelFolderName/$relationName/Index', [
+            'item' => \${$parentModelClassLower}->only(['id', 'name']),
+            '$relationName' => \$related,
+            '{$relationName}' => $relatedModelClass::paginate(['id','name']),
+        ]);
+        PHP;
+        }
+
+        if ($relation->isBelongsToMany()) {
+            $methodBody = <<<PHP
+        return Inertia::render('$parentModelFolderName/$relationName/Index', [
+            'item' => \${$parentModelClassLower}->only(['id', 'name']),
+            '{$relationName}' => $relatedModelClass::select(['id','name'])->paginate(),
+            '{$relationName}_ids' => \${$parentModelClassLower}->$relationName()->pluck('id'),
+        ]);
+        PHP;
+        }
+
+        // Final template
+        $template = <<<PHP
+<?php
+
+namespace App\Http\Controllers\\{$entity->getSingularName()};
+
+use App\Http\Controllers\Controller;
+use $parentModelClassFull;
+use $relatedModelClassFull;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+
+class $controllerClass extends Controller
+{
+    public function edit($parentModelClass \$$parentModelClassLower)
+    {
+        $methodBody
+    }
+}
+PHP;
+
+        return $template;
+    }
+
+    /**
+     * Each resource, eg. User, can have relations. In order to manage them,
+     * we will have to generate additional controllers.
+     * For example, if User hasMany Posts, we need a UserPostsController.
+     * This method will generate such controllers.
+     */
+    public function buildRelationControllersOld(Entity $entity, Relation $relation): string
+    {
         // Example: User hasMany Posts
         // We need to generate UserPostsController
         $relatedEntityName = $relation->getRelatedEntityName();

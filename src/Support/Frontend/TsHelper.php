@@ -12,6 +12,7 @@ use Glugox\Magic\Support\Frontend\Renderers\Cell\Renderer;
 use Glugox\Magic\Support\TypeHelper;
 use Glugox\Magic\Validation\EntityRuleSet;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class TsHelper
 {
@@ -26,8 +27,15 @@ class TsHelper
     /**
      * Write import statements for a given entity.
      * import { type User } from '@/types/entities';",
+     *
+     * @param Entity $entity The entity for which to write imports.
+     * @param Entity|null $parentEntity The parent entity if this is a nested entity.
+     * @param array|null $options Options to customize the imports. Supported options:
+     *                       - 'model' (bool): Whether to import the model type. Default is true.
+     *                       - 'controller' (bool): Whether to import the controller. Default is true.
+     * @return string
      */
-    public function writeEntityImports(Entity $entity, ?array $options = []): string
+    public function writeEntityImports(Entity $entity, ?Entity $parentEntity = null, ?array $options = []): string
     {
         $imports = [];
         $options = array_merge([
@@ -39,7 +47,13 @@ class TsHelper
             $imports[] = "import { type {$entity->name} } from '@/types/entities';";
         }
         if ($options['controller']) {
-            $imports[] = "import {$entity->name}Controller from '@/actions/App/Http/Controllers/{$entity->name}Controller'";
+            $controllerClass = $entity->name . 'Controller';
+            $controllerRelativePath = "{$controllerClass}";
+            if ($parentEntity) {
+                $controllerClass = $parentEntity->name . $controllerClass;
+                $controllerRelativePath = $parentEntity->getName() . "/{$controllerClass}";
+            }
+            $imports[] = "import $controllerClass from '@/actions/App/Http/Controllers/{$controllerRelativePath}';";
         }
         return implode("\n", $imports);
     }
@@ -136,13 +150,11 @@ class TsHelper
         $rulesCreateRuleSet = $entityValidationRuleSet->getCreateRuleSetForField($field->name);
         $rulesUpdateRuleSet = $entityValidationRuleSet->getUpdateRuleSetForField($field->name);
 
-        $rulesStr = "
-            rules: {
+        $rulesStr =
+            "rules: {
                 create : [".implode(', ', array_map(fn($r) => "'$r'", $rulesCreateRuleSet ? $rulesCreateRuleSet->getRules() : []))."],
                 update : [".implode(', ', array_map(fn($r) => "'$r'", $rulesUpdateRuleSet ? $rulesUpdateRuleSet->getRules() : [])) ."]
-            }
-        ";
-
+            }";
 
         return "{
             name: '{$field->name}',
@@ -160,15 +172,6 @@ class TsHelper
             sortable: '.($field->sortable ? 'true' : 'false').',
             searchable: '.($field->searchable ? 'true' : 'false').'
         }';
-    }
-
-    /**
-     * Write Field's validation rules for a given field.
-     */
-    public function writeFieldValidationRules(Field $field): string
-    {
-        $rules = $this->validationHelper->make($field->getEntity())->getCreateRulesForField($field);
-        return implode('|', $rules);
     }
 
     /**
@@ -250,7 +253,7 @@ class TsHelper
                 $relationFolder = $relatedEntity->getFolderName();
                 $items[] = <<<VUE
             {
-                title: '{$relationTitle}',
+                title: '{$relationTitle} - {$relation->getType()->value}',
                 href:  {$baseUrlTs} + `/{$relationFolder}`,
             }
 VUE;

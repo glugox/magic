@@ -1,3 +1,8 @@
+export type CrudActionType = 'create' | 'read' | 'update' | 'delete';
+
+// Define database Id type
+export type DbId = number;
+
 export interface Field {
     name: string
     type: 'string' | 'number' | 'boolean' | 'any' | 'object' | 'Date'
@@ -8,11 +13,16 @@ export interface Field {
     length: number | null
     precision: number | null
     scale: number | null
-    rules: string[]
+    rules: ValidationRuleSet
     default: any
     comment: string | null
     sortable: boolean
     searchable: boolean
+}
+
+export interface ValidationRuleSet {
+    create: string[]
+    update: string[]
 }
 
 export interface Entity {

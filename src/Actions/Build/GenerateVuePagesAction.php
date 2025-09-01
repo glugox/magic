@@ -139,9 +139,7 @@ class GenerateVuePagesAction implements DescribableAction
     {
         $entityName = $entity->getName();
         $title = $entity->getPluralName();
-        $folderName = $entity->getFolderName();
         $href = $entity->getHref();
-        $columnsJson = $entity->getFieldsJson();
         $entityImports = $this->tsHelper->writeEntityImports($entity);
         $supportImports = $this->tsHelper->writeIndexPageSupportImports($entity);
 
@@ -218,11 +216,14 @@ PHP;
         $href = $relatedEntity->getHref();
         $relationType = $relation->getType()->value;
 
-        $mainEntityImports = $this->tsHelper->writeEntityImports($entity, ['controller' => false]);
-        $relatedEntityImports = $this->tsHelper->writeEntityImports($relatedEntity);
+        $mainEntityImports = $this->tsHelper->writeEntityImports($entity, options: ['controller' => false]);
+        $relatedEntityImports = $this->tsHelper->writeEntityImports($relatedEntity, $entity);
         $supportImports = $this->tsHelper->writeIndexPageSupportImports($relatedEntity);
         $relationSidebarItems = $this->tsHelper->writeRelationSidebarItems($entity, $this->context->getConfig());
         $folderName = $entity->getFolderName();
+
+        // Controllrer name, eg. UserController
+        $controllerClass =  $entity->name . $relatedEntityName . 'Controller';
 
         return <<<PHP
 <script setup lang="ts">
@@ -234,6 +235,7 @@ import { Head } from '@inertiajs/vue3';
 import ResourceTable from '@/components/ResourceTable.vue';
 import {ColumnDef} from "@tanstack/vue-table";
 import HeadingSmall from '@/components/HeadingSmall.vue';
+import { type Id } from '@/types/support';
 $mainEntityImports
 $relatedEntityImports
 $supportImports
@@ -249,6 +251,7 @@ $supportImports
 interface Props {
     item: {$mainEntityName};
     $relationName: PaginationObject;
+    {$relationName}_ids?: Id[];
     filters?: TableFilters;
 }
 const { item, $relationName }: Props = defineProps<Props>();
@@ -274,14 +277,14 @@ const sidebarNavItems: NavItem[] = [
     <AppLayout :breadcrumbs="breadcrumbs">
         <Head title="User" />
         <ResourceLayout :title="item.name" description="$mainEntityName" :sidebar-nav-items="sidebarNavItems">
-            <div class="flex flex-col space-y-6">
+            <div class="flex flex-col space-y-6 max-w-2xl">
                 <HeadingSmall title="$relatedEntityPluralName" description="Update $mainEntityName $relationName" />
                 <ResourceTable
                     :data="$relationName"
                     :columns="columns"
                     :entity-meta="entityMeta"
                     :filters="filters"
-                    :controller="{$relatedEntity->name}Controller"
+                    :controller="{$controllerClass}"
                     />
             </div>
         </ResourceLayout>
@@ -343,7 +346,7 @@ const entityMeta = get{$entityName}EntityMeta();
     <AppLayout :breadcrumbs="breadcrumbItems">
         <Head title="{$entityName}" />
         <ResourceLayout :title="item.name" description="$entityName" :sidebar-nav-items="sidebarNavItems">
-            <div class="flex flex-col space-y-6">
+            <div class="flex flex-col space-y-6 max-w-2xl">
                 <HeadingSmall title="{$entity->name} information" description="Update {$entity->name} details" />
                 <ResourceForm
                     :entityMeta="entityMeta"
@@ -406,7 +409,7 @@ const entityMeta = get{$entityName}EntityMeta();
     <AppLayout :breadcrumbs="breadcrumbItems">
         <Head title="{$entityName}" />
         <ResourceLayout title="New {$entityName}" description="$entityName" :sidebar-nav-items="sidebarNavItems">
-            <div class="flex flex-col space-y-6">
+            <div class="flex flex-col space-y-6 max-w-2xl">
                 <HeadingSmall title="{$entity->name} information" description="Fill {$entity->name} details" />
                 <ResourceForm
                     :entityMeta="entityMeta"

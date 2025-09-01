@@ -1,7 +1,7 @@
 <template>
     <div class="grid gap-2">
         <Label for="email">{{ field.label }}</Label>
-        <span v-if="field.required || field.rules?.includes('required')" class="text-red-500">*</span>
+        <span v-if="rules?.includes('required')" class="text-red-500">*</span>
         <Input
             :type="field.type"
             class="mt-1 block w-full"
@@ -14,18 +14,24 @@
     </div>
 </template>
 <script setup lang="ts">
+import { computed } from 'vue'
 import { Input } from '@/components/ui/input/index.js';
 import InputError from '@/components/InputError.vue';
-import { Field } from '@/types/support.js';
+import { Field, CrudActionType } from '@/types/support.js';
 import {Label} from '@/components/ui/label';
 
 interface Props {
     error?: string;
     field: Field;
+    crudActionType: CrudActionType;
     item?: Record<string, any>;
     modelValue?: any;
 }
 
-const { error, field }: Props = defineProps<Props>();
+const { error, field, crudActionType }: Props = defineProps<Props>();
+
+// Computed
+const rules = computed(() => field.rules[crudActionType])
+
 
 </script>

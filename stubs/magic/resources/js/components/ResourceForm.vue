@@ -8,7 +8,7 @@ import FormField from '@/components/FormField.vue';
 // Props
 const { item, entityMeta, controller } = defineProps<{
     item?: Record<string, any>;
-    entityMeta: Entity;
+    entityMeta: Entity
     controller: any;
 }>();
 
@@ -24,6 +24,12 @@ entityMeta.fields.forEach((field: any) => {
     console.log('Initializing field:', field.name, 'with default:', field.default);
     form.value[field.name] = item ? item[field.name] : (field.default ?? '');
 });
+
+// Decide crudAction type
+const crudActionType = computed(() => item ? 'update' : 'create');
+
+// Decide CRUD action based on presence of item
+const isEditMode = computed(() => crudActionType === 'update');
 
 // Decide which action to call (create vs update)
 const formAction = computed(() => {
@@ -41,7 +47,10 @@ const formMethod = computed(() => {
             v-for="field in entityMeta.fields"
             :item="item"
             :error="errors[field.name]"
-            :key="field.name" :field="field" v-model="form[field.name]"
+            :key="field.name"
+            :field="field"
+            :crud-action-type="crudActionType"
+            v-model="form[field.name]"
         />
 
         <div class="flex items-center gap-4">
