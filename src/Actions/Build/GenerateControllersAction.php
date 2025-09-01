@@ -93,6 +93,12 @@ class GenerateControllersAction implements DescribableAction
         $relationsNames = array_map(fn ($r) => $r->getRelationName(), $relations);
         $relationNamesCode = empty($relationsNames) ? '[]' : "['".implode("', '", $relationsNames)."']";
 
+        // Fields visible in index listing
+        $tableFieldsNames = $entity->getTableFieldsNames();
+        $tableFieldsNamesStr = empty($tableFieldsNames)
+            ? '[]'
+            : "['".implode("', '", $tableFieldsNames)."']";
+
         // Searchable fields
         $searchableFields = array_filter($entity->getFields(), fn ($field) => $field->searchable);
         $searchableFieldsCode = empty($searchableFields)
@@ -130,10 +136,17 @@ class $controllerClass extends Controller
 
         // If the entity has searchable fields, we can use them for searching
         \$searchableFields = $searchableFieldsCode;
+        // Table fields to select
+        \$queryFields = $tableFieldsNamesStr;
 
         \$query = count(\$relations) > 0
             ? $modelClass::with(\$relations)
             : $modelClass::query();
+
+        // Only specific fields
+        if (count(\$queryFields) > 0) {
+            \$query->select(\$queryFields);
+        }
 
         // Sorting ( sortKey / sortDir )
         \$sortKey = \$request->get('sortKey', 'id');

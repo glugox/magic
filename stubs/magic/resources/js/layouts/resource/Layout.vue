@@ -2,14 +2,12 @@
 import Heading from '@/components/Heading.vue';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { appearance } from '@/routes';
-import { edit as editPassword } from '@/routes/password';
-import { edit } from '@/routes/profile';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import type { User } from '@/types/entities';
 
 interface Props {
+    title: string;
+    description?: string;
     sidebarNavItems: NavItem[];
 }
 const { sidebarNavItems }: Props = defineProps<Props>();
@@ -19,7 +17,7 @@ const currentPath = typeof window !== undefined ? window.location.pathname : '';
 
 <template>
     <div class="px-4 py-6">
-        <Heading title="Resource" description="Manage resource details and settings" />
+        <Heading :title="title" :description="description" />
 
         <div class="flex flex-col lg:flex-row lg:space-x-12">
             <aside v-if="sidebarNavItems?.length" class="w-full max-w-xl lg:w-48">
@@ -43,8 +41,8 @@ const currentPath = typeof window !== undefined ? window.location.pathname : '';
 
             <Separator class="my-6 lg:hidden" />
 
-            <div class="flex-1 md:max-w-2xl">
-                <section class="max-w-xl space-y-12">
+            <div class="flex-1 w-full">
+                <section class="w-full space-y-12">
                     <slot />
                 </section>
             </div>

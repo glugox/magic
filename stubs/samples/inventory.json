@@ -112,6 +112,7 @@
             "fields": [
                 { "name": "id", "type": "id", "nullable": false },
                 { "name": "order_id", "type": "unsignedBigInteger", "nullable": false },
+                { "name": "user_id", "type": "unsignedBigInteger", "nullable": false },
                 { "name": "shipped_at", "type": "dateTime", "nullable": true },
                 { "name": "delivered_at", "type": "dateTime", "nullable": true },
                 { "name": "carrier", "type": "string", "nullable": true }

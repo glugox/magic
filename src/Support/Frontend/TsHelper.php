@@ -5,6 +5,7 @@ namespace Glugox\Magic\Support\Frontend;
 use Glugox\Magic\Support\Config\Config;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
+use Glugox\Magic\Support\Config\RelationType;
 use Glugox\Magic\Support\Frontend\Renderers\Cell\Renderer;
 use Glugox\Magic\Support\TypeHelper;
 use Illuminate\Support\Facades\Log;
@@ -22,16 +23,21 @@ class TsHelper
      * Write import statements for a given entity.
      * import { type User } from '@/types/entities';",
      */
-    public function writeEntityImports(Entity $entity): string
+    public function writeEntityImports(Entity $entity, ?array $options = []): string
     {
-        $imports = [
-            "import { type {$entity->name} } from '@/types/entities';",
-            "import {$entity->name}Controller from '@/actions/App/Http/Controllers/{$entity->name}Controller'"
-        ];
-        /*foreach ($entity->getFields() as $field) {
+        $imports = [];
+        $options = array_merge([
+            'model' => true,
+            'controller' => true,
+        ], $options);
 
-        }*/
-        return implode("\n", $imports)."\n";
+        if ($options['model']) {
+            $imports[] = "import { type {$entity->name} } from '@/types/entities';";
+        }
+        if ($options['controller']) {
+            $imports[] = "import {$entity->name}Controller from '@/actions/App/Http/Controllers/{$entity->name}Controller'";
+        }
+        return implode("\n", $imports);
     }
 
     /**
@@ -40,8 +46,6 @@ class TsHelper
     public function writeIndexPageSupportImports(Entity $entity): string
     {
         $imports = [
-            "import { parseBool } from '@/lib/app';",
-            "import { type Entity, type Field } from '@/types/support';",
             // Eg. import { getUserColumns, getUserEntityMeta } from '@/helpers/users_helper';
             "import { get{$entity->name}Columns, get{$entity->name}EntityMeta } from '@/helpers/{$entity->getFolderName()}_helper'",
             "import { type PaginationObject, type TableFilters } from '@/types/support';"
@@ -125,15 +129,21 @@ class TsHelper
     {
         $tsType = $this->typeHelper->migrationTypeToTsType($field->type);
 
+        // Aggregate rules for Laravel style validation
+        $rules = $this->aggregateFieldValidationRules($field);
+
+
         return "{
             name: '{$field->name}',
             type: '{$tsType->value}',
             label: '{$field->label()}',
             nullable: ".($field->nullable ? 'true' : 'false').',
             sometimes: '.($field->sometimes ? 'true' : 'false').',
+            required: '.($field->required ? 'true' : 'false').',
             length: '.($field->length !== null ? $field->length : 'null').',
             precision: '.($field->precision !== null ? $field->precision : 'null').',
             scale: '.($field->scale !== null ? $field->scale : 'null').',
+            rules: ['.implode(', ', array_map(fn($r) => "'$r'", $rules)).'],
             default: '.($field->default !== null ? "'{$field->default}'" : 'null').',
             comment: '.($field->comment !== null ? "'{$field->comment}'" : 'null').',
             sortable: '.($field->sortable ? 'true' : 'false').',
@@ -195,6 +205,12 @@ class TsHelper
         $items = [];
         $entityHref = $entity->getHref();
         foreach ($entity->getRelations() as $relation) {
+
+            // Do not show belongsTo relations
+            if ($relation->type === RelationType::BELONGS_TO || $relation->type === RelationType::HAS_ONE) {
+               continue;
+            }
+
             $relatedEntityName = $relation->getRelatedEntityName();
             if(!$relatedEntityName) {
                 Log::channel('magic')->warning("Relation {$relation->getRelationName()} of entity {$entity->name} has no related entity name.");
@@ -206,12 +222,58 @@ class TsHelper
                 $relationTitle = $relatedEntity->getPluralName();
                 $relationFolder = $relatedEntity->getFolderName();
                 $href = $entityHref . "/{$relationFolder}";
-                $items[] = "{
-                    title: '{$relationTitle}',
-                    href:  show(item.id).url + `/{$relationFolder}`,
-                }";
+
+                $items[] = <<<VUE
+            {
+                title: '{$relationTitle}',
+                href:  show(item.id).url + `/{$relationFolder}`,
+            }
+VUE;
+
             }
         }
         return implode(",\n", $items);
+    }
+
+    /**
+     * @param Field $field
+     * @return array<string>  Aggregated validation rules like ['required', 'string', 'max:255']
+     */
+    private function aggregateFieldValidationRules(Field $field) : array
+    {
+        $rules = [];
+        if ($field->required) {
+            $rules[] = 'required';
+        }
+        if ($field->nullable) {
+            $rules[] = 'nullable';
+        }
+        if ($field->sometimes) {
+            $rules[] = 'sometimes';
+        }
+        if ($field->length !== null) {
+            $rules[] = "max:{$field->length}";
+        }
+        if ($field->precision !== null && $field->scale !== null) {
+            $rules[] = "digits:{$field->precision}";
+        }
+
+        // Add type based rules
+        $typeRule = match ($field->type) {
+            'string', 'text', 'enum' => 'string',
+            'integer', 'bigint', 'smallint' => 'integer',
+            'float', 'double', 'decimal' => 'numeric',
+            'boolean' => 'boolean',
+            'date' => 'date',
+            'datetime', 'timestamp' => 'date',
+            'time' => 'date_format:H:i:s',
+            'json' => 'json',
+            default => null,
+        };
+
+        if ($typeRule) {
+            $rules[] = $typeRule;
+        }
+        return $rules;
     }
 }

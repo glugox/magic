@@ -123,7 +123,7 @@ watch(search, () => {
 </script>
 
 <template>
-    <div class="p-4 space-y-3">
+    <div class="space-y-3">
         <div class="flex gap-2 items-center">
             <input
                 v-model="search"

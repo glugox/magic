@@ -2,11 +2,13 @@ export interface Field {
     name: string
     type: 'string' | 'number' | 'boolean' | 'any' | 'object' | 'Date'
     label: string
+    required: boolean
     nullable: boolean
     sometimes: boolean
     length: number | null
     precision: number | null
     scale: number | null
+    rules: string[]
     default: any
     comment: string | null
     sortable: boolean

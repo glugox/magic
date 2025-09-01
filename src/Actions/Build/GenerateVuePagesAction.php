@@ -116,7 +116,7 @@ class GenerateVuePagesAction implements DescribableAction
     protected function getIndexTemplate(Entity $entity): string
     {
         $entityName = $entity->getName();
-        $title = $entity->getSingularName();
+        $title = $entity->getPluralName();
         $folderName = $entity->getFolderName();
         $href = $entity->getHref();
         $columnsJson = $entity->getFieldsJson();
@@ -128,7 +128,6 @@ class GenerateVuePagesAction implements DescribableAction
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
-import PlaceholderPattern from '@/components/PlaceholderPattern.vue'
 import ResourceTable from '@/components/ResourceTable.vue';
 import {ColumnDef} from "@tanstack/vue-table";
 $entityImports
@@ -158,17 +157,6 @@ const entityMeta = get{$entityName}EntityMeta();
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
-            <!--<div class="grid auto-rows-min gap-4 md:grid-cols-3">
-                <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                    <PlaceholderPattern />
-                </div>
-                <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                    <PlaceholderPattern />
-                </div>
-                <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                    <PlaceholderPattern />
-                </div>
-            </div>-->
             <div class="relative p-4 min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
                 <ResourceTable
                     :data="data"
@@ -197,17 +185,22 @@ PHP;
         // Eg. Project
         $relatedEntityName = $relatedEntity->getName();
         // Eg. Projects
-        $title = $relatedEntity->getSingularName();
+        $relatedEntityPluralName = $relatedEntity->getPluralName();
+        // Eg. User
+        $entitySingularName = $entity->getSingularName();
+        // Eg. Users
+        $mainEntityNamePlural = $entity->getPluralName();
         // Eg. projects
         $relationName = $relation->getRelationName();
         // Eg. /projects
         $href = $relatedEntity->getHref();
-        $columnsJson = $relatedEntity->getFieldsJson();
-        $mainEntityImports = $this->tsHelper->writeEntityImports($entity);
+        $relationType = $relation->getType()->value;
+
+        $mainEntityImports = $this->tsHelper->writeEntityImports($entity, ['controller' => false]);
         $relatedEntityImports = $this->tsHelper->writeEntityImports($relatedEntity);
         $supportImports = $this->tsHelper->writeIndexPageSupportImports($relatedEntity);
-        $relationSidebarItems = $this->tsHelper->writeRelationSidebarItems($relatedEntity, $this->context->getConfig());
-        $folderName = $relatedEntity->getFolderName();
+        $relationSidebarItems = $this->tsHelper->writeRelationSidebarItems($entity, $this->context->getConfig());
+        $folderName = $entity->getFolderName();
 
         return <<<PHP
 <script setup lang="ts">
@@ -216,7 +209,6 @@ import ResourceLayout from '@/layouts/resource/Layout.vue';
 import { type BreadcrumbItem, type NavItem } from '@/types';
 import { edit, show } from '@/routes/{$folderName}';
 import { Head } from '@inertiajs/vue3';
-import PlaceholderPattern from '@/components/PlaceholderPattern.vue'
 import ResourceTable from '@/components/ResourceTable.vue';
 import {ColumnDef} from "@tanstack/vue-table";
 import HeadingSmall from '@/components/HeadingSmall.vue';
@@ -224,21 +216,26 @@ $mainEntityImports
 $relatedEntityImports
 $supportImports
 
+/**
+ * Relation page between $mainEntityName and $relatedEntityName
+ * Relation type: $relationType
+ * Laravel relation method name: $mainEntityName ->$relationType( $relatedEntityName )
+ * Relation name: $relationName
+ * This page shows the related $relatedEntityPluralName for a given $mainEntityName
+ *
+ */
 interface Props {
     item: {$mainEntityName};
     $relationName: PaginationObject;
     filters?: TableFilters;
 }
-
 const { item, $relationName }: Props = defineProps<Props>();
-
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: '{$title}',
+        title: '{$mainEntityNamePlural}',
         href: '{$href}',
     },
 ];
-
 const columns: ColumnDef<{$relatedEntityName}>[] = get{$relatedEntityName}Columns();
 const entityMeta = get{$relatedEntityName}EntityMeta();
 const sidebarNavItems: NavItem[] = [
@@ -248,20 +245,15 @@ const sidebarNavItems: NavItem[] = [
     },
     $relationSidebarItems
 ];
-
 </script>
 
 <template>
-    <Head title="{$title}" />
-
+    <Head title="{$entitySingularName}" />
     <AppLayout :breadcrumbs="breadcrumbs">
-
         <Head title="User" />
-
-        <ResourceLayout :sidebar-nav-items="sidebarNavItems">
+        <ResourceLayout :title="item.name" description="$mainEntityName" :sidebar-nav-items="sidebarNavItems">
             <div class="flex flex-col space-y-6">
-                <HeadingSmall title="User information" description="Update User details" />
-
+                <HeadingSmall title="$relatedEntityPluralName" description="Update $mainEntityName $relationName" />
                 <ResourceTable
                     :data="$relationName"
                     :columns="columns"
@@ -335,7 +327,7 @@ const entityMeta = get{$entityName}EntityMeta();
     <AppLayout :breadcrumbs="breadcrumbItems">
         <Head title="{$entityName}" />
 
-        <ResourceLayout :sidebar-nav-items="sidebarNavItems">
+        <ResourceLayout :title="item.name" description="$entityName" :sidebar-nav-items="sidebarNavItems">
             <div class="flex flex-col space-y-6">
                 <HeadingSmall title="{$entity->name} information" description="Update {$entity->name} details" />
 

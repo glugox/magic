@@ -294,7 +294,7 @@ class Entity
                 continue;
             }
 
-            if (! in_array($field->name, ['password', 'remember_token'])) {
+            if (! in_array($field->name, ['password', 'remember_token', 'created_at', 'updated_at', 'deleted_at', 'email_verified_at'])) {
                 $visible[] = $field;
             }
         }
@@ -307,6 +307,12 @@ class Entity
 
         // Relations
         foreach ($this->getRelations() as $relation) {
+
+            // Only BELONGS_TO relations are shown in tables
+            if ($relation->getType() !== RelationType::BELONGS_TO) {
+                continue;
+            }
+
             $relationField = Field::fromRelation($relation);
             $visible[] = $relationField;
         }
@@ -316,6 +322,18 @@ class Entity
             return $this->fieldPriority($a) <=> $this->fieldPriority($b);
         });
 
+        return $visible;
+    }
+
+    /**
+     * Get names of fields that should be visible in tables/lists.
+     */
+    public function getTableFieldsNames(): array
+    {
+        $visible = [];
+        foreach ($this->getTableFields() as $field) {
+            $visible[] = $field->name;
+        }
         return $visible;
     }
 
@@ -366,6 +384,13 @@ class Entity
         }
         // Relations
         foreach ($this->getRelations() as $relation) {
+
+            // Add only BELONGS_TO relations to forms
+            if ($relation->getType() !== RelationType::BELONGS_TO
+                || $relation->getType() !== RelationType::HAS_ONE) {
+                continue;
+            }
+
             $relationField = Field::fromRelation($relation);
             $visible[] = $relationField;
         }
