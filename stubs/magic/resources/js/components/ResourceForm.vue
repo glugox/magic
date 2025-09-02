@@ -1,60 +1,58 @@
 <script setup lang="ts">
-import { ref, computed} from 'vue';
-import { Form, router, usePage } from '@inertiajs/vue3';
-import { Button } from '@/components/ui/button';
-import { Entity } from '@/types/support';
-import FormField from '@/components/FormField.vue';
+import { computed } from 'vue'
+import { useForm } from '@inertiajs/vue3'
+import { Button } from '@/components/ui/button'
+import { Entity } from '@/types/support'
+import FieldRenderer from '@/components/form/FieldRenderer.vue'
 
 // Props
 const { item, entityMeta, controller } = defineProps<{
-    item?: Record<string, any>;
+    item?: Record<string, any>
     entityMeta: Entity
-    controller: any;
-}>();
+    controller: any,
 
-// Get Laravel errors from Inertia page props
-const page = usePage();
-const errors = page.props.errors as Record<string, string>;
+}>()
 
-// Build a reactive form object from entityMeta.fields
-const form = ref<Record<string, any>>({});
-
-// Initialize form with either existing item or defaults
+// Build initial form data
+const initialData: Record<string, any> = {}
 entityMeta.fields.forEach((field: any) => {
-    console.log('Initializing field:', field.name, 'with default:', field.default);
-    form.value[field.name] = item ? item[field.name] : (field.default ?? '');
-});
+    initialData[field.name] = item ? item[field.name] : field.default ?? ''
+})
 
-// Decide crudAction type
-const crudActionType = computed(() => item ? 'update' : 'create');
+// Inertia form
+const form = useForm(initialData)
 
-// Decide CRUD action based on presence of item
-const isEditMode = computed(() => crudActionType.value === 'update');
+// Decide CRUD action URL
+const formAction = computed(() =>
+    item ? controller.update(item.id) : controller.store()
+)
 
-// Decide which action to call (create vs update)
-const formAction = computed(() => {
-    return item ? controller.update(item.id) : controller.store();
-});
-// Decide form method
-const formMethod = computed(() => {
-    return item ? 'put' : 'post';
-});
+// Decide crud action type
+const crudActionType = computed(() => (item ? 'update' : 'create'))
+
+// Submit handler
+function submit() {
+    if (item) {
+        form.put(formAction.value)
+    } else {
+        form.post(formAction.value)
+    }
+}
 </script>
 
 <template>
-    <Form :action="formAction" :method="formMethod" class="space-y-6" v-slot="{ errors, processing, recentlySuccessful }">
-        <FormField
+    <form @submit.prevent="submit" class="space-y-6">
+        <FieldRenderer
             v-for="field in entityMeta.fields"
-            :item="item"
-            :error="errors[field.name]"
             :key="field.name"
             :field="field"
-            :crud-action-type="crudActionType"
+            :error="form.errors[field.name]"
             v-model="form[field.name]"
+            :crud-action-type="crudActionType"
         />
 
         <div class="flex items-center gap-4">
-            <Button :disabled="processing">
+            <Button :disabled="form.processing">
                 {{ item ? 'Update' : 'Create' }}
             </Button>
 
@@ -64,8 +62,10 @@ const formMethod = computed(() => {
                 leave-active-class="transition ease-in-out"
                 leave-to-class="opacity-0"
             >
-                <p v-show="recentlySuccessful" class="text-sm text-neutral-600">Saved.</p>
+                <p v-show="form.recentlySuccessful" class="text-sm text-neutral-600">
+                    Saved.
+                </p>
             </Transition>
         </div>
-    </Form>
+    </form>
 </template>

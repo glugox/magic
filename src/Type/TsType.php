@@ -13,7 +13,7 @@ enum TsType: string
     case STRING = 'string';
     case NUMBER = 'number';
     case BOOLEAN = 'boolean';
-    case DATE = 'Date';
+    case DATE = 'date';
     case OBJECT = 'object';
     case ANY = 'any';
 

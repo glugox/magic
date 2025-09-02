@@ -28,6 +28,9 @@ class InstallNodePackagesAction implements DescribableAction
     protected array $shadcnComponents = [
         'table',
         'switch',
+        'form',
+        'calendar',
+        'popover'
         // add more components here...
     ];
 
