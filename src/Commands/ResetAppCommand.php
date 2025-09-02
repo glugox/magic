@@ -65,9 +65,6 @@ class ResetAppCommand extends MagicBaseCommand
         // This could delete create user migration, so make sure it is run before resetLaravelApp
         $this->resetMigrations();
 
-        // All modified Laravel files are reverted, by copying original Laravel files to app root
-        $this->resetLaravelApp();
-
         // Delete seeders, factories and controllers
         $this->resetModelsSeedersFactoriesControllers();
 
@@ -86,6 +83,9 @@ class ResetAppCommand extends MagicBaseCommand
 
         // TODO : This line will probably be only needed besides the below resetDatabase()
         FilesGenerationUpdate::deleteGeneratedFiles();
+
+        // All modified Laravel files are reverted, by copying original Laravel files to app root
+        $this->resetLaravelApp();
 
         // After resetting migrations , now we can apply fresh migrations that do not contain Magic migrations, so db will be clean.
         $this->resetDatabase();
@@ -225,11 +225,11 @@ class ResetAppCommand extends MagicBaseCommand
             }
 
             // Try to remove the entity directory if empty
-            /*try {
-                //File::deleteDirectory($jsPagesPath);
+            try {
+                File::deleteDirectory($entityDir);
             } catch (\Exception $e) {
                 $this->logWarning("Could not remove directory {$entityDir}. It may not be empty. Error: ".$e->getMessage());
-            }*/
+            }
 
             $this->logInfo("JS pages directory for {$entity->getName()} deleted successfully!");
         }

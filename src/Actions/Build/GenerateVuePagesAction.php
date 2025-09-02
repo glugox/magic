@@ -236,6 +236,15 @@ import ResourceTable from '@/components/ResourceTable.vue';
 import {ColumnDef} from "@tanstack/vue-table";
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import { type Id } from '@/types/support';
+// Relationships icons
+/**
+ * SquareMinus - Default
+ * Link - BelongsTo
+ * CornerDownRight - HasOne
+ * FolderTree - HasMany, MorphTo, MorphMany
+ * GitCompareArrows - ManyToMany, BelongsToMany
+ */
+import { SquareMinus, Link, CornerDownRight, FolderTree, GitCompareArrows } from 'lucide-vue-next';
 $mainEntityImports
 $relatedEntityImports
 $supportImports
@@ -267,6 +276,7 @@ const sidebarNavItems: NavItem[] = [
     {
         title: 'General Information',
         href: edit(item.id),
+        icon: SquareMinus
     },
     $relationSidebarItems
 ];
@@ -281,6 +291,7 @@ const sidebarNavItems: NavItem[] = [
                 <HeadingSmall title="$relatedEntityPluralName" description="Update $mainEntityName $relationName" />
                 <ResourceTable
                     :data="$relationName"
+                    :parent-id="item.id"
                     :columns="columns"
                     :entity-meta="entityMeta"
                     :filters="filters"
@@ -314,8 +325,8 @@ import HeadingSmall from '@/components/HeadingSmall.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import ResourceLayout from '@/layouts/resource/Layout.vue';
 import { type BreadcrumbItem, type NavItem } from '@/types';
-
 import ResourceForm from '@/components/ResourceForm.vue';
+import { SquareMinus, Link, CornerDownRight, FolderTree, GitCompareArrows } from 'lucide-vue-next';
 $entityImports
 $supportImports
 
@@ -334,6 +345,7 @@ const sidebarNavItems: NavItem[] = [
     {
         title: 'General Information',
         href: edit(item.id),
+        icon: SquareMinus
     },
     $relationSidebarItems
 ];
@@ -397,6 +409,7 @@ const breadcrumbItems: BreadcrumbItem[] = [
     {
         title: '{$title}',
         href: '#',
+        icon: SquareMinus
     },
 ];
 

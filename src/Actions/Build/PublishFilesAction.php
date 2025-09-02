@@ -87,12 +87,15 @@ class PublishFilesAction implements DescribableAction
         File::ensureDirectoryExists(dirname($path));
         $content = '';
 
+        // Add imports
+        $content .= "import {ResourceData} from '@/types/support';\n";
+
         // Generate entity and field interfaces
         $content .= "\n\n";
         $fields = '';
         foreach ($this->context->getConfig()->entities as $entity) {
             $entityName = $entity->getName();
-            $content .= "export interface {$entityName} {\n";
+            $content .= "export interface {$entityName} extends ResourceData {\n";
             foreach ($entity->getTsFields() as $field) {
                 $tsType = $this->typeHelper->migrationTypeToTsType($field->type);
                 $fields .= "    {$field->name}: {$tsType->value};\n";

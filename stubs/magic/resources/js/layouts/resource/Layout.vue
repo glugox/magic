@@ -33,6 +33,7 @@ const currentPath = typeof window !== undefined ? window.location.pathname : '';
                         as-child
                     >
                         <Link :href="item.href">
+                            <component :is="item.icon" />
                             {{ item.title }}
                         </Link>
                     </Button>

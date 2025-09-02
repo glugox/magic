@@ -29,7 +29,7 @@ entityMeta.fields.forEach((field: any) => {
 const crudActionType = computed(() => item ? 'update' : 'create');
 
 // Decide CRUD action based on presence of item
-const isEditMode = computed(() => crudActionType === 'update');
+const isEditMode = computed(() => crudActionType.value === 'update');
 
 // Decide which action to call (create vs update)
 const formAction = computed(() => {

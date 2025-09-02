@@ -5,15 +5,19 @@ import { getCoreRowModel, useVueTable, SortingState, FlexRender, ColumnDef } fro
 import Avatar from "@/components/Avatar.vue";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
-import { Entity, TableFilters, PaginationObject, Controller } from '@/types/support'
+import {Entity, TableFilters, PaginationObject, Controller, DbId} from '@/types/support'
 
 
-const { data, columns, filters, entityMeta, controller } = defineProps<{
+const { entityMeta, data, parentId, columns, filters, controller } = defineProps<{
+    entityMeta?: Entity,
     data: PaginationObject,
+    /**
+     * Optional parent ID for nested resources (e.g., comments under a specific post)
+     */
+    parentId?: DbId,
     columns: ColumnDef<any,any>[],
     filters?: TableFilters,
-    entityMeta?: Entity,
-    controller: Controller
+    controller: any
 }>()
 
 const rows = ref(data.data)
@@ -43,16 +47,8 @@ const debounced = (fn: Function, ms = 400) => {
 }
 
 const send = () => {
-    console.log("Sending request with params:", {
-        url: controller.index(),
-        page: page.value,
-        perPage: perPage.value,
-        sortKey: sortKey.value,
-        sortDir: sortDir.value,
-        search: search.value
-    })
     router.get(
-        controller.index(), // Wayfinder function builds the route object
+        controller.index(parentId), // Wayfinder function builds the route object
         {
             page: page.value,
             perPage: perPage.value,

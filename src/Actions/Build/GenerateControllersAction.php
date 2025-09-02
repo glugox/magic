@@ -86,7 +86,7 @@ class GenerateControllersAction implements DescribableAction
     {
         $modelClass = $entity->getClassName();
         $modelClassFull = $entity->getFullyQualifiedModelClass();
-        $modelClassLower = Str::lower($modelClass);
+        $modelClassStudly = Str::studly($modelClass);
         $controllerClass = Str::studly(Str::singular($entity->getName())).'Controller';
         $vuePage = $entity->getFolderName();
 
@@ -211,31 +211,31 @@ class $controllerClass extends Controller
     /**
      * Show the form for editing the specified $modelClass.
      */
-    public function show($modelClass \${$modelClassLower})
+    public function show($modelClass \${$modelClassStudly})
     {
         return Inertia::render('$vuePage/Edit', [
-            'item' => \${$modelClassLower},
+            'item' => \${$modelClassStudly},
         ]);
     }
 
     /**
      * Show the form for editing the specified $modelClass.
      */
-    public function edit($modelClass \${$modelClassLower})
+    public function edit($modelClass \${$modelClassStudly})
     {
         return Inertia::render('$vuePage/Edit', [
-            'item' => \${$modelClassLower},
+            'item' => \${$modelClassStudly},
         ]);
     }
 
     /**
      * Update the specified $modelClass in storage.
      */
-    public function update(Request \$request, $modelClass \$$modelClassLower)
+    public function update(Request \$request, $modelClass \$$modelClassStudly)
     {
         \$data = \$request->validate($rulesArrayStrUpdate);
 
-        \${$modelClassLower}->update(\$data);
+        \${$modelClassStudly}->update(\$data);
 
         return redirect()->route(strtolower('$vuePage') . '.index')
             ->with('success', '$vuePage updated successfully.');
@@ -244,9 +244,9 @@ class $controllerClass extends Controller
     /**
      * Remove the specified $modelClass from storage.
      */
-    public function destroy($modelClass \${$modelClassLower})
+    public function destroy($modelClass \${$modelClassStudly})
     {
-        \${$modelClassLower}->delete();
+        \${$modelClassStudly}->delete();
 
         return redirect()->route(strtolower('$vuePage') . '.index')
             ->with('success', '$vuePage deleted successfully.');
@@ -367,7 +367,7 @@ use Inertia\Inertia;
 
 class $controllerClass extends Controller
 {
-    public function edit($parentModelClass \$$parentModelClassLower)
+    public function index($parentModelClass \$$parentModelClassLower)
     {
         $methodBody
     }
@@ -478,8 +478,8 @@ PHP;
                 $fQCN = $relation->getControllerFullQualifiedName();
 
                 $routeLines[] = " // Routes for relation: {$entity->getName()} -> {$relation->getRelationName()} ({$relation->type->value})";
-                $routeLines[] = "Route::get('{$relation->getRouteDefinitionPath()}', [{$fQCN}::class, 'edit'])->name('{$entity->getRouteName()}.edit-$relationName');";
-                $routeLines[] = "Route::put('{$relation->getRouteDefinitionPath()}', [{$fQCN}::class, 'update'])->name('{$entity->getRouteName()}.update-$relationName');";
+                $routeLines[] = "Route::get('{$relation->getRouteDefinitionPath()}', [{$fQCN}::class, 'index'])->name('{$entity->getRouteName()}.index-$relationName');";
+                //$routeLines[] = "Route::put('{$relation->getRouteDefinitionPath()}', [{$fQCN}::class, 'update'])->name('{$entity->getRouteName()}.update-$relationName');";
             }
         }
         $routesContent = "<?php\n\nuse Illuminate\Support\Facades\Route;\n\n".implode("\n", $routeLines)."\n";

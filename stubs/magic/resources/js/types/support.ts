@@ -33,6 +33,11 @@ export interface Entity {
     fields: Field[]
 }
 
+export interface ResourceData {
+    name: string,
+    [key: string]: any
+}
+
 export interface Controller {
     index: Function,
     show: (id: number) => any,
@@ -44,7 +49,7 @@ export interface Controller {
 }
 
 export interface PaginationObject {
-    data: any[]
+    data: ResourceData[]
     total: number
     current_page: number
     per_page: number

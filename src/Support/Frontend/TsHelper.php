@@ -225,6 +225,22 @@ class TsHelper
      */
     public function writeRelationSidebarItems(Entity $entity, Config $config, ?CrudActionType $crudActionType = CrudActionType::UPDATE): string
     {
+        /**
+         *  SquareMinus - Default
+         *  Link - BelongsTo
+         *  CornerDownRight - HasOne
+         *  FolderTree - HasMany, MorphTo, MorphMany
+         *  GitCompareArrows - ManyToMany, BelongsToMany
+         * /
+         */
+        $icons = [
+            RelationType::HAS_ONE->value => 'CornerDownRight',
+            RelationType::BELONGS_TO->value => 'Link',
+            RelationType::HAS_MANY->value => 'FolderTree',
+            RelationType::BELONGS_TO_MANY->value => 'FolderTree',
+            RelationType::MORPH_MANY->value => 'FolderTree'
+        ];
+
         $items = [];
         foreach ($entity->getRelations() as $relation) {
 
@@ -251,10 +267,13 @@ class TsHelper
             if ($relatedEntity) {
                 $relationTitle = $relatedEntity->getPluralName();
                 $relationFolder = $relatedEntity->getFolderName();
+                $icon = $icons[$relation->getType()->value] ?? 'SquareMinus';
+
                 $items[] = <<<VUE
             {
-                title: '{$relationTitle} - {$relation->getType()->value}',
+                title: '{$relationTitle}',
                 href:  {$baseUrlTs} + `/{$relationFolder}`,
+                icon: {$icon},
             }
 VUE;
             }

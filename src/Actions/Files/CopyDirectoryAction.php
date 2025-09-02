@@ -6,6 +6,7 @@ use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 
 #[ActionDescription(
     name: 'copy_directory_with_list',
@@ -32,7 +33,14 @@ class CopyDirectoryAction implements DescribableAction
             $relativePath = $file->getRelativePathname();
             $targetPath = $destination.DIRECTORY_SEPARATOR.$relativePath;
 
-            File::ensureDirectoryExists(dirname($targetPath));
+            // If the directory was not there, we will mark it as created
+            if (!File::isDirectory(dirname($targetPath))) {
+                // Ensure the directory exists
+                File::ensureDirectoryExists(dirname($targetPath));
+                $copiedFiles[] = dirname($targetPath);
+                Log::channel('magic')->info('---Created directory while copying: '.$relativePath);
+            }
+
             File::copy($file->getRealPath(), $targetPath);
 
             $copiedFiles[] = $targetPath;

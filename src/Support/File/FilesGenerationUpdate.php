@@ -95,6 +95,14 @@ class FilesGenerationUpdate
             $data = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
             if (isset($data['files']['created'])) {
                 foreach ($data['files']['created'] as $file) {
+
+                    // Check if it is a directory
+                    if (is_dir($file)) {
+                        Log::channel('magic')->debug("Deleting generated directory : $file");
+                        rmdir($file);
+                        continue;
+                    }
+
                     if (file_exists($file)) {
                         Log::channel('magic')->debug("Deleting generated file : $file");
                         unlink($file);
