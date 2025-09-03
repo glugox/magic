@@ -68,7 +68,7 @@ class Relation
     }
 
     /**
-     * @return true if the relation is of type 'BelongsToMany'.
+     * Returns true if the relation is of type 'BelongsToMany'.
      */
     public function isBelongsToMany(): bool
     {

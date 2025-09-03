@@ -1,69 +1,11 @@
-<template>
-    <BaseField v-bind="props" :error="error" v-model="model">
-        <template #default="{ validate }">
-            <Popover v-model:open="open">
-                <PopoverTrigger as-child>
-                    <Button
-                        ref="triggerElement"
-                        variant="outline"
-                        role="combobox"
-                        :aria-label="`Select ${field.label}`"
-                        :class="['w-full justify-between', !model ? 'text-muted-foreground' : '']"
-                        :disabled="isLoading"
-                    >
-                        {{ displayValue || `Select ${field.label}...` }}
-                        <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                </PopoverTrigger>
-                <PopoverContent class="w-full p-0" :style="`min-width: ${triggerWidth}px`">
-                    <Command :filter-function="customFilter" @keydown.enter="handleEnter">
-                        <CommandInput
-                            :placeholder="`Search ${field.label}...`"
-                            class="h-9"
-                            v-model="searchQuery"
-                        />
-                        <CommandList>
-                            <CommandEmpty>
-                                {{ isLoading ? 'Loading...' : 'No results found.' }}
-                            </CommandEmpty>
-                            <CommandGroup v-if="!isLoading">
-                                <CommandItem
-                                    v-for="option in options"
-                                    :key="option.value"
-                                    :value="option.label"
-                                    @select="() => handleSelect(option, validate)"
-                                    :class="['cursor-pointer', model === option.value ? 'bg-accent' : '']"
-                                >
-                                    {{ option.label }}
-                                    <CheckIcon
-                                        v-if="model === option.value"
-                                        class="ml-auto h-4 w-4 opacity-100"
-                                        :class="[model === option.value ? 'opacity-100' : 'opacity-0']"
-                                    />
-                                </CommandItem>
-                            </CommandGroup>
-                            <CommandGroup v-else>
-                                <CommandItem value="loading" disabled>
-                                    <Loader2 class="h-4 w-4 animate-spin mr-2" />
-                                    Loading...
-                                </CommandItem>
-                            </CommandGroup>
-                        </CommandList>
-                    </Command>
-                </PopoverContent>
-            </Popover>
-        </template>
-    </BaseField>
-</template>
-
 <script setup lang="ts">
-import BaseField from './BaseField.vue'
+import { Check, ChevronDownIcon, ChevronsUpDown, PlusCircleIcon } from 'lucide-vue-next'
+import {computed, onMounted, ref, watch} from 'vue'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { CheckIcon, ChevronsUpDown, Loader2 } from 'lucide-vue-next'
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Field, CrudActionType, Entity } from '@/types/support'
-import { ref, watch, onMounted, computed, nextTick } from 'vue'
+import { Combobox, ComboboxAnchor, ComboboxEmpty, ComboboxGroup, ComboboxInput, ComboboxItem, ComboboxItemIndicator, ComboboxList, ComboboxSeparator, ComboboxTrigger, ComboboxViewport } from '@/components/ui/combobox'
+import {CrudActionType, Entity, Field} from "@/types/support";
+import BaseField from "@/components/form/BaseField.vue";
 import {useApi} from "@/composables/useApi";
 
 interface Props {
@@ -83,69 +25,64 @@ interface Option {
 
 const props = defineProps<Props>()
 const emit = defineEmits(['update:modelValue'])
-
+const { get } = useApi()
 const model = ref(props.modelValue)
-const open = ref(false)
+const selectedOption = ref<Option | null>(null)
 const searchQuery = ref('')
 const isLoading = ref(false)
 const options = ref<Option[]>([])
-const triggerWidth = ref(200)
-const triggerElement = ref<HTMLElement | null>(null)
-
 // Get relation metadata
 const relationMetadata = props.entityMeta.relations.find(r => r.foreignKey === props.field.name)
-const relationName = relationMetadata ? relationMetadata.relationName : ''
-
-// Display value for the selected option
-const displayValue = computed(() => {
-    if (!model.value) return ''
-    const selected = options.value.find(opt => opt.value === model.value)
-    return selected ? selected.label : 'Loading...'
-})
-
-watch(model, (val) => {
-    emit('update:modelValue', val)
-})
-
-watch([open, searchQuery], async ([isOpen, query]) => {
-    if (isOpen && options.value.length === 0) {
-        await fetchOptions()
-    }
-    if (isOpen && query) {
-        // Simple debounce implementation
-        clearTimeout((window as any).searchTimeout)
-        ;(window as any).searchTimeout = setTimeout(async () => {
-            await fetchOptions(query)
-        }, 300)
-    }
-})
 
 onMounted(async () => {
-    await nextTick()
-    if (triggerElement.value) {
-        triggerWidth.value = triggerElement.value.offsetWidth
-    }
+    // Fetch initial options
+    await fetchOptions()
 
-    if (model.value && options.value.length === 0) {
+    // Set initial selection if modelValue exists
+    if (model.value && options.value.length > 0) {
+        selectedOption.value = options.value.find(opt => opt.value === model.value) || null
+    }
+})
+
+// Debounced search
+let searchTimeout: any = null
+watch(searchQuery, async (query) => {
+    clearTimeout(searchTimeout)
+
+    console.log("Search query:", query)
+
+    if (query && query.length > 1) {
+        searchTimeout = setTimeout(async () => {
+            await fetchOptions(query)
+        }, 300)
+    } else if (!query) {
+        // Reset to initial options when search is cleared
         await fetchOptions()
     }
 })
 
-const customFilter = (value: string, search: string) => {
-    return value.toLowerCase().includes(search.toLowerCase()) ? 1 : 0
-}
+// Filter options based on search query
+const filteredOptions = computed(() => {
+    if (!searchQuery.value) {
+        return options.value
+    }
 
-const { get } = useApi()
+    const query = searchQuery.value.toLowerCase()
+    return options.value.filter(option =>
+        option.label.toLowerCase().includes(query) ||
+        (option.value && option.value.toString().toLowerCase().includes(query))
+    )
+})
 
 const fetchOptions = async (query: string = '') => {
     isLoading.value = true
     try {
-        const data = await get(`/${relationMetadata?.relationName}`, {
+        const response = await get(`/${relationMetadata?.relationName}`, {
             search: query,
-            limit: '50',
-            fields: 'id,name'
+            limit: '5'
         })
 
+        const data = response.data || []
         options.value = data.map((item: any) => ({
             value: item.id,
             label: item.name || item.title || item.email || `Item ${item.id}`,
@@ -159,16 +96,70 @@ const fetchOptions = async (query: string = '') => {
     }
 }
 
-const handleSelect = (option: Option, validate: (value: any) => void) => {
-    model.value = option.value
-    validate(option.value)
-    open.value = false
-    searchQuery.value = ''
-}
-
-const handleEnter = () => {
-    if (options.value.length > 0 && !isLoading.value) {
-        handleSelect(options.value[0], () => {})
-    }
-}
 </script>
+
+<template>
+    <BaseField v-bind="props" :error="error" v-model="model">
+        <template #default="{ validate }">
+            <Combobox  v-model="selectedOption" by="name">
+                <ComboboxAnchor class="w-[300px]" as-child>
+                    <ComboboxTrigger  as-child>
+                        <Button variant="outline" class="justify-between">
+                            <template v-if="selectedOption">
+                                <div class="flex items-center gap-2">
+                                    <Avatar class="size-5">
+                                        <AvatarImage
+                                            :src="`https://github.com/${selectedOption.name}.png`"
+                                        />
+                                        <AvatarFallback>{{ selectedOption.name[0] }}</AvatarFallback>
+                                    </Avatar>
+                                    {{ selectedOption.name }}
+                                </div>
+                            </template>
+                            <template v-else>
+                                Select user...
+                            </template>
+
+                            <ChevronsUpDown class="ml-2 size-4 shrink-0 opacity-50" />
+                        </Button>
+                    </ComboboxTrigger>
+                </ComboboxAnchor>
+
+                <ComboboxList class="w-[300px]">
+                    <ComboboxInput placeholder="Select user..." v-model="searchQuery" />
+
+                    <ComboboxEmpty>
+                        No user found.
+                    </ComboboxEmpty>
+
+                    <ComboboxGroup>
+                        <ComboboxItem
+                            v-for="user in filteredOptions"
+                            :key="user.id"
+                            :value="user"
+                        >
+                            <Avatar class="size-5">
+                                <AvatarImage
+                                    :src="`https://github.com/${user.name}.png`"
+                                />
+                                <AvatarFallback>{{ user.name[0] }}</AvatarFallback>
+                            </Avatar>
+                            {{ user.name }}
+
+                            <ComboboxItemIndicator>
+                                <Check />
+                            </ComboboxItemIndicator>
+                        </ComboboxItem>
+                    </ComboboxGroup>
+                    <ComboboxSeparator />
+                    <ComboboxGroup>
+                        <ComboboxItem :value="null">
+                            <PlusCircleIcon />
+                            Create user
+                        </ComboboxItem>
+                    </ComboboxGroup>
+                </ComboboxList>
+            </Combobox>
+        </template>
+    </BaseField>
+</template>

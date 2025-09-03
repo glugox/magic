@@ -14,6 +14,7 @@ use Glugox\Magic\Support\Config\FieldType;
 use Glugox\Magic\Support\Config\Relation;
 use Glugox\Magic\Support\Faker\FakerExtension;
 use Glugox\Magic\Traits\AsDescribableAction;
+use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 
@@ -24,7 +25,7 @@ use Illuminate\Support\Facades\Log;
 )]
 class GenerateSeedersAction implements DescribableAction
 {
-    use AsDescribableAction;
+    use AsDescribableAction, CanLogSectionTitle;
 
     /**
      * The build context containing the configuration and other relevant data.
@@ -51,6 +52,9 @@ class GenerateSeedersAction implements DescribableAction
      */
     public function __invoke(BuildContext $context): BuildContext
     {
+        // Log section title
+        $this->logInvocation($this->describe()->name);
+
         // Store context for later use
         $this->context = $context;
 

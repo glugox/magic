@@ -45,22 +45,25 @@ class GenerateAppAction implements DescribableAction
         // Step 5: Generate Controllers
         $buildContext = app(GenerateControllersAction::class)($buildContext);
 
-        // Step 6: Install Node Packages
+        // Step 6: Run Install API Command
+        $buildContext = app(InstallApiCommand::class)($buildContext);
+
+        // Step 7: Install Node Packages
         $buildContext = app(InstallNodePackagesAction::class)($buildContext);
 
-        // Step 7: Publish Files
+        // Step 8: Publish Files
         $buildContext = app(PublishFilesAction::class)($buildContext);
 
-        // Step 8: Generate Vue Pages
+        // Step 9: Generate Vue Pages
         $buildContext = app(GenerateVuePagesAction::class)($buildContext);
 
-        // Step 9: Update Vue Pages
+        // Step 10: Update Vue Pages
         $buildContext = app(UpdateVuePagesAction::class)($buildContext);
 
-        // Step 10: Update Database
+        // Step 11: Update Database
         $buildContext = app(UpdateDbAction::class)($buildContext);
 
-        // Step 11: Write Manifest
+        // Step 12: Write Manifest
         return app(GenerateManifestAction::class)($buildContext);
     }
 }

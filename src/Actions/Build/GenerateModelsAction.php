@@ -12,6 +12,7 @@ use Glugox\Magic\Support\Config\FieldType;
 use Glugox\Magic\Support\Config\Relation;
 use Glugox\Magic\Support\Config\RelationType;
 use Glugox\Magic\Traits\AsDescribableAction;
+use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
@@ -24,7 +25,7 @@ use Illuminate\Support\Str;
 )]
 class GenerateModelsAction implements DescribableAction
 {
-    use AsDescribableAction;
+    use AsDescribableAction, CanLogSectionTitle;
 
     protected string $modelPath;
 
@@ -41,6 +42,7 @@ class GenerateModelsAction implements DescribableAction
      */
     public function __invoke(BuildContext $context): BuildContext
     {
+        $this->logInvocation($this->describe()->name);
         foreach ($context->getConfig()->entities as $entity) {
             $this->generateModel($entity);
         }

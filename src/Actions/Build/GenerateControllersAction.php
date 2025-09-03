@@ -13,6 +13,7 @@ use Glugox\Magic\Support\Config\FieldType;
 use Glugox\Magic\Support\Config\Relation;
 use Glugox\Magic\Support\Config\RelationType;
 use Glugox\Magic\Traits\AsDescribableAction;
+use Glugox\Magic\Traits\CanLogSectionTitle;
 use Glugox\Magic\Validation\EntityRuleSet;
 use Glugox\Magic\Validation\ValidationRuleSet;
 use Illuminate\Support\Facades\File;
@@ -26,7 +27,7 @@ use Illuminate\Support\Str;
 )]
 class GenerateControllersAction implements DescribableAction
 {
-    use AsDescribableAction;
+    use AsDescribableAction, CanLogSectionTitle;
 
     /**
      * Context with config
@@ -57,6 +58,7 @@ class GenerateControllersAction implements DescribableAction
 
     public function __invoke(BuildContext $context): BuildContext
     {
+        $this->logInvocation($this->describe()->name);
         $this->context = $context;
 
         $this->generateControllers();
@@ -72,6 +74,7 @@ class GenerateControllersAction implements DescribableAction
     {
         foreach ($this->context->getConfig()->entities as $entity) {
             $this->generateController($entity);
+            $this->generateApiController($entity);
 
             // Generate relation controllers if needed
             foreach ($entity->getRelations() as $relation) {
@@ -122,12 +125,9 @@ class GenerateControllersAction implements DescribableAction
         /** @var EntityRuleSet $validationRules */
         $validationRules = $this->validationHelper->make($entity);
 
-        $validationRulesCreate = $validationRules->getCreateRules() ?? [];
-        $validationRulesUpdate = $validationRules->getUpdateRules() ?? [];
-
         // Prepare for writing in php file
-        $rulesArrayStrCreate = exportPhpValue($validationRulesCreate, 2);
-        $rulesArrayStrUpdate = exportPhpValue($validationRulesUpdate, 2);
+        $rulesArrayStrCreate = exportPhpValue($validationRules->getCreateRules(), 2);
+        $rulesArrayStrUpdate = exportPhpValue($validationRules->getUpdateRules(), 2);
 
         $template = <<<PHP
 <?php
@@ -370,7 +370,7 @@ PHP;
         }
 
         // Final template
-        $template = <<<PHP
+        return <<<PHP
 <?php
 
 namespace App\Http\Controllers\\{$entity->getSingularName()};
@@ -389,82 +389,6 @@ class $controllerClass extends Controller
     }
 }
 PHP;
-
-        return $template;
-    }
-
-    /**
-     * Each resource, eg. User, can have relations. In order to manage them,
-     * we will have to generate additional controllers.
-     * For example, if User hasMany Posts, we need a UserPostsController.
-     * This method will generate such controllers.
-     */
-    public function buildRelationControllersOld(Entity $entity, Relation $relation): string
-    {
-        // Example: User hasMany Posts
-        // We need to generate UserPostsController
-        $relatedEntityName = $relation->getRelatedEntityName();
-        if (! $relatedEntityName) {
-            return '';
-        }
-
-        $relatedEntity = $this->context->getConfig()->getEntityByName($relatedEntityName);
-        if (! $relatedEntity) {
-            Log::channel('magic')->warning("Related entity {$relation->getRelatedEntityName()} not found for relation in {$entity->getName()}");
-            return '';
-        }
-        // Example: User
-        $parentModelClass = $entity->getClassName();
-        // Example: user
-        $parentModelClassLower = Str::lower($parentModelClass);
-        // Example: users
-        $parentModelFolderName = $entity->getFolderName();
-        // Example: \App\Models\User
-        $parentModelClassFull = $entity->getFullyQualifiedModelClass();
-        // Example: Post
-        $relatedModelClass = $relatedEntity->getClassName();
-        // Example: \App\Models\Post
-        $relatedModelClassFull = $relatedEntity->getFullyQualifiedModelClass();
-        // Example: UserPostController
-        $controllerClass = Str::studly($entity->getName()).Str::studly($relatedEntity->getSingularName()).'Controller';
-        // Example: posts
-        $relationName = $relation->getRelationName();
-        // Example: Posts
-        $relationNamePlural = $relatedEntity->getPluralName();
-
-        // Prepare template based on relation type
-        $template = <<<PHP
-<?php
-
-namespace App\Http\Controllers\\{$entity->getSingularName()};
-
-use App\Http\Controllers\Controller;
-use $parentModelClassFull;
-use $relatedModelClassFull;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
-
-class $controllerClass extends Controller
-{
-    public function edit($parentModelClass \$$parentModelClassLower)
-    {
-        return inertia('$parentModelFolderName/$relationName/Index', [
-            'item' => \${$parentModelClassLower}->only(['id', 'name']),
-            '$relationName' => $relatedModelClass::paginate(),
-            '{$relationName}_ids' => \${$parentModelClassLower}->{$relationName}->pluck('id'),
-        ]);
-    }
-
-    public function update(Request \$request, $parentModelClass \$$parentModelClassLower)
-    {
-        \${$parentModelClassLower}->{$relationName}()->sync(\$request->input('$relationName', []));
-        return back()->with('success', '$relatedModelClass updated.');
-    }
-}
-PHP;
-
-        return $template;
-
     }
 
     /**
@@ -503,9 +427,291 @@ PHP;
         app(GenerateFileAction::class)($this->routesFilePath, $routesContent);
         $this->context->registerGeneratedFile($this->routesFilePath);
 
+        // API routes
+        $this->generateApiRoutes();
+
         Log::channel('magic')->info("Routes generated and saved to: {$this->routesFilePath}");
 
         $this->ensureWebPhpRequiresAppPhp();
+    }
+
+    /**
+     * Generate API controller for a given entity.
+     */
+    protected function generateApiController(Entity $entity): void
+    {
+        $modelClass = $entity->getClassName();
+        $modelClassFull = $entity->getFullyQualifiedModelClass();
+        $modelClassCamel = Str::camel($modelClass);
+        $controllerClass = Str::studly(Str::singular($entity->getName())) . 'ApiController';
+        $routeName = $entity->getRouteName();
+
+        // Searchable fields for API
+        $searchableFields = array_filter($entity->getFields(), fn ($field) => $field->searchable);
+        $searchableFieldsCode = empty($searchableFields)
+            ? '[]'
+            : "['" . implode("', '", array_map(fn ($f) => $f->name, $searchableFields)) . "']";
+
+        // Fields that should be selectable in API
+        $selectableFields = $entity->getTableFieldsNames(skipRelations: true);
+
+        // This will get us something like: 'id,name,email' in order to mimic what the client is requesting for query param 'fields'
+        $selectableFieldsCode = empty($selectableFields) ? '' : '"' . implode(',', $selectableFields) . '"';
+
+        /** @var EntityRuleSet $validationRules */
+        $validationRules = $this->validationHelper->make($entity);
+
+        // Prepare for writing in php file
+        $rulesArrayStrCreate = exportPhpValue($validationRules->getCreateRules(), 2);
+        $rulesArrayStrUpdate = exportPhpValue($validationRules->getUpdateRules(), 2);
+
+        $template = <<<PHP
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use $modelClassFull;
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\JsonResponse;
+
+class $controllerClass extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(Request \$request): JsonResponse
+    {
+        \$request->validate([
+            'search' => 'nullable|string|max:255',
+            'limit' => 'nullable|integer|min:1|max:100',
+            'fields' => 'nullable|string',
+            'page' => 'nullable|integer|min:1',
+            'sort' => 'nullable|string',
+            'order' => 'nullable|in:asc,desc',
+        ]);
+
+        \$query = $modelClass::query();
+
+        // Search
+        if (\$search = \$request->get('search')) {
+            \$searchableFields = $searchableFieldsCode;
+            \$query->where(function (\$q) use (\$search, \$searchableFields) {
+                foreach (\$searchableFields as \$field) {
+                    \$q->orWhere(\$field, 'like', "%{\$search}%");
+                }
+            });
+        }
+
+        // Sorting
+        if (\$sort = \$request->get('sort')) {
+            \$order = \$request->get('order', 'asc');
+            \$query->orderBy(\$sort, \$order);
+        } else {
+            \$query->orderBy('id', 'asc');
+        }
+
+        // Field selection optimization
+        \$selectedFieldsStr = \$request->get('fields', $selectableFieldsCode);
+        \$selectedFields = array_map('trim', explode(',', \$selectedFieldsStr));
+
+        if (!in_array('id', \$selectedFields)) {
+            \$selectedFields[] = 'id';
+        }
+
+        // Pagination with limit
+        \$limit = \$request->get('limit', 50);
+        \$items = \$query->select(\$selectedFields)->paginate(\$limit);
+
+        return response()->json([
+            'data' => \$items->items(),
+            'meta' => [
+                'current_page' => \$items->currentPage(),
+                'per_page' => \$items->perPage(),
+                'total' => \$items->total(),
+                'last_page' => \$items->lastPage(),
+            ]
+        ]);
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request \$request): JsonResponse
+    {
+        \$data = \$request->validate($rulesArrayStrCreate);
+
+        \$item = $modelClass::create(\$data);
+
+        return response()->json([
+            'data' => \$item,
+            'message' => '$modelClass created successfully.'
+        ], 201);
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show($modelClass \${$modelClassCamel}): JsonResponse
+    {
+        \$fields = request()->get('fields', 'id,name');
+        \$selectedFields = array_map('trim', explode(',', \$fields));
+
+        if (!in_array('id', \$selectedFields)) {
+            \$selectedFields[] = 'id';
+        }
+
+        \$data = \${$modelClassCamel}->only(\$selectedFields);
+
+        return response()->json([
+            'data' => \$data
+        ]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request \$request, $modelClass \${$modelClassCamel}): JsonResponse
+    {
+        \$data = \$request->validate($rulesArrayStrUpdate);
+
+        \${$modelClassCamel}->update(\$data);
+
+        return response()->json([
+            'data' => \${$modelClassCamel},
+            'message' => '$modelClass updated successfully.'
+        ]);
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy($modelClass \${$modelClassCamel}): JsonResponse
+    {
+        \${$modelClassCamel}->delete();
+
+        return response()->json([
+            'message' => '$modelClass deleted successfully.'
+        ]);
+    }
+
+    /**
+     * Quick search endpoint optimized for combobox/autocomplete
+     */
+    public function search(Request \$request): JsonResponse
+    {
+        \$request->validate([
+            'q' => 'required|string|min:1|max:255',
+            'limit' => 'nullable|integer|min:1|max:20',
+        ]);
+
+        \$query = \$request->get('q');
+        \$limit = \$request->get('limit', 10);
+
+        \$results = $modelClass::query()
+            ->where(function (\$q) use (\$query) {
+                \$searchableFields = $searchableFieldsCode;
+                foreach (\$searchableFields as \$field) {
+                    \$q->orWhere(\$field, 'like', "%{\$query}%");
+                }
+            })
+            ->select(['id', 'name'])
+            ->limit(\$limit)
+            ->get();
+
+        return response()->json([
+            'data' => \$results->map(fn (\$item) => [
+                'value' => \$item->id,
+                'label' => \$item->name,
+            ])
+        ]);
+    }
+
+    /**
+     * Options endpoint specifically for select/combobox components
+     */
+    public function options(Request \$request): JsonResponse
+    {
+        \$request->validate([
+            'ids' => 'nullable|array',
+            'ids.*' => 'integer',
+            'limit' => 'nullable|integer|min:1|max:100',
+        ]);
+
+        \$query = $modelClass::query();
+
+        if (\$ids = \$request->get('ids')) {
+            \$query->whereIn('id', \$ids);
+        }
+
+        \$limit = \$request->get('limit', 50);
+        \$items = \$query->select(['id', 'name'])
+                      ->orderBy('name')
+                      ->limit(\$limit)
+                      ->get();
+
+        return response()->json([
+            'data' => \$items->map(fn (\$item) => [
+                'value' => \$item->id,
+                'label' => \$item->name,
+            ])
+        ]);
+    }
+}
+PHP;
+
+        $apiControllerPath = $this->controllerPath . '/Api';
+        if (!File::exists($apiControllerPath)) {
+            File::makeDirectory($apiControllerPath, 0755, true);
+        }
+
+        $filePath = $apiControllerPath . '/' . $controllerClass . '.php';
+        app(GenerateFileAction::class)($filePath, $template);
+        $this->context->registerGeneratedFile($filePath);
+
+        $relPath = str_replace(app_path('Http/Controllers/'), '', $filePath);
+        Log::channel('magic')->info("API Controller created: {$relPath}");
+    }
+
+    /**
+     * Generate API routes for all entities using apiResource with prefixed names
+     */
+    protected function generateApiRoutes(): void
+    {
+        Log::channel('magic')->info("Generating API routes");
+
+        $apiRoutesPath = base_path('routes/api.php');
+        $routeLines = [
+            "<?php",
+            "",
+            "use Illuminate\Support\Facades\Route;",
+            ""
+        ];
+
+        foreach ($this->context->getConfig()->entities as $entity) {
+            $name = $entity->getRouteName();
+            $controller = '\\App\\Http\\Controllers\\Api\\' . Str::studly(Str::singular($name)) . 'ApiController';
+
+            $routeLines[] = "// $name routes";
+            $routeLines[] = "Route::apiResource('$name', $controller::class)->names([";
+            $routeLines[] = "    'index' => 'api.$name.index',";
+            $routeLines[] = "    'store' => 'api.$name.store',";
+            $routeLines[] = "    'show' => 'api.$name.show',";
+            $routeLines[] = "    'update' => 'api.$name.update',";
+            $routeLines[] = "    'destroy' => 'api.$name.destroy',";
+            $routeLines[] = "]);";
+
+            // Add custom endpoints
+            $routeLines[] = "Route::get('$name-search', [$controller::class, 'search'])->name('api.$name.search');";
+            $routeLines[] = "Route::get('$name-options', [$controller::class, 'options'])->name('api.$name.options');";
+            $routeLines[] = "";
+        }
+
+        $routesContent = implode("\n", $routeLines) . "\n";
+        app(GenerateFileAction::class)($apiRoutesPath, $routesContent);
+        $this->context->registerGeneratedFile($apiRoutesPath);
+
+        Log::channel('magic')->info("API Routes generated and saved to: {$apiRoutesPath}");
     }
 
     /**

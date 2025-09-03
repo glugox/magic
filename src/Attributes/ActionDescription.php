@@ -11,8 +11,8 @@ use Attribute;
 class ActionDescription
 {
     public function __construct(
-        public string $name,
-        public string $description,
+        public string $name = '',
+        public string $description = '',
         public array $parameters = []
     ) {}
 }

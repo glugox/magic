@@ -6,6 +6,7 @@ use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Traits\AsDescribableAction;
+use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
@@ -17,7 +18,7 @@ use Symfony\Component\Process\Process;
 )]
 class InstallNodePackagesAction implements DescribableAction
 {
-    use AsDescribableAction;
+    use AsDescribableAction, CanLogSectionTitle;
 
     protected array $npmPackages = [
         /*'axios',
@@ -38,6 +39,9 @@ class InstallNodePackagesAction implements DescribableAction
 
     public function __invoke(BuildContext $context): BuildContext
     {
+        // Log section title
+        $this->logInvocation($this->describe()->name);
+
         Log::channel('magic')->info('Checking Node.js dependencies...');
 
         $packageJsonPath = base_path('package.json');

@@ -283,7 +283,7 @@ class Entity
      *
      * @return Field[]
      */
-    public function getTableFields(): array
+    public function getTableFields(?bool $skipRelations = false): array
     {
         $visible = [];
 
@@ -306,15 +306,17 @@ class Entity
         }
 
         // Relations
-        foreach ($this->getRelations() as $relation) {
+        if (!$skipRelations) {
+            foreach ($this->getRelations() as $relation) {
 
-            // Only BELONGS_TO relations are shown in tables
-            if ($relation->getType() !== RelationType::BELONGS_TO) {
-                continue;
+                // Only BELONGS_TO relations are shown in tables
+                if ($relation->getType() !== RelationType::BELONGS_TO) {
+                    continue;
+                }
+
+                $relationField = Field::fromRelation($relation);
+                $visible[] = $relationField;
             }
-
-            $relationField = Field::fromRelation($relation);
-            $visible[] = $relationField;
         }
 
         // Reorder: id first, name second, BELONGS_TO fields next
@@ -328,10 +330,10 @@ class Entity
     /**
      * Get names of fields that should be visible in tables/lists.
      */
-    public function getTableFieldsNames(): array
+    public function getTableFieldsNames(?bool $skipRelations = false): array
     {
         $visible = [];
-        foreach ($this->getTableFields() as $field) {
+        foreach ($this->getTableFields($skipRelations) as $field) {
             $visible[] = $field->name;
         }
         return $visible;

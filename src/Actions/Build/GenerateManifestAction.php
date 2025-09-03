@@ -6,6 +6,7 @@ use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Traits\AsDescribableAction;
+use Glugox\Magic\Traits\CanLogSectionTitle;
 
 #[ActionDescription(
     name: 'generate_manifest',
@@ -14,11 +15,12 @@ use Glugox\Magic\Traits\AsDescribableAction;
 )]
 class GenerateManifestAction implements DescribableAction
 {
-    use AsDescribableAction;
+    use AsDescribableAction, CanLogSectionTitle;
 
     public function __invoke(BuildContext $context): BuildContext
     {
 
+        $this->logInvocation($this->describe()->name);
         $context->writeManifest();
 
         return $context;

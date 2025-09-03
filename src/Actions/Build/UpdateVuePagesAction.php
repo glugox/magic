@@ -7,6 +7,7 @@ use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Traits\AsDescribableAction;
+use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Support\Facades\File;
 
 #[ActionDescription(
@@ -16,7 +17,7 @@ use Illuminate\Support\Facades\File;
 )]
 class UpdateVuePagesAction implements DescribableAction
 {
-    use AsDescribableAction;
+    use AsDescribableAction, CanLogSectionTitle;
 
     /**
      * Context with config
@@ -42,6 +43,9 @@ class UpdateVuePagesAction implements DescribableAction
 
     public function __invoke(BuildContext $context): BuildContext
     {
+        // Log section title
+        $this->logInvocation($this->describe()->name);
+
         $this->context = $context;
 
         $this->updateSidebar();

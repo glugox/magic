@@ -12,6 +12,7 @@ use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Frontend\TsHelper;
 use Glugox\Magic\Support\TypeHelper;
 use Glugox\Magic\Traits\AsDescribableAction;
+use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 
@@ -22,7 +23,7 @@ use Illuminate\Support\Facades\Log;
 )]
 class PublishFilesAction implements DescribableAction
 {
-    use AsDescribableAction;
+    use AsDescribableAction, CanLogSectionTitle;
 
     /**
      * Context with config
@@ -47,6 +48,8 @@ class PublishFilesAction implements DescribableAction
 
     public function __invoke(BuildContext $context): BuildContext
     {
+        // Log section title
+        $this->logInvocation($this->describe()->name);
 
         $this->context = $context;
         Log::channel('magic')->info('Starting Magic file publishing...');

@@ -6,6 +6,7 @@ use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Traits\AsDescribableAction;
+use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Support\Facades\Log;
 
 #[ActionDescription(
@@ -15,10 +16,13 @@ use Illuminate\Support\Facades\Log;
 )]
 class UpdateDbAction implements DescribableAction
 {
-    use AsDescribableAction;
+    use AsDescribableAction, CanLogSectionTitle;
 
     public function __invoke(BuildContext $context): BuildContext
     {
+        // Log section title
+        $this->logInvocation($this->describe()->name);
+
         // Step 1. Run migrations to ensure the database schema is up to date
         Log::channel('magic')->info('Running database migrations to update the schema...');
         \Artisan::call('migrate', ['--force' => true]);

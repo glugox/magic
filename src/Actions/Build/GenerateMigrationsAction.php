@@ -8,6 +8,8 @@ use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\File\FilesGenerationUpdate;
 use Glugox\Magic\Traits\AsDescribableAction;
+use Glugox\Magic\Traits\CanLogSectionTitle;
+use Illuminate\Support\Facades\Log;
 
 #[ActionDescription(
     name: 'generate_migrations',
@@ -16,10 +18,12 @@ use Glugox\Magic\Traits\AsDescribableAction;
 )]
 class GenerateMigrationsAction implements DescribableAction
 {
-    use AsDescribableAction;
+    use AsDescribableAction, CanLogSectionTitle;
 
     public function __invoke(BuildContext $context): BuildContext
     {
+        $this->logInvocation($this->describe()->name);
+
         $config = $context->getConfig();
         foreach ($config->entities as $entity) {
             // Action call -- Use GenerateMigrationForEntityAction to generate migration for each entity
