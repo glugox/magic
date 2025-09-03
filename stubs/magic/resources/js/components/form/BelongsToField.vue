@@ -1,12 +1,23 @@
 <script setup lang="ts">
-import { Check, ChevronDownIcon, ChevronsUpDown, PlusCircleIcon } from 'lucide-vue-next'
-import {computed, onMounted, ref, watch} from 'vue'
+import { Check, ChevronsUpDown, PlusCircleIcon } from 'lucide-vue-next'
+import { onMounted, ref, watch } from 'vue'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { Combobox, ComboboxAnchor, ComboboxEmpty, ComboboxGroup, ComboboxInput, ComboboxItem, ComboboxItemIndicator, ComboboxList, ComboboxSeparator, ComboboxTrigger, ComboboxViewport } from '@/components/ui/combobox'
-import {CrudActionType, Entity, Field} from "@/types/support";
-import BaseField from "@/components/form/BaseField.vue";
-import {useApi} from "@/composables/useApi";
+import {
+    Combobox,
+    ComboboxAnchor,
+    ComboboxEmpty,
+    ComboboxGroup,
+    ComboboxInput,
+    ComboboxItem,
+    ComboboxItemIndicator,
+    ComboboxList,
+    ComboboxSeparator,
+    ComboboxTrigger
+} from '@/components/ui/combobox'
+import { CrudActionType, Entity, Field } from "@/types/support"
+import BaseField from "@/components/form/BaseField.vue"
+import { useApi } from "@/composables/useApi"
 
 interface Props {
     error?: string
@@ -17,145 +28,160 @@ interface Props {
     item?: Record<string, any>
 }
 
-interface Option {
-    value: string | number
-    label: string
+interface Option extends Record<string, any> {
+    id: string
+    name: string
     [key: string]: any
 }
 
 const props = defineProps<Props>()
 const emit = defineEmits(['update:modelValue'])
 const { get } = useApi()
-const model = ref(props.modelValue)
+
+const model = ref<string | null>(props.modelValue ? String(props.modelValue) : null)
 const selectedOption = ref<Option | null>(null)
 const searchQuery = ref('')
 const isLoading = ref(false)
 const options = ref<Option[]>([])
+const lastQuery = ref<string>('')
+
 // Get relation metadata
 const relationMetadata = props.entityMeta.relations.find(r => r.foreignKey === props.field.name)
+const modelNameSingular = relationMetadata?.entityName
+
+const normalize = (d: any) => ({ ...d, id: String(d.id) })
 
 onMounted(async () => {
-    // Fetch initial options
-    await fetchOptions()
+    // Fetch initial record by ID
+    if (model.value) {
+        const res = await get(`/${relationMetadata?.relationName}/${model.value}`)
+        const record = res?.data ?? res
+        if (record) {
+            const normalized = normalize(record)
+            selectedOption.value = normalized
+            // ensure it’s in options
+            if (!options.value.find(o => o.id === normalized.id)) {
+                options.value.unshift(normalized)
+            }
+        }
+    }
 
-    // Set initial selection if modelValue exists
-    if (model.value && options.value.length > 0) {
-        selectedOption.value = options.value.find(opt => opt.value === model.value) || null
+    // Load default options
+    await fetchOptions()
+})
+
+// Watch selectedOption to sync modelValue
+watch(selectedOption, (val) => {
+    if (val) {
+        model.value = val.id
+        emit('update:modelValue', val.id)
+    } else {
+        model.value = null
+        emit('update:modelValue', null)
+    }
+})
+
+// Watch options to re-sync selectedOption reference
+watch(options, (list) => {
+    if (selectedOption.value) {
+        const match = list.find(o => o.id === selectedOption.value!.id)
+        if (match) selectedOption.value = match
     }
 })
 
 // Debounced search
 let searchTimeout: any = null
-watch(searchQuery, async (query) => {
+watch(searchQuery, (query) => {
     clearTimeout(searchTimeout)
-
-    console.log("Search query:", query)
-
     if (query && query.length > 1) {
-        searchTimeout = setTimeout(async () => {
-            await fetchOptions(query)
-        }, 300)
+        searchTimeout = setTimeout(() => fetchOptions(query), 300)
     } else if (!query) {
-        // Reset to initial options when search is cleared
-        await fetchOptions()
+        fetchOptions()
     }
-})
-
-// Filter options based on search query
-const filteredOptions = computed(() => {
-    if (!searchQuery.value) {
-        return options.value
-    }
-
-    const query = searchQuery.value.toLowerCase()
-    return options.value.filter(option =>
-        option.label.toLowerCase().includes(query) ||
-        (option.value && option.value.toString().toLowerCase().includes(query))
-    )
 })
 
 const fetchOptions = async (query: string = '') => {
+    lastQuery.value = query
     isLoading.value = true
     try {
-        const response = await get(`/${relationMetadata?.relationName}`, {
+        const res = await get(`/${relationMetadata?.relationName}`, {
             search: query,
-            limit: '5'
+            limit: '5',
         })
 
-        const data = response.data || []
-        options.value = data.map((item: any) => ({
-            value: item.id,
-            label: item.name || item.title || item.email || `Item ${item.id}`,
-            ...item
-        }))
-    } catch (error) {
-        console.error('Error fetching options:', error)
+        if (lastQuery.value !== query) return // ignore stale results
+
+        const list = ((res?.data ?? res)?.data ?? res?.data ?? []).map(normalize)
+        options.value = list
+
+        // keep selected visible if not in list
+        if (selectedOption.value && !list.find(o => o.id === selectedOption.value!.id)) {
+            options.value.unshift(selectedOption.value!)
+        }
+    } catch (e) {
+        console.error('Error fetching options:', e)
         options.value = []
     } finally {
         isLoading.value = false
     }
 }
-
 </script>
 
 <template>
     <BaseField v-bind="props" :error="error" v-model="model">
-        <template #default="{ validate }">
-            <Combobox  v-model="selectedOption" by="name">
+        <template #default>
+            <Combobox v-model="selectedOption" by="id">
                 <ComboboxAnchor class="w-[300px]" as-child>
-                    <ComboboxTrigger  as-child>
+                    <ComboboxTrigger as-child>
                         <Button variant="outline" class="justify-between">
                             <template v-if="selectedOption">
                                 <div class="flex items-center gap-2">
                                     <Avatar class="size-5">
-                                        <AvatarImage
-                                            :src="`https://github.com/${selectedOption.name}.png`"
-                                        />
+                                        <AvatarImage :src="`https://github.com/${selectedOption.name}.png`" />
                                         <AvatarFallback>{{ selectedOption.name[0] }}</AvatarFallback>
                                     </Avatar>
                                     {{ selectedOption.name }}
                                 </div>
                             </template>
                             <template v-else>
-                                Select user...
+                                Select {{ modelNameSingular }}...
                             </template>
-
                             <ChevronsUpDown class="ml-2 size-4 shrink-0 opacity-50" />
                         </Button>
                     </ComboboxTrigger>
                 </ComboboxAnchor>
 
                 <ComboboxList class="w-[300px]">
-                    <ComboboxInput placeholder="Select user..." v-model="searchQuery" />
+                    <ComboboxInput
+                        :placeholder="'Select ' + modelNameSingular + '...'"
+                        v-model="searchQuery"
+                    />
 
-                    <ComboboxEmpty>
-                        No user found.
-                    </ComboboxEmpty>
+                    <ComboboxEmpty>No {{ modelNameSingular }} found.</ComboboxEmpty>
 
                     <ComboboxGroup>
                         <ComboboxItem
-                            v-for="user in filteredOptions"
-                            :key="user.id"
-                            :value="user"
+                            v-for="item in options"
+                            :key="item.id"
+                            :value="item"
                         >
                             <Avatar class="size-5">
-                                <AvatarImage
-                                    :src="`https://github.com/${user.name}.png`"
-                                />
-                                <AvatarFallback>{{ user.name[0] }}</AvatarFallback>
+                                <AvatarImage :src="`https://github.com/${item.name}.png`" />
+                                <AvatarFallback>{{ item.name[0] }}</AvatarFallback>
                             </Avatar>
-                            {{ user.name }}
-
+                            {{ item.name }}
                             <ComboboxItemIndicator>
                                 <Check />
                             </ComboboxItemIndicator>
                         </ComboboxItem>
                     </ComboboxGroup>
+
                     <ComboboxSeparator />
+
                     <ComboboxGroup>
                         <ComboboxItem :value="null">
                             <PlusCircleIcon />
-                            Create user
+                            Create {{ modelNameSingular }}
                         </ComboboxItem>
                     </ComboboxGroup>
                 </ComboboxList>

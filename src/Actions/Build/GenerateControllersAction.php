@@ -520,7 +520,7 @@ class $controllerClass extends Controller
         }
 
         // Pagination with limit
-        \$limit = \$request->get('limit', 50);
+        \$limit = \$request->get('limit', 12);
         \$items = \$query->select(\$selectedFields)->paginate(\$limit);
 
         return response()->json([
@@ -606,7 +606,7 @@ class $controllerClass extends Controller
         ]);
 
         \$query = \$request->get('q');
-        \$limit = \$request->get('limit', 10);
+        \$limit = \$request->get('limit', 12);
 
         \$results = $modelClass::query()
             ->where(function (\$q) use (\$query) {
@@ -644,7 +644,7 @@ class $controllerClass extends Controller
             \$query->whereIn('id', \$ids);
         }
 
-        \$limit = \$request->get('limit', 50);
+        \$limit = \$request->get('limit', 12);
         \$items = \$query->select(['id', 'name'])
                       ->orderBy('name')
                       ->limit(\$limit)
