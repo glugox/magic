@@ -46,8 +46,10 @@ function submit() {
             v-for="field in entityMeta.fields"
             :key="field.name"
             :field="field"
+            :entity-meta="entityMeta"
             :error="form.errors[field.name]"
             v-model="form[field.name]"
+            :item="item"
             :crud-action-type="crudActionType"
         />
 

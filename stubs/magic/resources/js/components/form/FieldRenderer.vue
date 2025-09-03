@@ -2,8 +2,6 @@
     <component
         :is="fieldComponent"
         v-bind="props"
-        :model-value="modelValue"
-        :crud-action-type="crudActionType"
         @update:modelValue="updateModelValue"
     />
 </template>
@@ -14,14 +12,16 @@ import NumberField from './NumberField.vue'
 import DecimalField from './DecimalField.vue'
 import DateField from './DateField.vue'
 import BelongsToField from './BelongsToField.vue'
-import { Field, CrudActionType } from '@/types/support'
+import {Field, CrudActionType, Entity} from '@/types/support'
 import TextAreaField from "@/components/form/TextAreaField.vue";
 
 interface Props {
     error?: string
     field: Field
+    entityMeta: Entity
     crudActionType: CrudActionType
     modelValue?: any
+    item?: Record<string, any>
 }
 const props = defineProps<Props>()
 const emit = defineEmits(['update:modelValue'])
@@ -84,7 +84,7 @@ const componentsMap: Record<string, any> = {
     // ──────── Enum / Special ────────
     enum: StringField,           // ✅ need EnumField
     boolean: StringField,        // ✅ need BooleanField
-    foreignId: StringField,      // ✅ need ForeignIdField
+    foreignId: BelongsToField,
 
     // ──────── Relations ────────
     belongsTo: BelongsToField,
