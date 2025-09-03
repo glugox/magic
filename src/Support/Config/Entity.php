@@ -654,7 +654,6 @@ class Entity
                 return $relation;
             }
         }
-
         return null;
     }
 
@@ -668,7 +667,6 @@ class Entity
                 return $relation;
             }
         }
-
         return null;
     }
 

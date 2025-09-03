@@ -18,14 +18,7 @@ class TypeHelper
             $migrationType = FieldType::tryFrom($migrationType) ?? FieldType::STRING;
         }
 
-        return match ($migrationType) {
-            FieldType::STRING, FieldType::TEXT, FieldType::CHAR, FieldType::MEDIUM_TEXT, FieldType::LONG_TEXT => TsType::STRING,
-            FieldType::INTEGER, FieldType::BIG_INTEGER, FieldType::BIG_INCREMENTS, FieldType::UNSIGNED_BIG_INTEGER => TsType::NUMBER,
-            FieldType::BOOLEAN => TsType::BOOLEAN,
-            FieldType::DATE, FieldType::DATETIME => TsType::DATE,
-            FieldType::JSON, FieldType::JSONB => TsType::OBJECT,
-            default => TsType::ANY,
-        };
+        return TsType::fromFieldType($migrationType);
     }
 
     /**

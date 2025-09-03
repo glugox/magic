@@ -8,6 +8,7 @@ use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Helpers\ValidationHelper;
 use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\Config\Entity;
+use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Config\FieldType;
 use Glugox\Magic\Support\Config\Relation;
 use Glugox\Magic\Support\Config\RelationType;
@@ -86,14 +87,24 @@ class GenerateControllersAction implements DescribableAction
     {
         $modelClass = $entity->getClassName();
         $modelClassFull = $entity->getFullyQualifiedModelClass();
-        $modelClassStudly = Str::studly($modelClass);
+        $modelClassCamel = Str::camel($modelClass);
         $controllerClass = Str::studly(Str::singular($entity->getName())).'Controller';
         $vuePage = $entity->getFolderName();
 
         // Relations for eager loading
         $relations = $entity->getRelations(RelationType::BELONGS_TO);
-        $relationsNames = array_map(fn ($r) => $r->getRelationName(), $relations);
-        $relationNamesCode = empty($relationsNames) ? '[]' : "['".implode("', '", $relationsNames)."']";
+
+
+        // Build array like: ['company:id,name', 'user:id,name']
+        $relationsNames = array_map(
+            fn ($r) => $r->getRelationName() . ':' . $r->getEagerFieldsStr(),
+            $relations
+        );
+        $relationNamesCode = empty($relationsNames)
+            ? '[]'
+            : "['" . implode("', '", $relationsNames) . "']";
+
+
 
         // Fields visible in index listing
         $tableFieldsNames = $entity->getTableFieldsNames();
@@ -107,9 +118,6 @@ class GenerateControllersAction implements DescribableAction
             ? '[]'
             : "['".implode("', '", array_map(fn ($f) => $f->name, $searchableFields))."']";
 
-
-        /*$validationRulesCreate = $this->validationHelper->makeCreate($entity);
-        $validationRulesUpdate = $this->validationHelper->makeUpdate($entity);*/
 
         /** @var EntityRuleSet $validationRules */
         $validationRules = $this->validationHelper->make($entity);
@@ -211,31 +219,39 @@ class $controllerClass extends Controller
     /**
      * Show the form for editing the specified $modelClass.
      */
-    public function show($modelClass \${$modelClassStudly})
+    public function show($modelClass \${$modelClassCamel})
     {
+        // All relation names for eager loading
+        \$relations = $relationNamesCode;
+        \${$modelClassCamel}->load(\$relations);
+
         return Inertia::render('$vuePage/Edit', [
-            'item' => \${$modelClassStudly},
+            'item' => \${$modelClassCamel},
         ]);
     }
 
     /**
      * Show the form for editing the specified $modelClass.
      */
-    public function edit($modelClass \${$modelClassStudly})
+    public function edit($modelClass \${$modelClassCamel})
     {
+        // All relation names for eager loading
+        \$relations = $relationNamesCode;
+        \${$modelClassCamel}->load(\$relations);
+
         return Inertia::render('$vuePage/Edit', [
-            'item' => \${$modelClassStudly},
+            'item' => \${$modelClassCamel},
         ]);
     }
 
     /**
      * Update the specified $modelClass in storage.
      */
-    public function update(Request \$request, $modelClass \$$modelClassStudly)
+    public function update(Request \$request, $modelClass \$$modelClassCamel)
     {
         \$data = \$request->validate($rulesArrayStrUpdate);
 
-        \${$modelClassStudly}->update(\$data);
+        \${$modelClassCamel}->update(\$data);
 
         return redirect()->route(strtolower('$vuePage') . '.index')
             ->with('success', '$vuePage updated successfully.');
@@ -244,9 +260,9 @@ class $controllerClass extends Controller
     /**
      * Remove the specified $modelClass from storage.
      */
-    public function destroy($modelClass \${$modelClassStudly})
+    public function destroy($modelClass \${$modelClassCamel})
     {
-        \${$modelClassStudly}->delete();
+        \${$modelClassCamel}->delete();
 
         return redirect()->route(strtolower('$vuePage') . '.index')
             ->with('success', '$vuePage deleted successfully.');

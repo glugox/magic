@@ -231,4 +231,21 @@ class Relation
         ], JSON_PRETTY_PRINT);
     }
 
+    /**
+     * @return string
+     * Returns a comma-separated string of fields to be eagerly loaded for the related entity.
+     * This is usually "id,name" or "id,title" depending on the related entity's name field.
+     */
+    public function getEagerFieldsStr() : string
+    {
+        // If the entity does not have a 'name' field, we will try to find first field that can be used as name
+        // so we can load them in index listing
+        $eagerFieldNames = ['id'];
+        $nameFields = $this->getRelatedEntity()->getNameFieldsNames();
+        if(count($nameFields) > 0) {
+            $eagerFieldNames[] = $nameFields[0];
+        }
+        return implode(',', array_filter($eagerFieldNames));
+    }
+
 }

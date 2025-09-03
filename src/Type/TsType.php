@@ -4,64 +4,74 @@ namespace Glugox\Magic\Type;
 
 use Glugox\Magic\Support\Config\FieldType;
 
-/**
- * TypeScript types for entities and fields.
- * This enum is used to define the TypeScript types for various field types.
- */
 enum TsType: string
 {
-    case STRING = 'string';
-    case NUMBER = 'number';
-    case BOOLEAN = 'boolean';
-    case DATE = 'date';
-    case OBJECT = 'object';
-    case ANY = 'any';
+    case STRING = 'string';       // TS primitive
+    case NUMBER = 'number';       // TS primitive
+    case BOOLEAN = 'boolean';     // TS primitive
+    case DATE = 'Date';           // TS class, must be uppercase
+    case OBJECT = 'object';       // TS primitive
+    case ANY = 'any';             // TS primitive
+    case VOID = 'void';           // TS primitive
+    case NEVER = 'never';         // TS primitive
+    case UNKNOWN = 'unknown';     // TS primitive
+    case NULL = 'null';           // TS primitive
+    case UNDEFINED = 'undefined'; // TS primitive
+    case SYMBOL = 'symbol';       // TS primitive
 
-    /**
-     * Convert migration type to TypeScript type.
-     */
-    public static function fromMigrationType(string $migrationType): self
+    public static function fromFieldType(FieldType $fieldType): TsType
     {
-        $type = FieldType::tryFrom($migrationType);
-
-        return match ($type) {
-            // String types
-            FieldType::STRING,
-            FieldType::TEXT,
-            FieldType::CHAR,
-            FieldType::MEDIUM_TEXT,
-            FieldType::LONG_TEXT => self::STRING,
-
-            // Numeric types
-            FieldType::INTEGER,
-            FieldType::BIG_INTEGER,
+        return match ($fieldType) {
+            FieldType::ID,
             FieldType::BIG_INCREMENTS,
+            FieldType::BIG_INTEGER,
+            FieldType::DECIMAL,
+            FieldType::DOUBLE,
+            FieldType::FLOAT,
+            FieldType::INTEGER,
+            FieldType::SMALL_INTEGER,
+            FieldType::TINY_INTEGER,
             FieldType::UNSIGNED_BIG_INTEGER,
             FieldType::UNSIGNED_INTEGER,
-            FieldType::SMALL_INTEGER,
             FieldType::UNSIGNED_SMALL_INTEGER,
-            FieldType::TINY_INTEGER,
             FieldType::UNSIGNED_TINY_INTEGER,
-            FieldType::FLOAT,
-            FieldType::DOUBLE,
-            FieldType::DECIMAL => self::NUMBER,
+            FieldType::YEAR => TsType::NUMBER,
 
-            // Boolean types
-            FieldType::BOOLEAN => self::BOOLEAN,
+            FieldType::BOOLEAN => TsType::BOOLEAN,
 
-            // Date and time types
             FieldType::DATE,
             FieldType::DATETIME,
             FieldType::TIME,
-            FieldType::TIMESTAMP,
-            FieldType::YEAR => self::DATE,
+            FieldType::TIMESTAMP => TsType::DATE,
 
-            // Object types
+            FieldType::CHAR,
+            FieldType::STRING,
+            FieldType::TEXT,
+            FieldType::LONG_TEXT,
+            FieldType::MEDIUM_TEXT,
+            FieldType::EMAIL,
+            FieldType::PASSWORD,
+            FieldType::URL,
+            FieldType::SECRET,
+            FieldType::TOKEN,
+            FieldType::USERNAME,
+            FieldType::PHONE,
+            FieldType::SLUG,
+            FieldType::UUID,
+            FieldType::ENUM => TsType::STRING,
+
+            FieldType::BINARY,
+            FieldType::FILE,
+            FieldType::IMAGE,
             FieldType::JSON,
-            FieldType::JSONB => self::OBJECT,
+            FieldType::JSONB,
+            FieldType::FOREIGN_ID,
+            FieldType::BELONGS_TO,
+            FieldType::HAS_MANY,
+            FieldType::HAS_ONE,
+            FieldType::BELONGS_TO_MANY => TsType::OBJECT,
 
-            // Default case for any other type
-            default => self::ANY,
+            default => TsType::ANY,
         };
     }
 }

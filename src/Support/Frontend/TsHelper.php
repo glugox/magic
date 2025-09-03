@@ -7,6 +7,7 @@ use Glugox\Magic\Helpers\ValidationHelper;
 use Glugox\Magic\Support\Config\Config;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
+use Glugox\Magic\Support\Config\Relation;
 use Glugox\Magic\Support\Config\RelationType;
 use Glugox\Magic\Support\Frontend\Renderers\Cell\Renderer;
 use Glugox\Magic\Support\TypeHelper;
@@ -140,10 +141,33 @@ class TsHelper
     }
 
     /**
+     * Write relation metadata for a given relation.
+     * This is used to generate TypeScript interfaces or types.
+     */
+    public function writeRelationMeta(Entity $entity, Relation $relation): string
+    {
+        $relatedEntityName = $relation->getRelatedEntityName();
+        $relatedEntityStr = $relatedEntityName ? "'{$relatedEntityName}'" : 'null';
+        $foreignKeyStr = $relation->getForeignKey() ? "'{$relation->getForeignKey()}'" : 'null';
+        $localKeyStr = $relation->getLocalKey() ? "'{$relation->getLocalKey()}'" : 'null';
+        $relationNameStr = $relation->getRelationName() ? "'{$relation->getRelationName()}'" : 'null';
+
+        return "{
+            type: '{$relation->getType()->value}',
+            localEntity: '{$entity->name}',
+            entityName: {$relatedEntityStr},
+            relatedEntity: null, // Related entity can be set later if needed
+            foreignKey: {$foreignKeyStr},
+            localKey: {$localKeyStr},
+            relationName: {$relationNameStr},
+        }";
+    }
+
+    /**
      * Write field metadata for a given field.
      * This is used to generate TypeScript interfaces or types.
      */
-    public function writeFieldMeta(Field $field, EntityRuleSet $entityValidationRuleSet)
+    public function writeFieldMeta(Field $field, EntityRuleSet $entityValidationRuleSet): string
     {
         $tsType = $this->typeHelper->migrationTypeToTsType($field->type);
 
@@ -158,7 +182,7 @@ class TsHelper
 
         return "{
             name: '{$field->name}',
-            type: '{$tsType->value}',
+            type: '{$field->migrationType()}',
             label: '{$field->label()}',
             nullable: ".($field->nullable ? 'true' : 'false').',
             sometimes: '.($field->sometimes ? 'true' : 'false').',
@@ -170,7 +194,7 @@ class TsHelper
             default: '.($field->default !== null ? "'{$field->default}'" : 'null').',
             comment: '.($field->comment !== null ? "'{$field->comment}'" : 'null').',
             sortable: '.($field->sortable ? 'true' : 'false').',
-            searchable: '.($field->searchable ? 'true' : 'false').'
+            searchable: '.($field->searchable ? 'true' : 'false').',
         }';
     }
 

@@ -395,7 +395,7 @@ import HeadingSmall from '@/components/HeadingSmall.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import ResourceLayout from '@/layouts/resource/Layout.vue';
 import { type BreadcrumbItem, type NavItem } from '@/types';
-
+import { SquareMinus, Link, CornerDownRight, FolderTree, GitCompareArrows } from 'lucide-vue-next';
 import ResourceForm from '@/components/ResourceForm.vue';
 $entityImports
 $supportImports

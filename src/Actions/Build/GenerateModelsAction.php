@@ -150,13 +150,15 @@ class GenerateModelsAction implements DescribableAction
         $appendsStr = '';
         if (! empty($appends)) {
             $appendsFieldsStr = implode(",\n        ", array_map(fn ($a) => "'$a'", $appends));
-            $appendsStr .= "\n\n    protected \$appends = [\n        $appendsFieldsStr\n    ];";
+            $appendsStr .= "    protected \$appends = [\n        $appendsFieldsStr\n    ];";
         }
 
         if (! empty($nameFields)) {
             $nameFieldsStr = implode(', ', array_map(fn ($n) => "'$n'", $nameFields));
-            $appendsStr .= "\n\n    protected \$nameFields = [\n        $nameFieldsStr\n    ];";
+            $appendsStr .= "    protected \$nameFields = [\n        $nameFieldsStr\n    ];";
         }
+
+
 
         // Use statements for traits
         $useStatements = [];
@@ -178,20 +180,19 @@ class $className extends {$extends}
 {
     $traitsUseStr
 
+    // Fillable fields, e.g. for mass assignment
     protected \$fillable = [
         $fillableStr
     ];
-
+    // Hidden fields, e.g. for password
     protected \$hidden = [
         $hiddenStr
     ];
-
+    // Casts
     protected \$casts = [
         $castsStr
     ];
-
     $appendsStr
-
 $relationsCode
 }
 PHP;

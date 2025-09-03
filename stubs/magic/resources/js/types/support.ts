@@ -5,7 +5,7 @@ export type DbId = number;
 
 export interface Field {
     name: string
-    type: 'string' | 'number' | 'boolean' | 'any' | 'object' | 'Date'
+    type: FieldType
     label: string
     required: boolean
     nullable: boolean
@@ -20,6 +20,16 @@ export interface Field {
     searchable: boolean
 }
 
+export interface Relation {
+    type: 'belongsTo' | 'hasMany' | 'hasOne' | 'belongsToMany'
+    localEntity: string | null
+    entityName?: string | null
+    relatedEntity?: string | null
+    foreignKey?: string | null
+    localKey?: string | null
+    relationName?: string | null
+}
+
 export interface ValidationRuleSet {
     create: string[]
     update: string[]
@@ -31,6 +41,7 @@ export interface Entity {
     singularName: string
     pluralName: string
     fields: Field[]
+    relations: Relation[]
 }
 
 export interface ResourceData {
@@ -70,3 +81,51 @@ export interface TableFilters {
     per_page?: number
     [key: string]: any
 }
+
+export type FieldType =
+    | 'id'
+    | 'bigIncrements'
+    | 'bigInteger'
+    | 'binary'
+    | 'boolean'
+    | 'char'
+    | 'date'
+    | 'dateTime'
+    | 'decimal'
+    | 'double'
+    | 'email'
+    | 'enum'
+    | 'file'
+    | 'float'
+    | 'foreignId'
+    | 'image'
+    | 'integer'
+    | 'ipAddress'
+    | 'json'
+    | 'jsonb'
+    | 'longText'
+    | 'mediumText'
+    | 'password'
+    | 'smallInteger'
+    | 'string'
+    | 'text'
+    | 'time'
+    | 'timestamp'
+    | 'tinyInteger'
+    | 'unsignedBigInteger'
+    | 'unsignedInteger'
+    | 'unsignedSmallInteger'
+    | 'unsignedTinyInteger'
+    | 'uuid'
+    | 'url'
+    | 'year'
+    | 'secret'
+    | 'token'
+    // Relation types
+    | 'belongsTo'
+    | 'hasMany'
+    | 'hasOne'
+    | 'belongsToMany'
+    | 'username'
+    | 'phone'
+    | 'slug';

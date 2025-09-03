@@ -30,7 +30,9 @@ class InstallNodePackagesAction implements DescribableAction
         'switch',
         'form',
         'calendar',
-        'popover'
+        'popover',
+        'textarea',
+        'command'
         // add more components here...
     ];
 

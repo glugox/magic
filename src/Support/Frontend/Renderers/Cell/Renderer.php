@@ -77,6 +77,7 @@ class Renderer
             return new NameRenderer;
         }
 
+        // Check if the field belongs to another entity
         $belongsTo = $field->belongsTo();
         // If the field belongs to another entity, we can use a specific renderer for that entity
         if ($belongsTo) {

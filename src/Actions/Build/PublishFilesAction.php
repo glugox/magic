@@ -173,7 +173,11 @@ export function get{$entityName}EntityMeta(): Entity {
         fields: [
             // Define fields for the entity
             {$this->getColumnsMeta($entity)}
-        ]
+        ],
+        relations: [
+            // Define relations for the entity
+            {$this->getRelationsMeta($entity)}
+        ],
     };
 }
 
@@ -200,6 +204,21 @@ EOT;
         }
 
         return implode(",\n            ", $fields);
+    }
+
+    /**
+     * Generate the metadata for the entity relations.
+     *
+     * @return string
+     */
+    private function getRelationsMeta(Entity $entity)
+    {
+        $relations = [];
+        foreach ($entity->getRelations() as $relation) {
+            $relationMeta = $this->tsHelper->writeRelationMeta($entity, $relation);
+            $relations[] = $relationMeta;
+        }
+        return implode(",\n            ", $relations);
     }
 
     /**
