@@ -84,4 +84,31 @@ class StubHelper
         $names = array_map(fn($r) => $r->getRelationName() . ':' . $r->getEagerFieldsStr(), $relations);
         return empty($names) ? '[]' : "['" . implode("','", $names) . "']";
     }
+
+    /**
+     * Apply replacements to a stub.
+     *
+     * $replacements keys can be either 'key' or '{{key}}'
+     * This method will ensure keys are replaced as '{{key}}' in the stub.
+     *
+     * Example:
+     *  applyReplacements($stub, ['resourceClass' => 'UserResource', '{{fields}}' => $fieldsStr])
+     */
+    public static function applyReplacements(string $stub, array $replacements): string
+    {
+        // Normalize keys to {{key}} form
+        $normalizedKeys = [];
+        $values = [];
+
+        foreach ($replacements as $k => $v) {
+            $key = $k;
+            if (!str_starts_with($key, '{{') || !str_ends_with($key, '}}')) {
+                $key = '{{' . trim($key, '{} ') . '}}';
+            }
+            $normalizedKeys[] = $key;
+            $values[] = $v;
+        }
+
+        return str_replace($normalizedKeys, $values, $stub);
+    }
 }

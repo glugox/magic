@@ -69,7 +69,7 @@ class PublishFilesAction implements DescribableAction
     {
         $this->generateEntitiesTsFiles();
         $this->generateEntityHelperFiles();
-        $this->copyVueFiles();
+        $this->copyMagicFiles();
     }
 
     /**
@@ -257,7 +257,7 @@ EOT;
      * Copy Vue files from the package to the resources/js directory.
      * This is a placeholder for future implementation.
      */
-    private function copyVueFiles()
+    private function copyMagicFiles(): void
     {
         $source = __DIR__.'/../../../stubs/magic';
         $destination = base_path();

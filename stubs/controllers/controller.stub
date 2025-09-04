@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use {{modelClassFull}};
+use App\Http\Resources\{{modelClass}}Resource;
+use App\Http\Resources\{{modelClass}}Collection;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -15,33 +17,22 @@ class {{controllerClass}} extends Controller
     {
         $request = request();
 
-        // All relation names for eager loading
         $relations = {{relationNamesCode}};
-
-        // If the entity has searchable fields, we can use them for searching
         $searchableFields = {{searchableFieldsCode}};
-        // Table fields to select
         $queryFields = {{tableFieldsNamesStr}};
 
         $query = count($relations) > 0
             ? {{modelClass}}::with($relations)
             : {{modelClass}}::query();
 
-        // Only specific fields
         if (count($queryFields) > 0) {
             $query->select($queryFields);
         }
 
-        // Sorting ( sortKey / sortDir )
         $sortKey = $request->get('sortKey', 'id');
         $sortDir = $request->get('sortDir', 'asc');
-        if ($sortKey && $sortDir) {
-            $query->orderBy($sortKey, $sortDir);
-        } else {
-            $query->orderBy('id', 'asc'); // Default sorting
-        }
+        $query->orderBy($sortKey, $sortDir);
 
-        // Search
         $search = $request->get('search');
         if ($search && count($searchableFields) > 0) {
             $query->where(function ($q) use ($search, $searchableFields) {
@@ -50,6 +41,7 @@ class {{controllerClass}} extends Controller
                 }
             });
         }
+
         $items = $query->paginate(
             $request->integer('per_page', 12),
             ['*'],
@@ -59,7 +51,7 @@ class {{controllerClass}} extends Controller
 
         return Inertia::render('{{vuePage}}/Index', [
             'filters' => request()->only(['search', 'sortKey', 'sortDir']),
-            'data' => $items,
+            'data' => new {{modelClass}}Collection($items),
         ]);
     }
 
@@ -71,8 +63,7 @@ class {{controllerClass}} extends Controller
     public function store(Request $request)
     {
         $data = $request->validate({{rulesArrayStrCreate}});
-
-        {{modelClass}}::create($data);
+        $item = {{modelClass}}::create($data);
 
         return redirect()->route(strtolower('{{vuePage}}') . '.index')
             ->with('success', '{{vuePage}} created successfully.');
@@ -84,7 +75,7 @@ class {{controllerClass}} extends Controller
         ${{modelClassCamel}}->load($relations);
 
         return Inertia::render('{{vuePage}}/Edit', [
-            'item' => ${{modelClassCamel}},
+            'item' => new {{modelClass}}Resource(${{modelClassCamel}}),
         ]);
     }
 
@@ -94,14 +85,13 @@ class {{controllerClass}} extends Controller
         ${{modelClassCamel}}->load($relations);
 
         return Inertia::render('{{vuePage}}/Edit', [
-            'item' => ${{modelClassCamel}},
+            'item' => new {{modelClass}}Resource(${{modelClassCamel}}),
         ]);
     }
 
     public function update(Request $request, {{modelClass}} ${{modelClassCamel}})
     {
         $data = $request->validate({{rulesArrayStrUpdate}});
-
         ${{modelClassCamel}}->update($data);
 
         return redirect()->route(strtolower('{{vuePage}}') . '.index')

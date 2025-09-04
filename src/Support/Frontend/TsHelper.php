@@ -283,7 +283,7 @@ class TsHelper
                     $baseUrlTs = 'create().url';
                     break;
                 default:
-                    $baseUrlTs = 'show(item.id).url';
+                    $baseUrlTs = 'show(item.data.id).url';
                     break;
             }
 

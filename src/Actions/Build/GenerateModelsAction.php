@@ -152,12 +152,12 @@ class GenerateModelsAction implements DescribableAction
         $appendsStr = '';
         if (! empty($appends)) {
             $appendsFieldsStr = implode(",\n        ", array_map(fn ($a) => "'$a'", $appends));
-            $appendsStr .= "    protected \$appends = [\n        $appendsFieldsStr\n    ];";
+            $appendsStr .= "\n    protected \$appends = [\n        $appendsFieldsStr\n    ];";
         }
 
         if (! empty($nameFields)) {
             $nameFieldsStr = implode(', ', array_map(fn ($n) => "'$n'", $nameFields));
-            $appendsStr .= "    protected \$nameFields = [\n        $nameFieldsStr\n    ];";
+            $appendsStr .= "\n    protected \$nameFields = [\n        $nameFieldsStr\n    ];";
         }
 
 

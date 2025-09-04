@@ -14,7 +14,6 @@ class {{controllerClass}} extends Controller
 {
     public function index({{parentModelClass}} ${{parentModelClassLower}})
     {
-        ${{parentModelClassLower}}->loadMorph('{{relationName}}', [{{relatedModelClass}}::class]);
         $relatedItems = ${{parentModelClassLower}}->{{relationName}}()->paginate(12);
 
         return Inertia::render('{{parentModelFolderName}}/{{relationName}}/Index', [

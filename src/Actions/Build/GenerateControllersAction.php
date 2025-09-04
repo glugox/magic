@@ -117,6 +117,10 @@ class GenerateControllersAction implements DescribableAction
         $stubPath = $this->stubsPath . '/controllers/controller.stub';
         $template = File::get($stubPath);
 
+        // Add Resource imports
+        $resourceClass = $modelClass . 'Resource';
+        $collectionClass = $modelClass . 'Collection';
+
         $replacements = [
             '{{modelClass}}'             => $modelClass,
             '{{modelClassFull}}'         => $modelClassFull,
@@ -128,6 +132,8 @@ class GenerateControllersAction implements DescribableAction
             '{{searchableFieldsCode}}'   => $searchableFieldsCode,
             '{{rulesArrayStrCreate}}'    => $rulesArrayStrCreate,
             '{{rulesArrayStrUpdate}}'    => $rulesArrayStrUpdate,
+            '{{resourceClass}}'          => $resourceClass,
+            '{{collectionClass}}'        => $collectionClass,
         ];
 
         $template = str_replace(array_keys($replacements), array_values($replacements), $template);
@@ -139,6 +145,7 @@ class GenerateControllersAction implements DescribableAction
         $relPath = str_replace(app_path('Http/Controllers/'), '', $filePath);
         Log::channel('magic')->info("Controller created: {$relPath}");
     }
+
 
     public function generateRelationControllers(Entity $entity, Relation $relation): void
     {
@@ -174,6 +181,16 @@ class GenerateControllersAction implements DescribableAction
         $relationName = $relation->getRelationName();
         $parentModelFolderName = $entity->getFolderName();
 
+        // Add resource class names
+        $relatedModelResourceClass = Str::studly($relatedModelClass) . 'Resource';
+        $relatedModelCollectionClass = Str::studly($relatedModelClass) . 'Collection';
+        $parentModelResourceClass = Str::studly($parentModelClass) . 'Resource';
+
+        // Add selected IDs for belongsToMany / morphToMany
+        $selectedIdsCode = in_array($relation->getType(), [RelationType::BELONGS_TO_MANY, RelationType::MORPH_MANY])
+            ? '$' . $parentModelClassLower . '->' . $relationName . '->pluck(\'id\')'
+            : 'null';
+
         // Use helper to build select fields
         $selectFieldsStr = StubHelper::getSelectFieldsString($entity);
         $selectRelatedFieldsStr = StubHelper::getSelectRelatedFieldsString($relatedEntity);
@@ -189,18 +206,22 @@ class GenerateControllersAction implements DescribableAction
         $stub = File::get($stubPath);
 
         $replacements = [
-            '{{entitySingularName}}'      => $entity->getSingularName(),
-            '{{parentModelClassFull}}'    => $entity->getFullyQualifiedModelClass(),
-            '{{relatedModelClassFull}}'   => $relatedEntity->getFullyQualifiedModelClass(),
-            '{{controllerClass}}'         => $controllerClass,
-            '{{parentModelClass}}'        => $parentModelClass,
-            '{{parentModelClassLower}}'   => $parentModelClassLower,
-            '{{relationName}}'            => $relationName,
-            '{{parentModelFolderName}}'   => $parentModelFolderName,
-            '{{selectFieldsStr}}'         => $selectFieldsStr,
-            '{{selectRelatedFieldsStr}}'  => $selectRelatedFieldsStr,
-            '{{relatedModelClass}}'       => $relatedModelClass,
-            '{{foreignKey}}'              => $relation->getForeignKey(),
+            '{{entitySingularName}}'          => $entity->getSingularName(),
+            '{{parentModelClassFull}}'        => $entity->getFullyQualifiedModelClass(),
+            '{{relatedModelClassFull}}'       => $relatedEntity->getFullyQualifiedModelClass(),
+            '{{controllerClass}}'             => $controllerClass,
+            '{{parentModelClass}}'            => $parentModelClass,
+            '{{parentModelClassLower}}'       => $parentModelClassLower,
+            '{{relationName}}'                => $relationName,
+            '{{parentModelFolderName}}'       => $parentModelFolderName,
+            '{{selectFieldsStr}}'             => $selectFieldsStr,
+            '{{selectRelatedFieldsStr}}'      => $selectRelatedFieldsStr,
+            '{{relatedModelClass}}'           => $relatedModelClass,
+            '{{foreignKey}}'                  => $relation->getForeignKey(),
+            '{{relatedModelResourceClass}}'   => $relatedModelResourceClass,
+            '{{relatedModelCollectionClass}}' => $relatedModelCollectionClass,
+            '{{parentModelResourceClass}}'    => $parentModelResourceClass,
+            '{{selectedIdsCode}}'             => $selectedIdsCode,
         ];
 
         return str_replace(array_keys($replacements), array_values($replacements), $stub);
@@ -307,9 +328,6 @@ class GenerateControllersAction implements DescribableAction
         $this->ensureWebPhpRequiresAppPhp();
     }
 
-
-
-
     /**
      * Generate API controller for a given entity.
      */
@@ -319,7 +337,14 @@ class GenerateControllersAction implements DescribableAction
         $modelClassFull = $entity->getFullyQualifiedModelClass();
         $modelClassCamel = Str::camel($modelClass);
         $controllerClass = Str::studly(Str::singular($entity->getName())) . 'ApiController';
-        $routeName = $entity->getRouteName();
+
+        // Resource class names
+        $resourceClass = $modelClass . 'Resource';               // 'UserResource'
+        $resourceClassFull = 'App\Http\Resources\\' . $resourceClass; // 'App\Http\Resources\UserResource'
+
+        // Collection class names
+        $collectionClass = $modelClass . 'Collection';           // 'UserCollection'
+        $collectionClassFull = 'App\Http\Resources\\' . $collectionClass; // 'App\Http\Resources\UserCollection'
 
         // Use StubHelper for strings
         $searchableFieldsCode = StubHelper::getSearchableFieldsString($entity);
@@ -337,16 +362,19 @@ class GenerateControllersAction implements DescribableAction
 
         // Replace placeholders
         $replacements = [
-            '{{ modelClass }}'               => $modelClass,
-            '{{ modelClassFull }}'           => $modelClassFull,
-            '{{ modelClassCamel }}'          => $modelClassCamel,
-            '{{ controllerClass }}'          => $controllerClass,
-            '{{ routeName }}'                => $routeName,
-            '{{ searchableFieldsCode }}'     => $searchableFieldsCode,
-            '{{ selectableFieldsCode }}'     => $selectableFieldsCode,
-            '{{ selectableFieldsArrayCode }}'=> $selectableFieldsArrayCode,
-            '{{ rulesArrayStrCreate }}'      => $rulesArrayStrCreate,
-            '{{ rulesArrayStrUpdate }}'      => $rulesArrayStrUpdate,
+            '{{ modelClass }}'                => $modelClass,
+            '{{ modelClassFull }}'            => $modelClassFull,
+            '{{ modelClassCamel }}'           => $modelClassCamel,
+            '{{ controllerClass }}'           => $controllerClass,
+            '{{ searchableFieldsCode }}'      => $searchableFieldsCode,
+            '{{ selectableFieldsCode }}'      => $selectableFieldsCode,
+            '{{ selectableFieldsArrayCode }}' => $selectableFieldsArrayCode,
+            '{{ rulesArrayStrCreate }}'       => $rulesArrayStrCreate,
+            '{{ rulesArrayStrUpdate }}'       => $rulesArrayStrUpdate,
+            '{{ resourceClass }}'             => $resourceClass,
+            '{{ resourceClassFull }}'         => $resourceClassFull,
+            '{{ collectionClass }}'           => $collectionClass,
+            '{{ collectionClassFull }}'       => $collectionClassFull,
         ];
 
         $content = str_replace(array_keys($replacements), array_values($replacements), $template);

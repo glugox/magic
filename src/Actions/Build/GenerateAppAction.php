@@ -33,37 +33,40 @@ class GenerateAppAction implements DescribableAction
         // Step 1: Initialize BuildContext with options and config
         $buildContext = BuildContext::fromOptions($options)->setConfig($config);
 
-        // Step 2: Generate Migrations
-        $buildContext = app(GenerateMigrationsAction::class)($buildContext);
-
-        // Step 3: Generate Models
-        $buildContext = app(GenerateModelsAction::class)($buildContext);
-
-        // Step 4: Generate Seeders
-        $buildContext = app(GenerateSeedersAction::class)($buildContext);
-
-        // Step 5: Generate Controllers
-        $buildContext = app(GenerateControllersAction::class)($buildContext);
-
-        // Step 6: Run Install API Command
-        $buildContext = app(InstallApiCommand::class)($buildContext);
-
-        // Step 7: Install Node Packages
-        $buildContext = app(InstallNodePackagesAction::class)($buildContext);
-
-        // Step 8: Publish Files
+        // Step 2: Publish Files
         $buildContext = app(PublishFilesAction::class)($buildContext);
 
-        // Step 9: Generate Vue Pages
+        // Step 3: Generate Migrations
+        $buildContext = app(GenerateMigrationsAction::class)($buildContext);
+
+        // Step 4: Generate Models
+        $buildContext = app(GenerateModelsAction::class)($buildContext);
+
+        // Step 5: Generate Seeders
+        $buildContext = app(GenerateSeedersAction::class)($buildContext);
+
+        // Step 6: Generate API Resources
+        $buildContext = app(GenerateApiResourcesAction::class)($buildContext);
+
+        // Step 7: Generate Controllers
+        $buildContext = app(GenerateControllersAction::class)($buildContext);
+
+        // Step 8: Run Install API Command
+        $buildContext = app(InstallApiCommand::class)($buildContext);
+
+        // Step 9: Install Node Packages
+        $buildContext = app(InstallNodePackagesAction::class)($buildContext);
+
+        // Step 10: Generate Vue Pages
         $buildContext = app(GenerateVuePagesAction::class)($buildContext);
 
-        // Step 10: Update Vue Pages
+        // Step 11: Update Vue Pages
         $buildContext = app(UpdateVuePagesAction::class)($buildContext);
 
-        // Step 11: Update Database
+        // Step 12: Update Database
         $buildContext = app(UpdateDbAction::class)($buildContext);
 
-        // Step 12: Write Manifest
+        // Step 13: Write Manifest
         return app(GenerateManifestAction::class)($buildContext);
     }
 }

@@ -5,26 +5,23 @@ namespace App\Http\Controllers\{{entitySingularName}};
 use App\Http\Controllers\Controller;
 use {{parentModelClassFull}};
 use {{relatedModelClassFull}};
+use App\Http\Resources\{{relatedModelCollectionClass}};
+use App\Http\Resources\{{parentModelResourceClass}};
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class {{controllerClass}} extends Controller
 {
-    /**
-     * Display the belongs-to-many related {{relationName}} for a {{parentModelClass}}.
-     */
     public function index({{parentModelClass}} ${{parentModelClassLower}})
     {
-        $item = ${{parentModelClassLower}}->only({{selectFieldsStr}});
-
-        $relatedItems = ${{parentModelClassLower}}->{{relationName}}()->select({{selectRelatedFieldsStr}})->paginate(12);
-
-        $relatedIds = ${{parentModelClassLower}}->{{relationName}}()->pluck('id');
+        ${{parentModelClassLower}}->load('{{relationName}}');
+        $relatedItems = {{relatedModelClass}}::paginate(12); // all possible related items
+        $selectedIds = ${{parentModelClassLower}}->{{relationName}}->pluck('id');
 
         return Inertia::render('{{parentModelFolderName}}/{{relationName}}/Index', [
-            'item' => $item,
-            '{{relationName}}' => $relatedItems,
-            '{{relationName}}_ids' => $relatedIds,
+            'item' => new {{parentModelResourceClass}}(${{parentModelClassLower}}),
+            '{{relationName}}' => new {{relatedModelCollectionClass}}($relatedItems),
+            '{{relationName}}_selected' => $selectedIds,
         ]);
     }
 }

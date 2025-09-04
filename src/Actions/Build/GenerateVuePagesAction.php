@@ -261,8 +261,13 @@ $supportImports
  * This page shows the related $relatedEntityPluralName for a given $mainEntityName
  *
  */
+
+interface {$mainEntityName}ApiResponse {
+    data: {$mainEntityName};
+}
+
 interface Props {
-    item: {$mainEntityName};
+    item: {$mainEntityName}ApiResponse;
     $relationName: PaginationObject;
     {$relationName}_ids?: Id[];
     filters?: TableFilters;
@@ -279,7 +284,7 @@ const entityMeta = get{$relatedEntityName}EntityMeta();
 const sidebarNavItems: NavItem[] = [
     {
         title: 'General Information',
-        href: edit(item.id),
+        href: edit(item.data.id),
         icon: SquareMinus
     },
     $relationSidebarItems
@@ -290,12 +295,12 @@ const sidebarNavItems: NavItem[] = [
     <Head title="{$entitySingularName}" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <Head title="User" />
-        <ResourceLayout :title="item.name" description="$mainEntityName" :sidebar-nav-items="sidebarNavItems">
+        <ResourceLayout :title="item.data.name" description="$mainEntityName" :sidebar-nav-items="sidebarNavItems">
             <div class="flex flex-col space-y-6 max-w-2xl">
                 <HeadingSmall title="$relatedEntityPluralName" description="Update $mainEntityName $relationName" />
                 <ResourceTable
                     :data="$relationName"
-                    :parent-id="item.id"
+                    :parent-id="item.data.id"
                     :columns="columns"
                     :entity-meta="entityMeta"
                     :filters="filters"
@@ -334,21 +339,25 @@ import { SquareMinus, Link, CornerDownRight, FolderTree, GitCompareArrows } from
 $entityImports
 $supportImports
 
+interface {$entityName}ApiResponse {
+    data: {$entityName};
+}
+
 interface Props {
-    item: {$entityName};
+    item: {$entityName}ApiResponse;
 }
 const { item }: Props = defineProps<Props>();
 
 const breadcrumbItems: BreadcrumbItem[] = [
     {
         title: '{$title}',
-        href: edit(item.id).url,
+        href: edit(item.data.id).url,
     },
 ];
 const sidebarNavItems: NavItem[] = [
     {
         title: 'General Information',
-        href: edit(item.id),
+        href: edit(item.data.id),
         icon: SquareMinus
     },
     $relationSidebarItems
@@ -361,12 +370,12 @@ const entityMeta = get{$entityName}EntityMeta();
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
         <Head title="{$entityName}" />
-        <ResourceLayout :title="item.name" description="$entityName" :sidebar-nav-items="sidebarNavItems">
+        <ResourceLayout :title="item.data.name" description="$entityName" :sidebar-nav-items="sidebarNavItems">
             <div class="flex flex-col space-y-6 max-w-2xl">
                 <HeadingSmall title="{$entity->name} information" description="Update {$entity->name} details" />
                 <ResourceForm
                     :entityMeta="entityMeta"
-                    :item="item"
+                    :item="item.data"
                     :controller="{$entity->name}Controller"
                     />
             </div>

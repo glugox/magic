@@ -439,11 +439,6 @@ class Entity
             $nameFields[] = $field->name;
         }
 
-        // Since our frontend expects resources to always have a 'name' field, we add it if no name fields are defined.
-        if (empty($nameFields) && !in_array('name', $nameFields)) {
-            $nameFields[] = 'name';
-        }
-
         return $nameFields;
     }
 

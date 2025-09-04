@@ -5,19 +5,17 @@ namespace App\Http\Controllers\{{entitySingularName}};
 use App\Http\Controllers\Controller;
 use {{parentModelClassFull}};
 use {{relatedModelClassFull}};
+use App\Http\Resources\{{relatedModelResourceClass}};
+use App\Http\Resources\{{parentModelResourceClass}};
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class {{controllerClass}} extends Controller
 {
-    /**
-     * Display the morph-one related {{relationName}} for a {{parentModelClass}}.
-     */
     public function index({{parentModelClass}} ${{parentModelClassLower}})
     {
-        $item = ${{parentModelClassLower}}->only({{selectFieldsStr}});
-
-        $related = ${{parentModelClassLower}}->{{relationName}};
+        $item = new {{parentModelResourceClass}}(${{parentModelClassLower}});
+        $related = new {{relatedModelResourceClass}}(${{parentModelClassLower}}->{{relationName}});
 
         return Inertia::render('{{parentModelFolderName}}/{{relationName}}/Index', [
             'item' => $item,
