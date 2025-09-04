@@ -321,6 +321,26 @@ PHP;
         $controllerClass = Str::studly($entity->getName()) . Str::studly($relatedEntity->getSingularName()) . 'Controller';
         $relationName = $relation->getRelationName();                      // posts
 
+        // Choose what to select for relation
+        $selectFields = ['id'];
+        $nameFields = $entity->getNameFieldsNames();
+        if (! empty($nameFields)) {
+            $selectFields = array_merge($selectFields, $nameFields);
+        } else {
+            $selectFields[] = 'name'; // Default to 'name' if no specific name fields are defined
+        }
+        $selectFieldsStr = "['" . implode("','", $selectFields) . "']"; // ['id','name']
+
+        // Get the same, but for related entity
+        $selectRelatedFields = ['id'];
+        $relatedNameFields = $relatedEntity->getNameFieldsNames();
+        if (! empty($relatedNameFields)) {
+            $selectRelatedFields = array_merge($selectRelatedFields, $relatedNameFields);
+        } else {
+            $selectRelatedFields[] = 'name'; // Default to 'name' if no specific name fields are defined
+        }
+        $selectRelatedFieldsStr = "['" . implode("','", $selectRelatedFields) . "']"; // ['id','name']
+
         // Default template
         $methodBody = "// TODO: implement relation controller logic";
 
@@ -330,7 +350,7 @@ PHP;
         \${$parentModelClassLower}->load('$relationName');
 
         return Inertia::render('$parentModelFolderName/$relationName/Index', [
-            'item' => \${$parentModelClassLower}->only(['id', 'name']),
+            'item' => \${$parentModelClassLower}->only($selectFieldsStr),
             '$relationName' => $relatedModelClass::where('{$relation->getForeignKey()}', \${$parentModelClassLower}->id)->paginate(),
         ]);
         PHP;
@@ -341,7 +361,7 @@ PHP;
         \$related = \${$parentModelClassLower}->$relationName;
 
         return Inertia::render('$parentModelFolderName/$relationName/Index', [
-            'item' => \${$parentModelClassLower}->only(['id', 'name']),
+            'item' => \${$parentModelClassLower}->only($selectFieldsStr),
             '$relationName' => \$related,
         ]);
         PHP;
@@ -352,9 +372,9 @@ PHP;
         \$related = \${$parentModelClassLower}->$relationName;
 
         return Inertia::render('$parentModelFolderName/$relationName/Index', [
-            'item' => \${$parentModelClassLower}->only(['id', 'name']),
+            'item' => \${$parentModelClassLower}->only($selectFieldsStr),
             '$relationName' => \$related,
-            '{$relationName}' => $relatedModelClass::paginate(['id','name']),
+            '{$relationName}' => $relatedModelClass::paginate($selectFieldsStr),
         ]);
         PHP;
         }
@@ -362,8 +382,8 @@ PHP;
         if ($relation->isBelongsToMany()) {
             $methodBody = <<<PHP
         return Inertia::render('$parentModelFolderName/$relationName/Index', [
-            'item' => \${$parentModelClassLower}->only(['id', 'name']),
-            '{$relationName}' => $relatedModelClass::select(['id','name'])->paginate(),
+            'item' => \${$parentModelClassLower}->only($selectFieldsStr),
+            '{$relationName}' => $relatedModelClass::select($selectRelatedFieldsStr)->paginate(),
             '{$relationName}_ids' => \${$parentModelClassLower}->$relationName()->pluck('id'),
         ]);
         PHP;
@@ -456,7 +476,12 @@ PHP;
         $selectableFields = $entity->getTableFieldsNames(skipRelations: true);
 
         // This will get us something like: 'id,name,email' in order to mimic what the client is requesting for query param 'fields'
-        $selectableFieldsCode = empty($selectableFields) ? '' : '"' . implode(',', $selectableFields) . '"';
+        $selectableFieldsCode = empty($selectableFields) ? '' : '"' . implode(',', $selectableFields) . '"'; // '"id,name,email"'
+
+        // $selectableFieldsCode as array
+        $selectableFieldsArrayCode = empty($selectableFields)
+            ? '[]'
+            : "['" . implode("', '", $selectableFields) . "']"; // ['id', 'name', 'email']
 
         /** @var EntityRuleSet $validationRules */
         $validationRules = $this->validationHelper->make($entity);
@@ -554,7 +579,7 @@ class $controllerClass extends Controller
      */
     public function show($modelClass \${$modelClassCamel}): JsonResponse
     {
-        \$fields = request()->get('fields', 'id,name');
+        \$fields = request()->get('fields', $selectableFieldsCode);
         \$selectedFields = array_map('trim', explode(',', \$fields));
 
         if (!in_array('id', \$selectedFields)) {
@@ -562,6 +587,7 @@ class $controllerClass extends Controller
         }
 
         \$data = \${$modelClassCamel}->only(\$selectedFields);
+        \$data['name'] = \${$modelClassCamel}->name;
 
         return response()->json([
             'data' => \$data
@@ -615,7 +641,7 @@ class $controllerClass extends Controller
                     \$q->orWhere(\$field, 'like', "%{\$query}%");
                 }
             })
-            ->select(['id', 'name'])
+            ->select($selectableFieldsArrayCode)
             ->limit(\$limit)
             ->get();
 
@@ -645,7 +671,7 @@ class $controllerClass extends Controller
         }
 
         \$limit = \$request->get('limit', 12);
-        \$items = \$query->select(['id', 'name'])
+        \$items = \$query->select($selectableFieldsArrayCode)
                       ->orderBy('name')
                       ->limit(\$limit)
                       ->get();
@@ -709,7 +735,7 @@ PHP;
 
         $routesContent = implode("\n", $routeLines) . "\n";
         app(GenerateFileAction::class)($apiRoutesPath, $routesContent);
-        $this->context->registerGeneratedFile($apiRoutesPath);
+        //$this->context->registerGeneratedFile($apiRoutesPath);
 
         Log::channel('magic')->info("API Routes generated and saved to: {$apiRoutesPath}");
     }
