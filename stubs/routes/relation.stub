@@ -1,0 +1,2 @@
+Route::get('{{entityRouteName}}/{{{entitySingular}}}/{{relationName}}', [{{controllerClass}}::class, 'index'])
+    ->name('{{entityRouteName}}.index-{{relationName}}');

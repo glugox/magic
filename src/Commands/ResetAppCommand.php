@@ -4,6 +4,7 @@ namespace Glugox\Magic\Commands;
 
 use Glugox\Magic\Actions\Config\ResolveAppConfigAction;
 use Glugox\Magic\Support\CodeGenerationHelper;
+use Glugox\Magic\Support\Config\Config;
 use Glugox\Magic\Support\ConsoleBlock;
 use Glugox\Magic\Support\File\FilesGenerationUpdate;
 use Illuminate\Support\Facades\File;
@@ -22,7 +23,7 @@ class ResetAppCommand extends MagicBaseCommand
     /**
      * Config object
      */
-    private $config;
+    private Config $config;
 
     private ConsoleBlock $block;
 
@@ -152,6 +153,32 @@ class ResetAppCommand extends MagicBaseCommand
             $this->deletePivotSeeders($entity);
             $this->deleteFile(database_path("factories/{$entity->getName()}Factory.php"), 'Factory', $entity->getName());
             $this->deleteFile(app_path("Http/Controllers/{$entity->getName()}Controller.php"), 'Controller', $entity->getName());
+
+            // Also delete API controller if exists
+            $this->deleteFile(app_path("Http/Controllers/Api/{$entity->getName()}ApiController.php"), 'API Controller', $entity->getName());
+
+            // Delete controllers for relations
+            foreach ($entity->getRelations() as $relation) {
+                $controllerFQN = $relation->getControllerFullQualifiedName();
+
+                // Convert FQN to path: App\Http\Controllers\Api\RelationNameController -> app/Http/Controllers/Api/RelationNameController.php
+                $controllerPath = app_path(str_replace('\\', '/', ltrim($controllerFQN, '\\')));
+                // Also remove the /App/ prefix if present
+                $controllerPath = str_replace('App/', '', $controllerPath);
+
+                $this->deleteFile($controllerPath, 'Relation Controller', $relation->getRelationName());
+
+                // Try to remove the directory if empty
+                $controllerDir = dirname($controllerPath);
+                try {
+                    $this->logInfo(">>>> Attempting to remove directory {$controllerDir} if empty...");
+                    File::deleteDirectory($controllerDir);
+                    $this->logInfo(">>>> Removing directory {$controllerDir} if empty...");
+
+                } catch (\Exception $e) {
+                    $this->logWarning("Could not remove directory {$controllerDir}. It may not be empty. Error: ".$e->getMessage());
+                }
+            }
         }
     }
 
@@ -163,6 +190,51 @@ class ResetAppCommand extends MagicBaseCommand
         // Delete app.php from routes dir
         $this->logInfo('Resetting routes...');
         $this->deleteFile(base_path('routes/app.php'), 'Routes');
+
+        // Remove the include line from web.php
+        $webRoutesPath = base_path('routes/web.php');
+        if (file_exists($webRoutesPath)) {
+            $content = file_get_contents($webRoutesPath);
+            $pattern = "/require __DIR__\s*\.\s*'\/app\.php';\s*/";
+            $newContent = preg_replace($pattern, '', $content);
+            if ($newContent !== null && $newContent !== $content) {
+                file_put_contents($webRoutesPath, $newContent);
+                $this->logInfo('Removed app.php include from web.php');
+            } else {
+                $this->logWarning('No app.php include found in web.php or failed to modify file.');
+            }
+        } else {
+            $this->logWarning('web.php file does not exist. Cannot remove app.php include.');
+        }
+
+        // Remove API routes if added in api.php
+        $apiRoutesPath = base_path('routes/api.php');
+        if (file_exists($apiRoutesPath)) {
+            $content = file_get_contents($apiRoutesPath);
+            $pattern = "/require __DIR__\s*\.\s*'\/app\.php';\s*/";
+            $newContent = preg_replace($pattern, '', $content);
+            if ($newContent !== null && $newContent !== $content) {
+                file_put_contents($apiRoutesPath, $newContent);
+                $this->logInfo('Removed app.php include from api.php');
+            } else {
+                $this->logWarning('No app.php include found in api.php or failed to modify file.');
+            }
+        } else {
+            $this->logWarning('api.php file does not exist. Cannot remove app.php include.');
+        }
+
+        // Remove routes/app directory if empty
+        $appRoutesDir = base_path('routes/app');
+        if (is_dir($appRoutesDir)) {
+            try {
+                File::deleteDirectory($appRoutesDir);
+                $this->logInfo('Removed routes/app directory if empty.');
+            } catch (\Exception $e) {
+                $this->logWarning("Could not remove directory {$appRoutesDir}. It may not be empty. Error: ".$e->getMessage());
+            }
+        } else {
+            $this->logWarning('routes/app directory does not exist. Nothing to delete.');
+        }
     }
 
     /**

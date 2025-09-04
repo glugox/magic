@@ -1,0 +1,7 @@
+->names([
+    'index' => 'api.{{routeName}}.index',
+    'store' => 'api.{{routeName}}.store',
+    'show' => 'api.{{routeName}}.show',
+    'update' => 'api.{{routeName}}.update',
+    'destroy' => 'api.{{routeName}}.destroy',
+])

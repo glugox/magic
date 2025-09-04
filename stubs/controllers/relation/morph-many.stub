@@ -1,0 +1,28 @@
+<?php
+
+namespace App\Http\Controllers\{{entitySingularName}};
+
+use App\Http\Controllers\Controller;
+use {{parentModelClassFull}};
+use {{relatedModelClassFull}};
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+
+class {{controllerClass}} extends Controller
+{
+    /**
+     * Display a listing of morph-related {{relationName}} for a {{parentModelClass}}.
+     */
+    public function index({{parentModelClass}} ${{parentModelClassLower}})
+    {
+        $item = ${{parentModelClassLower}}->only({{selectFieldsStr}});
+
+        // MorphMany relation
+        $relatedItems = ${{parentModelClassLower}}->{{relationName}}()->paginate(12);
+
+        return Inertia::render('{{parentModelFolderName}}/{{relationName}}/Index', [
+            'item' => $item,
+            '{{relationName}}' => $relatedItems,
+        ]);
+    }
+}

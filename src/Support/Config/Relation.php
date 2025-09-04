@@ -76,6 +76,30 @@ class Relation
     }
 
     /**
+     * @return bool Returns true if the relation is of type 'morphTo'.
+     */
+    public function isMorphTo(): bool
+    {
+        return $this->type === RelationType::MORPH_TO;
+    }
+
+    /**
+     * @return bool Returns true if the relation is of type 'morphMany'.
+     */
+    public function isMorphMany(): bool
+    {
+        return $this->type === RelationType::MORPH_MANY;
+    }
+
+    /**
+     * @return bool Returns true if the relation is of type 'morphOne'.
+     */
+    public function isMorphOne(): bool
+    {
+        return $this->type === RelationType::MORPH_ONE;
+    }
+
+    /**
      * Get the name of the related entity. Ex. 'User', 'Post', etc.
      */
     public function getRelatedEntityName(): ?string

@@ -1,0 +1,30 @@
+<?php
+
+namespace App\Http\Controllers\{{entitySingularName}};
+
+use App\Http\Controllers\Controller;
+use {{parentModelClassFull}};
+use {{relatedModelClassFull}};
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+
+class {{controllerClass}} extends Controller
+{
+    /**
+     * Display a listing of related {{relationName}} for a {{parentModelClass}}.
+     */
+    public function index({{parentModelClass}} ${{parentModelClassLower}})
+    {
+        // Load parent item with selected fields
+        $item = ${{parentModelClassLower}}->only({{selectFieldsStr}});
+
+        // Paginate related items
+        $relatedItems = {{relatedModelClass}}::where('{{foreignKey}}', ${{parentModelClassLower}}->id)
+            ->paginate(12);
+
+        return Inertia::render('{{parentModelFolderName}}/{{relationName}}/Index', [
+            'item' => $item,
+            '{{relationName}}' => $relatedItems,
+        ]);
+    }
+}

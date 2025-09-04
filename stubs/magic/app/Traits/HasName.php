@@ -22,6 +22,10 @@ trait HasName
             $nameFields = (array) $this->nameFields;
             $nameParts = [];
             foreach ($nameFields as $field) {
+                // We must exclude 'name' to avoid recursion
+                if ($field === 'name') {
+                    continue;
+                }
                 if (isset($this->{$field})) {
                     $nameParts[] = $this->{$field};
                 }

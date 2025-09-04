@@ -1,0 +1,12 @@
+/**
+ * {{entityName}} api routes
+ */
+Route::apiResource('{{routeName}}', {{controllerClass}}::class)->names([
+    'index' => 'api.{{routeName}}.index',
+    'store' => 'api.{{routeName}}.store',
+    'show' => 'api.{{routeName}}.show',
+    'update' => 'api.{{routeName}}.update',
+    'destroy' => 'api.{{routeName}}.destroy',
+]);
+Route::get('{{routeName}}-search', [{{controllerClass}}::class, 'search'])->name('api.{{routeName}}.search');
+Route::get('{{routeName}}-options', [{{controllerClass}}::class, 'options'])->name('api.{{routeName}}.options');
