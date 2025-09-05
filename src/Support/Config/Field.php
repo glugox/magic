@@ -163,10 +163,7 @@ class Field
             return 'foreignId';
         }
 
-        return match ($this->type) {
-            FieldType::IMAGE, FieldType::URL, FieldType::PASSWORD => 'string',
-            default => $this->type->value // Fallback to the enum value if not matched
-        };
+        return $this->type->value;
     }
 
     /**

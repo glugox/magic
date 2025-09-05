@@ -7,11 +7,12 @@
 </template>
 
 <script setup lang="ts">
-import StringField from './StringField.vue'
-import NumberField from './NumberField.vue'
-import DecimalField from './DecimalField.vue'
-import DateField from './DateField.vue'
-import BelongsToField from './BelongsToField.vue'
+import StringField from '@/components/form/StringField.vue'
+import NumberField from '@/components/form/NumberField.vue'
+import DecimalField from '@/components/form/DecimalField.vue'
+import DateField from '@/components/form/DateField.vue'
+import BooleanField from "@/components/form/BooleanField.vue";
+import BelongsToField from '@/components/form/BelongsToField.vue'
 import {Field, CrudActionType, Entity} from '@/types/support'
 import TextAreaField from "@/components/form/TextAreaField.vue";
 
@@ -83,7 +84,7 @@ const componentsMap: Record<string, any> = {
 
     // ──────── Enum / Special ────────
     enum: StringField,           // ✅ need EnumField
-    boolean: StringField,        // ✅ need BooleanField
+    boolean: BooleanField,        // ✅ need BooleanField
     foreignId: BelongsToField,
 
     // ──────── Relations ────────

@@ -21,7 +21,7 @@ export interface Field {
 }
 
 export interface Relation {
-    type: 'belongsTo' | 'hasMany' | 'hasOne' | 'belongsToMany'
+    type: 'belongsTo' | 'hasMany' | 'hasOne' | 'belongsToMany' | 'morphTo' | 'morphMany' | 'morphOne' | 'morphToMany' | 'morphedByMany'
     localEntity: string | null
     entityName?: string | null
     relatedEntity?: string | null

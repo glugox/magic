@@ -91,6 +91,7 @@ return [
             'casts' => [
                 'email_verified_at' => 'datetime',
                 'password' => 'hashed',
+                'active' => 'boolean',
             ],
         ],
     ],
