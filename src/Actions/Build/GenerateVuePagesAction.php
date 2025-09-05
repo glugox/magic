@@ -321,7 +321,7 @@ PHP;
     {
         $entityName = $entity->getName();
         $title = $entity->getPluralName();
-        $folderName = $entity->getFolderName();
+        $folderName = $entity->getRouteName(); // Wayfinder generates in order-items instead of order_items
         $entityImports = $this->tsHelper->writeEntityImports($entity);
         $supportImports = $this->tsHelper->writeFormPageSupportImports($entity);
         $relationSidebarItems = $this->tsHelper->writeRelationSidebarItems($entity, $this->context->getConfig());

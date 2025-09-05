@@ -177,6 +177,18 @@ class Relation
     }
 
     /**
+     * Has route
+     */
+    public function hasRoute(): bool
+    {
+        return in_array($this->type, [
+            RelationType::HAS_MANY,
+            RelationType::BELONGS_TO_MANY,
+            RelationType::MORPH_MANY
+        ]);
+    }
+
+    /**
      * @return string Returns the name of the pivot table for many-to-many relations.
      */
     public function getPivotName(): string

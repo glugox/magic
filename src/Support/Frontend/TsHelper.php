@@ -290,7 +290,7 @@ class TsHelper
             $relatedEntity = $config->getEntityByName($relatedEntityName);
             if ($relatedEntity) {
                 $relationTitle = $relatedEntity->getPluralName();
-                $relationFolder = $relatedEntity->getFolderName();
+                $relationFolder = $relatedEntity->getRouteName();
                 $icon = $icons[$relation->getType()->value] ?? 'SquareMinus';
 
                 $items[] = <<<VUE

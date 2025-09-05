@@ -165,7 +165,7 @@ class Entity
     public function getRouteName(): string
     {
         // Convert entity name to kebab-case for route name
-        return $this->getTableName();
+        return Str::kebab($this->getPluralName());
     }
 
     /**
@@ -195,7 +195,7 @@ class Entity
     public function getHref(): string
     {
         // Convert entity name to kebab-case for href
-        return '/'.$this->getTableName();
+        return '/' . $this->getRouteName();
     }
 
     /**

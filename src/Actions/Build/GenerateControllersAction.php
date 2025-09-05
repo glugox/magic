@@ -149,6 +149,10 @@ class GenerateControllersAction implements DescribableAction
 
     public function generateRelationControllers(Entity $entity, Relation $relation): void
     {
+        if (!$relation->hasRoute()) {
+            return;
+        }
+
         $template = $this->buildRelationControllers($entity, $relation);
         if (empty($template)) {
             return;
@@ -280,6 +284,13 @@ class GenerateControllersAction implements DescribableAction
             $relationRoutes[] = " // Routes for entity: {$entity->getName()} relations";
 
             foreach ($relations as $relation) {
+
+                // Check if relation does not have a route (e.g., belongsTo)
+                if (!$relation->hasRoute()) {
+                    continue;
+                }
+
+                $relatedEntity = $relation->getRelatedEntity();
                 $controllerFQCN = $relation->getControllerFullQualifiedName();
                 $controllerShort = class_basename($controllerFQCN);
 
@@ -290,6 +301,7 @@ class GenerateControllersAction implements DescribableAction
                 $replacements = [
                     '{{entityRouteName}}' => $entity->getRouteName(),
                     '{{relationName}}' => $relation->getRelationName(),
+                    '{{relationRoute}}' => $relatedEntity->getRouteName(),
                     '{{controllerClass}}' => $controllerShort,
                     '{{relationType}}' => $relation->type->value,
                     '{{entitySingular}}'  => Str::camel(Str::singular($entity->getName())),

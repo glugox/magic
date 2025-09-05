@@ -47,17 +47,19 @@ const debounced = (fn: Function, ms = 400) => {
 }
 
 const send = () => {
-    router.get(
-        controller.index(parentId), // Wayfinder function builds the route object
-        {
-            page: page.value,
-            perPage: perPage.value,
-            sortKey: sortKey.value,
-            sortDir: sortDir.value,
-            search: search.value
-        },
-        { preserveState: true, preserveScroll: true, replace: true }
-    )
+    const params: any = {
+        page: page.value,
+        perPage: perPage.value,
+        search: search.value,
+    }
+    if (sortKey.value) params.sortKey = sortKey.value
+    if (sortDir.value) params.sortDir = sortDir.value
+
+    router.get(controller.index(parentId), params, {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+    })
 }
 const sendDebounced = debounced(send, 400)
 
