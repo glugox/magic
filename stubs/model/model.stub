@@ -1,0 +1,37 @@
+<?php
+
+namespace {{namespace}};
+
+{{uses}}
+
+/**
+ * {{modelClass}} model.
+ *
+ * This class was generated automatically by Magic.
+ * Customize only in safe ways. For relationships or traits,
+ * prefer creating traits or using config presets.
+ */
+class {{modelClass}} extends {{extends}}
+{
+    {{traits}}
+
+    // Fillable fields for mass assignment
+    protected $fillable = [
+        {{fillable}}
+    ];
+
+    // Hidden fields, e.g., password, api tokens
+    protected $hidden = [
+        {{hidden}}
+    ];
+
+    // Attribute casts for proper type handling
+    protected $casts = [
+        {{casts}}
+    ];
+
+    // Custom appended attributes
+    {{appends}}
+
+    {{relations}}
+}

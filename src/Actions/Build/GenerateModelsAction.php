@@ -28,9 +28,11 @@ class GenerateModelsAction implements DescribableAction
     use AsDescribableAction, CanLogSectionTitle;
 
     protected string $modelPath;
+    private string $stubsPath;
 
     public function __construct()
     {
+        $this->stubsPath = __DIR__.'/../../../stubs';
         $this->modelPath = app_path('Models');
         if (! File::exists($this->modelPath)) {
             File::makeDirectory($this->modelPath, 0755, true);
@@ -71,52 +73,46 @@ class GenerateModelsAction implements DescribableAction
         $casts = $entity->getCasts();
         $nameFields = $entity->getNameFieldsNames();
 
+        // Apply model presets
         if (isset($modelPresets[$entityName])) {
             $preset = $modelPresets[$entityName];
-
             $extends = $preset['extends'] ?? $extends;
             $traits = $preset['traits'] ?? $traits;
 
-            // Default fields
-            $defaultFields = $preset['default_fields'] ?? [];
-            foreach ($defaultFields as $defaultField) {
+            foreach ($preset['default_fields'] ?? [] as $defaultField) {
                 $name = $defaultField['name'];
                 if (! $entity->hasField($name)) {
                     $entity->addField(Field::fromConfig($defaultField));
                 }
             }
 
-            // Merge preset fillable
             foreach ($preset['fillable'] ?? [] as $item) {
-                if (! in_array($item, $fillable)) {
-                    $fillable[] = $item;
-                }
+                if (! in_array($item, $fillable)) $fillable[] = $item;
             }
 
-            // Merge preset hidden
             foreach ($preset['hidden'] ?? [] as $item) {
-                if (! in_array($item, $hidden)) {
-                    $hidden[] = $item;
-                }
+                if (! in_array($item, $hidden)) $hidden[] = $item;
             }
 
-            // Merge preset casts
             foreach ($preset['casts'] ?? [] as $key => $value) {
-                if (! isset($casts[$key])) {
-                    $casts[$key] = $value;
-                }
+                if (! isset($casts[$key])) $casts[$key] = $value;
             }
         }
 
-        // Ensure HasFactory
+        // Always ensure HasFactory
         if (! in_array(HasFactory::class, $traits)) {
             $traits[] = HasFactory::class;
         }
 
-        // Ensure "name" field
+        // Automatically add HasName trait if entity has no "name" field
         if (! $entity->hasField('name')) {
             $traits[] = 'App\Traits\HasName';
             $appends[] = 'name';
+        }
+
+        // Automatically add HasImages trait if entity supports images
+        if ($entity->hasImage ?? false) {
+            $traits[] = 'App\Traits\HasImages';
         }
 
         // Infer casts if empty
@@ -124,81 +120,38 @@ class GenerateModelsAction implements DescribableAction
             foreach ($fields as $field) {
                 $type = $field->type;
                 $cast = $this->mapFieldTypeToCast($type);
-                if ($cast) {
-                    $name = $field instanceof Field ? $field->name : $field['name'];
-                    $casts[$name] = $cast;
-                }
+                if ($cast) $casts[$field->name] = $cast;
             }
         }
 
         // Relations
         $relationsCode = '';
         foreach ($entity->getRelations() as $relation) {
-            $relationsCode .= $this->buildRelationMethod($relation)."\n\n";
+            $relationsCode .= $this->buildRelationMethod($relation) . "\n\n";
         }
 
-        // Format arrays
-        $fillableStr = implode(",\n        ", array_map(fn ($f) => "'$f'", $fillable));
-        $hiddenStr = implode(",\n        ", array_map(fn ($h) => "'$h'", $hidden));
-        $castsStr = implode(",\n        ", array_map(fn ($k, $v) => "'$k' => '$v'", array_keys($casts), $casts));
+        // Prepare stub replacements
+        $replacements = [
+            '{{namespace}}' => 'App\Models',
+            '{{uses}}' => implode("\n", array_map(fn($t) => "use $t;", array_unique($traits))),
+            '{{modelClass}}' => $className,
+            '{{extends}}' => $extends,
+            '{{traits}}' => !empty($traits) ? 'use ' . implode(', ', array_map(fn($t) => class_basename($t), $traits)) . ';' : '',
+            '{{fillable}}' => implode(",\n        ", array_map(fn($f) => "'$f'", $fillable)),
+            '{{hidden}}' => implode(",\n        ", array_map(fn($h) => "'$h'", $hidden)),
+            '{{casts}}' => implode(",\n        ", array_map(fn($k, $v) => "'$k' => '$v'", array_keys($casts), $casts)),
+            '{{appends}}' => !empty($appends) ? "protected \$appends = [\n        '" . implode("',\n        '", $appends) . "'\n    ];" : '',
+            '{{relations}}' => $relationsCode,
+        ];
 
-        // Traits
-        $traitsUseStr = '';
-        if (! empty($traits)) {
-            $traitsUseStr = 'use '.implode(', ', array_map(fn ($t) => class_basename($t), $traits)).';';
-        }
+        // Load stub
+        $stubPath =$this->stubsPath . '/model/model.stub';
+        $template = File::get($stubPath);
 
-        // Appends
-        $appendsStr = '';
-        if (! empty($appends)) {
-            $appendsFieldsStr = implode(",\n        ", array_map(fn ($a) => "'$a'", $appends));
-            $appendsStr .= "\n    protected \$appends = [\n        $appendsFieldsStr\n    ];";
-        }
+        // Replace placeholders
+        $template = str_replace(array_keys($replacements), array_values($replacements), $template);
 
-        if (! empty($nameFields)) {
-            $nameFieldsStr = implode(', ', array_map(fn ($n) => "'$n'", $nameFields));
-            $appendsStr .= "\n    protected \$nameFields = [\n        $nameFieldsStr\n    ];";
-        }
-
-
-
-        // Use statements for traits
-        $useStatements = [];
-        foreach ($traits as $trait) {
-            $useStatements[] = "use {$trait};";
-        }
-        $useStatementsStr = implode("\n", array_unique($useStatements));
-
-        // Template
-        $template = <<<PHP
-<?php
-
-namespace App\Models;
-$useStatementsStr
-/**
- * $className model class.
- */
-class $className extends {$extends}
-{
-    $traitsUseStr
-
-    // Fillable fields, e.g. for mass assignment
-    protected \$fillable = [
-        $fillableStr
-    ];
-    // Hidden fields, e.g. for password
-    protected \$hidden = [
-        $hiddenStr
-    ];
-    // Casts
-    protected \$casts = [
-        $castsStr
-    ];
-    $appendsStr
-$relationsCode
-}
-PHP;
-
+        // Write file
         $filePath = $this->modelPath.'/'.$className.'.php';
         app(GenerateFileAction::class)($filePath, $template);
 
