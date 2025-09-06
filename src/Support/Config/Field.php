@@ -171,7 +171,25 @@ class Field
             return 'foreignId';
         }
 
-        return $this->type->value;
+// Map non-migration types to proper migration types
+        return match ($this->type) {
+            // Semantic/UI types mapped to real migration columns
+            FieldType::EMAIL,
+            FieldType::USERNAME,
+            FieldType::PASSWORD,
+            FieldType::URL,
+            FieldType::PHONE,
+            FieldType::SLUG,
+            FieldType::SECRET,
+            FieldType::TOKEN,
+            FieldType::FILE,
+            FieldType::IMAGE => 'string',
+
+            // Relations that should not generate columns directly
+
+            // Default: use the enum value as-is
+            default => $this->type->value,
+        };
     }
 
     /**
