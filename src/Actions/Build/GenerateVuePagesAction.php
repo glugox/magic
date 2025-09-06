@@ -158,7 +158,7 @@ $entityImports
 $supportImports
 
 interface Props {
-    data: PaginationObject;
+    data: PaginatedResponse<{$entityName}>
     filters?: TableFilters;
 }
 

@@ -51,7 +51,7 @@ class {{controllerClass}} extends Controller
 
         return Inertia::render('{{folderName}}/Index', [
             'filters' => request()->only(['search', 'sortKey', 'sortDir']),
-            'data' => new {{modelClass}}Collection($items),
+            'data' => {{resourceClass}}::collection($items)->response()->getData(),
         ]);
     }
 
