@@ -35,7 +35,7 @@ class EnableAttachableAction implements DescribableAction
 
         // Define files to copy with source, destination, and optional timestamp for migrations
         $filesToCopy = [
-            ['src' => 'migration/create_attachments_table.php.stub', 'dest' => 'database/migrations', 'timestamped' => true],
+            ['src' => 'migration/create_attachments_table.php', 'dest' => 'database/migrations', 'timestamped' => true],
             ['src' => 'traits/HasImages.php', 'dest' => 'app/Traits'],
             ['src' => 'models/Attachment.php', 'dest' => 'app/Models'],
             ['src' => 'api-resources/AttachmentResource.php', 'dest' => 'app/Http/Resources'],
