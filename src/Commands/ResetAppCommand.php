@@ -62,6 +62,27 @@ class ResetAppCommand extends MagicBaseCommand
 
         $this->initializeConsole();
 
+        // Delete generated enum files
+        $this->logInfo('Resetting enums...');
+        $enumsPath = app_path('Enums');
+        if (is_dir($enumsPath)) {
+            foreach ($this->config->entities as $entity) {
+                foreach ($entity->getFields() as $field) {
+                    if ($field->isEnum()) {
+                        // PHP Enums
+                        $enumClassName = Str::studly($entity->getName()).Str::studly($field->name).'Enum';
+                        $this->deleteFile($enumsPath.'/'.$enumClassName.'.php', 'Enum', $enumClassName);
+
+                        // TS Enums
+                        $tsEnumPath = resource_path('js/enums');
+                        $this->deleteFile($tsEnumPath.'/'.$enumClassName.'.ts', 'TS Enum', $enumClassName);
+                    }
+                }
+            }
+        } else {
+            $this->logWarning('Enums directory does not exist. Nothing to delete.');
+        }
+
         // Delete migrations
         // This could delete create user migration, so make sure it is run before resetLaravelApp
         $this->resetMigrations();

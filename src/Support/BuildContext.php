@@ -82,6 +82,15 @@ class BuildContext
     }
 
     /**
+     * Registers created folders as part of the build process.
+     */
+    public function registerCreatedFolder(string $folderPath): void
+    {
+        Log::channel('magic')->info("Created folder: {$folderPath}");
+        $this->filesGenerationUpdate->addFolder($folderPath);
+    }
+
+    /**
      * Merges another FilesGenerationUpdate into this one
      */
     public function mergeFilesGenerationUpdate(FilesGenerationUpdate $other): self

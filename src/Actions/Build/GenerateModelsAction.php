@@ -64,6 +64,7 @@ class GenerateModelsAction implements DescribableAction
         $modelPresets = config('magic.model_presets', []);
 
         $extends = '\Illuminate\Database\Eloquent\Model';
+        $uses = [];
         $traits = [];
         $appends = [];
         $fields = $entity->getFields();
@@ -115,12 +116,19 @@ class GenerateModelsAction implements DescribableAction
             $traits[] = 'App\Traits\HasImages';
         }
 
+
+        // Imports for traits
+        foreach ($traits as $t) {
+            $uses[] = $t;
+        }
+
         // Infer casts if empty
         if (empty($casts)) {
             foreach ($fields as $field) {
-                $type = $field->type;
-                $cast = $this->mapFieldTypeToCast($type);
-                if ($cast) $casts[$field->name] = $cast;
+                $cast = $this->mapFieldTypeToCast($field);
+                if ($cast) {
+                    $casts[$field->name] = $cast;
+                }
             }
         }
 
@@ -133,13 +141,25 @@ class GenerateModelsAction implements DescribableAction
         // Prepare stub replacements
         $replacements = [
             '{{namespace}}' => 'App\Models',
-            '{{uses}}' => implode("\n", array_map(fn($t) => "use $t;", array_unique($traits))),
+            '{{uses}}' => implode("\n", array_map(fn($t) => "use $t;", array_unique($uses))),
             '{{modelClass}}' => $className,
             '{{extends}}' => $extends,
             '{{traits}}' => !empty($traits) ? 'use ' . implode(', ', array_map(fn($t) => class_basename($t), $traits)) . ';' : '',
             '{{fillable}}' => implode(",\n        ", array_map(fn($f) => "'$f'", $fillable)),
             '{{hidden}}' => implode(",\n        ", array_map(fn($h) => "'$h'", $hidden)),
-            '{{casts}}' => implode(",\n        ", array_map(fn($k, $v) => "'$k' => '$v'", array_keys($casts), $casts)),
+            '{{casts}}' => implode(",\n        ", array_map(
+                function ($k, $v) {
+                    // If it ends with "::class" treat it as raw (no quotes)
+                    if (str_ends_with($v, '::class')) {
+                        return "'$k' => $v";
+                    }
+
+                    // Otherwise wrap in quotes (normal string casts)
+                    return "'$k' => '$v'";
+                },
+                array_keys($casts),
+                $casts
+            )),
             '{{appends}}' => !empty($appends) ? "protected \$appends = [\n        '" . implode("',\n        '", $appends) . "'\n    ];" : '',
             '{{relations}}' => $relationsCode,
         ];
@@ -159,8 +179,18 @@ class GenerateModelsAction implements DescribableAction
         Log::channel('magic')->info("Model created: $filePathRelative");
     }
 
-    protected function mapFieldTypeToCast(FieldType $type): ?string
+    /**
+     * Map a field type to an Eloquent cast type, as Laravel understands it in model $casts.
+     */
+    protected function mapFieldTypeToCast(Field $field): ?string
     {
+        $type = $field->type;
+
+        // If enum → reference generated enum class
+        if ($type === FieldType::ENUM && !empty($field->values)) {
+            return '\\App\\Enums\\' . Str::studly($field->getEntity()->getName()) . Str::studly($field->name) . 'Enum::class';
+        }
+
         return match ($type) {
             FieldType::DATE => 'date',
             FieldType::DATETIME, FieldType::TIMESTAMP => 'datetime',

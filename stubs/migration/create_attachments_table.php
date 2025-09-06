@@ -21,7 +21,7 @@ return new class extends Migration
             // File data
             $table->string('file_path');
             $table->string('file_type')->nullable(); // e.g., 'image/jpeg', 'pdf', etc.
-            $table->unsignedBigInteger('file_type')->nullable(); // Size in bytes
+            $table->unsignedBigInteger('file_size')->nullable(); // Size in bytes
             $table->integer('order_index')->default(0); // For ordering attachments
 
             $table->timestamps();

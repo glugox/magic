@@ -34,3 +34,31 @@ it('generates model for each sample config', function () {
         }
     }
 });
+
+it('generates models with enum casting when enum fields exist', function () {
+    // Arrange
+    $context = getFixtureBuildContext();
+    $action = app(GenerateModelsAction::class);
+
+    $modelPath = app_path('Models/Product.php');
+    if (File::exists($modelPath)) {
+        File::delete($modelPath);
+    }
+
+    // Act
+    $action($context);
+
+    // Assert
+    expect(File::exists($modelPath))->toBeTrue();
+
+    $contents = File::get($modelPath);
+
+    expect($contents)->toContain("'status' => \\App\\Enums\\ProductStatusEnum::class");
+
+    // Check that does not import enums when no enum fields exist
+    $modelWithNoEnumPath = app_path('Models/Category.php');
+    $contents = File::get($modelWithNoEnumPath);
+    expect($contents)->not->toContain("use App\\Enums\\");
+
+
+});

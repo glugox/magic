@@ -39,6 +39,9 @@ class GenerateAppAction implements DescribableAction
         // Step 2a: Enable Attachable (copy traits, resources, stubs conditionally)
         $buildContext = app(EnableAttachableAction::class)($buildContext);
 
+        // Step 2b: Generate Enums
+        $buildContext = app(GenerateEnumsAction::class)($buildContext);
+
         // Step 3: Generate Migrations
         $buildContext = app(GenerateMigrationsAction::class)($buildContext);
 

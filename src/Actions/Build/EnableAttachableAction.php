@@ -18,6 +18,7 @@ class EnableAttachableAction implements DescribableAction
     use AsDescribableAction, CanLogSectionTitle;
 
     protected string $stubsDir;
+    private BuildContext $context;
 
     public function __construct()
     {
@@ -26,6 +27,7 @@ class EnableAttachableAction implements DescribableAction
 
     public function __invoke(BuildContext $context): BuildContext
     {
+        $this->context = $context;
         $this->logInvocation($this->describe()->name);
 
         if (! $context->getConfig()->anyEntityHasImages()) {
@@ -62,6 +64,7 @@ class EnableAttachableAction implements DescribableAction
 
         if (! is_dir($destinationDir)) {
             mkdir($destinationDir, 0755, true);
+            $this->context->registerCreatedFolder($destinationDir);
         }
 
         $filename = basename($file['src']);
@@ -71,6 +74,7 @@ class EnableAttachableAction implements DescribableAction
 
         $destination = $destinationDir . '/' . $filename;
         copy($source, $destination);
+        $this->context->registerGeneratedFile($destination);
 
         Log::channel('magic')->info("Copied {$filename} to {$file['dest']}");
     }
@@ -82,6 +86,7 @@ class EnableAttachableAction implements DescribableAction
 
         if (! str_contains(file_get_contents($apiRoutesFile), $includeLine)) {
             file_put_contents($apiRoutesFile, "\n" . $includeLine, FILE_APPEND);
+            $this->context->registerUpdatedFile($apiRoutesFile);
             Log::channel('magic')->info('Included attachable routes in routes/api.php');
         } else {
             Log::channel('magic')->info('Attachable routes already included in routes/api.php');

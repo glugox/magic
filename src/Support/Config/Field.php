@@ -144,6 +144,14 @@ class Field
     }
 
     /**
+     * Return Entity this field belongs to.
+     */
+    public function getEntity(): ?Entity
+    {
+        return $this->entityRef;
+    }
+
+    /**
      * Human-readable title of the field.
      */
     public function label(): string

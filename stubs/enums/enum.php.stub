@@ -1,0 +1,13 @@
+<?php
+
+namespace App\Enums;
+
+enum {{enumName}}: string
+{
+{{cases}}
+    public static function labels(): array
+    {
+        return [
+{{labels}}        ];
+    }
+}

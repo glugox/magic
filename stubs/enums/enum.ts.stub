@@ -1,0 +1,7 @@
+export const {{enumName}} = {
+{{cases}}} as const;
+
+export type {{enumName}} = (typeof {{enumName}})[keyof typeof {{enumName}}];
+
+export const {{enumName}}Labels: Record<{{enumName}}, string> = {
+{{labels}}};

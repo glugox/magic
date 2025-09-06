@@ -14,6 +14,7 @@ class FilesGenerationUpdate
         public array $created = [],
         public array $updated = [],
         public array $deleted = [],
+        public array $folders = []
     ) {
         // /
     }
@@ -26,6 +27,7 @@ class FilesGenerationUpdate
         $this->created = array_merge($this->created, $other->created);
         $this->updated = array_merge($this->updated, $other->updated);
         $this->deleted = array_merge($this->deleted, $other->deleted);
+        $this->folders = array_merge($this->folders, $other->folders);
 
         return $this;
     }
@@ -62,6 +64,14 @@ class FilesGenerationUpdate
     }
 
     /**
+     * Add created folder
+     */
+    public function addFolder(string $folderPath): void
+    {
+        $this->folders[] = $folderPath;
+    }
+
+    /**
      * Writes the manifest to a JSON file
      */
     public function writeManifest(): void
@@ -74,6 +84,7 @@ class FilesGenerationUpdate
                 'updated' => $this->updated,
                 'deleted' => $this->deleted,
             ],
+            'folders' => $this->folders,
         ];
         File::ensureDirectoryExists(dirname($manifestPath));
         file_put_contents($manifestPath, json_encode($data, JSON_PRETTY_PRINT));
