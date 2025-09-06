@@ -23,13 +23,9 @@
 
 <script setup lang="ts">
 import {computed} from "vue";
-import {Field} from "@/types/support";
+import {FormFieldProps} from "@/types/support";
 
-const props = defineProps<{
-    modelValue: any
-    field: Field
-    error?: string
-}>()
+const props = defineProps<FormFieldProps>()
 
 const emit = defineEmits(["update:modelValue"])
 

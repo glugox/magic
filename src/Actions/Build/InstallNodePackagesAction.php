@@ -27,13 +27,15 @@ class InstallNodePackagesAction implements DescribableAction
     ];
 
     protected array $shadcnComponents = [
-        'table',
-        'switch',
-        'form',
+
         'calendar',
+        'command',
+        'form',
         'popover',
+        'select',
+        'switch',
+        'table',
         'textarea',
-        'command'
         // add more components here...
     ];
 

@@ -1,5 +1,5 @@
 <template>
-    <BaseField v-bind="props" :error="error" v-model="model" :field="props.field">
+    <BaseField v-bind="props">
         <template #default="{ validate }">
             <div class="space-y-2">
                 <!-- File input -->
@@ -55,19 +55,13 @@
 <script setup lang="ts">
 import { ref, watch, onBeforeUnmount } from 'vue'
 import BaseField from './BaseField.vue'
-import { Field, CrudActionType } from '@/types/support'
+import { FormFieldProps } from '@/types/support'
 import axios from 'axios'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 
-interface Props {
-    error?: string
-    field: Field
-    crudActionType: CrudActionType
-    modelValue?: string
-}
-const props = defineProps<Props>()
+const props = defineProps<FormFieldProps>()
 const emit = defineEmits(['update:modelValue'])
 
 const model = ref(props.modelValue ?? null)

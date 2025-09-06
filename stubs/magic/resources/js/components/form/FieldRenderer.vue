@@ -13,18 +13,12 @@ import DecimalField from '@/components/form/DecimalField.vue'
 import DateField from '@/components/form/DateField.vue'
 import BooleanField from "@/components/form/BooleanField.vue";
 import BelongsToField from '@/components/form/BelongsToField.vue'
-import {Field, CrudActionType, Entity} from '@/types/support'
+import {FormFieldProps} from '@/types/support'
 import TextAreaField from "@/components/form/TextAreaField.vue";
+import EnumField from "@/components/form/EnumField.vue";
+import DateTimeField from "@/components/form/DateTimeField.vue";
 
-interface Props {
-    error?: string
-    field: Field
-    entity: Entity
-    crudActionType: CrudActionType
-    modelValue?: any
-    item?: Record<string, any>
-}
-const props = defineProps<Props>()
+const props = defineProps<FormFieldProps>()
 const emit = defineEmits(['update:modelValue'])
 
 const componentsMap: Record<string, any> = {
@@ -57,7 +51,7 @@ const componentsMap: Record<string, any> = {
 
     // ──────── Date / Time ────────
     date: DateField,
-    dateTime: DateField,        // ✅ need DateTimeField
+    dateTime: DateTimeField,        // ✅ need DateTimeField
     time: StringField,          // ✅ need TimeField
     timestamp: StringField,     // ✅ need TimestampField
     year: StringField,          // ✅ need YearField
@@ -83,7 +77,7 @@ const componentsMap: Record<string, any> = {
     image: StringField,           // ✅ need ImageField
 
     // ──────── Enum / Special ────────
-    enum: StringField,           // ✅ need EnumField
+    enum: EnumField,           // ✅ need EnumField
     boolean: BooleanField,        // ✅ need BooleanField
     foreignId: BelongsToField,
 

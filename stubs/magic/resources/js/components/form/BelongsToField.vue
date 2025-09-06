@@ -15,20 +15,9 @@ import {
     ComboboxSeparator,
     ComboboxTrigger
 } from '@/components/ui/combobox'
-import { CrudActionType, Entity, Field } from "@/types/support"
 import BaseField from "@/components/form/BaseField.vue"
 import { useApi } from "@/composables/useApi"
-import {Relation} from "@/types/support";
-
-interface Props {
-    error?: string
-    field: Field
-    entity: Entity
-    crudActionType: CrudActionType
-    modelValue?: any
-    relation?: Relation
-    item?: Record<string, any>
-}
+import {FormFieldProps} from "@/types/support";
 
 interface Option extends Record<string, any> {
     id: string
@@ -36,7 +25,7 @@ interface Option extends Record<string, any> {
     [key: string]: any
 }
 
-const props = defineProps<Props>()
+const props = defineProps<FormFieldProps>()
 const emit = defineEmits(['update:modelValue'])
 const { get } = useApi()
 
@@ -130,7 +119,7 @@ const fetchOptions = async (query: string = '') => {
 </script>
 
 <template>
-    <BaseField v-bind="props" :error="error" v-model="model">
+    <BaseField v-bind="props">
         <template #default>
             <Combobox v-model="selectedOption" by="id">
                 <ComboboxAnchor class="w-[300px]" as-child>

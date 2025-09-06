@@ -91,7 +91,7 @@ class RuleSetHelper
             // Date / Time / Year
             // ---------------------------
             FieldType::DATE     => ['date'],
-            FieldType::DATETIME => ['date_format:Y-m-d H:i:s'],
+            FieldType::DATETIME => ['date'],
             FieldType::TIME     => ['date_format:H:i:s'],
             FieldType::TIMESTAMP => ['date'],
             FieldType::YEAR     => ['digits:4'],

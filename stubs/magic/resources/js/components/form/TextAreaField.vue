@@ -1,5 +1,5 @@
 <template>
-    <BaseField v-bind="props" :error="error" v-model="model">
+    <BaseField v-bind="props">
         <template #default="{ validate }">
       <Textarea
           :id="field.name"
@@ -17,16 +17,9 @@
 import BaseField from './BaseField.vue'
 import { Textarea } from '@/components/ui/textarea'
 import { ref, watch } from 'vue'
-import { Field, CrudActionType } from '@/types/support'
+import { FormFieldProps } from '@/types/support'
 
-interface Props {
-    error?: string
-    field: Field
-    crudActionType: CrudActionType
-    modelValue?: string | null
-}
-
-const props = defineProps<Props>()
+const props = defineProps<FormFieldProps>()
 const emit = defineEmits(['update:modelValue'])
 
 // Local model for v-model binding

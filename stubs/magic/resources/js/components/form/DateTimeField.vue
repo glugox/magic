@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CalendarDate,  getLocalTimeZone, toCalendarDate } from "@internationalized/date"
+import { CalendarDateTime,  getLocalTimeZone, toCalendarDate } from "@internationalized/date"
 import { DateFormatter } from "@internationalized/date"
 import { CalendarIcon } from "lucide-vue-next"
 
@@ -18,15 +18,15 @@ const emit = defineEmits(['update:modelValue'])
 const df = new DateFormatter("en-US", { dateStyle: "long" })
 
 // --- Convert string/Date to CalendarDate ---
-function toCalendarDateSafe(input: string | Date | null): CalendarDate | undefined {
+function toCalendarDateSafe(input: string | Date | null): CalendarDateTime | undefined {
     if (!input) return undefined
     const d = input instanceof Date ? input : new Date(input.replace(/\.\d+Z$/, 'Z'))
     if (isNaN(d.getTime())) return undefined
-    return new CalendarDate(d.getFullYear(), d.getMonth() + 1, d.getDate())
+    return new CalendarDateTime(d.getFullYear(), d.getMonth() + 1, d.getDate())
 }
 
 // --- Local CalendarDate reactive value ---
-const value = ref<CalendarDate | undefined>(toCalendarDateSafe(props.modelValue))
+const value = ref<CalendarDateTime | undefined>(toCalendarDateSafe(props.modelValue))
 
 // --- Emit ISO string whenever CalendarDate changes ---
 watch(value, (val) => {

@@ -18,6 +18,7 @@ export interface Field {
     comment: string | null
     sortable: boolean
     searchable: boolean
+    values: string[] | null
 }
 
 export interface Relation {
@@ -57,6 +58,16 @@ export interface Controller {
     edit: (id: number) => any,
     update: (id: number) => any,
     destroy: (id: number) => any,
+}
+
+export interface FormFieldProps {
+    field: Field
+    entity: Entity
+    crudActionType: CrudActionType
+    modelValue?: any
+    relation?: Relation
+    item?: Record<string, any>
+    error?: string
 }
 
 export interface PaginationObject {
