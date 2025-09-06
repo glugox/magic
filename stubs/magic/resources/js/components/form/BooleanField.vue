@@ -5,7 +5,7 @@
                 <Switch
                     :id="field.name"
                     :name="field.name"
-                    v-model:checked="model"
+                    v-model="model"
                     @blur="validate(model)"
                 />
             </div>

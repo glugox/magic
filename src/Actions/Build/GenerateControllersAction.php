@@ -96,7 +96,6 @@ class GenerateControllersAction implements DescribableAction
         $modelClassFull = $entity->getFullyQualifiedModelClass();
         $modelClassCamel = Str::camel($modelClass);
         $controllerClass = Str::studly(Str::singular($entity->getName())) . 'Controller';
-        $vuePage = $entity->getFolderName();
 
         // Relations for eager loading
         $relationNamesCode = StubHelper::getRelationNamesString($entity, RelationType::BELONGS_TO);
@@ -126,7 +125,8 @@ class GenerateControllersAction implements DescribableAction
             '{{modelClassFull}}'         => $modelClassFull,
             '{{modelClassCamel}}'        => $modelClassCamel,
             '{{controllerClass}}'        => $controllerClass,
-            '{{vuePage}}'                => $vuePage,
+            '{{folderName}}'             => $entity->getFolderName(),
+            '{{routeName}}'              => $entity->getRouteName(),
             '{{relationNamesCode}}'      => $relationNamesCode,
             '{{tableFieldsNamesStr}}'    => $tableFieldsNamesStr,
             '{{searchableFieldsCode}}'   => $searchableFieldsCode,

@@ -6,16 +6,16 @@ import { Entity } from '@/types/support'
 import FieldRenderer from '@/components/form/FieldRenderer.vue'
 
 // Props
-const { item, entityMeta, controller } = defineProps<{
+const { item, entity, controller } = defineProps<{
     item?: Record<string, any>
-    entityMeta: Entity
+    entity: Entity
     controller: any,
 
 }>()
 
 // Build initial form data
 const initialData: Record<string, any> = {}
-entityMeta.fields.forEach((field: any) => {
+entity.fields.forEach((field: any) => {
     initialData[field.name] = item ? item[field.name] : field.default ?? ''
 })
 
@@ -43,10 +43,10 @@ function submit() {
 <template>
     <form @submit.prevent="submit" class="space-y-6">
         <FieldRenderer
-            v-for="field in entityMeta.fields"
+            v-for="field in entity.fields"
             :key="field.name"
             :field="field"
-            :entity-meta="entityMeta"
+            :entity="entity"
             :error="form.errors[field.name]"
             v-model="form[field.name]"
             :item="item"

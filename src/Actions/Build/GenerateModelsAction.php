@@ -111,7 +111,7 @@ class GenerateModelsAction implements DescribableAction
         }
 
         // Automatically add HasImages trait if entity supports images
-        if ($entity->hasImage ?? false) {
+        if ($entity->hasImages() ?? false) {
             $traits[] = 'App\Traits\HasImages';
         }
 
@@ -145,7 +145,7 @@ class GenerateModelsAction implements DescribableAction
         ];
 
         // Load stub
-        $stubPath =$this->stubsPath . '/model/model.stub';
+        $stubPath =$this->stubsPath . '/models/model.stub';
         $template = File::get($stubPath);
 
         // Replace placeholders

@@ -49,7 +49,7 @@ class {{controllerClass}} extends Controller
             $request->integer('page', 1)
         );
 
-        return Inertia::render('{{vuePage}}/Index', [
+        return Inertia::render('{{folderName}}/Index', [
             'filters' => request()->only(['search', 'sortKey', 'sortDir']),
             'data' => new {{modelClass}}Collection($items),
         ]);
@@ -57,7 +57,7 @@ class {{controllerClass}} extends Controller
 
     public function create()
     {
-        return Inertia::render('{{vuePage}}/Create');
+        return Inertia::render('{{folderName}}/Create');
     }
 
     public function store(Request $request)
@@ -65,8 +65,8 @@ class {{controllerClass}} extends Controller
         $data = $request->validate({{rulesArrayStrCreate}});
         $item = {{modelClass}}::create($data);
 
-        return redirect()->route(strtolower('{{vuePage}}') . '.index')
-            ->with('success', '{{vuePage}} created successfully.');
+        return redirect()->route(strtolower('{{routeName}}') . '.index')
+            ->with('success', '{{modelClass}} created successfully.');
     }
 
     public function show({{modelClass}} ${{modelClassCamel}})
@@ -74,7 +74,7 @@ class {{controllerClass}} extends Controller
         $relations = {{relationNamesCode}};
         ${{modelClassCamel}}->load($relations);
 
-        return Inertia::render('{{vuePage}}/Edit', [
+        return Inertia::render('{{folderName}}/Edit', [
             'item' => new {{modelClass}}Resource(${{modelClassCamel}}),
         ]);
     }
@@ -84,7 +84,7 @@ class {{controllerClass}} extends Controller
         $relations = {{relationNamesCode}};
         ${{modelClassCamel}}->load($relations);
 
-        return Inertia::render('{{vuePage}}/Edit', [
+        return Inertia::render('{{folderName}}/Edit', [
             'item' => new {{modelClass}}Resource(${{modelClassCamel}}),
         ]);
     }
@@ -94,15 +94,15 @@ class {{controllerClass}} extends Controller
         $data = $request->validate({{rulesArrayStrUpdate}});
         ${{modelClassCamel}}->update($data);
 
-        return redirect()->route(strtolower('{{vuePage}}') . '.index')
-            ->with('success', '{{vuePage}} updated successfully.');
+        return redirect()->route(strtolower('{{routeName}}') . '.index')
+            ->with('success', '{{modelClass}} updated successfully.');
     }
 
     public function destroy({{modelClass}} ${{modelClassCamel}})
     {
         ${{modelClassCamel}}->delete();
 
-        return redirect()->route(strtolower('{{vuePage}}') . '.index')
-            ->with('success', '{{vuePage}} deleted successfully.');
+        return redirect()->route(strtolower('{{routeName}}') . '.index')
+            ->with('success', '{{modelClass}} deleted successfully.');
     }
 }

@@ -208,20 +208,7 @@ class ResetAppCommand extends MagicBaseCommand
         }
 
         // Remove API routes if added in api.php
-        $apiRoutesPath = base_path('routes/api.php');
-        if (file_exists($apiRoutesPath)) {
-            $content = file_get_contents($apiRoutesPath);
-            $pattern = "/require __DIR__\s*\.\s*'\/app\.php';\s*/";
-            $newContent = preg_replace($pattern, '', $content);
-            if ($newContent !== null && $newContent !== $content) {
-                file_put_contents($apiRoutesPath, $newContent);
-                $this->logInfo('Removed app.php include from api.php');
-            } else {
-                $this->logWarning('No app.php include found in api.php or failed to modify file.');
-            }
-        } else {
-            $this->logWarning('api.php file does not exist. Cannot remove app.php include.');
-        }
+        // Deprecated: API routes will be reset by copying original Laravel files to app root in resetLaravelApp()
 
         // Remove routes/app directory if empty
         $appRoutesDir = base_path('routes/app');

@@ -7,7 +7,7 @@ class Settings
     /**
      * If the entity should have avatar to display right before/after the name.
      */
-    public bool $hasAvatar = false;
+    public bool $hasImages = false;
 
     /**
      * Whether the entity should be searchable in the admin panel.
@@ -16,7 +16,7 @@ class Settings
 
     public function __construct(array $settings = [])
     {
-        $this->hasAvatar = $settings['has_avatar'] ?? false;
+        $this->hasImages = $settings['has_images'] ?? false;
         $this->isSearchable = $settings['is_searchable'] ?? true;
     }
 
@@ -30,7 +30,7 @@ class Settings
     public function get(string $key, mixed $default = null): mixed
     {
         return match ($key) {
-            'has_avatar' => $this->hasAvatar,
+            'has_images' => $this->hasImages,
             'is_searchable' => $this->isSearchable,
             default => $default,
         };
@@ -42,7 +42,7 @@ class Settings
     public function toJson(): string
     {
         return json_encode([
-            'has_avatar' => $this->hasAvatar,
+            'has_images' => $this->hasImages,
             'is_searchable' => $this->isSearchable,
         ], JSON_PRETTY_PRINT);
     }

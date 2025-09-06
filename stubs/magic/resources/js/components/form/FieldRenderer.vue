@@ -19,7 +19,7 @@ import TextAreaField from "@/components/form/TextAreaField.vue";
 interface Props {
     error?: string
     field: Field
-    entityMeta: Entity
+    entity: Entity
     crudActionType: CrudActionType
     modelValue?: any
     item?: Record<string, any>

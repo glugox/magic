@@ -226,4 +226,17 @@ class Config
             $entity->processRelations($this);
         }
     }
+
+    /**
+     * Check if any entity has images enabled in settings.
+     */
+    public function anyEntityHasImages(): bool
+    {
+        foreach ($this->entities as $entity) {
+            if ($entity->settings->hasImages) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

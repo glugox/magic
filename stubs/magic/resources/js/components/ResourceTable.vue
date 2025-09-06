@@ -8,8 +8,8 @@ import { Button } from '@/components/ui/button'
 import {Entity, TableFilters, PaginationObject, Controller, DbId} from '@/types/support'
 
 
-const { entityMeta, data, parentId, columns, filters, controller } = defineProps<{
-    entityMeta?: Entity,
+const { entity, data, parentId, columns, filters, controller } = defineProps<{
+    entity?: Entity,
     data: PaginationObject,
     /**
      * Optional parent ID for nested resources (e.g., comments under a specific post)
@@ -131,12 +131,12 @@ watch(search, () => {
             />
             <!-- Add new entity button -->
             <Button
-                v-if="entityMeta && controller && controller.create"
+                v-if="entity && controller && controller.create"
                 :href="controller.create().url"
                 as="a"
                 class="ml-auto"
             >
-                New {{ entityMeta.singularName }}
+                New {{ entity.singularName }}
             </Button>
         </div>
 

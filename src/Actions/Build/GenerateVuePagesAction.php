@@ -172,7 +172,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const columns: ColumnDef<{$entityName}>[] = get{$entityName}Columns();
-const entityMeta = get{$entityName}EntityMeta();
+const entity = get{$entityName}EntityMeta();
 
 </script>
 
@@ -185,7 +185,7 @@ const entityMeta = get{$entityName}EntityMeta();
                 <ResourceTable
                     :data="data"
                     :columns="columns"
-                    :entity-meta="entityMeta"
+                    :entity="entity"
                     :filters="filters"
                     :controller="{$entity->name}Controller"
                     />
@@ -280,7 +280,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 const columns: ColumnDef<{$relatedEntityName}>[] = get{$relatedEntityName}Columns();
-const entityMeta = get{$relatedEntityName}EntityMeta();
+const entity = get{$relatedEntityName}EntityMeta();
 const sidebarNavItems: NavItem[] = [
     {
         title: 'General Information',
@@ -302,7 +302,7 @@ const sidebarNavItems: NavItem[] = [
                     :data="$relationName"
                     :parent-id="item.data.id"
                     :columns="columns"
-                    :entity-meta="entityMeta"
+                    :entity="entity"
                     :filters="filters"
                     :controller="{$controllerClass}"
                     />
@@ -364,7 +364,7 @@ const sidebarNavItems: NavItem[] = [
 ];
 
 const page = usePage();
-const entityMeta = get{$entityName}EntityMeta();
+const entity = get{$entityName}EntityMeta();
 </script>
 
 <template>
@@ -374,7 +374,7 @@ const entityMeta = get{$entityName}EntityMeta();
             <div class="flex flex-col space-y-6 max-w-2xl">
                 <HeadingSmall title="{$entity->name} information" description="Update {$entity->name} details" />
                 <ResourceForm
-                    :entityMeta="entityMeta"
+                    :entity="entity"
                     :item="item.data"
                     :controller="{$entity->name}Controller"
                     />
@@ -428,7 +428,7 @@ const breadcrumbItems: BreadcrumbItem[] = [
 
 const sidebarNavItems: NavItem[] = [];
 const page = usePage();
-const entityMeta = get{$entityName}EntityMeta();
+const entity = get{$entityName}EntityMeta();
 </script>
 
 <template>
@@ -438,7 +438,7 @@ const entityMeta = get{$entityName}EntityMeta();
             <div class="flex flex-col space-y-6 max-w-2xl">
                 <HeadingSmall title="{$entity->name} information" description="Fill {$entity->name} details" />
                 <ResourceForm
-                    :entityMeta="entityMeta"
+                    :entity="entity"
                     :controller="{$entity->name}Controller"
                     />
             </div>

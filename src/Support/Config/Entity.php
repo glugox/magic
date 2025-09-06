@@ -688,4 +688,13 @@ class Entity
 
         return json_encode($data, JSON_PRETTY_PRINT);
     }
+
+    /**
+     * Whether the entity has images
+     * defined in settings json config.
+     */
+    public function hasImages()
+    {
+        return $this->settings->hasImages;
+    }
 }

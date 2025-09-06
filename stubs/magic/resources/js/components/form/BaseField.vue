@@ -23,10 +23,11 @@
 
 <script setup lang="ts">
 import {computed} from "vue";
+import {Field} from "@/types/support";
 
 const props = defineProps<{
     modelValue: any
-    field: any
+    field: Field
     error?: string
 }>()
 

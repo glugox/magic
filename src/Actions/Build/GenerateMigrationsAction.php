@@ -24,7 +24,12 @@ class GenerateMigrationsAction implements DescribableAction
     {
         $this->logInvocation($this->describe()->name);
 
+        // Stubs path
+        $stubsPath = __DIR__.'/../../../stubs';
+
         $config = $context->getConfig();
+
+        // For every entity in config, generate migration
         foreach ($config->entities as $entity) {
             // Action call -- Use GenerateMigrationForEntityAction to generate migration for each entity
             /** @var FilesGenerationUpdate $filesGenerationUpdate */

@@ -36,6 +36,9 @@ class GenerateAppAction implements DescribableAction
         // Step 2: Publish Files
         $buildContext = app(PublishFilesAction::class)($buildContext);
 
+        // Step 2a: Enable Attachable (copy traits, resources, stubs conditionally)
+        $buildContext = app(EnableAttachableAction::class)($buildContext);
+
         // Step 3: Generate Migrations
         $buildContext = app(GenerateMigrationsAction::class)($buildContext);
 

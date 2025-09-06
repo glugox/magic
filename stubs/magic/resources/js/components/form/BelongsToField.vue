@@ -18,13 +18,15 @@ import {
 import { CrudActionType, Entity, Field } from "@/types/support"
 import BaseField from "@/components/form/BaseField.vue"
 import { useApi } from "@/composables/useApi"
+import {Relation} from "@/types/support";
 
 interface Props {
     error?: string
     field: Field
-    entityMeta: Entity
+    entity: Entity
     crudActionType: CrudActionType
     modelValue?: any
+    relation?: Relation
     item?: Record<string, any>
 }
 
@@ -46,7 +48,7 @@ const options = ref<Option[]>([])
 const lastQuery = ref<string>('')
 
 // Get relation metadata
-const relationMetadata = props.entityMeta.relations.find(r => r.foreignKey === props.field.name)
+const relationMetadata = props.entity.relations.find(r => r.foreignKey === props.field.name)
 const modelNameSingular = relationMetadata?.entityName
 
 const normalize = (d: any) => ({ ...d, id: String(d.id) })

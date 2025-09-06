@@ -17,12 +17,13 @@
 import { computed } from 'vue'
 import { Input } from '@/components/ui/input/index.js';
 import InputError from '@/components/InputError.vue';
-import { Field, CrudActionType } from '@/types/support.js';
+import { Field, CrudActionType, Entity} from '@/types/support';
 import {Label} from '@/components/ui/label';
 
 interface Props {
     error?: string;
     field: Field;
+    entity?: Entity;
     crudActionType: CrudActionType;
     item?: Record<string, any>;
     modelValue?: any;

@@ -16,9 +16,11 @@
             "relations": [
                 { "type": "hasMany", "entity": "Order", "foreign_key": "user_id" },
                 { "type": "hasMany", "entity": "Shipment", "foreign_key": "user_id" },
-                { "type": "belongsToMany", "entity": "Role", "pivot": "role_user", "foreign_key": "user_id", "related_key": "role_id" },
-                { "type": "morphMany", "entity": "Attachment", "name": "attachments" }
-            ]
+                { "type": "belongsToMany", "entity": "Role", "pivot": "role_user", "foreign_key": "user_id", "related_key": "role_id" }
+            ],
+            "settings": {
+                "has_images": true
+            }
         },
         {
             "name": "Role",
@@ -70,10 +72,11 @@
             ],
             "relations": [
                 { "type": "belongsTo", "entity": "Warehouse", "foreign_key": "warehouse_id" },
-                { "type": "belongsToMany", "entity": "Category", "pivot": "category_product", "foreign_key": "product_id", "related_key": "category_id" },
-                { "type": "morphMany", "entity": "Attachment", "name": "attachments" },
-                { "type": "morphMany", "entity": "Review", "name": "reviews" }
-            ]
+                { "type": "belongsToMany", "entity": "Category", "pivot": "category_product", "foreign_key": "product_id", "related_key": "category_id" }
+            ],
+            "settings": {
+                "has_images": true
+            }
         },
         {
             "name": "Order",
@@ -130,32 +133,6 @@
             ],
             "relations": [
                 { "type": "belongsTo", "entity": "Shipment", "foreign_key": "shipment_id" }
-            ]
-        },
-        {
-            "name": "Attachment",
-            "fields": [
-                { "name": "id", "type": "id", "nullable": false },
-                { "name": "attachable_id", "type": "unsignedBigInteger", "nullable": false },
-                { "name": "attachable_type", "type": "string", "nullable": false },
-                { "name": "file_path", "type": "string", "nullable": false },
-                { "name": "file_type", "type": "string", "nullable": false }
-            ],
-            "relations": [
-                { "type": "morphTo", "name": "attachable" }
-            ]
-        },
-        {
-            "name": "Review",
-            "fields": [
-                { "name": "id", "type": "id", "nullable": false },
-                { "name": "reviewable_id", "type": "unsignedBigInteger", "nullable": false },
-                { "name": "reviewable_type", "type": "string", "nullable": false },
-                { "name": "rating", "type": "integer", "nullable": false, "min": 0, "max": 10 },
-                { "name": "comment", "type": "text", "nullable": true }
-            ],
-            "relations": [
-                { "type": "morphTo", "name": "reviewable" }
             ]
         }
     ],
