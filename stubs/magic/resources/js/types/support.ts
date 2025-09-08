@@ -50,15 +50,7 @@ export interface ResourceData {
     [key: string]: any
 }
 
-export interface Controller {
-    index: Function,
-    show: (id: number) => any,
-    create: Function,
-    store: Function,
-    edit: (id: number) => any,
-    update: (id: number) => any,
-    destroy: (id: number) => any,
-}
+export type Controller = any
 
 export interface FormFieldProps {
     field: Field
@@ -111,9 +103,11 @@ export interface PaginatedResponse<T> {
 
 export interface TableFilters {
     search?: string
+    sortKey?: string
     sortDir?: 'asc' | 'desc'
     page?: number
     per_page?: number
+    selectedIds?: number[]
     [key: string]: any
 }
 

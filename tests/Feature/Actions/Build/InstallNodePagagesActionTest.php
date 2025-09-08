@@ -20,7 +20,7 @@ it('skips already installed shadcn components', function () {
     $action->shouldReceive('isShadcnInstalled')->andReturn(true);
 
     // runProcess should be called once just to install npm packages, not shadcn components
-    $action->shouldReceive('runProcess')->never();
+    $action->shouldReceive('runProcess')->once();
 
     ($action)($this->context);
 });

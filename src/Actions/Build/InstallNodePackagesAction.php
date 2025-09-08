@@ -21,8 +21,8 @@ class InstallNodePackagesAction implements DescribableAction
     use AsDescribableAction, CanLogSectionTitle;
 
     protected array $npmPackages = [
-        /*'axios',
-        'dayjs',*/
+        'axios',
+        // 'dayjs',
         // add more npm packages here...
     ];
 

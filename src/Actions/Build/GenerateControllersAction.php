@@ -298,6 +298,12 @@ class GenerateControllersAction implements DescribableAction
                     $importedControllers[] = $controllerFQCN;
                 }
 
+                // For many-to-many relations we need updateSelection method
+                $updateSelectionRoute = '';
+                if (in_array($relation->getType(), [RelationType::BELONGS_TO_MANY, RelationType::MORPH_MANY])) {
+                    $updateSelectionRoute = "Route::post('{{entityRouteName}}/{{{entitySingular}}}/{{relationRoute}}/updateSelection', [{{controllerClass}}::class, 'updateSelection'])->name('{{entityRouteName}}-updateSelection-{{relationName}}');";
+                }
+
                 $replacements = [
                     '{{entityRouteName}}' => $entity->getRouteName(),
                     '{{relationName}}' => $relation->getRelationName(),
@@ -307,7 +313,11 @@ class GenerateControllersAction implements DescribableAction
                     '{{entitySingular}}'  => Str::camel(Str::singular($entity->getName())),
                 ];
 
-                $relationRoutes[] = trim(str_replace(array_keys($replacements), array_values($replacements), $relationStub));
+                $currentRelationStub = $relationStub;
+                if (!empty($updateSelectionRoute)) {
+                    $currentRelationStub .= "\n" . $updateSelectionRoute;
+                }
+                $relationRoutes[] = trim(str_replace(array_keys($replacements), array_values($replacements), $currentRelationStub));
             }
         }
 

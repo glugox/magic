@@ -230,7 +230,8 @@ PHP;
         $controllerClass =  $entity->name . $relatedEntityName . 'Controller';
 
         return <<<PHP
-<script setup lang="ts">
+<script setup lang="ts" generic="T">
+import {ref, onMounted} from "vue";
 import AppLayout from '@/layouts/AppLayout.vue';
 import ResourceLayout from '@/layouts/resource/Layout.vue';
 import { type BreadcrumbItem, type NavItem } from '@/types';
@@ -239,19 +240,13 @@ import { Head } from '@inertiajs/vue3';
 import ResourceTable from '@/components/ResourceTable.vue';
 import {ColumnDef} from "@tanstack/vue-table";
 import HeadingSmall from '@/components/HeadingSmall.vue';
-import { type Id } from '@/types/support';
-// Relationships icons
-/**
- * SquareMinus - Default
- * Link - BelongsTo
- * CornerDownRight - HasOne
- * FolderTree - HasMany, MorphTo, MorphMany
- * GitCompareArrows - ManyToMany, BelongsToMany
- */
+import { type DbId } from '@/types/support';
 import { SquareMinus, Link, CornerDownRight, FolderTree, GitCompareArrows } from 'lucide-vue-next';
 $mainEntityImports
 $relatedEntityImports
 $supportImports
+
+type T = $relatedEntityName;
 
 /**
  * Relation page between $mainEntityName and $relatedEntityName
@@ -268,11 +263,16 @@ interface {$mainEntityName}ApiResponse {
 
 interface Props {
     item: {$mainEntityName}ApiResponse;
-    $relationName: PaginationObject;
-    {$relationName}_ids?: Id[];
+    $relationName: PaginatedResponse<$relatedEntityName>;
+    item_{$relationName}_ids?: DbId[];
     filters?: TableFilters;
 }
-const { item, $relationName }: Props = defineProps<Props>();
+const { item, $relationName, item_{$relationName}_ids, filters }: Props = defineProps<Props>();
+
+// Ref for selected IDs when relation is MANY_TO_MANY
+const selectedIds = ref<DbId[]>(item_{$relationName}_ids ?? []);
+const currentFilters = ref<TableFilters>(filters ?? {});
+
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: '{$mainEntityNamePlural}',
@@ -289,6 +289,12 @@ const sidebarNavItems: NavItem[] = [
     },
     $relationSidebarItems
 ];
+
+onMounted(() => {
+    if (!currentFilters.value.selectedIds || currentFilters.value.selectedIds.length === 0) {
+        currentFilters.value.selectedIds = item_{$relationName}_ids ?? [];
+    }
+})
 </script>
 
 <template>
@@ -303,7 +309,7 @@ const sidebarNavItems: NavItem[] = [
                     :parent-id="item.data.id"
                     :columns="columns"
                     :entity="entity"
-                    :filters="filters"
+                    :filters="currentFilters"
                     :controller="{$controllerClass}"
                     />
             </div>
