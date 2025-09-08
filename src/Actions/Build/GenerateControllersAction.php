@@ -132,7 +132,6 @@ class GenerateControllersAction implements DescribableAction
 
         // Add resource class names
         $relatedModelResourceClass = Str::studly($relatedModelClass).'Resource';
-        $relatedModelCollectionClass = Str::studly($relatedModelClass).'Collection';
         $parentModelResourceClass = Str::studly($parentModelClass).'Resource';
 
         // Fields visible in index listing
@@ -184,7 +183,6 @@ class GenerateControllersAction implements DescribableAction
             '{{relatedModelClass}}' => $relatedModelClass,
             '{{foreignKey}}' => $relation->getForeignKey(),
             '{{relatedModelResourceClass}}' => $relatedModelResourceClass,
-            '{{relatedModelCollectionClass}}' => $relatedModelCollectionClass,
             '{{parentModelResourceClass}}' => $parentModelResourceClass,
             '{{selectedIdsCode}}' => $selectedIdsCode,
             '{{searchableFieldsCode}}' => $searchableFieldsCode,

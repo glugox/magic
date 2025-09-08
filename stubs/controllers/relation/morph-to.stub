@@ -1,11 +1,13 @@
+<?php
+
 namespace App\Http\Controllers\{{entitySingularName}};
 
 use App\Http\Controllers\Controller;
 use App\Services\TableQueryService;
 use {{parentModelClassFull}};
 use {{relatedModelClassFull}};
-use App\Http\Resources\{{relatedModelCollectionClass}};
 use App\Http\Resources\{{parentModelResourceClass}};
+use App\Http\Resources\{{relatedModelResourceClass}};
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -48,7 +50,7 @@ class {{controllerClass}} extends Controller
 
         return Inertia::render('{{parentModelFolderName}}/{{relationName}}/Index', [
             'item' => new {{parentModelResourceClass}}(${{parentModelClassLower}}),
-            '{{relationName}}' => {{relatedModelCollectionClass}}::collection($relatedItems)->response()->getData(),
+            '{{relationName}}' => {{relatedModelResourceClass}}::collection($relatedItems)->response()->getData(),
         ]);
     }
 }

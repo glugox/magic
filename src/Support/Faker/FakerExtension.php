@@ -43,7 +43,7 @@ abstract class FakerExtension
     /**
      * Handle the Faker extension logic.
      */
-    final public function handle(Generator $faker): string
+    public function handle(Generator $faker): string
     {
         // This method can be overridden by subclasses to implement specific logic
         // for the Faker extension. It is intentionally left empty here.
