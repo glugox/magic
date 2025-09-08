@@ -18,6 +18,7 @@ import {
 import BaseField from "@/components/form/BaseField.vue"
 import { useApi } from "@/composables/useApi"
 import {FormFieldProps} from "@/types/support";
+import {Link} from "@inertiajs/vue3";
 
 interface Option extends Record<string, any> {
     id: string
@@ -177,6 +178,16 @@ const fetchOptions = async (query: string = '') => {
                     </ComboboxGroup>
                 </ComboboxList>
             </Combobox>
+
+            <!-- link to edit related record -->
+            <div v-if="selectedOption" class="mt-2">
+                <Link
+                    :href="`/${relationMetadata?.relationName}/${selectedOption.id}/edit`"
+                    class="text-sm text-blue-600 hover:underline"
+                >
+                    Edit this {{ modelNameSingular }}
+                </Link>
+            </div>
         </template>
     </BaseField>
 </template>
