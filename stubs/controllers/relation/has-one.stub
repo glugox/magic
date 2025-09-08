@@ -10,6 +10,9 @@ use App\Http\Resources\{{parentModelResourceClass}};
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
+/**
+ * {{classDescription}}
+ */
 class {{controllerClass}} extends Controller
 {
     public function index({{parentModelClass}} ${{parentModelClassLower}})

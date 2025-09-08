@@ -50,6 +50,15 @@ class Config
     }
 
     /**
+     * Get config value by key.
+     * This is , for now, only a wrapper around config('magic.xxx')
+     */
+    public function getConfigValue(string $key, mixed $default = null): mixed
+    {
+        return config("magic.{$key}", $default);
+    }
+
+    /**
      * Convert the configuration from JSON string to Config object.
      *
      * @throws \JsonException

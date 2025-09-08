@@ -121,6 +121,7 @@ class GenerateControllersAction implements DescribableAction
         $collectionClass = $modelClass . 'Collection';
 
         $replacements = [
+            '{{classDescription}}'       => "Controller for managing {$entity->getSingularName()}",
             '{{modelClass}}'             => $modelClass,
             '{{modelClassFull}}'         => $modelClassFull,
             '{{modelClassCamel}}'        => $modelClassCamel,
@@ -134,6 +135,7 @@ class GenerateControllersAction implements DescribableAction
             '{{rulesArrayStrUpdate}}'    => $rulesArrayStrUpdate,
             '{{resourceClass}}'          => $resourceClass,
             '{{collectionClass}}'        => $collectionClass,
+            '{{searchQueryString}}'      => $this->context->getConfig()->getConfigValue('naming.search_query_string', 'search'),
         ];
 
         $template = str_replace(array_keys($replacements), array_values($replacements), $template);
@@ -190,6 +192,12 @@ class GenerateControllersAction implements DescribableAction
         $relatedModelCollectionClass = Str::studly($relatedModelClass) . 'Collection';
         $parentModelResourceClass = Str::studly($parentModelClass) . 'Resource';
 
+        // Fields visible in index listing
+        $tableFieldsNamesStr = StubHelper::getTableFieldsString($entity);
+
+        // Relations for eager loading
+        $relationNamesCode = StubHelper::getRelationNamesString($relatedEntity, RelationType::BELONGS_TO);
+
         // Add selected IDs for belongsToMany / morphToMany
         $selectedIdsCode = in_array($relation->getType(), [RelationType::BELONGS_TO_MANY, RelationType::MORPH_MANY])
             ? '$' . $parentModelClassLower . '->' . $relationName . '->pluck(\'id\')'
@@ -198,6 +206,9 @@ class GenerateControllersAction implements DescribableAction
         // Use helper to build select fields
         $selectFieldsStr = StubHelper::getSelectFieldsString($entity);
         $selectRelatedFieldsStr = StubHelper::getSelectRelatedFieldsString($relatedEntity);
+
+        // Searchable fields for related entity
+        $searchableFieldsCode = StubHelper::getSearchableFieldsString($relatedEntity);
 
         // Convert relation type enum to kebab-case for stub file
         $relationType = $relation->type->value ?? null;
@@ -210,6 +221,7 @@ class GenerateControllersAction implements DescribableAction
         $stub = File::get($stubPath);
 
         $replacements = [
+            '{{classDescription}}'            => "Controller for managing {$relatedEntity->getPluralName()} related to a {$entity->getSingularName()} ( {$relation->getType()->value} )",
             '{{entitySingularName}}'          => $entity->getSingularName(),
             '{{parentModelClassFull}}'        => $entity->getFullyQualifiedModelClass(),
             '{{relatedModelClassFull}}'       => $relatedEntity->getFullyQualifiedModelClass(),
@@ -218,7 +230,9 @@ class GenerateControllersAction implements DescribableAction
             '{{parentModelClassLower}}'       => $parentModelClassLower,
             '{{relationName}}'                => $relationName,
             '{{parentModelFolderName}}'       => $parentModelFolderName,
+            '{{relationNamesCode}}'           => $relationNamesCode,
             '{{selectFieldsStr}}'             => $selectFieldsStr,
+            '{{tableFieldsNamesStr}}'         => $tableFieldsNamesStr,
             '{{selectRelatedFieldsStr}}'      => $selectRelatedFieldsStr,
             '{{relatedModelClass}}'           => $relatedModelClass,
             '{{foreignKey}}'                  => $relation->getForeignKey(),
@@ -226,6 +240,8 @@ class GenerateControllersAction implements DescribableAction
             '{{relatedModelCollectionClass}}' => $relatedModelCollectionClass,
             '{{parentModelResourceClass}}'    => $parentModelResourceClass,
             '{{selectedIdsCode}}'             => $selectedIdsCode,
+            '{{searchableFieldsCode}}'        => $searchableFieldsCode,
+            '{{searchQueryString}}'           => $this->context->getConfig()->getConfigValue('naming.search_query_string', 'search')
         ];
 
         return str_replace(array_keys($replacements), array_values($replacements), $stub);
@@ -370,8 +386,11 @@ class GenerateControllersAction implements DescribableAction
 
         // Use StubHelper for strings
         $searchableFieldsCode = StubHelper::getSearchableFieldsString($entity);
-        $selectableFieldsArrayCode = StubHelper::getTableFieldsString($entity);
+        $tableFieldsNamesStr = StubHelper::getTableFieldsString($entity);
         $selectableFieldsCode = '"' . implode(',', $entity->getTableFieldsNames(skipRelations: true)) . '"';
+
+        // Relations for eager loading
+        $relationNamesCode = StubHelper::getRelationNamesString($entity, RelationType::BELONGS_TO);
 
         /** @var EntityRuleSet $validationRules */
         $validationRules = $this->validationHelper->make($entity);
@@ -384,19 +403,22 @@ class GenerateControllersAction implements DescribableAction
 
         // Replace placeholders
         $replacements = [
-            '{{ modelClass }}'                => $modelClass,
-            '{{ modelClassFull }}'            => $modelClassFull,
-            '{{ modelClassCamel }}'           => $modelClassCamel,
-            '{{ controllerClass }}'           => $controllerClass,
-            '{{ searchableFieldsCode }}'      => $searchableFieldsCode,
-            '{{ selectableFieldsCode }}'      => $selectableFieldsCode,
-            '{{ selectableFieldsArrayCode }}' => $selectableFieldsArrayCode,
-            '{{ rulesArrayStrCreate }}'       => $rulesArrayStrCreate,
-            '{{ rulesArrayStrUpdate }}'       => $rulesArrayStrUpdate,
-            '{{ resourceClass }}'             => $resourceClass,
-            '{{ resourceClassFull }}'         => $resourceClassFull,
-            '{{ collectionClass }}'           => $collectionClass,
-            '{{ collectionClassFull }}'       => $collectionClassFull,
+            '{{classDescription}}'          => "API Controller for managing {$entity->getSingularName()}",
+            '{{modelClass}}'                => $modelClass,
+            '{{modelClassFull}}'            => $modelClassFull,
+            '{{modelClassCamel}}'           => $modelClassCamel,
+            '{{controllerClass}}'           => $controllerClass,
+            '{{relationNamesCode}}'         => $relationNamesCode,
+            '{{searchableFieldsCode}}'      => $searchableFieldsCode,
+            '{{selectableFieldsCode}}'      => $selectableFieldsCode,
+            '{{tableFieldsNamesStr}}'       => $tableFieldsNamesStr,
+            '{{rulesArrayStrCreate}}'       => $rulesArrayStrCreate,
+            '{{rulesArrayStrUpdate}}'       => $rulesArrayStrUpdate,
+            '{{resourceClass}}'             => $resourceClass,
+            '{{resourceClassFull}}'         => $resourceClassFull,
+            '{{collectionClass}}'           => $collectionClass,
+            '{{collectionClassFull}}'       => $collectionClassFull,
+            '{{searchQueryString}}'         => $this->context->getConfig()->getConfigValue('naming.search_query_string', 'search'),
         ];
 
         $content = str_replace(array_keys($replacements), array_values($replacements), $template);

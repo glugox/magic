@@ -3,36 +3,49 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use {{ modelClassFull }};
-use {{ resourceClassFull }};
-use {{ collectionClassFull }};
+use App\Services\TableQueryService;
+use {{modelClassFull}};
+use {{resourceClassFull}};
+use {{collectionClassFull}};
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
-class {{ controllerClass }} extends Controller
+/**
+ * {{classDescription}}
+ */
+class {{controllerClass}} extends Controller
 {
+    /**
+     * Constructor
+     */
+     public function __construct(
+        protected TableQueryService $tableQueryService
+     ){}
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $query = {{ modelClass }}::query();
+        $query = {{modelClass}}::query();
 
-        // Optionally search by searchable fields
-        if (!empty({{ searchableFieldsCode }})) {
-            if ($request->has('q')) {
-                $q = $request->input('q');
-                $query->where(function ($query) use ($q) {
-                    foreach ({{ searchableFieldsCode }} as $field) {
-                        $query->orWhere($field, 'like', "%$q%");
-                    }
-                });
-            }
-        }
+        // Apply search (if needed)
+        $searchableFields = {{searchableFieldsCode}};
+        $relations = {{relationNamesCode}};
+        $selectFields = {{tableFieldsNamesStr}};
 
-        $items = $query->select({{ selectableFieldsArrayCode }})->paginate(15);
+         // Apply table query (search, sort, filters)
+         $items = $this->tableQueryService->applyAll(
+            $query,
+            $searchableFields,
+            $relations,
+            $selectFields,
+            $request->get('{{searchQueryString}}', ''),
+            $request->get('sortKey', 'id'),
+            $request->get('sortDir', 'asc')
+         )->paginate();
 
-        return new {{ collectionClass }}($items);
+        return new {{collectionClass}}($items);
     }
 
     /**
@@ -40,39 +53,39 @@ class {{ controllerClass }} extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate({{ rulesArrayStrCreate }});
+        $validated = $request->validate({{rulesArrayStrCreate}});
 
-        $item = {{ modelClass }}::create($validated);
+        $item = {{modelClass}}::create($validated);
 
-        return new {{ resourceClass }}($item);
+        return new {{resourceClass}}($item);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show({{ modelClass }} ${{ modelClassCamel }})
+    public function show({{modelClass}} ${{modelClassCamel}})
     {
-        return new {{ resourceClass }}(${{ modelClassCamel }});
+        return new {{resourceClass}}(${{modelClassCamel}});
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, {{ modelClass }} ${{ modelClassCamel }})
+    public function update(Request $request, {{modelClass}} ${{modelClassCamel}})
     {
-        $validated = $request->validate({{ rulesArrayStrUpdate }});
+        $validated = $request->validate({{rulesArrayStrUpdate}});
 
-        ${{ modelClassCamel }}->update($validated);
+        ${{modelClassCamel}}->update($validated);
 
-        return new {{ resourceClass }}(${{ modelClassCamel }});
+        return new {{resourceClass}}(${{modelClassCamel}});
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy({{ modelClass }} ${{ modelClassCamel }})
+    public function destroy({{modelClass}} ${{modelClassCamel}})
     {
-        ${{ modelClassCamel }}->delete();
+        ${{modelClassCamel}}->delete();
 
         return response()->json(null, 204);
     }
@@ -82,22 +95,19 @@ class {{ controllerClass }} extends Controller
      */
     public function search(Request $request)
     {
-        $query = {{ modelClass }}::query();
+        $query = {{modelClass}}::query();
+        $searchableFields = {{searchableFieldsCode}};
 
-        if (!empty({{ searchableFieldsCode }})) {
-            if ($request->has('q')) {
-                $q = $request->input('q');
-                $query->where(function ($query) use ($q) {
-                    foreach ({{ searchableFieldsCode }} as $field) {
-                        $query->orWhere($field, 'like', "%$q%");
-                    }
-                });
-            }
-        }
+        // Apply search
+        $query = $this->searchService->applySearch(
+            $query,
+            $request->get('{{searchQueryString}}'),
+            $searchableFields
+        );
 
-        $items = $query->select({{ selectableFieldsArrayCode }})->get();
+        $items = $query->select({{tableFieldsNamesStr}})->get();
 
-        return {{ resourceClass }}::collection($items);
+        return {{resourceClass}}::collection($items);
     }
 
     /**
@@ -105,8 +115,8 @@ class {{ controllerClass }} extends Controller
      */
     public function options()
     {
-        $items = {{ modelClass }}::select({{ selectableFieldsArrayCode }})->get();
+        $items = {{modelClass}}::select({{tableFieldsNamesStr}})->get();
 
-        return {{ resourceClass }}::collection($items);
+        return {{resourceClass}}::collection($items);
     }
 }

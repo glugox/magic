@@ -3,13 +3,24 @@
 namespace App\Http\Controllers;
 
 use {{modelClassFull}};
+use App\Services\TableQueryService;
 use App\Http\Resources\{{modelClass}}Resource;
 use App\Http\Resources\{{modelClass}}Collection;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
+/**
+ * {{classDescription}}
+ */
 class {{controllerClass}} extends Controller
 {
+    /**
+     * Constructor
+     */
+    public function __construct(
+        protected TableQueryService $tableQueryService
+    ){}
+
     /**
      * Show the {{modelClass}} index page.
      */
@@ -17,37 +28,21 @@ class {{controllerClass}} extends Controller
     {
         $request = request();
 
-        $relations = {{relationNamesCode}};
+        $query = {{modelClass}}::query();
         $searchableFields = {{searchableFieldsCode}};
-        $queryFields = {{tableFieldsNamesStr}};
+        $relations = {{relationNamesCode}};
+        $selectFields = {{tableFieldsNamesStr}};
 
-        $query = count($relations) > 0
-            ? {{modelClass}}::with($relations)
-            : {{modelClass}}::query();
-
-        if (count($queryFields) > 0) {
-            $query->select($queryFields);
-        }
-
-        $sortKey = $request->get('sortKey', 'id');
-        $sortDir = $request->get('sortDir', 'asc');
-        $query->orderBy($sortKey, $sortDir);
-
-        $search = $request->get('search');
-        if ($search && count($searchableFields) > 0) {
-            $query->where(function ($q) use ($search, $searchableFields) {
-                foreach ($searchableFields as $field) {
-                    $q->orWhere($field, 'like', "%{$search}%");
-                }
-            });
-        }
-
-        $items = $query->paginate(
-            $request->integer('per_page', 12),
-            ['*'],
-            'page',
-            $request->integer('page', 1)
-        );
+         // Apply table query (search, sort, filters)
+         $items = $this->tableQueryService->applyAll(
+             $query,
+             $searchableFields,
+             $relations,
+             $selectFields,
+             $request->get('{{searchQueryString}}', ''),
+             $request->get('sortKey', 'id'),
+             $request->get('sortDir', 'asc')
+         )->paginate();
 
         return Inertia::render('{{folderName}}/Index', [
             'filters' => request()->only(['search', 'sortKey', 'sortDir']),

@@ -20,6 +20,14 @@ return [
         'enabled' => true,
         'level' => 'debug', // Can be 'debug', 'info', 'notice', 'warning', 'error', 'critical', 'alert', 'emergency'
     ],
+
+    /**
+     * Naming conventions
+     */
+    'naming' => [
+        'search_query_string' => 'search'
+    ],
+
     /**
      * How to dynamically generate fields for models?
      * This is a mapping of some most common field names and types
