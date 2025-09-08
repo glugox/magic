@@ -38,8 +38,8 @@ class TableQueryService
         ?array $relations = [],
         array $selectFields = [],
         ?string $searchString = '',
-        string $defaultSortField = 'name',
-        string $defaultSortDir = 'asc',
+        string $defaultSortField = 'id',
+        string $defaultSortDir = 'desc',
     ): Builder {
 
         // Eager load relations
@@ -77,8 +77,8 @@ class TableQueryService
      */
     public function applySort(
         Builder $query,
-        string $defaultField = 'name',
-        string $defaultDir = 'asc'
+        string $defaultField = 'id',
+        string $defaultDir = 'desc'
     ): Builder {
         $request = request();
 

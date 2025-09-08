@@ -135,7 +135,7 @@ class GenerateControllersAction implements DescribableAction
         $parentModelResourceClass = Str::studly($parentModelClass).'Resource';
 
         // Fields visible in index listing
-        $tableFieldsNamesStr = StubHelper::getTableFieldsString($entity);
+        $tableFieldsNamesStr = StubHelper::getTableFieldsString($relatedEntity);
 
         // Relations for eager loading
         $relationNamesCode = StubHelper::getRelationNamesString($relatedEntity, RelationType::BELONGS_TO);
