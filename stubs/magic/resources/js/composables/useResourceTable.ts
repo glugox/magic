@@ -1,19 +1,27 @@
-import {computed, ref, toRefs, watch} from "vue"
-import {router} from "@inertiajs/vue3"
-import {getCoreRowModel, RowSelectionState, SortingState, useVueTable} from "@tanstack/vue-table"
-import type {Controller, DbId, PaginatedResponse, TableFilters} from "@/types/support"
-import {arraysEqualIgnoreOrder, debounced} from "@/lib/app";
-import axios from "axios";
+import { computed, ref, toRefs, watch } from "vue"
+import { router } from "@inertiajs/vue3"
+import {
+    getCoreRowModel,
+    RowSelectionState,
+    SortingState,
+    useVueTable,
+} from "@tanstack/vue-table"
+import type {
+    Controller,
+    DbId,
+    PaginatedResponse,
+    TableFilters,
+} from "@/types/support"
+import { arraysEqualIgnoreOrder, debounced } from "@/lib/app"
+import axios from "axios"
 
-export function useResourceTable<T>(
-    props: {
-        data: PaginatedResponse<T>,
-        filters: TableFilters,
-        controller: Controller,
-        parentId?: DbId,
-        columns: any[]
-    }
-) {
+export function useResourceTable<T>(props: {
+    data: PaginatedResponse<T>
+    filters: TableFilters
+    controller: Controller
+    parentId?: DbId
+    columns: any[]
+}) {
     const { data, filters, controller, parentId, columns } = toRefs(props)
 
     const rows = ref<T[]>(data.value.data as T[])
@@ -23,46 +31,40 @@ export function useResourceTable<T>(
     const lastPage = ref(data.value.meta.last_page)
 
     const sorting = ref<SortingState>(
-        filters.value?.sortKey ? [{ id: filters.value.sortKey, desc: filters.value.sortDir === "desc" }] : []
+        filters.value?.sortKey
+            ? [
+                {
+                    id: filters.value.sortKey,
+                    desc: filters.value.sortDir === "desc",
+                },
+            ]
+            : []
     )
     const sortKey = ref(filters.value?.sortKey ?? null)
     const sortDir = ref(filters.value?.sortDir ?? null)
     const search = ref(filters.value?.search ?? "")
 
-    const rowSelection = ref<RowSelectionState>(
-        mapIdsToRowSelection(filters.value?.selectedIds ?? [], rows.value as T[])
-    )
-
-    // Ids of currently selected rows ( from filters )
+    // --- global truth ---
     const selectedIds = ref<DbId[]>(filters.value?.selectedIds ?? [])
     const lastSavedIds = ref<DbId[]>(filters.value?.selectedIds ?? [])
 
-    /**
-     * Watch for changes in rows or selectedIds to update rowSelection ( actual visible selection in the table )
-     */
+    // 🔑 Keep local state in sync with Inertia-provided filters
     watch(
-        [() => rows.value, () => filters.value.selectedIds],
-        ([newRows, ids]) => {
-            rowSelection.value = mapIdsToRowSelection(ids ?? [], newRows as T[])
+        () => filters.value.selectedIds,
+        (ids) => {
+            if (ids) {
+                selectedIds.value = [...ids]
+                lastSavedIds.value = [...ids]
+            }
         },
         { immediate: true }
     )
 
-    /**
-     * Watch for changes in rowSelection to update selectedIds (ids of selected rows)
-     */
-    watch(rowSelection, (selection) => {
-        selectedIds.value = Object.keys(selection)
-            .filter(key => selection[+key])  // only `true` entries
-            .map(key => (rows.value[+key] as any).id as DbId)
+    // --- current page selection (mutable for table) ---
+    const rowSelection = ref<RowSelectionState>(mapIdsToRowSelection(selectedIds.value, rows.value as T[]))
 
-        if (controller.value.updateSelection !== undefined) {
-            // If selectedIds differ from lastSavedIds, save the diff
-            if (!arraysEqualIgnoreOrder(selectedIds.value, lastSavedIds.value)) {
-                debounced(saveSelection, 500)()
-            }
-        }
-
+    watch([rows, selectedIds], () => {
+        rowSelection.value = mapIdsToRowSelection(selectedIds.value, rows.value as T[])
     })
 
     /**
@@ -86,23 +88,96 @@ export function useResourceTable<T>(
 
     /**
      * Map array of IDs to RowSelectionState
-     * RowSelectionState is an object where keys are row indices and values are booleans indicating selection
-     * e.g. { 0: true, 2: true } means rows at index 0 and 2 are selected
-     * This function finds the indices of the rows with the given IDs and marks them as selected
-     *
-     * @param ids
-     * @param rows
      */
-    function mapIdsToRowSelection(ids: DbId[], rows: T[]): RowSelectionState {
+    function mapIdsToRowSelection(
+        ids: DbId[],
+        rows: T[]
+    ): RowSelectionState {
         const selection: RowSelectionState = {}
-        ids.forEach(id => {
-            const index = rows.findIndex(r => (r as any).id === id)
+        ids.forEach((id) => {
+            const index = rows.findIndex((r) => (r as any).id === id)
             if (index !== -1) {
                 selection[index] = true
             }
         })
         return selection
     }
+
+    /**
+     * Handle user selecting/unselecting rows in the current page
+     */
+    function toggleRowSelection(
+        updater:
+            | RowSelectionState
+            | ((old: RowSelectionState) => RowSelectionState)
+    ) {
+        const updated = typeof updater === "function" ? updater(rowSelection.value) : updater
+        rowSelection.value = { ...updated } // ← important for Vue reactivity
+
+        // Take current selection for this page
+        const pageSelectedIds = Object.keys(updated)
+            .filter((key) => updated[+key])
+            .map((key) => (rows.value[+key] as any).id as DbId)
+
+        // Merge into global selectedIds
+        const currentPageIds = rows.value.map(
+            (r) => (r as any).id as DbId
+        )
+
+        // 🔑 preserve previously selected items from *other pages*
+        selectedIds.value = [
+            // keep global selections not on this page
+            ...selectedIds.value.filter(
+                (id) => !currentPageIds.includes(id)
+            ),
+            // add this page’s selected items
+            ...pageSelectedIds,
+        ]
+
+        // Trigger save if needed
+        if (controller.value.updateSelection !== undefined) {
+            if (
+                !arraysEqualIgnoreOrder(
+                    selectedIds.value,
+                    lastSavedIds.value
+                )
+            ) {
+                debouncedSaveSelection()
+            }
+        }
+    }
+
+    /**
+     * Save only changes (diff) to server
+     */
+    const saveSelection = async () => {
+        try {
+            const added = selectedIds.value.filter(
+                (id) => !lastSavedIds.value.includes(id)
+            )
+            const removed = lastSavedIds.value.filter(
+                (id) => !selectedIds.value.includes(id)
+            )
+
+            if (added.length === 0 && removed.length === 0) {
+                return // nothing changed
+            }
+
+            const url = controller.value.updateSelection(parentId?.value).url
+            console.log("Saving selection diff:", { added, removed })
+
+            const response = await axios.post(url, { added, removed })
+            console.log("Selection saved:", response.data)
+
+            // Update lastSavedIds with confirmed server state
+            lastSavedIds.value = [...response.data.selectedIds]
+            filters.value.selectedIds = [...response.data.selectedIds]
+        } catch (err) {
+            console.error("Failed to save selection", err)
+        }
+    }
+
+    const debouncedSaveSelection = debounced(saveSelection, 500)
 
     /**
      * Initialize TanStack Table instance
@@ -115,74 +190,48 @@ export function useResourceTable<T>(
                 return sorting.value
             },
             set sorting(updater) {
-                sorting.value = typeof updater === "function" ? updater(sorting.value) : updater
+                sorting.value =
+                    typeof updater === "function"
+                        ? updater(sorting.value)
+                        : updater
             },
             get rowSelection() {
                 return rowSelection.value
-            }
-        },
-        onSortingChange: (updater) => {
-            sorting.value = typeof updater === "function" ? updater(sorting.value) : updater
-            const sort = sorting.value[0]
-            sortKey.value = sort?.id ?? null
-            sortDir.value = sort ? (sort.desc ? "desc" : "asc") : null
-            page.value = 1
-            send()
+            },
+            set rowSelection(updater) {
+                toggleRowSelection(updater) // update global selectedIds
+            },
         },
         enableRowSelection: true,
-        onRowSelectionChange: updateOrValue => {
-            rowSelection.value =
-                typeof updateOrValue === 'function'
-                    ? updateOrValue(rowSelection.value)
-                    : updateOrValue
-        },
+        onRowSelectionChange: toggleRowSelection, // 🔑 ← THIS WAS MISSING
         getCoreRowModel: getCoreRowModel(),
         manualPagination: true,
         pageCount: computed(() => Math.ceil(total.value / perPage.value)).value,
     })
 
-    /**
-     * Save only changes (diff) to server
-     */
-    const saveSelection = async () => {
-        try {
-            const added = selectedIds.value.filter(id => !lastSavedIds.value.includes(id))
-            const removed = lastSavedIds.value.filter(id => !selectedIds.value.includes(id))
-
-            if (added.length === 0 && removed.length === 0) {
-                return // nothing changed
-            }
-
-            const url = controller.value.updateSelection(parentId?.value).url
-            console.log('Saving selection diff:', { added, removed })
-
-            const response = await axios.post(url, { added, removed })
-            console.log('Selection saved:', response.data)
-
-            // Update lastSavedIds with confirmed server state
-            lastSavedIds.value = [...response.data.selectedIds]
-            filters.value.selectedIds = [...response.data.selectedIds]
-
-        } catch (err) {
-            console.error('Failed to save selection', err)
-        }
-    }
-
     // sync inertia updates
-    watch(
-        data,
-        (newData) => {
-            rows.value = newData.data
-            page.value = newData.meta.current_page
-            perPage.value = newData.meta.per_page
-            total.value = newData.meta.total
-            lastPage.value = newData.meta.last_page
-            table.setOptions(prev => ({ ...prev, data: rows.value }))
-        }
-    )
+    watch(data, (newData) => {
+        rows.value = newData.data
+        page.value = newData.meta.current_page
+        perPage.value = newData.meta.per_page
+        total.value = newData.meta.total
+        lastPage.value = newData.meta.last_page
+        table.setOptions((prev) => ({ ...prev, data: rows.value }))
+    })
 
     // auto-send when page/perPage/search change
     watch([page, perPage, search], send)
 
-    return { table, rows, page, perPage, total, lastPage, search, sorting, selectedIds, send }
+    return {
+        table,
+        rows,
+        page,
+        perPage,
+        total,
+        lastPage,
+        search,
+        sorting,
+        selectedIds,
+        send,
+    }
 }
