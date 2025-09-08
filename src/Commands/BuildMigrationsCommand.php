@@ -5,6 +5,7 @@ namespace Glugox\Magic\Commands;
 use Glugox\Magic\Actions\Build\GenerateMigrationsAction;
 use Glugox\Magic\Support\BuildContext;
 use Illuminate\Support\Facades\Log;
+use JsonException;
 
 class BuildMigrationsCommand extends MagicBaseCommand
 {
@@ -29,7 +30,7 @@ class BuildMigrationsCommand extends MagicBaseCommand
     }
 
     /**
-     * @throws \JsonException
+     * @throws JsonException
      */
     public function handle(): int
     {

@@ -17,6 +17,7 @@ use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use Str;
 
 #[ActionDescription(
     name: 'generate_seeders',
@@ -48,6 +49,24 @@ class GenerateSeedersAction implements DescribableAction
     protected array $generatedPivotSeeders = [];
 
     /**
+     * Constructor to set up paths.
+     */
+    public function __construct(protected CodeGenerationHelper $codeHelper)
+    {
+        // Ensure the factories directory exists
+        $this->factoriesPath = database_path('factories');
+        if (! File::exists($this->factoriesPath)) {
+            File::makeDirectory($this->factoriesPath, 0755, true);
+        }
+
+        // Ensure the seeders directory exists
+        $this->seedersPath = database_path('seeders');
+        if (! File::exists($this->seedersPath)) {
+            File::makeDirectory($this->seedersPath, 0755, true);
+        }
+    }
+
+    /**
      * Build all seeders based on the configuration.
      */
     public function __invoke(BuildContext $context): BuildContext
@@ -70,21 +89,93 @@ class GenerateSeedersAction implements DescribableAction
     }
 
     /**
-     * Constructor to set up paths.
+     * If no FakerExtension is found, we can try to guess the best method based on field name and type.
      */
-    public function __construct(protected CodeGenerationHelper $codeHelper)
+    public function guessFakerMethod(\Faker\Generator $faker, Field $field): string
     {
-        // Ensure the factories directory exists
-        $this->factoriesPath = database_path('factories');
-        if (! File::exists($this->factoriesPath)) {
-            File::makeDirectory($this->factoriesPath, 0755, true);
+
+        $name = mb_strtolower($field->name);
+        $mapFromConfig = config('magic.faker_mappings', []);
+        $mapFromJsonConfig = $this->context->getConfig()->dev->fakerMappings ?? [];
+        $map = array_merge($mapFromConfig, $mapFromJsonConfig);
+
+        // If the name of the field contains a word that is associated with a Faker method,
+        // we can use that method directly. For example, if the field name is "order_number",
+        // we can use the "number" part to determine the Faker method.
+        $wordAssocToType = [
+            'color' => 'hexColor()',
+            'text' => 'text()',
+            'phone' => 'phoneNumber()',
+            'address' => 'address()',
+            'location' => 'address()',
+            'name' => 'name()',
+            'first_name' => 'firstName()',
+            'last_name' => 'lastName()',
+            'full_name' => 'name()',
+            'image' => 'imageUrl(200, 200, null, true)', // true for random image
+            'username' => 'userName()',
+            'password' => 'password()',
+            'title' => 'sentence(3)',
+            'description' => 'paragraph()',
+            'content' => 'text()',
+            'comment' => 'sentence()',
+            'body' => 'paragraph()',
+            'city' => 'city()',
+            'country' => 'country()',
+            'postal' => 'postcode()',
+            'url' => 'url()',
+        ];
+
+        $typeStr = $field->type->value;
+
+        // 1. Check if the field name matches a predefined mapping
+        if (isset($map[$name])) {
+            Log::channel('magic')->info("Using predefined Faker mapping for field '{$field->name}': {$map[$name]}");
+
+            return $map[$name];
         }
 
-        // Ensure the seeders directory exists
-        $this->seedersPath = database_path('seeders');
-        if (! File::exists($this->seedersPath)) {
-            File::makeDirectory($this->seedersPath, 0755, true);
+        // 2. For enum types, use the enum values directly because they are always set in json config
+        // Check if the field is enum
+        if ($field->isEnum()) {
+            return 'randomElement('.json_encode($field->values).')';
         }
+
+        // 3. Check if the field name has type string inside , for example: "order_number"
+        // $availableTypes now contains all types like ['string', 'integer', 'boolean', etc.]
+        // without the "type:" prefix
+        foreach ($wordAssocToType as $word => $availableType) {
+            // Check exact match
+            if ($name === $word || str_ends_with($name, "_{$word}") || str_starts_with($name, "{$word}_")) {
+                Log::channel('magic')->info("Using word association for field '{$field->name}': {$availableType}");
+
+                return $availableType;
+            }
+        }
+
+        // 4. Although other fields than date can end with "_at", it is kind of a convention
+        // to use "dateTime" for fields ending with "_at"
+        if (str_ends_with($name, '_at')) {
+            Log::channel('magic')->info("Using dateTime mapping for field '{$field->name}'");
+
+            return 'dateTime()';
+        }
+
+        // 5. Fallback to type-based mapping
+        $typeFallbacks = [];
+
+        foreach ($map as $mapKey => $item) {
+            if (str_starts_with($mapKey, 'type:')) {
+                $typeInConfig = mb_substr($mapKey, 5);
+                $typeFallbacks[mb_strtolower($typeInConfig)] = $item;
+            }
+        }
+
+        // If the type is not found in the map, use a default type
+        $fallbackValue = $typeFallbacks[mb_strtolower($typeStr)] ?? 'word';
+        Log::channel('magic')->info("Using fallback Faker mapping for field '{$field->name}': {$typeStr} which is: {$fallbackValue}");
+
+        return $fallbackValue;
     }
 
     /**
@@ -218,7 +309,7 @@ PHP;
         $relatedEntity = $relation->getRelatedEntityName();
         $relationMethod = $relation->getRelationName();
 
-        $seederClass = \Str::studly($pivotTable).'PivotSeeder';
+        $seederClass = Str::studly($pivotTable).'PivotSeeder';
         $namespace = 'Database\Seeders';
 
         $stub = <<<PHP
@@ -264,25 +355,6 @@ PHP;
                 "\$this->call({$seederClass}::class);",
             ],
             'pivot_seeders'
-        );
-    }
-
-    /**
-     * Insert a call to the seeder in the DatabaseSeeder class.
-     */
-    private function insertSeederCall($seederClass): void
-    {
-
-        $filePath = $this->seedersPath.'/DatabaseSeeder.php';
-
-        $this->codeHelper->appendCodeBlock(
-            $filePath,
-            'run',
-            [
-                "// Call the {$seederClass} seeder",
-                "\$this->call({$seederClass}::class);",
-            ],
-            'seeders',
         );
     }
 
@@ -362,6 +434,25 @@ PHP;
     }
 
     /**
+     * Insert a call to the seeder in the DatabaseSeeder class.
+     */
+    private function insertSeederCall($seederClass): void
+    {
+
+        $filePath = $this->seedersPath.'/DatabaseSeeder.php';
+
+        $this->codeHelper->appendCodeBlock(
+            $filePath,
+            'run',
+            [
+                "// Call the {$seederClass} seeder",
+                "\$this->call({$seederClass}::class);",
+            ],
+            'seeders',
+        );
+    }
+
+    /**
      * Generate the seeder for creating an admin user.
      */
     private function generateAdminUserSeeder(): void
@@ -376,96 +467,6 @@ PHP;
             ],
             'seeders'
         );
-    }
-
-    /**
-     * If no FakerExtension is found, we can try to guess the best method based on field name and type.
-     */
-    public function guessFakerMethod(\Faker\Generator $faker, Field $field): string
-    {
-
-        $name = strtolower($field->name);
-        $mapFromConfig = config('magic.faker_mappings', []);
-        $mapFromJsonConfig = $this->context->getConfig()->dev->fakerMappings ?? [];
-        $map = array_merge($mapFromConfig, $mapFromJsonConfig);
-
-        // If the name of the field contains a word that is associated with a Faker method,
-        // we can use that method directly. For example, if the field name is "order_number",
-        // we can use the "number" part to determine the Faker method.
-        $wordAssocToType = [
-            'color' => 'hexColor()',
-            'text' => 'text()',
-            'phone' => 'phoneNumber()',
-            'address' => 'address()',
-            'location' => 'address()',
-            'name' => 'name()',
-            'first_name' => 'firstName()',
-            'last_name' => 'lastName()',
-            'full_name' => 'name()',
-            'image' => 'imageUrl(200, 200, null, true)', // true for random image
-            'username' => 'userName()',
-            'password' => 'password()',
-            'title' => 'sentence(3)',
-            'description' => 'paragraph()',
-            'content' => 'text()',
-            'comment' => 'sentence()',
-            'body' => 'paragraph()',
-            'city' => 'city()',
-            'country' => 'country()',
-            'postal' => 'postcode()',
-            'url' => 'url()',
-        ];
-
-        $typeStr = $field->type->value;
-
-        // 1. Check if the field name matches a predefined mapping
-        if (isset($map[$name])) {
-            Log::channel('magic')->info("Using predefined Faker mapping for field '{$field->name}': {$map[$name]}");
-
-            return $map[$name];
-        }
-
-        // 2. For enum types, use the enum values directly because they are always set in json config
-        // Check if the field is enum
-        if ($field->isEnum()) {
-            return 'randomElement('.json_encode($field->values).')';
-        }
-
-        // 3. Check if the field name has type string inside , for example: "order_number"
-        // $availableTypes now contains all types like ['string', 'integer', 'boolean', etc.]
-        // without the "type:" prefix
-        foreach ($wordAssocToType as $word => $availableType) {
-            // Check exact match
-            if ($name === $word || str_ends_with($name, "_{$word}") || str_starts_with($name, "{$word}_")) {
-                Log::channel('magic')->info("Using word association for field '{$field->name}': {$availableType}");
-
-                return $availableType;
-            }
-        }
-
-        // 4. Although other fields than date can end with "_at", it is kind of a convention
-        // to use "dateTime" for fields ending with "_at"
-        if (str_ends_with($name, '_at')) {
-            Log::channel('magic')->info("Using dateTime mapping for field '{$field->name}'");
-
-            return 'dateTime()';
-        }
-
-        // 5. Fallback to type-based mapping
-        $typeFallbacks = [];
-
-        foreach ($map as $mapKey => $item) {
-            if (str_starts_with($mapKey, 'type:')) {
-                $typeInConfig = substr($mapKey, 5);
-                $typeFallbacks[strtolower($typeInConfig)] = $item;
-            }
-        }
-
-        // If the type is not found in the map, use a default type
-        $fallbackValue = $typeFallbacks[strtolower($typeStr)] ?? 'word';
-        Log::channel('magic')->info("Using fallback Faker mapping for field '{$field->name}': {$typeStr} which is: {$fallbackValue}");
-
-        return $fallbackValue;
     }
 
     /**

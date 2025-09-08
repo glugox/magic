@@ -6,6 +6,11 @@ namespace Glugox\Magic\Support\Config;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use JsonException;
+use ReflectionClass;
+use ReflectionException;
+use ReflectionProperty;
+use RuntimeException;
 
 class Config
 {
@@ -41,27 +46,9 @@ class Config
     }
 
     /**
-     * Check if the configuration is valid.
-     */
-    public function isValid(): bool
-    {
-        // TODO: Implement validation logic
-        return true;
-    }
-
-    /**
-     * Get config value by key.
-     * This is , for now, only a wrapper around config('magic.xxx')
-     */
-    public function getConfigValue(string $key, mixed $default = null): mixed
-    {
-        return config("magic.{$key}", $default);
-    }
-
-    /**
      * Convert the configuration from JSON string to Config object.
      *
-     * @throws \JsonException
+     * @throws JsonException
      */
     public static function fromJson(string|array $json): self
     {
@@ -82,20 +69,54 @@ class Config
     /**
      * Convert the configuration from json file path to Config object.
      *
-     * @throws \JsonException
+     * @throws JsonException
      */
     public static function fromJsonFile(string $filePath): self
     {
         $filePath = self::ensureBasePath($filePath);
         if (! file_exists($filePath)) {
-            throw new \RuntimeException("Configuration file not found: {$filePath}");
+            throw new RuntimeException("Configuration file not found: {$filePath}");
         }
         $json = file_get_contents($filePath);
         if ($json === false) {
-            throw new \RuntimeException("Failed to read configuration file: {$filePath}");
+            throw new RuntimeException("Failed to read configuration file: {$filePath}");
         }
 
         return static::fromJson($json);
+    }
+
+    /**
+     * Ensures we have only one base path
+     * in the beginning of the path.
+     */
+    public static function ensureBasePath(string $path): string
+    {
+        $base = base_path();
+
+        // Already absolute inside base
+        if (str_starts_with($path, $base) || str_starts_with($path, '/')) {
+            return $path;
+        }
+
+        return base_path($path);
+    }
+
+    /**
+     * Check if the configuration is valid.
+     */
+    public function isValid(): bool
+    {
+        // TODO: Implement validation logic
+        return true;
+    }
+
+    /**
+     * Get config value by key.
+     * This is , for now, only a wrapper around config('magic.xxx')
+     */
+    public function getConfigValue(string $key, mixed $default = null): mixed
+    {
+        return config("magic.{$key}", $default);
     }
 
     /**
@@ -104,9 +125,9 @@ class Config
      * Applies overrides to the configuration array.
      * This is usually used to modify specific configuration values from the command line or other sources.
      *
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
-    public function applyOverrides(array $overrides): Config
+    public function applyOverrides(array $overrides): self
     {
         Log::channel('magic')->info('Applying overrides to config: '.json_encode($overrides));
 
@@ -119,17 +140,17 @@ class Config
 
             foreach ($keys as $index => $k) {
                 if (! property_exists($current, $k)) {
-                    throw new \RuntimeException("Property '{$k}' does not exist in ".get_class($current));
+                    throw new RuntimeException("Property '{$k}' does not exist in ".get_class($current));
                 }
 
                 // If this is the last key, assign the value with proper type
                 if ($index === array_key_last($keys)) {
-                    $reflection = new \ReflectionProperty($current, $k);
+                    $reflection = new ReflectionProperty($current, $k);
                     $type = $reflection->getType()?->getName() ?? 'mixed';
-                    $currentShortClass = new \ReflectionClass($current)->getShortName();
+                    $currentShortClass = new ReflectionClass($current)->getShortName();
 
                     // If the property is a nested config object
-                    if (class_exists($type) && is_subclass_of($type, Config::class)) {
+                    if (class_exists($type) && is_subclass_of($type, self::class)) {
                         $current->$k = new $type((array) $value);
                         Log::channel('magic')->info("Setting {$currentShortClass} -> {$k} to value: ".json_encode($current->$k));
                     } else {
@@ -145,20 +166,6 @@ class Config
         Log::channel('magic')->info('Config overrides applied successfully.');
 
         return $modified;
-    }
-
-    /**
-     * Generic type caster
-     */
-    protected static function castType(string $type, mixed $value): mixed
-    {
-        return match ($type) {
-            'int' => (int) $value,
-            'float' => (float) $value,
-            'string' => (string) $value,
-            'bool' => filter_var($value, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? false,
-            default => $value,
-        };
     }
 
     /**
@@ -203,37 +210,11 @@ class Config
     }
 
     /**
-     * Ensures we have only one base path
-     * in the beginning of the path.
-     */
-    public static function ensureBasePath(string $path): string
-    {
-        $base = base_path();
-
-        // Already absolute inside base
-        if (str_starts_with($path, $base) || str_starts_with($path, '/')) {
-            return $path;
-        }
-
-        return base_path($path);
-    }
-
-    /**
      * Get entity by its name.
      */
-    public function getEntityByName(string $relatedEntityName) : ?Entity
+    public function getEntityByName(string $relatedEntityName): ?Entity
     {
         return array_find($this->entities, fn ($entity) => $entity->getName() === $relatedEntityName);
-    }
-
-    /**
-     * Process entities to resolve relations and other settings.
-     */
-    private function processEntities()
-    {
-        foreach ($this->entities as $entity) {
-            $entity->processRelations($this);
-        }
     }
 
     /**
@@ -246,6 +227,31 @@ class Config
                 return true;
             }
         }
+
         return false;
+    }
+
+    /**
+     * Generic type caster
+     */
+    protected static function castType(string $type, mixed $value): mixed
+    {
+        return match ($type) {
+            'int' => (int) $value,
+            'float' => (float) $value,
+            'string' => (string) $value,
+            'bool' => filter_var($value, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? false,
+            default => $value,
+        };
+    }
+
+    /**
+     * Process entities to resolve relations and other settings.
+     */
+    private function processEntities()
+    {
+        foreach ($this->entities as $entity) {
+            $entity->processRelations($this);
+        }
     }
 }

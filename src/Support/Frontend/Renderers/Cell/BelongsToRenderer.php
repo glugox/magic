@@ -22,17 +22,17 @@ class BelongsToRenderer extends Renderer
         $tableCellLines = [
             "const relatedEntity = cell.row.original.{$belongsTo->getRelationName()};",
             "const href = '{$belongsTo->getHref()}';",
-            "const relId = cell.row.original.id;",
+            'const relId = cell.row.original.id;',
             "if (!relatedEntity) return '—';",
-            "const nameVal: string = relatedEntity.name;",
+            'const nameVal: string = relatedEntity.name;',
             $avatarDefinition,
             "return h('a', {",
-            $indent2 . "href: href + '/' + relId,",
-            $indent2. "class: 'flex items-center gap-2 text-blue-600 hover:underline'",
-            "}, [",
-            $indent2 . "#AvatarPlaceholder#",
-            $indent2 . "h('span', null, nameVal)",
-            "]);"
+            $indent2."href: href + '/' + relId,",
+            $indent2."class: 'flex items-center gap-2 text-blue-600 hover:underline'",
+            '}, [',
+            $indent2.'#AvatarPlaceholder#',
+            $indent2."h('span', null, nameVal)",
+            ']);'
         ];
 
         $tableCellStr = implode("\n$indent", $tableCellLines);

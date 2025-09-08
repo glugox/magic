@@ -9,11 +9,7 @@ class SearchService
     /**
      * Apply search to a query builder.
      *
-     * @param Builder $query
-     * @param string|null $searchTerm
-     * @param array $searchableFields
-     * @param array $relations
-     * @return Builder
+     * @param  array  $relations
      */
     public function apply(
         Builder $query,
@@ -22,7 +18,7 @@ class SearchService
     ): Builder {
 
         // Apply search
-        if ($searchTerm && !empty($searchableFields)) {
+        if ($searchTerm && ! empty($searchableFields)) {
             $query->where(function ($q) use ($searchTerm, $searchableFields) {
                 foreach ($searchableFields as $field) {
                     $q->orWhere($field, 'like', "%{$searchTerm}%");

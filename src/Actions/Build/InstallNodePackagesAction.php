@@ -52,10 +52,10 @@ class InstallNodePackagesAction implements DescribableAction
             : [];
 
         // 1. Install missing npm packages in one command
-        $missingPackages = array_filter($this->npmPackages, fn($pkg) => ! $this->isPackageInstalled($pkg, $packageJson));
+        $missingPackages = array_filter($this->npmPackages, fn ($pkg) => ! $this->isPackageInstalled($pkg, $packageJson));
 
-        if (!empty($missingPackages)) {
-            Log::channel('magic')->info('Installing missing npm packages: ' . implode(', ', $missingPackages));
+        if (! empty($missingPackages)) {
+            Log::channel('magic')->info('Installing missing npm packages: '.implode(', ', $missingPackages));
 
             $this->runProcess(
                 array_merge(['/usr/local/bin/npx', 'install', '--save-dev'], $missingPackages),
@@ -66,10 +66,10 @@ class InstallNodePackagesAction implements DescribableAction
         }
 
         // 2. Install missing shadcn-vue components in one command
-        $missingComponents = array_filter($this->shadcnComponents, fn($component) => ! $this->isShadcnInstalled($component));
+        $missingComponents = array_filter($this->shadcnComponents, fn ($component) => ! $this->isShadcnInstalled($component));
 
-        if (!empty($missingComponents)) {
-            Log::channel('magic')->info('Installing missing shadcn-vue components: ' . implode(', ', $missingComponents));
+        if (! empty($missingComponents)) {
+            Log::channel('magic')->info('Installing missing shadcn-vue components: '.implode(', ', $missingComponents));
 
             $this->runProcess(
                 array_merge(['/usr/local/bin/npx', 'shadcn-vue@latest', 'add'], $missingComponents),

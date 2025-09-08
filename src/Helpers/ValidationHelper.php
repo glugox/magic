@@ -2,24 +2,22 @@
 
 namespace Glugox\Magic\Helpers;
 
+use Glugox\Magic\Enums\CrudActionType;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Validation\EntityRuleSet;
 use Glugox\Magic\Validation\RuleSetHelper;
-use Glugox\Magic\Enums\CrudActionType;
 use Glugox\Magic\Validation\ValidationRule;
 use Glugox\Magic\Validation\ValidationRuleSet;
 
 class ValidationHelper
 {
     /**
-     * @param Entity $entity
-     * @return EntityRuleSet  Aggregated validation rules for the entity like ['field1' => ['required', 'string', 'max:255'], 'field2' => ['nullable', 'integer', 'min:0'] ... ]
+     * @return EntityRuleSet Aggregated validation rules for the entity like ['field1' => ['required', 'string', 'max:255'], 'field2' => ['nullable', 'integer', 'min:0'] ... ]
      */
     public function make(
         Entity $entity
-    ): EntityRuleSet
-    {
+    ): EntityRuleSet {
         $entityRuleSet = new EntityRuleSet();
         foreach ($entity->getFields() as $field) {
             $rulesCreate = new ValidationRuleSet(
@@ -33,21 +31,18 @@ class ValidationHelper
             $entityRuleSet->setCreateRuleSetForField($field->name, $rulesCreate);
             $entityRuleSet->setUpdateRuleSetForField($field->name, $rulesUpdate);
         }
+
         return $entityRuleSet;
     }
 
     /**
-     * @param Field $field
-     * @param CrudActionType|null $categoryType
-     * @return ValidationRule[]  Aggregated validation rules like ['required', 'string', 'max:255']
+     * @return ValidationRule[] Aggregated validation rules like ['required', 'string', 'max:255']
      */
     protected function rulesForField(
         Field $field,
         ?CrudActionType $categoryType = CrudActionType::CREATE
-    ): array
-    {
-       return RuleSetHelper::rulesFor($field, $categoryType);
+    ): array {
+        return RuleSetHelper::rulesFor($field, $categoryType);
 
     }
 }
-

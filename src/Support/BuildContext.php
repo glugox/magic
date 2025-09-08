@@ -6,18 +6,20 @@ use Glugox\Magic\Actions\Config\ResolveAppConfigAction;
 use Glugox\Magic\Support\Config\Config;
 use Glugox\Magic\Support\File\FilesGenerationUpdate;
 use Illuminate\Support\Facades\Log;
+use JsonException;
+use ReflectionException;
 
 class BuildContext
 {
     /**
-     * Config object resolved from the config file, starter, and overrides.
-     */
-    protected ?Config $config = null;
-
-    /**
      * Errors encountered during the build process.
      */
     public array $errors = [];
+
+    /**
+     * Config object resolved from the config file, starter, and overrides.
+     */
+    protected ?Config $config = null;
 
     /**
      * Keeps track of files generated, updated, or deleted during the build.
@@ -137,7 +139,6 @@ class BuildContext
 
     /**
      * Ensure the config is loaded.
-
      */
     private function ensureConfigLoaded(): void
     {
@@ -148,7 +149,7 @@ class BuildContext
                     'starter' => $this->starter,
                     'set' => $this->overrides,
                 ]);
-            } catch (\JsonException|\ReflectionException $e) {
+            } catch (JsonException|ReflectionException $e) {
                 Log::channel('magic')->critical("Failed to load config file: {$e->getMessage()}");
             }
         }

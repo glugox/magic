@@ -2,6 +2,7 @@
 
 namespace Glugox\Magic\Commands;
 
+use Exception;
 use Glugox\Magic\Actions\Config\ResolveAppConfigAction;
 use Glugox\Magic\Support\CodeGenerationHelper;
 use Glugox\Magic\Support\Config\Config;
@@ -10,6 +11,8 @@ use Glugox\Magic\Support\File\FilesGenerationUpdate;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use JsonException;
+use ReflectionException;
 
 class ResetAppCommand extends MagicBaseCommand
 {
@@ -41,7 +44,7 @@ class ResetAppCommand extends MagicBaseCommand
      * throws \Exception
      * throws \JsonException
      *
-     * @throws \JsonException
+     * @throws JsonException
      */
     public function handle(): int
     {
@@ -49,11 +52,11 @@ class ResetAppCommand extends MagicBaseCommand
         // Resolve config
         try {
             $this->config = app(ResolveAppConfigAction::class)($this->options());
-        } catch (\JsonException $e) {
+        } catch (JsonException $e) {
             $this->error('Failed to parse JSON config file: '.$e->getMessage());
-        } catch (\ReflectionException $e) {
+        } catch (ReflectionException $e) {
             $this->error('Reflection exception: '.$e->getMessage());
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->error('Error resolving config: '.$e->getMessage());
         }
 
@@ -139,7 +142,7 @@ class ResetAppCommand extends MagicBaseCommand
 
         // TODO: FEATURES
         // Delete Features table migrations
-        $migrationFiles = File::glob(database_path("migrations/*_create_attachments_table.php"));
+        $migrationFiles = File::glob(database_path('migrations/*_create_attachments_table.php'));
         foreach ($migrationFiles as $file) {
             $this->deleteFile($file, 'Migration');
         }
@@ -190,7 +193,7 @@ class ResetAppCommand extends MagicBaseCommand
                 $controllerFQN = $relation->getControllerFullQualifiedName();
 
                 // Convert FQN to path: App\Http\Controllers\Api\RelationNameController -> app/Http/Controllers/Api/RelationNameController.php
-                $controllerPath = app_path(str_replace('\\', '/', ltrim($controllerFQN, '\\')));
+                $controllerPath = app_path(str_replace('\\', '/', mb_ltrim($controllerFQN, '\\')));
                 // Also remove the /App/ prefix if present
                 $controllerPath = str_replace('App/', '', $controllerPath);
 
@@ -203,7 +206,7 @@ class ResetAppCommand extends MagicBaseCommand
                     File::deleteDirectory($controllerDir);
                     $this->logInfo(">>>> Removing directory {$controllerDir} if empty...");
 
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     $this->logWarning("Could not remove directory {$controllerDir}. It may not be empty. Error: ".$e->getMessage());
                 }
             }
@@ -244,7 +247,7 @@ class ResetAppCommand extends MagicBaseCommand
             try {
                 File::deleteDirectory($appRoutesDir);
                 $this->logInfo('Removed routes/app directory if empty.');
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->logWarning("Could not remove directory {$appRoutesDir}. It may not be empty. Error: ".$e->getMessage());
             }
         } else {
@@ -314,7 +317,7 @@ class ResetAppCommand extends MagicBaseCommand
             // Try to remove the entity directory if empty
             try {
                 File::deleteDirectory($entityDir);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->logWarning("Could not remove directory {$entityDir}. It may not be empty. Error: ".$e->getMessage());
             }
 

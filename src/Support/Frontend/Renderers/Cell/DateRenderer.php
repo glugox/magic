@@ -6,6 +6,8 @@ use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Frontend\Renderers\RendererResult;
 
+use function implode;
+
 class DateRenderer extends Renderer
 {
     /**
@@ -15,11 +17,11 @@ class DateRenderer extends Renderer
     {
         $tableCellLines = [
             "const strVal: string = cell.getValue() ? String(cell.getValue()) : '';",
-            "return new Date(strVal).toLocaleDateString()"
-            ];
+            'return new Date(strVal).toLocaleDateString()'
+        ];
 
-        $indent = str_repeat(" ", 15);
-        $formattedDate = \implode("\n$indent", $tableCellLines);
+        $indent = str_repeat(' ', 15);
+        $formattedDate = implode("\n$indent", $tableCellLines);
 
         return new RendererResult(
             content: $formattedDate,

@@ -1,8 +1,8 @@
 <?php
 
+use Glugox\Magic\Enums\CrudActionType;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Validation\RuleSetHelper;
-use Glugox\Magic\Enums\CrudActionType;
 
 it('applies base ruleset for field type', function () {
 
@@ -13,7 +13,9 @@ it('applies base ruleset for field type', function () {
         'sometimes' => false,
     ]);
     $rules = RuleSetHelper::rulesFor($field, CrudActionType::CREATE);
-    $rulesArr = array_map(function ($rule) { return (string)$rule; }, $rules);
+    $rulesArr = array_map(function ($rule) {
+        return (string) $rule;
+    }, $rules);
 
     expect($rulesArr)->toBeArray()
         ->toContain('required')
@@ -31,7 +33,9 @@ it('removes required and adds nullable if field is nullable', function () {
     ]);
 
     $rules = RuleSetHelper::rulesFor($nullableField);
-    $rulesArr = array_map(function ($rule) { return (string)$rule; }, $rules);
+    $rulesArr = array_map(function ($rule) {
+        return (string) $rule;
+    }, $rules);
 
     expect($rulesArr)->not->toContain('required')
         ->toContain('nullable')
@@ -48,7 +52,9 @@ it('adds sometimes if field is marked sometimes', function () {
     ]);
 
     $rules = RuleSetHelper::rulesFor($sometimeField);
-    $rulesArr = array_map(function ($rule) { return (string)$rule; }, $rules);
+    $rulesArr = array_map(function ($rule) {
+        return (string) $rule;
+    }, $rules);
 
     expect($rulesArr)->toContain('sometimes')
         ->toContain('string')
@@ -65,7 +71,9 @@ it('nullable and sometimes together', function () {
     ]);
 
     $rules = RuleSetHelper::rulesFor($nullableButSometimeField);
-    $rulesArr = array_map(function ($rule) { return (string)$rule; }, $rules);
+    $rulesArr = array_map(function ($rule) {
+        return (string) $rule;
+    }, $rules);
 
     expect($rulesArr)->toContain('nullable')
         ->not->toContain('sometimes')

@@ -58,7 +58,6 @@ it('generates models with enum casting when enum fields exist', function () {
     // Check that does not import enums when no enum fields exist
     $modelWithNoEnumPath = app_path('Models/Category.php');
     $contents = File::get($modelWithNoEnumPath);
-    expect($contents)->not->toContain("use App\\Enums\\");
-
+    expect($contents)->not->toContain('use App\\Enums\\');
 
 });

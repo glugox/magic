@@ -7,7 +7,7 @@ namespace Glugox\Magic\Enums;
  * Used in validation rules to specify the context of the action.
  * Also used to create different pages for each action type, etc.
  */
-enum CrudActionType : string
+enum CrudActionType: string
 {
     case CREATE = 'create';
     case READ = 'read';

@@ -3,21 +3,21 @@
 namespace Glugox\Magic\Support\Config;
 
 use Illuminate\Support\Str;
+use RuntimeException;
 
 class Relation
 {
     public RelationType $type;      // e.g. 'hasMany', 'belongsTo'
 
-
     // getters ...
     public function __construct(
-        RelationType|string      $type,
-        private readonly Entity  $localEntity,
+        RelationType|string $type,
+        private readonly Entity $localEntity,
         private readonly ?string $entityName = null,
-        private ?Entity          $relatedEntity = null,
+        private ?Entity $relatedEntity = null,
         private readonly ?string $foreignKey = null,
-        private ?string          $localKey = null,
-        private ?string          $relationName = null,
+        private ?string $localKey = null,
+        private ?string $relationName = null,
     ) {
         $this->type = $type instanceof RelationType ? $type : RelationType::from($type);
     }
@@ -119,13 +119,14 @@ class Relation
      * Get the related entity object.
      * If the related entity is not set, it throws an exception.
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     public function getRelatedEntity(): Entity
     {
         if (! $this->relatedEntity) {
-            throw new \RuntimeException("Related entity is not set for relation of type {$this->type->value}");
+            throw new RuntimeException("Related entity is not set for relation of type {$this->type->value}");
         }
+
         return $this->relatedEntity;
     }
 
@@ -138,12 +139,12 @@ class Relation
 
         // If entity name is not set, return empty string
         if (! $this->entityName) {
-           // If relation is MorphTo, return local entity's table name
-           if ($this->type === RelationType::MORPH_TO) {
-               return $this->getLocalEntity()->getTableName();
-           }
+            // If relation is MorphTo, return local entity's table name
+            if ($this->type === RelationType::MORPH_TO) {
+                return $this->getLocalEntity()->getTableName();
+            }
 
-           throw new \RuntimeException("Entity name is not set for relation of type {$this->type->value}");
+            throw new RuntimeException("Entity name is not set for relation of type {$this->type->value}");
         }
 
         // Convert entity name to snake_case for table name
@@ -228,6 +229,7 @@ class Relation
         $localEntityNamePlural = Str::snake($this->localEntity->getPluralName());
         $localEntityNameSingular = Str::snake($this->localEntity->getName());
         $relatedEntityName = Str::snake($this->getRelationName());
+
         return "{$localEntityNamePlural}/{{$localEntityNameSingular}}/{$relatedEntityName}";
     }
 
@@ -269,19 +271,19 @@ class Relation
 
     /**
      * @return string
-     * Returns a comma-separated string of fields to be eagerly loaded for the related entity.
-     * This is usually "id,name" or "id,title" depending on the related entity's name field.
+     *                Returns a comma-separated string of fields to be eagerly loaded for the related entity.
+     *                This is usually "id,name" or "id,title" depending on the related entity's name field.
      */
-    public function getEagerFieldsStr() : string
+    public function getEagerFieldsStr(): string
     {
         // If the entity does not have a 'name' field, we will try to find first field that can be used as name
         // so we can load them in index listing
         $eagerFieldNames = ['id'];
         $nameFields = $this->getRelatedEntity()->getNameFieldsNames();
-        if(count($nameFields) > 0) {
+        if (count($nameFields) > 0) {
             $eagerFieldNames[] = $nameFields[0];
         }
+
         return implode(',', array_filter($eagerFieldNames));
     }
-
 }

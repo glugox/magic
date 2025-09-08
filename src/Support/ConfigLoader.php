@@ -4,6 +4,9 @@ namespace Glugox\Magic\Support;
 
 use Glugox\Magic\Support\Config\Config;
 use Illuminate\Support\Facades\Log;
+use JsonException;
+use ReflectionException;
+use RuntimeException;
 
 /**
  * Loads and parses the JSON configuration file for the Magic package.
@@ -16,8 +19,8 @@ class ConfigLoader
      * @param  string|null  $path  Path to the JSON config file. If null, uses the default path from config.
      * @return Config Parsed configuration data.
      *
-     * @throws \JsonException If the file does not exist or contains invalid JSON.
-     * @throws \ReflectionException
+     * @throws JsonException If the file does not exist or contains invalid JSON.
+     * @throws ReflectionException
      */
     public static function load(?string $path = null, ?array $overrides = null): Config
     {
@@ -26,7 +29,7 @@ class ConfigLoader
         Log::channel('magic')->info("Loading Magic config from: {$path}");
         if (! file_exists($path)) {
             Log::channel('magic')->error("Config file not found at: {$path}");
-            throw new \RuntimeException("Config file not found at: {$path}");
+            throw new RuntimeException("Config file not found at: {$path}");
         }
 
         $json = file_get_contents($path);
@@ -35,7 +38,7 @@ class ConfigLoader
 
         if (json_last_error() !== JSON_ERROR_NONE) {
             Log::channel('magic')->error('Invalid JSON in config file: '.json_last_error_msg());
-            throw new \RuntimeException('Invalid JSON in config file: '.json_last_error_msg());
+            throw new RuntimeException('Invalid JSON in config file: '.json_last_error_msg());
         }
 
         Log::channel('magic')->info('Config loaded successfully: '.$path);

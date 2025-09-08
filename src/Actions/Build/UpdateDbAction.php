@@ -2,6 +2,7 @@
 
 namespace Glugox\Magic\Actions\Build;
 
+use Artisan;
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Support\BuildContext;
@@ -25,14 +26,14 @@ class UpdateDbAction implements DescribableAction
 
         // Step 1. Run migrations to ensure the database schema is up to date
         Log::channel('magic')->info('Running database migrations to update the schema...');
-        \Artisan::call('migrate', ['--force' => true]);
+        Artisan::call('migrate', ['--force' => true]);
 
         // Step 2. Seed the database if enabled in config
         if ($context->getConfig()->dev->seedEnabled) {
             Log::channel('magic')->info("Seeding the database with default seedCount of {$context->getConfig()->dev->seedCount}...");
 
             // Run the db:seed Artisan command with the --force option
-            \Artisan::call('db:seed', ['--force' => true]);
+            Artisan::call('db:seed', ['--force' => true]);
 
         } else {
             Log::channel('magic')->debug('Database seeding is disabled in the config.');

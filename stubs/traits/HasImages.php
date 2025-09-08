@@ -2,8 +2,8 @@
 
 namespace App\Traits;
 
-use Illuminate\Support\Facades\Config;
 use App\Models\Attachment;
+use Illuminate\Support\Facades\Config;
 
 trait HasImages
 {

@@ -31,7 +31,7 @@ class GeneratedFileBase implements GeneratedFile
      */
     public function writeToFile(): void
     {
-        $filePath = rtrim($this->directory, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$this->fileName;
+        $filePath = mb_rtrim($this->directory, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$this->fileName;
         app(WriteGeneratedFiles::class)(
             input: $this
         );

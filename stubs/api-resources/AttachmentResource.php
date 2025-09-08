@@ -44,6 +44,7 @@ class AttachmentResource extends JsonResource
         }
 
         $thumbnailPath = preg_replace('/(\.\w+)$/', '_thumb$1', $this->path);
+
         return Storage::disk('public')->exists($thumbnailPath)
             ? Storage::disk('public')->url($thumbnailPath)
             : $this->url();

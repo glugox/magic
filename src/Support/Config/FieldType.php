@@ -4,7 +4,7 @@ namespace Glugox\Magic\Support\Config;
 
 enum FieldType: string
 {
-    case  ID = 'id';
+    case ID = 'id';
     case BIG_INCREMENTS = 'bigIncrements';
     case BIG_INTEGER = 'bigInteger';
     case BINARY = 'binary';

@@ -6,9 +6,9 @@ use App\Http\Resources\AttachmentResource;
 use App\Jobs\ProcessAttachment;
 use App\Models\Attachment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\DB;
 
 class AttachmentController extends Controller
 {
@@ -42,7 +42,7 @@ class AttachmentController extends Controller
         ]);
 
         $file = $request->file('file');
-        $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+        $filename = Str::uuid().'.'.$file->getClientOriginalExtension();
         $path = $file->storeAs('attachments', $filename, 'public');
 
         $attachment = Attachment::create([
@@ -52,8 +52,8 @@ class AttachmentController extends Controller
             'file_size' => $file->getSize(),
             'file_path' => $path,
             'order_index' => Attachment::where('attachable_type', $request->attachable_type)
-                    ->where('attachable_id', $request->attachable_id)
-                    ->max('order_index') + 1,
+                ->where('attachable_id', $request->attachable_id)
+                ->max('order_index') + 1,
         ]);
 
         // Queue processing (thumbnails, etc.)

@@ -12,12 +12,14 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Intervention\Image\Facades\Image;
+use Throwable;
 
 class ProcessAttachment implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected Attachment $attachment;
+
     protected string $tempFilePath;
 
     /**
@@ -35,13 +37,14 @@ class ProcessAttachment implements ShouldQueue
     public function handle(): void
     {
         try {
-            if (!file_exists($this->tempFilePath)) {
+            if (! file_exists($this->tempFilePath)) {
                 Log::error("Temp file not found for attachment ID {$this->attachment->id}");
+
                 return;
             }
 
             $extension = pathinfo($this->tempFilePath, PATHINFO_EXTENSION);
-            $filename = Str::uuid()->toString() . '.' . $extension;
+            $filename = Str::uuid()->toString().'.'.$extension;
 
             // Permanent storage path
             $storagePath = "attachments/{$this->attachment->attachable_type}/{$this->attachment->attachable_id}/{$filename}";
@@ -68,7 +71,7 @@ class ProcessAttachment implements ShouldQueue
             @unlink($this->tempFilePath);
 
             Log::info("Processed attachment ID {$this->attachment->id} stored at {$storagePath}");
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error("Failed to process attachment ID {$this->attachment->id}: {$e->getMessage()}");
             throw $e; // Optionally retry the job
         }

@@ -22,15 +22,18 @@ class GenerateEnumsAction implements DescribableAction
     use AsDescribableAction, CanLogSectionTitle;
 
     protected string $phpEnumPath;
+
     protected string $tsEnumPath;
+
     protected string $stubsDir;
+
     private BuildContext $context;
 
     public function __construct()
     {
         $this->phpEnumPath = app_path('Enums');
         $this->tsEnumPath = resource_path('js/enums');
-        $this->stubsDir = __DIR__ . '/../../../stubs/enums';
+        $this->stubsDir = __DIR__.'/../../../stubs/enums';
 
         if (! File::exists($this->phpEnumPath)) {
             File::makeDirectory($this->phpEnumPath, 0755, true);
@@ -62,12 +65,12 @@ class GenerateEnumsAction implements DescribableAction
      */
     protected function generateEnum(string $entityName, Field $field): void
     {
-        $enumName = Str::studly($entityName) . Str::studly($field->name) . 'Enum';
+        $enumName = Str::studly($entityName).Str::studly($field->name).'Enum';
         $phpFile = "{$this->phpEnumPath}/{$enumName}.php";
         $tsFile = "{$this->tsEnumPath}/{$enumName}.ts";
 
         // --- PHP Enum ---
-        $enumStub = File::get($this->stubsDir . '/enum.php.stub');
+        $enumStub = File::get($this->stubsDir.'/enum.php.stub');
 
         $cases = '';
         $labels = '';
@@ -89,7 +92,7 @@ class GenerateEnumsAction implements DescribableAction
         Log::channel('magic')->info("Generated PHP enum: {$enumName}");
 
         // --- TS Enum ---
-        $tsStub = File::get($this->stubsDir . '/enum.ts.stub');
+        $tsStub = File::get($this->stubsDir.'/enum.ts.stub');
 
         $tsCases = '';
         $tsLabels = '';

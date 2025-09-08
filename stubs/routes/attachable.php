@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AttachmentController;
+use Illuminate\Support\Facades\Route;
 
 Route::middleware('api')
     ->prefix('attachments')

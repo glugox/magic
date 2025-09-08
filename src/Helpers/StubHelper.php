@@ -11,13 +11,11 @@ class StubHelper
      *
      * Example output: "['id','name','email']"
      *
-     * @param string[] $fields
-     * @param bool $includeId
-     * @return string
+     * @param  string[]  $fields
      */
     public static function buildPhpArrayString(array $fields, bool $includeId = true): string
     {
-        if ($includeId && !in_array('id', $fields)) {
+        if ($includeId && ! in_array('id', $fields)) {
             array_unshift($fields, 'id');
         }
 
@@ -25,7 +23,7 @@ class StubHelper
             return '[]';
         }
 
-        return "['" . implode("','", $fields) . "']";
+        return "['".implode("','", $fields)."']";
     }
 
     /**
@@ -36,6 +34,7 @@ class StubHelper
     public static function getSelectFieldsString(Entity $entity): string
     {
         $fields = $entity->getNameFieldsNames() ?: ['name'];
+
         return self::buildPhpArrayString($fields);
     }
 
@@ -47,6 +46,7 @@ class StubHelper
     public static function getSelectRelatedFieldsString(Entity $entity): string
     {
         $fields = $entity->getNameFieldsNames() ?: ['name'];
+
         return self::buildPhpArrayString($fields);
     }
 
@@ -57,8 +57,9 @@ class StubHelper
      */
     public static function getSearchableFieldsString(Entity $entity): string
     {
-        $searchable = array_filter($entity->getFields(), fn($f) => $f->searchable);
-        $names = array_map(fn($f) => $f->name, $searchable);
+        $searchable = array_filter($entity->getFields(), fn ($f) => $f->searchable);
+        $names = array_map(fn ($f) => $f->name, $searchable);
+
         return self::buildPhpArrayString($names, false);
     }
 
@@ -70,6 +71,7 @@ class StubHelper
     public static function getTableFieldsString(Entity $entity): string
     {
         $fields = $entity->getTableFieldsNames();
+
         return self::buildPhpArrayString($fields, false);
     }
 
@@ -81,8 +83,9 @@ class StubHelper
     public static function getRelationNamesString(Entity $entity, $relationType = null): string
     {
         $relations = $entity->getRelations($relationType);
-        $names = array_map(fn($r) => $r->getRelationName() . ':' . $r->getEagerFieldsStr(), $relations);
-        return empty($names) ? '[]' : "['" . implode("','", $names) . "']";
+        $names = array_map(fn ($r) => $r->getRelationName().':'.$r->getEagerFieldsStr(), $relations);
+
+        return empty($names) ? '[]' : "['".implode("','", $names)."']";
     }
 
     /**
@@ -102,8 +105,8 @@ class StubHelper
 
         foreach ($replacements as $k => $v) {
             $key = $k;
-            if (!str_starts_with($key, '{{') || !str_ends_with($key, '}}')) {
-                $key = '{{' . trim($key, '{} ') . '}}';
+            if (! str_starts_with($key, '{{') || ! str_ends_with($key, '}}')) {
+                $key = '{{'.mb_trim($key, '{} ').'}}';
             }
             $normalizedKeys[] = $key;
             $values[] = $v;

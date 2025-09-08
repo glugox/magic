@@ -29,7 +29,7 @@ class CodeGenerationHelper
 
         $k = 0;
         foreach ($lines as $line) {
-            $lineTrimmed = trim($line);
+            $lineTrimmed = mb_trim($line);
             $newLines .= "$lineTrimmed";
             if ($k++ < count($lines) - 1) {
                 $newLines .= $nl.$indent;
@@ -40,7 +40,7 @@ class CodeGenerationHelper
 
         if (preg_match($pattern, $code, $matches, PREG_OFFSET_CAPTURE)) {
             $methodBody = $matches[2][0];
-            $methodStart = $matches[1][1] + strlen($matches[1][0]);
+            $methodStart = $matches[1][1] + mb_strlen($matches[1][0]);
             $methodEnd = $matches[3][1];
 
             // Search for existing region block inside method body
@@ -52,10 +52,10 @@ class CodeGenerationHelper
                 $regionContent = $regionMatches[0][0];
 
                 // Position of //endregion inside the region block
-                $endregionPos = strpos($regionContent, $endMarker);
+                $endregionPos = mb_strpos($regionContent, $endMarker);
 
                 // Check if there is any content between the start and end markers
-                $regionHasContent = trim(substr($regionContent, strlen($startMarker), $endregionPos - strlen($startMarker))) !== '';
+                $regionHasContent = mb_trim(mb_substr($regionContent, mb_strlen($startMarker), $endregionPos - mb_strlen($startMarker))) !== '';
 
                 $newContentBeforeLines = '';
                 if ($regionHasContent) {
@@ -64,10 +64,10 @@ class CodeGenerationHelper
                 }
 
                 // Insert new lines before //endregion
-                $updatedRegionContent = substr($regionContent, 0, $endregionPos).$newContentBeforeLines.$newLines.$nl.$indent.$endMarker;
+                $updatedRegionContent = mb_substr($regionContent, 0, $endregionPos).$newContentBeforeLines.$newLines.$nl.$indent.$endMarker;
 
                 // Replace old region with updated one inside methodBody
-                $methodBody = substr_replace($methodBody, $updatedRegionContent, $regionStartPos, strlen($regionContent));
+                $methodBody = substr_replace($methodBody, $updatedRegionContent, $regionStartPos, mb_strlen($regionContent));
             } else {
                 // region does not exist, add whole region block at end of method body
                 $regionBlock = "{$nl}{$indent}{$startMarker}$nl{$indent}{$newLines}{$nl}{$indent}{$endMarker}{$nl}";
@@ -75,12 +75,11 @@ class CodeGenerationHelper
             }
 
             // Rebuild whole code
-            $newCode = substr($code, 0, $methodStart).$methodBody.substr($code, $methodEnd);
+            $newCode = mb_substr($code, 0, $methodStart).$methodBody.mb_substr($code, $methodEnd);
 
             return file_put_contents($filePath, $newCode) !== false;
-        } else {
-            Log::channel('magic')->error("Method {$methodName} not found in {$filePath}");
         }
+        Log::channel('magic')->error("Method {$methodName} not found in {$filePath}");
 
         return false;
     }

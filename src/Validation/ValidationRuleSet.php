@@ -14,10 +14,19 @@ class ValidationRuleSet
         protected string $fieldName,
         /**
          * Rules for create action
+         *
          * @var ValidationRule[]
          */
         protected $rules = [],
-    ){}
+    ) {}
+
+    /**
+     * String representation of the rules
+     */
+    public function __toString(): string
+    {
+        return implode('|', array_map(fn ($r) => (string) $r, $this->rules));
+    }
 
     /**
      * @return ValidationRule[]
@@ -26,21 +35,14 @@ class ValidationRuleSet
     {
         return $this->rules;
     }
+
     /**
      * Add rules for create
-     *
      */
     public function addRule(ValidationRule $rule): self
     {
         $this->rules[] = $rule;
-        return $this;
-    }
 
-    /**
-     * String representation of the rules
-     */
-    public function __toString(): string
-    {
-        return implode('|', array_map(fn($r) => (string)$r, $this->rules));
+        return $this;
     }
 }

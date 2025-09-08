@@ -40,17 +40,16 @@ class TypeHelper
     /**
      * Convert RelationType to TS type
      */
-    public function relationToTsString(Relation $relation) : string
+    public function relationToTsString(Relation $relation): string
     {
-        switch ($relation->getType())
-        {
+        switch ($relation->getType()) {
             case RelationType::BELONGS_TO:
             case RelationType::HAS_ONE:
                 return $relation->getRelatedEntityName();
 
             case RelationType::BELONGS_TO_MANY:
             case RelationType::HAS_MANY:
-                return $relation->getRelatedEntityName() . '[]';
+                return $relation->getRelatedEntityName().'[]';
 
             case RelationType::MORPH_ONE:
             case RelationType::MORPH_MANY:

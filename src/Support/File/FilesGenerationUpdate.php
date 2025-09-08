@@ -4,6 +4,7 @@ namespace Glugox\Magic\Support\File;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use JsonException;
 
 class FilesGenerationUpdate
 {
@@ -20,9 +21,48 @@ class FilesGenerationUpdate
     }
 
     /**
+     * Deletes all files listed in the manifest file
+     *
+     * @throws JsonException
+     */
+    public static function deleteGeneratedFiles(): void
+    {
+        $manifestPath = storage_path('magic/manifest.json');
+        Log::channel('magic')->debug("Deleting generated files by manifest file : $manifestPath}");
+
+        // Load the manifest
+        if (file_exists($manifestPath)) {
+            $contents = file_get_contents($manifestPath);
+            $data = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
+            if (isset($data['files']['created'])) {
+                foreach ($data['files']['created'] as $file) {
+
+                    // Check if it is a directory
+                    if (is_dir($file)) {
+                        Log::channel('magic')->debug("Deleting generated directory : $file");
+                        rmdir($file);
+
+                        continue;
+                    }
+
+                    if (file_exists($file)) {
+                        Log::channel('magic')->debug("Deleting generated file : $file");
+                        unlink($file);
+                    }
+                }
+            }
+        }
+
+        if (file_exists($manifestPath)) {
+            unlink($manifestPath);
+            Log::channel('magic')->debug("Deleting generated files : $manifestPath");
+        }
+    }
+
+    /**
      * Merges another FilesGenerationUpdate into this one
      */
-    public function merge(FilesGenerationUpdate $other): self
+    public function merge(self $other): self
     {
         $this->created = array_merge($this->created, $other->created);
         $this->updated = array_merge($this->updated, $other->updated);
@@ -88,43 +128,5 @@ class FilesGenerationUpdate
         ];
         File::ensureDirectoryExists(dirname($manifestPath));
         file_put_contents($manifestPath, json_encode($data, JSON_PRETTY_PRINT));
-    }
-
-    /**
-     * Deletes all files listed in the manifest file
-     *
-     * @throws \JsonException
-     */
-    public static function deleteGeneratedFiles(): void
-    {
-        $manifestPath = storage_path('magic/manifest.json');
-        Log::channel('magic')->debug("Deleting generated files by manifest file : $manifestPath}");
-
-        // Load the manifest
-        if (file_exists($manifestPath)) {
-            $contents = file_get_contents($manifestPath);
-            $data = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
-            if (isset($data['files']['created'])) {
-                foreach ($data['files']['created'] as $file) {
-
-                    // Check if it is a directory
-                    if (is_dir($file)) {
-                        Log::channel('magic')->debug("Deleting generated directory : $file");
-                        rmdir($file);
-                        continue;
-                    }
-
-                    if (file_exists($file)) {
-                        Log::channel('magic')->debug("Deleting generated file : $file");
-                        unlink($file);
-                    }
-                }
-            }
-        }
-
-        if (file_exists($manifestPath)) {
-            unlink($manifestPath);
-            Log::channel('magic')->debug("Deleting generated files : $manifestPath");
-        }
     }
 }

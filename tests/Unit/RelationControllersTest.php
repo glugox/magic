@@ -5,7 +5,6 @@ use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Relation;
 use Glugox\Magic\Support\Config\RelationType;
 
-
 it('generates a relation controller template when related entity exists', function () {
     // Fake config entities
     $userEntity = new Entity('User');
@@ -36,5 +35,5 @@ it('generates a relation controller template when related entity exists', functi
         ->toBeString()
         ->and($result)->toContain('class UserRoleController')
         ->and($result)->toContain('public function index');
-        //->and($result)->toContain('public function update');
+    // ->and($result)->toContain('public function update');
 });

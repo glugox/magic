@@ -6,6 +6,8 @@ use Glugox\Magic\Actions\Build\GenerateSeedersAction;
 use Glugox\Magic\Support\BuildContext;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Log;
+use JsonException;
+use ReflectionException;
 
 class BuildSeedersCommand extends MagicBaseCommand
 {
@@ -30,8 +32,8 @@ class BuildSeedersCommand extends MagicBaseCommand
     }
 
     /**
-     * @throws \JsonException
-     * @throws \ReflectionException
+     * @throws JsonException
+     * @throws ReflectionException
      */
     public function handle()
     {

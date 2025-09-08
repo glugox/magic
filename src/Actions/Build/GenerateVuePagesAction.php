@@ -38,7 +38,7 @@ class GenerateVuePagesAction implements DescribableAction
      */
     public function __construct(
         protected TsHelper $tsHelper
-    ){
+    ) {
         $this->pagesPath = resource_path('js/pages');
     }
 
@@ -135,7 +135,6 @@ class GenerateVuePagesAction implements DescribableAction
         $this->context->registerGeneratedFile($path);
     }
 
-
     /**
      * Get the Index.vue template content.
      */
@@ -227,7 +226,7 @@ PHP;
         $folderName = $entity->getFolderName();
 
         // Controllrer name, eg. UserController
-        $controllerClass =  $entity->name . $relatedEntityName . 'Controller';
+        $controllerClass = $entity->name.$relatedEntityName.'Controller';
 
         return <<<PHP
 <script setup lang="ts" generic="T">

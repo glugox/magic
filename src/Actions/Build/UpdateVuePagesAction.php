@@ -9,6 +9,7 @@ use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Support\Facades\File;
+use RuntimeException;
 
 #[ActionDescription(
     name: 'update_vue_pages',
@@ -57,12 +58,12 @@ class UpdateVuePagesAction implements DescribableAction
     /**
      * Update the sidebar Vue file with the latest navigation items.
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     public function updateSidebar()
     {
         if (! File::exists($this->sidebarPath)) {
-            throw new \RuntimeException("Sidebar file not found at {$this->sidebarPath}");
+            throw new RuntimeException("Sidebar file not found at {$this->sidebarPath}");
         }
 
         $content = File::get($this->sidebarPath);
@@ -143,7 +144,7 @@ JS;
         if (! empty($matches[1])) {
             foreach ($matches[1] as $importGroup) {
                 foreach (explode(',', $importGroup) as $icon) {
-                    $alreadyImported[] = trim($icon);
+                    $alreadyImported[] = mb_trim($icon);
                 }
             }
         }
@@ -172,10 +173,10 @@ JS;
         // Insert after the last import line
         if (preg_match_all('/^import .*;$/m', $content, $matches, PREG_OFFSET_CAPTURE)) {
             $lastImport = end($matches[0]);
-            $pos = $lastImport[1] + strlen($lastImport[0]);
+            $pos = $lastImport[1] + mb_strlen($lastImport[0]);
 
-            $before = substr($content, 0, $pos);
-            $after = substr($content, $pos);
+            $before = mb_substr($content, 0, $pos);
+            $after = mb_substr($content, $pos);
 
             $content = $before."\n// magic:icons-start-+\n{$iconsCode}\n// magic:icons-end\n".$after;
         } else {

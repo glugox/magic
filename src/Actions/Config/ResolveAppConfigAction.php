@@ -7,6 +7,8 @@ use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Support\Config\Config;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Illuminate\Support\Facades\Log;
+use JsonException;
+use ReflectionException;
 
 #[ActionDescription(
     name: 'parse_app_config',
@@ -22,8 +24,8 @@ class ResolveAppConfigAction implements DescribableAction
     use AsDescribableAction;
 
     /**
-     * @throws \ReflectionException
-     * @throws \JsonException
+     * @throws ReflectionException
+     * @throws JsonException
      */
     public function __invoke(
         array $options

@@ -17,6 +17,7 @@ use Glugox\Magic\Validation\EntityRuleSet;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 #[ActionDescription(
     name: 'generate_controllers',
@@ -87,6 +88,112 @@ class GenerateControllersAction implements DescribableAction
         }
     }
 
+    public function generateRelationControllers(Entity $entity, Relation $relation): void
+    {
+        if (! $relation->hasRoute()) {
+            return;
+        }
+
+        $template = $this->buildRelationControllers($entity, $relation);
+        if (empty($template)) {
+            return;
+        }
+
+        // Example file path: app/Http/Controllers/User/UserRolesController.php
+        $filePath = $this->controllerPath.'/'.$entity->getSingularName().'/'.Str::studly($entity->getName()).Str::studly($relation->getRelatedEntityName()).'Controller.php';
+        app(GenerateFileAction::class)($filePath, $template);
+        $this->context->registerGeneratedFile($filePath);
+    }
+
+    /**
+     * Each resource, eg. User, can have relations. In order to manage them,
+     * we will have to generate additional controllers.
+     * For example, if User hasMany Posts, we need a UserPostsController.
+     * This method will generate such controllers.
+     */
+    public function buildRelationControllers(Entity $entity, Relation $relation): string
+    {
+        $relatedEntityName = $relation->getRelatedEntityName();
+        if (! $relatedEntityName) {
+            return '';
+        }
+
+        $relatedEntity = $this->context->getConfig()->getEntityByName($relatedEntityName);
+        if (! $relatedEntity) {
+            return '';
+        }
+
+        $parentModelClass = $entity->getClassName();
+        $parentModelClassLower = Str::camel($parentModelClass);
+        $relatedModelClass = $relatedEntity->getClassName();
+        $controllerClass = Str::studly($entity->getName()).Str::studly($relatedEntity->getSingularName()).'Controller';
+        $relationName = $relation->getRelationName();
+        $parentModelFolderName = $entity->getFolderName();
+
+        // Add resource class names
+        $relatedModelResourceClass = Str::studly($relatedModelClass).'Resource';
+        $relatedModelCollectionClass = Str::studly($relatedModelClass).'Collection';
+        $parentModelResourceClass = Str::studly($parentModelClass).'Resource';
+
+        // Fields visible in index listing
+        $tableFieldsNamesStr = StubHelper::getTableFieldsString($entity);
+
+        // Relations for eager loading
+        $relationNamesCode = StubHelper::getRelationNamesString($relatedEntity, RelationType::BELONGS_TO);
+
+        // Add selected IDs for belongsToMany / morphToMany
+        $selectedIdsCode = in_array($relation->getType(), [RelationType::BELONGS_TO_MANY, RelationType::MORPH_MANY])
+            ? '$'.$parentModelClassLower.'->'.$relationName.'->pluck(\'id\')'
+            : 'null';
+
+        // Use helper to build select fields
+        $selectFieldsStr = StubHelper::getSelectFieldsString($entity);
+        $selectRelatedFieldsStr = StubHelper::getSelectRelatedFieldsString($relatedEntity);
+
+        // Searchable fields for related entity
+        $searchableFieldsCode = StubHelper::getSearchableFieldsString($relatedEntity);
+
+        // Convert relation type enum to kebab-case for stub file
+        $relationType = $relation->type->value ?? null;
+        if (! $relationType) {
+            return '';
+        }
+
+        $stubFile = Str::kebab($relationType).'.stub';
+        $stubPath = $this->stubsPath."/controllers/relation/{$stubFile}";
+
+        if (! File::exists($stubPath)) {
+            return '';
+        }
+        $stub = File::get($stubPath);
+
+        $replacements = [
+            '{{classDescription}}' => "Controller for managing {$relatedEntity->getPluralName()} related to a {$entity->getSingularName()} ( {$relation->getType()->value} )",
+            '{{entitySingularName}}' => $entity->getSingularName(),
+            '{{parentModelClassFull}}' => $entity->getFullyQualifiedModelClass(),
+            '{{relatedModelClassFull}}' => $relatedEntity->getFullyQualifiedModelClass(),
+            '{{controllerClass}}' => $controllerClass,
+            '{{parentModelClass}}' => $parentModelClass,
+            '{{parentModelClassLower}}' => $parentModelClassLower,
+            '{{relationName}}' => $relationName,
+            '{{parentModelFolderName}}' => $parentModelFolderName,
+            '{{relationNamesCode}}' => $relationNamesCode,
+            '{{selectFieldsStr}}' => $selectFieldsStr,
+            '{{tableFieldsNamesStr}}' => $tableFieldsNamesStr,
+            '{{selectRelatedFieldsStr}}' => $selectRelatedFieldsStr,
+            '{{relatedModelClass}}' => $relatedModelClass,
+            '{{foreignKey}}' => $relation->getForeignKey(),
+            '{{relatedModelResourceClass}}' => $relatedModelResourceClass,
+            '{{relatedModelCollectionClass}}' => $relatedModelCollectionClass,
+            '{{parentModelResourceClass}}' => $parentModelResourceClass,
+            '{{selectedIdsCode}}' => $selectedIdsCode,
+            '{{searchableFieldsCode}}' => $searchableFieldsCode,
+            '{{searchQueryString}}' => $this->context->getConfig()->getConfigValue('naming.search_query_string', 'search')
+        ];
+
+        return str_replace(array_keys($replacements), array_values($replacements), $stub);
+    }
+
     /**
      * Generate a controller for a given entity.
      */
@@ -95,7 +202,7 @@ class GenerateControllersAction implements DescribableAction
         $modelClass = $entity->getClassName();
         $modelClassFull = $entity->getFullyQualifiedModelClass();
         $modelClassCamel = Str::camel($modelClass);
-        $controllerClass = Str::studly(Str::singular($entity->getName())) . 'Controller';
+        $controllerClass = Str::studly(Str::singular($entity->getName())).'Controller';
 
         // Relations for eager loading
         $relationNamesCode = StubHelper::getRelationNamesString($entity, RelationType::BELONGS_TO);
@@ -113,29 +220,29 @@ class GenerateControllersAction implements DescribableAction
         $rulesArrayStrCreate = exportPhpValue($validationRules->getCreateRules(), 2);
         $rulesArrayStrUpdate = exportPhpValue($validationRules->getUpdateRules(), 2);
 
-        $stubPath = $this->stubsPath . '/controllers/controller.stub';
+        $stubPath = $this->stubsPath.'/controllers/controller.stub';
         $template = File::get($stubPath);
 
         // Add Resource imports
-        $resourceClass = $modelClass . 'Resource';
-        $collectionClass = $modelClass . 'Collection';
+        $resourceClass = $modelClass.'Resource';
+        $collectionClass = $modelClass.'Collection';
 
         $replacements = [
-            '{{classDescription}}'       => "Controller for managing {$entity->getSingularName()}",
-            '{{modelClass}}'             => $modelClass,
-            '{{modelClassFull}}'         => $modelClassFull,
-            '{{modelClassCamel}}'        => $modelClassCamel,
-            '{{controllerClass}}'        => $controllerClass,
-            '{{folderName}}'             => $entity->getFolderName(),
-            '{{routeName}}'              => $entity->getRouteName(),
-            '{{relationNamesCode}}'      => $relationNamesCode,
-            '{{tableFieldsNamesStr}}'    => $tableFieldsNamesStr,
-            '{{searchableFieldsCode}}'   => $searchableFieldsCode,
-            '{{rulesArrayStrCreate}}'    => $rulesArrayStrCreate,
-            '{{rulesArrayStrUpdate}}'    => $rulesArrayStrUpdate,
-            '{{resourceClass}}'          => $resourceClass,
-            '{{collectionClass}}'        => $collectionClass,
-            '{{searchQueryString}}'      => $this->context->getConfig()->getConfigValue('naming.search_query_string', 'search'),
+            '{{classDescription}}' => "Controller for managing {$entity->getSingularName()}",
+            '{{modelClass}}' => $modelClass,
+            '{{modelClassFull}}' => $modelClassFull,
+            '{{modelClassCamel}}' => $modelClassCamel,
+            '{{controllerClass}}' => $controllerClass,
+            '{{folderName}}' => $entity->getFolderName(),
+            '{{routeName}}' => $entity->getRouteName(),
+            '{{relationNamesCode}}' => $relationNamesCode,
+            '{{tableFieldsNamesStr}}' => $tableFieldsNamesStr,
+            '{{searchableFieldsCode}}' => $searchableFieldsCode,
+            '{{rulesArrayStrCreate}}' => $rulesArrayStrCreate,
+            '{{rulesArrayStrUpdate}}' => $rulesArrayStrUpdate,
+            '{{resourceClass}}' => $resourceClass,
+            '{{collectionClass}}' => $collectionClass,
+            '{{searchQueryString}}' => $this->context->getConfig()->getConfigValue('naming.search_query_string', 'search'),
         ];
 
         $template = str_replace(array_keys($replacements), array_values($replacements), $template);
@@ -148,105 +255,6 @@ class GenerateControllersAction implements DescribableAction
         Log::channel('magic')->info("Controller created: {$relPath}");
     }
 
-
-    public function generateRelationControllers(Entity $entity, Relation $relation): void
-    {
-        if (!$relation->hasRoute()) {
-            return;
-        }
-
-        $template = $this->buildRelationControllers($entity, $relation);
-        if (empty($template)) {
-            return;
-        }
-
-        // Example file path: app/Http/Controllers/User/UserRolesController.php
-        $filePath = $this->controllerPath.'/' . $entity->getSingularName() . '/' .Str::studly($entity->getName()).Str::studly($relation->getRelatedEntityName()).'Controller.php';
-        app(GenerateFileAction::class)($filePath, $template);
-        $this->context->registerGeneratedFile($filePath);
-    }
-
-    /**
-     * Each resource, eg. User, can have relations. In order to manage them,
-     * we will have to generate additional controllers.
-     * For example, if User hasMany Posts, we need a UserPostsController.
-     * This method will generate such controllers.
-     */
-    public function buildRelationControllers(Entity $entity, Relation $relation): string
-    {
-        $relatedEntityName = $relation->getRelatedEntityName();
-        if (!$relatedEntityName) return '';
-
-        $relatedEntity = $this->context->getConfig()->getEntityByName($relatedEntityName);
-        if (!$relatedEntity) return '';
-
-        $parentModelClass = $entity->getClassName();
-        $parentModelClassLower = Str::camel($parentModelClass);
-        $relatedModelClass = $relatedEntity->getClassName();
-        $controllerClass = Str::studly($entity->getName()) . Str::studly($relatedEntity->getSingularName()) . 'Controller';
-        $relationName = $relation->getRelationName();
-        $parentModelFolderName = $entity->getFolderName();
-
-        // Add resource class names
-        $relatedModelResourceClass = Str::studly($relatedModelClass) . 'Resource';
-        $relatedModelCollectionClass = Str::studly($relatedModelClass) . 'Collection';
-        $parentModelResourceClass = Str::studly($parentModelClass) . 'Resource';
-
-        // Fields visible in index listing
-        $tableFieldsNamesStr = StubHelper::getTableFieldsString($entity);
-
-        // Relations for eager loading
-        $relationNamesCode = StubHelper::getRelationNamesString($relatedEntity, RelationType::BELONGS_TO);
-
-        // Add selected IDs for belongsToMany / morphToMany
-        $selectedIdsCode = in_array($relation->getType(), [RelationType::BELONGS_TO_MANY, RelationType::MORPH_MANY])
-            ? '$' . $parentModelClassLower . '->' . $relationName . '->pluck(\'id\')'
-            : 'null';
-
-        // Use helper to build select fields
-        $selectFieldsStr = StubHelper::getSelectFieldsString($entity);
-        $selectRelatedFieldsStr = StubHelper::getSelectRelatedFieldsString($relatedEntity);
-
-        // Searchable fields for related entity
-        $searchableFieldsCode = StubHelper::getSearchableFieldsString($relatedEntity);
-
-        // Convert relation type enum to kebab-case for stub file
-        $relationType = $relation->type->value ?? null;
-        if (!$relationType) return '';
-
-        $stubFile = Str::kebab($relationType) . '.stub';
-        $stubPath = $this->stubsPath . "/controllers/relation/{$stubFile}";
-
-        if (!File::exists($stubPath)) return '';
-        $stub = File::get($stubPath);
-
-        $replacements = [
-            '{{classDescription}}'            => "Controller for managing {$relatedEntity->getPluralName()} related to a {$entity->getSingularName()} ( {$relation->getType()->value} )",
-            '{{entitySingularName}}'          => $entity->getSingularName(),
-            '{{parentModelClassFull}}'        => $entity->getFullyQualifiedModelClass(),
-            '{{relatedModelClassFull}}'       => $relatedEntity->getFullyQualifiedModelClass(),
-            '{{controllerClass}}'             => $controllerClass,
-            '{{parentModelClass}}'            => $parentModelClass,
-            '{{parentModelClassLower}}'       => $parentModelClassLower,
-            '{{relationName}}'                => $relationName,
-            '{{parentModelFolderName}}'       => $parentModelFolderName,
-            '{{relationNamesCode}}'           => $relationNamesCode,
-            '{{selectFieldsStr}}'             => $selectFieldsStr,
-            '{{tableFieldsNamesStr}}'         => $tableFieldsNamesStr,
-            '{{selectRelatedFieldsStr}}'      => $selectRelatedFieldsStr,
-            '{{relatedModelClass}}'           => $relatedModelClass,
-            '{{foreignKey}}'                  => $relation->getForeignKey(),
-            '{{relatedModelResourceClass}}'   => $relatedModelResourceClass,
-            '{{relatedModelCollectionClass}}' => $relatedModelCollectionClass,
-            '{{parentModelResourceClass}}'    => $parentModelResourceClass,
-            '{{selectedIdsCode}}'             => $selectedIdsCode,
-            '{{searchableFieldsCode}}'        => $searchableFieldsCode,
-            '{{searchQueryString}}'           => $this->context->getConfig()->getConfigValue('naming.search_query_string', 'search')
-        ];
-
-        return str_replace(array_keys($replacements), array_values($replacements), $stub);
-    }
-
     /**
      * Generate routes for all entities and save to app.php
      * This app.php file will be required by web.php
@@ -256,14 +264,14 @@ class GenerateControllersAction implements DescribableAction
     protected function generateRoutes(): void
     {
         // Paths to stubs
-        $mainStubPath = $this->stubsPath . '/routes/main.stub';
-        $relationStubPath = $this->stubsPath . '/routes/relation.stub';
+        $mainStubPath = $this->stubsPath.'/routes/main.stub';
+        $relationStubPath = $this->stubsPath.'/routes/relation.stub';
 
-        if (!File::exists($mainStubPath)) {
-            throw new \RuntimeException("Missing stub: $mainStubPath");
+        if (! File::exists($mainStubPath)) {
+            throw new RuntimeException("Missing stub: $mainStubPath");
         }
-        if (!File::exists($relationStubPath)) {
-            throw new \RuntimeException("Missing stub: $relationStubPath");
+        if (! File::exists($relationStubPath)) {
+            throw new RuntimeException("Missing stub: $relationStubPath");
         }
 
         $mainStub = File::get($mainStubPath);
@@ -276,10 +284,10 @@ class GenerateControllersAction implements DescribableAction
         // --- Collect main resource routes ---
         foreach ($this->context->getConfig()->entities as $entity) {
             $name = $entity->getRouteName();
-            $controllerFQCN = 'App\\Http\\Controllers\\' . Str::studly(Str::singular($name)) . 'Controller';
+            $controllerFQCN = 'App\\Http\\Controllers\\'.Str::studly(Str::singular($name)).'Controller';
             $controllerShort = class_basename($controllerFQCN);
 
-            if (!in_array($controllerFQCN, $importedControllers)) {
+            if (! in_array($controllerFQCN, $importedControllers)) {
                 $importedControllers[] = $controllerFQCN;
             }
 
@@ -288,21 +296,23 @@ class GenerateControllersAction implements DescribableAction
                 '{{controllerClass}}' => $controllerShort,
             ];
 
-            $mainRoutes[] = trim(str_replace(array_keys($replacements), array_values($replacements), $mainStub));
+            $mainRoutes[] = mb_trim(str_replace(array_keys($replacements), array_values($replacements), $mainStub));
         }
 
         // --- Collect relation routes ---
         foreach ($this->context->getConfig()->entities as $entity) {
             $relations = $entity->getRelationsWithValidEntity();
-            if (empty($relations)) continue;
+            if (empty($relations)) {
+                continue;
+            }
 
-            $relationRoutes[] = ""; // Blank line before each relation section
+            $relationRoutes[] = ''; // Blank line before each relation section
             $relationRoutes[] = " // Routes for entity: {$entity->getName()} relations";
 
             foreach ($relations as $relation) {
 
                 // Check if relation does not have a route (e.g., belongsTo)
-                if (!$relation->hasRoute()) {
+                if (! $relation->hasRoute()) {
                     continue;
                 }
 
@@ -310,7 +320,7 @@ class GenerateControllersAction implements DescribableAction
                 $controllerFQCN = $relation->getControllerFullQualifiedName();
                 $controllerShort = class_basename($controllerFQCN);
 
-                if (!in_array($controllerFQCN, $importedControllers)) {
+                if (! in_array($controllerFQCN, $importedControllers)) {
                     $importedControllers[] = $controllerFQCN;
                 }
 
@@ -326,36 +336,36 @@ class GenerateControllersAction implements DescribableAction
                     '{{relationRoute}}' => $relatedEntity->getRouteName(),
                     '{{controllerClass}}' => $controllerShort,
                     '{{relationType}}' => $relation->type->value,
-                    '{{entitySingular}}'  => Str::camel(Str::singular($entity->getName())),
+                    '{{entitySingular}}' => Str::camel(Str::singular($entity->getName())),
                 ];
 
                 $currentRelationStub = $relationStub;
-                if (!empty($updateSelectionRoute)) {
-                    $currentRelationStub .= "\n" . $updateSelectionRoute;
+                if (! empty($updateSelectionRoute)) {
+                    $currentRelationStub .= "\n".$updateSelectionRoute;
                 }
-                $relationRoutes[] = trim(str_replace(array_keys($replacements), array_values($replacements), $currentRelationStub));
+                $relationRoutes[] = mb_trim(str_replace(array_keys($replacements), array_values($replacements), $currentRelationStub));
             }
         }
 
         // --- Generate imports at top ---
-        $routeLines = ["<?php", "", "use Illuminate\Support\Facades\Route;"];
+        $routeLines = ['<?php', '', "use Illuminate\Support\Facades\Route;"];
         foreach ($importedControllers as $fqcn) {
             $routeLines[] = "use {$fqcn};";
         }
 
-        $routeLines[] = ""; // Blank line before routes
+        $routeLines[] = ''; // Blank line before routes
 
         // Merge main routes WITHOUT extra newlines between them
         $routeLines = array_merge($routeLines, $mainRoutes);
 
         // Add a single blank line between main routes and relation routes
-        if (!empty($relationRoutes)) {
-            $routeLines[] = "";
+        if (! empty($relationRoutes)) {
+            $routeLines[] = '';
             $routeLines = array_merge($routeLines, $relationRoutes);
         }
 
         // --- Save generated file ---
-        $routesContent = implode("\n", $routeLines) . "\n";
+        $routesContent = implode("\n", $routeLines)."\n";
         app(GenerateFileAction::class)($this->routesFilePath, $routesContent);
         $this->context->registerGeneratedFile($this->routesFilePath);
 
@@ -374,20 +384,20 @@ class GenerateControllersAction implements DescribableAction
         $modelClass = $entity->getClassName();
         $modelClassFull = $entity->getFullyQualifiedModelClass();
         $modelClassCamel = Str::camel($modelClass);
-        $controllerClass = Str::studly(Str::singular($entity->getName())) . 'ApiController';
+        $controllerClass = Str::studly(Str::singular($entity->getName())).'ApiController';
 
         // Resource class names
-        $resourceClass = $modelClass . 'Resource';               // 'UserResource'
-        $resourceClassFull = 'App\Http\Resources\\' . $resourceClass; // 'App\Http\Resources\UserResource'
+        $resourceClass = $modelClass.'Resource';               // 'UserResource'
+        $resourceClassFull = 'App\Http\Resources\\'.$resourceClass; // 'App\Http\Resources\UserResource'
 
         // Collection class names
-        $collectionClass = $modelClass . 'Collection';           // 'UserCollection'
-        $collectionClassFull = 'App\Http\Resources\\' . $collectionClass; // 'App\Http\Resources\UserCollection'
+        $collectionClass = $modelClass.'Collection';           // 'UserCollection'
+        $collectionClassFull = 'App\Http\Resources\\'.$collectionClass; // 'App\Http\Resources\UserCollection'
 
         // Use StubHelper for strings
         $searchableFieldsCode = StubHelper::getSearchableFieldsString($entity);
         $tableFieldsNamesStr = StubHelper::getTableFieldsString($entity);
-        $selectableFieldsCode = '"' . implode(',', $entity->getTableFieldsNames(skipRelations: true)) . '"';
+        $selectableFieldsCode = '"'.implode(',', $entity->getTableFieldsNames(skipRelations: true)).'"';
 
         // Relations for eager loading
         $relationNamesCode = StubHelper::getRelationNamesString($entity, RelationType::BELONGS_TO);
@@ -398,38 +408,38 @@ class GenerateControllersAction implements DescribableAction
         $rulesArrayStrUpdate = exportPhpValue($validationRules->getUpdateRules(), 2);
 
         // Load stub
-        $stubPath = $this->stubsPath . '/controllers/api_controller.stub';
+        $stubPath = $this->stubsPath.'/controllers/api_controller.stub';
         $template = File::get($stubPath);
 
         // Replace placeholders
         $replacements = [
-            '{{classDescription}}'          => "API Controller for managing {$entity->getSingularName()}",
-            '{{modelClass}}'                => $modelClass,
-            '{{modelClassFull}}'            => $modelClassFull,
-            '{{modelClassCamel}}'           => $modelClassCamel,
-            '{{controllerClass}}'           => $controllerClass,
-            '{{relationNamesCode}}'         => $relationNamesCode,
-            '{{searchableFieldsCode}}'      => $searchableFieldsCode,
-            '{{selectableFieldsCode}}'      => $selectableFieldsCode,
-            '{{tableFieldsNamesStr}}'       => $tableFieldsNamesStr,
-            '{{rulesArrayStrCreate}}'       => $rulesArrayStrCreate,
-            '{{rulesArrayStrUpdate}}'       => $rulesArrayStrUpdate,
-            '{{resourceClass}}'             => $resourceClass,
-            '{{resourceClassFull}}'         => $resourceClassFull,
-            '{{collectionClass}}'           => $collectionClass,
-            '{{collectionClassFull}}'       => $collectionClassFull,
-            '{{searchQueryString}}'         => $this->context->getConfig()->getConfigValue('naming.search_query_string', 'search'),
+            '{{classDescription}}' => "API Controller for managing {$entity->getSingularName()}",
+            '{{modelClass}}' => $modelClass,
+            '{{modelClassFull}}' => $modelClassFull,
+            '{{modelClassCamel}}' => $modelClassCamel,
+            '{{controllerClass}}' => $controllerClass,
+            '{{relationNamesCode}}' => $relationNamesCode,
+            '{{searchableFieldsCode}}' => $searchableFieldsCode,
+            '{{selectableFieldsCode}}' => $selectableFieldsCode,
+            '{{tableFieldsNamesStr}}' => $tableFieldsNamesStr,
+            '{{rulesArrayStrCreate}}' => $rulesArrayStrCreate,
+            '{{rulesArrayStrUpdate}}' => $rulesArrayStrUpdate,
+            '{{resourceClass}}' => $resourceClass,
+            '{{resourceClassFull}}' => $resourceClassFull,
+            '{{collectionClass}}' => $collectionClass,
+            '{{collectionClassFull}}' => $collectionClassFull,
+            '{{searchQueryString}}' => $this->context->getConfig()->getConfigValue('naming.search_query_string', 'search'),
         ];
 
         $content = str_replace(array_keys($replacements), array_values($replacements), $template);
 
         // Save generated file
-        $apiControllerPath = $this->controllerPath . '/Api';
-        if (!File::exists($apiControllerPath)) {
+        $apiControllerPath = $this->controllerPath.'/Api';
+        if (! File::exists($apiControllerPath)) {
             File::makeDirectory($apiControllerPath, 0755, true);
         }
 
-        $filePath = $apiControllerPath . '/' . $controllerClass . '.php';
+        $filePath = $apiControllerPath.'/'.$controllerClass.'.php';
         app(GenerateFileAction::class)($filePath, $content);
         $this->context->registerGeneratedFile($filePath);
 
@@ -437,46 +447,44 @@ class GenerateControllersAction implements DescribableAction
         Log::channel('magic')->info("API Controller created: {$relPath}");
     }
 
-
-
     /**
      * Generate API routes for all entities using apiResource with prefixed names
      */
     protected function generateApiRoutes(): void
     {
-        $stubPath = $this->stubsPath . '/routes/api.stub';
+        $stubPath = $this->stubsPath.'/routes/api.stub';
 
-        if (!File::exists($stubPath)) {
-            throw new \RuntimeException("Missing stub: $stubPath");
+        if (! File::exists($stubPath)) {
+            throw new RuntimeException("Missing stub: $stubPath");
         }
 
         $apiStub = File::get($stubPath);
 
         $appApiPath = base_path('routes/app/api.php');
-        if (!File::exists(dirname($appApiPath))) {
+        if (! File::exists(dirname($appApiPath))) {
             File::makeDirectory(dirname($appApiPath), 0755, true);
         }
 
-        $routeLines = ["<?php", "", "use Illuminate\Support\Facades\Route;", ""];
+        $routeLines = ['<?php', '', "use Illuminate\Support\Facades\Route;", ''];
 
         $importedControllers = [];
 
         foreach ($this->context->getConfig()->entities as $entity) {
             $name = $entity->getRouteName();
-            $controllerFQCN = 'App\\Http\\Controllers\\Api\\' . Str::studly(Str::singular($name)) . 'ApiController';
+            $controllerFQCN = 'App\\Http\\Controllers\\Api\\'.Str::studly(Str::singular($name)).'ApiController';
 
             // Add use statement only once
-            if (!in_array($controllerFQCN, $importedControllers)) {
+            if (! in_array($controllerFQCN, $importedControllers)) {
                 $routeLines[] = "use {$controllerFQCN};";
                 $importedControllers[] = $controllerFQCN;
             }
         }
 
-        $routeLines[] = ""; // empty line after imports
+        $routeLines[] = ''; // empty line after imports
 
         foreach ($this->context->getConfig()->entities as $entity) {
             $name = $entity->getRouteName();
-            $controllerShort = class_basename('App\\Http\\Controllers\\Api\\' . Str::studly(Str::singular($name)) . 'ApiController');
+            $controllerShort = class_basename('App\\Http\\Controllers\\Api\\'.Str::studly(Str::singular($name)).'ApiController');
 
             $replacements = [
                 '{{routeName}}' => $name,
@@ -485,10 +493,10 @@ class GenerateControllersAction implements DescribableAction
             ];
             $routeLines[] = str_replace(array_keys($replacements), array_values($replacements), $apiStub);
 
-            $routeLines[] = "";
+            $routeLines[] = '';
         }
 
-        $routesContent = implode("\n", $routeLines) . "\n";
+        $routesContent = implode("\n", $routeLines)."\n";
         app(GenerateFileAction::class)($appApiPath, $routesContent);
         $this->context->registerGeneratedFile($appApiPath);
 
@@ -497,7 +505,6 @@ class GenerateControllersAction implements DescribableAction
         // Ensure routes/api.php requires routes/app/api.php
         $this->ensureApiPhpRequiresAppApiPhp();
     }
-
 
     /**
      * Ensure web.php requires app.php
@@ -537,14 +544,15 @@ class GenerateControllersAction implements DescribableAction
             // Create a new api.php with the PHP tag and require line
             app(GenerateFileAction::class)($apiPhpPath, "<?php\n\n$requireLine\n");
             Log::channel('magic')->info('Created routes/api.php and added require for app/api.php');
+
             return;
         }
 
         $apiPhpContent = File::get($apiPhpPath);
 
         // Ensure <?php tag exists
-        if (! str_starts_with(trim($apiPhpContent), '<?php')) {
-            $apiPhpContent = "<?php\n\n" . $apiPhpContent;
+        if (! str_starts_with(mb_trim($apiPhpContent), '<?php')) {
+            $apiPhpContent = "<?php\n\n".$apiPhpContent;
         }
 
         // Append require line if missing

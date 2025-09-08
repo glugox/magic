@@ -1,20 +1,19 @@
 <?php
 
 use Glugox\Magic\Actions\Build\UpdateVuePagesAction;
-use Illuminate\Support\Facades\File;
 use Glugox\Magic\Actions\Files\GenerateFileAction;
+use Illuminate\Support\Facades\File;
 
 beforeEach(function () {
     // Fake filesystem
     File::partialMock()->shouldReceive('exists')->andReturn(true);
-
 
     // Create fake Vue files
     $this->sidebarPath = base_path('resources/js/components/AppSidebar.vue');
     $this->appLogoPath = base_path('resources/js/components/AppLogo.vue');
 
     File::partialMock()->shouldReceive('get')->with($this->sidebarPath)->andReturn(
-        <<<VUE
+        <<<'VUE'
 <script setup lang="ts">
 import { Home } from 'lucide-vue-next';
 
@@ -26,7 +25,7 @@ VUE
     );
 
     File::partialMock()->shouldReceive('get')->with($this->appLogoPath)->andReturn(
-        <<<VUE
+        <<<'VUE'
 <template>
     <span class="mb-0.5 truncate leading-tight font-semibold">OldApp</span>
 </template>
@@ -46,7 +45,6 @@ VUE
 it('updates sidebar and app logo', function () {
     // Fake entity
 
-
     // Mock BuildContext
     $buildContext = getFixtureBuildContext();
 
@@ -57,7 +55,7 @@ it('updates sidebar and app logo', function () {
     expect($this->writtenFiles[$this->sidebarPath])
         ->toContain("title: 'Users'")
         ->toContain("href: '/users'");
-        //->toContain("icon: User");
+    // ->toContain("icon: User");
 
     // ✅ Sidebar has updated lucide import
     /*expect($this->writtenFiles[$this->sidebarPath])
@@ -65,5 +63,5 @@ it('updates sidebar and app logo', function () {
 
     // ✅ AppLogo contains new app name
     expect($this->writtenFiles[$this->appLogoPath])
-        ->toContain(">InventoryHub</span>");
+        ->toContain('>InventoryHub</span>');
 });

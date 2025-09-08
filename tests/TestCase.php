@@ -28,18 +28,6 @@ class TestCase extends Orchestra
         config()->set('logging.channels.magic_console.level', 'error');
     }
 
-    protected function getPackageProviders($app)
-    {
-        return [
-            MagicServiceProvider::class,
-        ];
-    }
-
-    public function getEnvironmentSetUp($app)
-    {
-        config()->set('database.default', 'testing');
-    }
-
     /**
      * Cleanup directories
      */
@@ -51,5 +39,17 @@ class TestCase extends Orchestra
         }
 
         parent::tearDown();
+    }
+
+    public function getEnvironmentSetUp($app)
+    {
+        config()->set('database.default', 'testing');
+    }
+
+    protected function getPackageProviders($app)
+    {
+        return [
+            MagicServiceProvider::class,
+        ];
     }
 }

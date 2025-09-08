@@ -12,7 +12,7 @@ class TableQueryService
      */
     public function __construct(
         protected SearchService $searchService,
-    ){}
+    ) {}
 
     /**
      * Apply all query modifications: search, sort, pagination.
@@ -43,23 +43,24 @@ class TableQueryService
     ): Builder {
 
         // Eager load relations
-        if (!empty($relations)) {
+        if (! empty($relations)) {
             $query->with($relations);
         }
 
         // Select specific fields if any
-        if (!empty($selectFields)) {
+        if (! empty($selectFields)) {
             $query->select($selectFields);
         }
 
         // Apply search
-        if (!empty($searchString)) {
+        if (! empty($searchString)) {
             $query = $this->searchService->apply(
                 $query,
                 $searchString,
                 $searchableFields
             );
         }
+
         // Apply sorting
         return $this->applySort(
             $query,
@@ -73,11 +74,6 @@ class TableQueryService
      *
      * If `sortKey` exists in request, uses it.
      * Otherwise, can optionally order `selectedIds` first, then by default field.
-     *
-     * @param Builder $query
-     * @param string $defaultField
-     * @param string $defaultDir
-     * @return Builder
      */
     public function applySort(
         Builder $query,

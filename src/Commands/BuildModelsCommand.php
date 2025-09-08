@@ -5,6 +5,7 @@ namespace Glugox\Magic\Commands;
 use Glugox\Magic\Actions\Build\GenerateModelsAction;
 use Glugox\Magic\Support\BuildContext;
 use Illuminate\Support\Facades\Log;
+use JsonException;
 
 class BuildModelsCommand extends MagicBaseCommand
 {
@@ -29,7 +30,7 @@ class BuildModelsCommand extends MagicBaseCommand
     }
 
     /**
-     * @throws \JsonException
+     * @throws JsonException
      */
     public function handle()
     {

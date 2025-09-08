@@ -1,7 +1,6 @@
 <?php
 
 use Glugox\Magic\Actions\Build\GenerateEnumsAction;
-use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Illuminate\Support\Facades\File;
@@ -24,7 +23,7 @@ it('generates PHP and TS enums for enum fields', function () {
     $action($buildContext);
 
     // Assert PHP enum
-    $phpFile = $this->phpEnumsPath . '/ProductStatusEnum.php';
+    $phpFile = $this->phpEnumsPath.'/ProductStatusEnum.php';
     expect(File::exists($phpFile))->toBeTrue();
 
     $phpContent = File::get($phpFile);
@@ -35,7 +34,7 @@ it('generates PHP and TS enums for enum fields', function () {
         ->toContain("case Discontinued = 'discontinued'");
 
     // Assert TS enum
-    $tsFile = $this->tsEnumsPath . '/ProductStatusEnum.ts';
+    $tsFile = $this->tsEnumsPath.'/ProductStatusEnum.ts';
     expect(File::exists($tsFile))->toBeTrue();
 
     $tsContent = File::get($tsFile);

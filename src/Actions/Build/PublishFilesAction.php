@@ -15,6 +15,7 @@ use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use ReflectionException;
 
 #[ActionDescription(
     name: 'publish_files',
@@ -42,7 +43,7 @@ class PublishFilesAction implements DescribableAction
         private readonly TypeHelper $typeHelper,
         private readonly TsHelper $tsHelper,
         private readonly ValidationHelper $validationHelper,
-    ){
+    ) {
         $this->jsPath = resource_path('js');
     }
 
@@ -60,6 +61,25 @@ class PublishFilesAction implements DescribableAction
         Log::channel('magic')->info('Magic file publishing complete!');
 
         return $context;
+    }
+
+    public function getInitialColumnDef($indent = 0): string
+    {
+        return "{
+            id: 'select',
+            header: ({ table }) => h(Checkbox, {
+                'modelValue': table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate'),
+                'onUpdate:modelValue': value => table.toggleAllPageRowsSelected(!!value),
+                'ariaLabel': 'Select all',
+            }),
+            cell: ({ row }) => h(Checkbox, {
+                'modelValue': row.getIsSelected(),
+                'onUpdate:modelValue': value => row.toggleSelected(!!value),
+                'ariaLabel': 'Select row',
+            }),
+            enableSorting: false,
+            enableHiding: false,
+        }";
     }
 
     /**
@@ -125,7 +145,7 @@ class PublishFilesAction implements DescribableAction
      * The function helpers are written for each entity in a separate file for type safety
      * open for modification, and better organization.
      *
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     private function generateEntityHelperFiles()
     {
@@ -145,7 +165,6 @@ class PublishFilesAction implements DescribableAction
         $path = "{$this->jsPath}/helpers/{$fileName}";
         $entityImports = $this->tsHelper->writeEntityImports($entity);
         $supportImports = $this->tsHelper->writeEntityHelperSupportImports($entity);
-
 
         // Ensure the directory exists
         File::ensureDirectoryExists(dirname($path));
@@ -221,6 +240,7 @@ EOT;
             $relationMeta = $this->tsHelper->writeRelationMeta($entity, $relation);
             $relations[] = $relationMeta;
         }
+
         return implode(",\n            ", $relations);
     }
 
@@ -249,7 +269,7 @@ EOT;
             $columns[] = $column;
         }
 
-        //$indentStr = str_repeat("\t", $indent);
+        // $indentStr = str_repeat("\t", $indent);
         return implode(",\n", $columns);
     }
 
@@ -266,24 +286,5 @@ EOT;
         $filesCopied = app(CopyDirectoryAction::class)($source, $destination);
         $this->context->registerGeneratedFile($filesCopied);
 
-    }
-
-    public function getInitialColumnDef($indent=0): string
-    {
-        return "{
-            id: 'select',
-            header: ({ table }) => h(Checkbox, {
-                'modelValue': table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate'),
-                'onUpdate:modelValue': value => table.toggleAllPageRowsSelected(!!value),
-                'ariaLabel': 'Select all',
-            }),
-            cell: ({ row }) => h(Checkbox, {
-                'modelValue': row.getIsSelected(),
-                'onUpdate:modelValue': value => row.toggleSelected(!!value),
-                'ariaLabel': 'Select row',
-            }),
-            enableSorting: false,
-            enableHiding: false,
-        }";
     }
 }

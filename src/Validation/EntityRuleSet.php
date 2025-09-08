@@ -16,27 +16,21 @@ class EntityRuleSet
 
     /**
      * Add rules for create action
-     *
-     * @param string $fieldName
-     * @param ValidationRuleSet $ruleSet
-     * @return self
      */
     public function setCreateRuleSetForField(string $fieldName, ValidationRuleSet $ruleSet): self
     {
         $this->create[$fieldName] = $ruleSet;
+
         return $this;
     }
 
     /**
      * Add rules for update action
-     *
-     * @param string $fieldName
-     * @param ValidationRuleSet $ruleSet
-     * @return self
      */
     public function setUpdateRuleSetForField(string $fieldName, ValidationRuleSet $ruleSet): self
     {
         $this->update[$fieldName] = $ruleSet;
+
         return $this;
     }
 
@@ -63,7 +57,6 @@ class EntityRuleSet
     /**
      * Get ruleset for a specific field for create action
      *
-     * @param string $name
      * @return ValidationRuleSet|null
      */
     public function getCreateRuleSetForField(string $name)
@@ -74,7 +67,6 @@ class EntityRuleSet
     /**
      * Get ruleset for a specific field for update action
      *
-     * @param string $name
      * @return ValidationRuleSet|null
      */
     public function getUpdateRuleSetForField(string $name)

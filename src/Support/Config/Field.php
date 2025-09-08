@@ -171,7 +171,7 @@ class Field
             return 'foreignId';
         }
 
-// Map non-migration types to proper migration types
+        // Map non-migration types to proper migration types
         return match ($this->type) {
             // Semantic/UI types mapped to real migration columns
             FieldType::EMAIL,
@@ -335,16 +335,16 @@ class Field
 
         // Only show flags if true
         if ($this->nullable) {
-            $parts[] = "nullable";
+            $parts[] = 'nullable';
         }
         if ($this->sometimes) {
-            $parts[] = "sometimes";
+            $parts[] = 'sometimes';
         }
         if ($this->sortable) {
-            $parts[] = "sortable";
+            $parts[] = 'sortable';
         }
         if ($this->searchable) {
-            $parts[] = "searchable";
+            $parts[] = 'searchable';
         }
 
         // Only show properties if they are set
@@ -358,13 +358,13 @@ class Field
             $parts[] = "scale: {$this->scale}";
         }
         if ($this->default !== null) {
-            $parts[] = "default: " . json_encode($this->default);
+            $parts[] = 'default: '.json_encode($this->default);
         }
-        if (!empty($this->comment)) {
+        if (! empty($this->comment)) {
             $parts[] = "comment: {$this->comment}";
         }
-        if (!empty($this->values)) {
-            $vals = implode(', ', array_map(fn($v) => json_encode($v), $this->values));
+        if (! empty($this->values)) {
+            $vals = implode(', ', array_map(fn ($v) => json_encode($v), $this->values));
             $parts[] = "values: [{$vals}]";
         }
         if ($this->min !== null) {
@@ -374,9 +374,8 @@ class Field
             $parts[] = "max: {$this->max}";
         }
 
-        return 'Field(' . implode(', ', $parts) . ')';
+        return 'Field('.implode(', ', $parts).')';
     }
-
 
     /**
      * Debug log

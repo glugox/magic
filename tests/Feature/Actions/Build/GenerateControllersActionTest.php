@@ -16,7 +16,6 @@ it('generates controller and routes for entities', function () {
 
 });
 
-
 it('generates both API and regular controllers for entities', function () {
     // Prepare
     $action = app(GenerateControllersAction::class);
@@ -111,18 +110,17 @@ it('generates relation controllers for entities', function () {
         }
 
         // Get path relative to Controllers
-        $relative = substr($file, strlen($controllersBase));
+        $relative = mb_substr($file, mb_strlen($controllersBase));
 
         // Must be in a subfolder and not under Api/
         return str_contains($relative, '/')          // in a subfolder
             && ! str_starts_with($relative, 'Api/');
     });
 
-
     expect($relationControllers)->not()->toBeEmpty();
 
     // Strip base path for easier reading
-    $relationControllersShort = array_map(fn($f) => substr($f, strlen($controllersBase)), $relationControllers);
+    $relationControllersShort = array_map(fn ($f) => mb_substr($f, mb_strlen($controllersBase)), $relationControllers);
     // Sort for consistency
     sort($relationControllersShort);
 

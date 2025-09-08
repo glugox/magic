@@ -63,8 +63,6 @@ class Attachment extends Model
 
     /**
      * Morph relation: the model this file is attached to.
-     *
-     * @return MorphTo
      */
     public function attachable(): MorphTo
     {
@@ -73,8 +71,6 @@ class Attachment extends Model
 
     /**
      * Accessor: full URL for the file.
-     *
-     * @return string
      */
     public function getUrlAttribute(): string
     {
@@ -82,6 +78,7 @@ class Attachment extends Model
 
         if (Config::get('attachments.use_signed_urls', false)) {
             $expiration = now()->addMinutes(Config::get('attachments.signed_url_expiration_minutes', 60));
+
             return Storage::disk($disk)->temporaryUrl($this->file_path, $expiration);
         }
 
@@ -90,8 +87,6 @@ class Attachment extends Model
 
     /**
      * Accessor: check if this attachment is an image.
-     *
-     * @return bool
      */
     public function getIsImageAttribute(): bool
     {

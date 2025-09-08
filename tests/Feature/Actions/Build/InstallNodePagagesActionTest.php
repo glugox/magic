@@ -3,7 +3,6 @@
 use Glugox\Magic\Actions\Build\InstallNodePackagesAction;
 use Glugox\Magic\Support\BuildContext;
 use Illuminate\Support\Facades\Log;
-use Symfony\Component\Process\Exception\ProcessFailedException;
 
 beforeEach(function () {
     $this->context = Mockery::mock(BuildContext::class);
@@ -36,6 +35,7 @@ it('runs process for missing shadcn components without executing real command', 
     $action->shouldReceive('runProcess')->once()->withArgs(function ($command, $message) {
         expect($command[0])->toBe('/usr/local/bin/npx');
         expect($command[1])->toContain('shadcn-vue@latest');
+
         return true;
     });
 

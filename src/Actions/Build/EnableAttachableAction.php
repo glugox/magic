@@ -18,11 +18,12 @@ class EnableAttachableAction implements DescribableAction
     use AsDescribableAction, CanLogSectionTitle;
 
     protected string $stubsDir;
+
     private BuildContext $context;
 
     public function __construct()
     {
-        $this->stubsDir = __DIR__ . '/../../../stubs';
+        $this->stubsDir = __DIR__.'/../../../stubs';
     }
 
     public function __invoke(BuildContext $context): BuildContext
@@ -32,6 +33,7 @@ class EnableAttachableAction implements DescribableAction
 
         if (! $context->getConfig()->anyEntityHasImages()) {
             Log::channel('magic')->info('No entities require images. Skipping Attachable setup.');
+
             return $context;
         }
 
@@ -59,7 +61,7 @@ class EnableAttachableAction implements DescribableAction
 
     protected function copyFile(array $file): void
     {
-        $source = $this->stubsDir . '/' . $file['src'];
+        $source = $this->stubsDir.'/'.$file['src'];
         $destinationDir = base_path($file['dest']);
 
         if (! is_dir($destinationDir)) {
@@ -68,11 +70,11 @@ class EnableAttachableAction implements DescribableAction
         }
 
         $filename = basename($file['src']);
-        if (!empty($file['timestamped'])) {
-            $filename = date('Y_m_d_His') . '_' . $filename;
+        if (! empty($file['timestamped'])) {
+            $filename = date('Y_m_d_His').'_'.$filename;
         }
 
-        $destination = $destinationDir . '/' . $filename;
+        $destination = $destinationDir.'/'.$filename;
         copy($source, $destination);
         $this->context->registerGeneratedFile($destination);
 
@@ -85,7 +87,7 @@ class EnableAttachableAction implements DescribableAction
         $includeLine = "require base_path('routes/attachable.php');\n";
 
         if (! str_contains(file_get_contents($apiRoutesFile), $includeLine)) {
-            file_put_contents($apiRoutesFile, "\n" . $includeLine, FILE_APPEND);
+            file_put_contents($apiRoutesFile, "\n".$includeLine, FILE_APPEND);
             $this->context->registerUpdatedFile($apiRoutesFile);
             Log::channel('magic')->info('Included attachable routes in routes/api.php');
         } else {

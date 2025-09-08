@@ -13,7 +13,6 @@ use Glugox\Magic\Support\Frontend\Renderers\Cell\Renderer;
 use Glugox\Magic\Support\TypeHelper;
 use Glugox\Magic\Validation\EntityRuleSet;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 class TsHelper
 {
@@ -23,18 +22,17 @@ class TsHelper
     public function __construct(
         protected TypeHelper $typeHelper,
         protected ValidationHelper $validationHelper,
-    ){}
+    ) {}
 
     /**
      * Write import statements for a given entity.
      * import { type User } from '@/types/entities';",
      *
-     * @param Entity $entity The entity for which to write imports.
-     * @param Entity|null $parentEntity The parent entity if this is a nested entity.
-     * @param array|null $options Options to customize the imports. Supported options:
-     *                       - 'model' (bool): Whether to import the model type. Default is true.
-     *                       - 'controller' (bool): Whether to import the controller. Default is true.
-     * @return string
+     * @param  Entity  $entity  The entity for which to write imports.
+     * @param  Entity|null  $parentEntity  The parent entity if this is a nested entity.
+     * @param  array|null  $options  Options to customize the imports. Supported options:
+     *                               - 'model' (bool): Whether to import the model type. Default is true.
+     *                               - 'controller' (bool): Whether to import the controller. Default is true.
      */
     public function writeEntityImports(Entity $entity, ?Entity $parentEntity = null, ?array $options = []): string
     {
@@ -48,14 +46,15 @@ class TsHelper
             $imports[] = "import { type {$entity->name} } from '@/types/entities';";
         }
         if ($options['controller']) {
-            $controllerClass = $entity->name . 'Controller';
+            $controllerClass = $entity->name.'Controller';
             $controllerRelativePath = "{$controllerClass}";
             if ($parentEntity) {
-                $controllerClass = $parentEntity->name . $controllerClass;
-                $controllerRelativePath = $parentEntity->getName() . "/{$controllerClass}";
+                $controllerClass = $parentEntity->name.$controllerClass;
+                $controllerRelativePath = $parentEntity->getName()."/{$controllerClass}";
             }
             $imports[] = "import $controllerClass from '@/actions/App/Http/Controllers/{$controllerRelativePath}';";
         }
+
         return implode("\n", $imports);
     }
 
@@ -69,6 +68,7 @@ class TsHelper
             "import { get{$entity->name}Columns, get{$entity->name}EntityMeta } from '@/helpers/{$entity->getFolderName()}_helper'",
             "import { type PaginatedResponse, type TableFilters } from '@/types/support';"
         ];
+
         return implode("\n", $imports)."\n";
     }
 
@@ -81,6 +81,7 @@ class TsHelper
             // Eg. import { getUserColumns, getUserEntityMeta } from '@/helpers/users_helper';
             "import { get{$entity->name}EntityMeta } from '@/helpers/{$entity->getFolderName()}_helper'",
         ];
+
         return implode("\n", $imports)."\n";
     }
 
@@ -93,6 +94,7 @@ class TsHelper
         $imports = [
             "import { type Entity, type Field } from '@/types/support';",
         ];
+
         return implode("\n", $imports)."\n";
     }
 
@@ -131,6 +133,7 @@ class TsHelper
     public function writeSortableColumnHeader(Field $field): string
     {
         $fieldTitle = $field->label();
+
         return "
             ({ column }) => {
                 return h(Button, {
@@ -175,10 +178,10 @@ class TsHelper
         $rulesUpdateRuleSet = $entityValidationRuleSet->getUpdateRuleSetForField($field->name);
 
         $rulesStr =
-            "rules: {
-                create : [".implode(', ', array_map(fn($r) => "'$r'", $rulesCreateRuleSet ? $rulesCreateRuleSet->getRules() : []))."],
-                update : [".implode(', ', array_map(fn($r) => "'$r'", $rulesUpdateRuleSet ? $rulesUpdateRuleSet->getRules() : [])) ."]
-            }";
+            'rules: {
+                create : ['.implode(', ', array_map(fn ($r) => "'$r'", $rulesCreateRuleSet ? $rulesCreateRuleSet->getRules() : [])).'],
+                update : ['.implode(', ', array_map(fn ($r) => "'$r'", $rulesUpdateRuleSet ? $rulesUpdateRuleSet->getRules() : [])).']
+            }';
 
         return "{
             name: '{$field->name}',
@@ -200,36 +203,27 @@ class TsHelper
     }
 
     /**
-     * Write a table cell renderer for a given field.
-     * This is used to generate the cell content in the table.
-     */
-    private function writeTableCell(Field $field, Entity $entity): string
-    {
-        $renderer = Renderer::getRenderer($field);
-        // If the renderer is a custom one, we can use it directly
-        $renderResult = $renderer->render($field, $entity);
-
-        return $renderResult->content;
-    }
-
-    /**
      * Write default value for a given field.
      */
     public function writeValue(mixed $default): string
     {
         if (is_string($default)) {
             return "'".addslashes($default)."'";
-        } elseif (is_bool($default)) {
+        }
+        if (is_bool($default)) {
             return $default ? 'true' : 'false';
-        } elseif (is_null($default)) {
+        }
+        if (is_null($default)) {
             return 'null';
-        } elseif (is_array($default)) {
+        }
+        if (is_array($default)) {
             $items = array_map(fn ($item) => $this->writeValue($item), $default);
 
             return '['.implode(', ', $items).']';
-        } else {
-            return (string) $default;
         }
+
+        return (string) $default;
+
     }
 
     /**
@@ -271,11 +265,12 @@ class TsHelper
 
             // Do not show belongsTo relations
             if ($relation->type === RelationType::BELONGS_TO || $relation->type === RelationType::HAS_ONE) {
-               continue;
+                continue;
             }
             $relatedEntityName = $relation->getRelatedEntityName();
-            if(!$relatedEntityName) {
+            if (! $relatedEntityName) {
                 Log::channel('magic')->warning("Relation {$relation->getRelationName()} of entity {$entity->name} has no related entity name.");
+
                 continue;
             }
 
@@ -303,6 +298,20 @@ class TsHelper
 VUE;
             }
         }
+
         return implode(",\n", $items);
+    }
+
+    /**
+     * Write a table cell renderer for a given field.
+     * This is used to generate the cell content in the table.
+     */
+    private function writeTableCell(Field $field, Entity $entity): string
+    {
+        $renderer = Renderer::getRenderer($field);
+        // If the renderer is a custom one, we can use it directly
+        $renderResult = $renderer->render($field, $entity);
+
+        return $renderResult->content;
     }
 }

@@ -6,6 +6,7 @@ use Glugox\Magic\Actions\Build\GenerateVuePagesAction;
 use Glugox\Magic\Support\BuildContext;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Log;
+use JsonException;
 
 class BuildVuePagesCommand extends MagicBaseCommand
 {
@@ -30,7 +31,7 @@ class BuildVuePagesCommand extends MagicBaseCommand
     }
 
     /**
-     * @throws \JsonException
+     * @throws JsonException
      */
     public function handle()
     {

@@ -14,7 +14,7 @@ abstract class FakerExtension
      *
      * @returns array<string, class-string<FakerExtension>>
      */
-    public static function getExtensions(): array
+    final public static function getExtensions(): array
     {
         return [
             'image' => ImageExtension::class,
@@ -26,7 +26,7 @@ abstract class FakerExtension
     /**
      * Return extension by field.
      */
-    public static function getExtensionByField(Field $field): ?FakerExtension
+    final public static function getExtensionByField(Field $field): ?self
     {
         $fieldString = $field->name;
         $extensions = self::getExtensions();
@@ -43,7 +43,7 @@ abstract class FakerExtension
     /**
      * Handle the Faker extension logic.
      */
-    public function handle(Generator $faker): string
+    final public function handle(Generator $faker): string
     {
         // This method can be overridden by subclasses to implement specific logic
         // for the Faker extension. It is intentionally left empty here.

@@ -13,6 +13,7 @@ use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 #[ActionDescription(
     name: 'generate_api_resources',
@@ -23,12 +24,13 @@ class GenerateApiResourcesAction implements DescribableAction
     use AsDescribableAction, CanLogSectionTitle;
 
     protected BuildContext $context;
+
     protected string $stubsPath;
 
     public function __construct()
     {
         // adjust if your stubs live in different folder
-        $this->stubsPath = __DIR__ . '/../../../stubs/api-resources';
+        $this->stubsPath = __DIR__.'/../../../stubs/api-resources';
     }
 
     public function __invoke(BuildContext $context): BuildContext
@@ -44,14 +46,14 @@ class GenerateApiResourcesAction implements DescribableAction
     protected function generateResources(): void
     {
         // required stubs
-        $resourceStubPath = $this->stubsPath . '/api-resource.stub';
-        $collectionStubPath = $this->stubsPath . '/api-resource-collection.stub';
+        $resourceStubPath = $this->stubsPath.'/api-resource.stub';
+        $collectionStubPath = $this->stubsPath.'/api-resource-collection.stub';
 
         if (! File::exists($resourceStubPath)) {
-            throw new \RuntimeException("Missing stub: {$resourceStubPath}");
+            throw new RuntimeException("Missing stub: {$resourceStubPath}");
         }
         if (! File::exists($collectionStubPath)) {
-            throw new \RuntimeException("Missing stub: {$collectionStubPath}");
+            throw new RuntimeException("Missing stub: {$collectionStubPath}");
         }
 
         $resourceStub = File::get($resourceStubPath);
@@ -65,7 +67,7 @@ class GenerateApiResourcesAction implements DescribableAction
 
     protected function generateResource(Entity $entity, string $resourceStub): void
     {
-        $resourceClass = Str::studly(Str::singular($entity->getName())) . 'Resource';
+        $resourceClass = Str::studly(Str::singular($entity->getName())).'Resource';
         $modelClassFull = $entity->getFullyQualifiedModelClass();
 
         // Determine fields to include in resource
@@ -110,7 +112,7 @@ class GenerateApiResourcesAction implements DescribableAction
             File::makeDirectory($dir, 0755, true);
         }
 
-        $filePath = $dir . '/' . $resourceClass . '.php';
+        $filePath = $dir.'/'.$resourceClass.'.php';
         app(GenerateFileAction::class)($filePath, $content);
         $this->context->registerGeneratedFile($filePath);
 
@@ -119,8 +121,8 @@ class GenerateApiResourcesAction implements DescribableAction
 
     protected function generateResourceCollection(Entity $entity, string $collectionStub): void
     {
-        $resourceClass = Str::studly(Str::singular($entity->getName())) . 'Resource';
-        $collectionClass = Str::studly(Str::singular($entity->getName())) . 'Collection';
+        $resourceClass = Str::studly(Str::singular($entity->getName())).'Resource';
+        $collectionClass = Str::studly(Str::singular($entity->getName())).'Collection';
 
         $replacements = [
             '{{resourceCollectionClass}}' => $collectionClass,
@@ -135,7 +137,7 @@ class GenerateApiResourcesAction implements DescribableAction
             File::makeDirectory($dir, 0755, true);
         }
 
-        $filePath = $dir . '/' . $collectionClass . '.php';
+        $filePath = $dir.'/'.$collectionClass.'.php';
         app(GenerateFileAction::class)($filePath, $content);
         $this->context->registerGeneratedFile($filePath);
 

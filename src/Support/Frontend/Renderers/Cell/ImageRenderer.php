@@ -19,16 +19,24 @@ class ImageRenderer extends Renderer
         );
     }
 
+    /**
+     * Get the type of the renderer.
+     */
+    public function getType(): string
+    {
+        return 'image';
+    }
+
     private function getTsForImage(): string
     {
         $lines = [
             "const value: string = cell.getValue() as string ?? '';",
-            "const finalValue:string = String(cell.row.original.name) ?? String(value);",
+            'const finalValue:string = String(cell.row.original.name) ?? String(value);',
             "if (!finalValue) return '';",
-            "return h(Avatar, { name: finalValue, src: \"\" });"
+            'return h(Avatar, { name: finalValue, src: "" });'
         ];
 
-        $indent = str_repeat(" ", 15);
+        $indent = str_repeat(' ', 15);
         $cellRenderer = implode("\n$indent", $lines);
 
         $productionRenderer = "
@@ -41,13 +49,5 @@ class ImageRenderer extends Renderer
 
         // Return the renderer based on the environment
         return env('APP_ENV') === 'local' ? $cellRenderer : $productionRenderer;
-    }
-
-    /**
-     * Get the type of the renderer.
-     */
-    public function getType(): string
-    {
-        return 'image';
     }
 }

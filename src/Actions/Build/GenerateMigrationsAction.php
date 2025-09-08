@@ -9,7 +9,6 @@ use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\File\FilesGenerationUpdate;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
-use Illuminate\Support\Facades\Log;
 
 #[ActionDescription(
     name: 'generate_migrations',

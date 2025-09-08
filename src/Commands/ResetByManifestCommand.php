@@ -4,6 +4,7 @@ namespace Glugox\Magic\Commands;
 
 use Glugox\Magic\Support\File\FilesGenerationUpdate;
 use Illuminate\Support\Facades\Log;
+use JsonException;
 
 class ResetByManifestCommand extends MagicBaseCommand
 {
@@ -17,7 +18,7 @@ class ResetByManifestCommand extends MagicBaseCommand
     protected $description = 'If manifest files exists, will use it to delete files';
 
     /**
-     * @throws \JsonException
+     * @throws JsonException
      */
     public function handle()
     {

@@ -34,7 +34,7 @@ class CopyDirectoryAction implements DescribableAction
             $targetPath = $destination.DIRECTORY_SEPARATOR.$relativePath;
 
             // If the directory was not there, we will mark it as created
-            if (!File::isDirectory(dirname($targetPath))) {
+            if (! File::isDirectory(dirname($targetPath))) {
                 // Ensure the directory exists
                 File::ensureDirectoryExists(dirname($targetPath));
                 $copiedFiles[] = dirname($targetPath);

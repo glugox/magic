@@ -10,7 +10,7 @@ readonly class ValidationRule
          * The validation rule signature, e.g. "max:255"
          */
         protected string $signature
-    ){}
+    ) {}
 
     /**
      * String representation of the rule

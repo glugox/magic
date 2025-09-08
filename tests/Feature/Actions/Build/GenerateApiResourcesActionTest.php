@@ -1,7 +1,6 @@
 <?php
 
 use Glugox\Magic\Actions\Build\GenerateApiResourcesAction;
-
 use Illuminate\Support\Facades\File;
 
 beforeEach(function () {

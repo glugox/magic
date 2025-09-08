@@ -28,6 +28,7 @@ class GenerateModelsAction implements DescribableAction
     use AsDescribableAction, CanLogSectionTitle;
 
     protected string $modelPath;
+
     private string $stubsPath;
 
     public function __construct()
@@ -88,15 +89,21 @@ class GenerateModelsAction implements DescribableAction
             }
 
             foreach ($preset['fillable'] ?? [] as $item) {
-                if (! in_array($item, $fillable)) $fillable[] = $item;
+                if (! in_array($item, $fillable)) {
+                    $fillable[] = $item;
+                }
             }
 
             foreach ($preset['hidden'] ?? [] as $item) {
-                if (! in_array($item, $hidden)) $hidden[] = $item;
+                if (! in_array($item, $hidden)) {
+                    $hidden[] = $item;
+                }
             }
 
             foreach ($preset['casts'] ?? [] as $key => $value) {
-                if (! isset($casts[$key])) $casts[$key] = $value;
+                if (! isset($casts[$key])) {
+                    $casts[$key] = $value;
+                }
             }
         }
 
@@ -116,7 +123,6 @@ class GenerateModelsAction implements DescribableAction
             $traits[] = 'App\Traits\HasImages';
         }
 
-
         // Imports for traits
         foreach ($traits as $t) {
             $uses[] = $t;
@@ -135,18 +141,18 @@ class GenerateModelsAction implements DescribableAction
         // Relations
         $relationsCode = '';
         foreach ($entity->getRelations() as $relation) {
-            $relationsCode .= $this->buildRelationMethod($relation) . "\n\n";
+            $relationsCode .= $this->buildRelationMethod($relation)."\n\n";
         }
 
         // Prepare stub replacements
         $replacements = [
             '{{namespace}}' => 'App\Models',
-            '{{uses}}' => implode("\n", array_map(fn($t) => "use $t;", array_unique($uses))),
+            '{{uses}}' => implode("\n", array_map(fn ($t) => "use $t;", array_unique($uses))),
             '{{modelClass}}' => $className,
             '{{extends}}' => $extends,
-            '{{traits}}' => !empty($traits) ? 'use ' . implode(', ', array_map(fn($t) => class_basename($t), $traits)) . ';' : '',
-            '{{fillable}}' => implode(",\n        ", array_map(fn($f) => "'$f'", $fillable)),
-            '{{hidden}}' => implode(",\n        ", array_map(fn($h) => "'$h'", $hidden)),
+            '{{traits}}' => ! empty($traits) ? 'use '.implode(', ', array_map(fn ($t) => class_basename($t), $traits)).';' : '',
+            '{{fillable}}' => implode(",\n        ", array_map(fn ($f) => "'$f'", $fillable)),
+            '{{hidden}}' => implode(",\n        ", array_map(fn ($h) => "'$h'", $hidden)),
             '{{casts}}' => implode(",\n        ", array_map(
                 function ($k, $v) {
                     // If it ends with "::class" treat it as raw (no quotes)
@@ -160,12 +166,12 @@ class GenerateModelsAction implements DescribableAction
                 array_keys($casts),
                 $casts
             )),
-            '{{appends}}' => !empty($appends) ? "protected \$appends = [\n        '" . implode("',\n        '", $appends) . "'\n    ];" : '',
+            '{{appends}}' => ! empty($appends) ? "protected \$appends = [\n        '".implode("',\n        '", $appends)."'\n    ];" : '',
             '{{relations}}' => $relationsCode,
         ];
 
         // Load stub
-        $stubPath =$this->stubsPath . '/models/model.stub';
+        $stubPath = $this->stubsPath.'/models/model.stub';
         $template = File::get($stubPath);
 
         // Replace placeholders
@@ -187,8 +193,8 @@ class GenerateModelsAction implements DescribableAction
         $type = $field->type;
 
         // If enum → reference generated enum class
-        if ($type === FieldType::ENUM && !empty($field->values)) {
-            return '\\App\\Enums\\' . Str::studly($field->getEntity()->getName()) . Str::studly($field->name) . 'Enum::class';
+        if ($type === FieldType::ENUM && ! empty($field->values)) {
+            return '\\App\\Enums\\'.Str::studly($field->getEntity()->getName()).Str::studly($field->name).'Enum::class';
         }
 
         return match ($type) {

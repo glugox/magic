@@ -2,6 +2,7 @@
 
 namespace Glugox\Magic\Actions\Build;
 
+use Artisan;
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Support\BuildContext;
@@ -27,12 +28,12 @@ class InstallApiCommand implements DescribableAction
         $apiRoutesPath = base_path('routes/api.php');
         if (file_exists($apiRoutesPath) && filesize($apiRoutesPath) > 0) {
             Log::channel('magic')->info('API routes already exist. Skipping install:api command.');
+
             return $context;
         }
 
-
         // Run the install:api Artisan command
-        \Artisan::call('install:api',
+        Artisan::call('install:api',
             [
                 '--force' => true,
                 '--no-interaction' => true

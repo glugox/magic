@@ -4,6 +4,8 @@ namespace Glugox\Magic\Support\Config;
 
 use Glugox\Magic\Support\Config\Entity\Settings;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
+use RuntimeException;
 
 class Entity
 {
@@ -31,7 +33,7 @@ class Entity
         if (is_string($data)) {
             $data = json_decode($data, true);
             if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new \InvalidArgumentException('Invalid JSON string provided for Entity configuration.');
+                throw new InvalidArgumentException('Invalid JSON string provided for Entity configuration.');
             }
         }
 
@@ -96,7 +98,7 @@ class Entity
             }
 
             if (! $relatedEntity) {
-                throw new \RuntimeException("Related entity '{$relation->getRelatedEntityName()}' not found for relation in entity '{$this->getName()}'.");
+                throw new RuntimeException("Related entity '{$relation->getRelatedEntityName()}' not found for relation in entity '{$this->getName()}'.");
             }
         }
     }
@@ -146,7 +148,7 @@ class Entity
     public function getTableName(): string
     {
         // Convert entity name to snake_case for table name
-        return $this->tableName ??= strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $this->getPluralName()));
+        return $this->tableName ??= mb_strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $this->getPluralName()));
     }
 
     /**
@@ -195,7 +197,7 @@ class Entity
     public function getHref(): string
     {
         // Convert entity name to kebab-case for href
-        return '/' . $this->getRouteName();
+        return '/'.$this->getRouteName();
     }
 
     /**
@@ -306,7 +308,7 @@ class Entity
         }
 
         // Relations
-        if (!$skipRelations) {
+        if (! $skipRelations) {
             foreach ($this->getRelations() as $relation) {
 
                 // Only BELONGS_TO relations are shown in tables
@@ -336,6 +338,7 @@ class Entity
         foreach ($this->getTableFields($skipRelations) as $field) {
             $visible[] = $field->name;
         }
+
         return $visible;
     }
 
@@ -454,27 +457,6 @@ class Entity
         }
 
         return null;
-    }
-
-    /**
-     * Assign priority values to fields for ordering.
-     */
-    protected function fieldPriority(Field $field): int
-    {
-        if ($field->name === 'id') {
-            return 0;
-        }
-
-        if ($field->isName()) {
-            return 1;
-        }
-
-        if ($field->isBelongsTo()) {
-            return 2;
-        }
-
-        // everything else after
-        return 3;
     }
 
     /**
@@ -629,6 +611,7 @@ class Entity
 
     /**
      * Get relations that have a valid related entity defined.
+     *
      * @return Relation[]
      */
     public function getRelationsWithValidEntity(): array
@@ -656,6 +639,7 @@ class Entity
                 return $relation;
             }
         }
+
         return null;
     }
 
@@ -669,6 +653,7 @@ class Entity
                 return $relation;
             }
         }
+
         return null;
     }
 
@@ -696,5 +681,26 @@ class Entity
     public function hasImages()
     {
         return $this->settings->hasImages;
+    }
+
+    /**
+     * Assign priority values to fields for ordering.
+     */
+    protected function fieldPriority(Field $field): int
+    {
+        if ($field->name === 'id') {
+            return 0;
+        }
+
+        if ($field->isName()) {
+            return 1;
+        }
+
+        if ($field->isBelongsTo()) {
+            return 2;
+        }
+
+        // everything else after
+        return 3;
     }
 }

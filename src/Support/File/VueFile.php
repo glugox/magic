@@ -3,6 +3,7 @@
 namespace Glugox\Magic\Support\File;
 
 use Glugox\Magic\Contracts\GeneratedFile;
+use InvalidArgumentException;
 
 class VueFile extends GeneratedFileBase implements GeneratedFile
 {
@@ -38,20 +39,6 @@ class VueFile extends GeneratedFileBase implements GeneratedFile
     ) {}
 
     /**
-     * Create instance from array
-     */
-    public static function fromArray(array $data): self
-    {
-        return new self(
-            fileName: $data['fileName'] ?? throw new \InvalidArgumentException("File 'fileName' is required"),
-            directory: $data['directory'] ?? '.',
-            script: $data['script'] ?? '',
-            template: $data['template'] ?? '',
-            style: $data['style'] ?? ''
-        );
-    }
-
-    /**
      * String representation of the Vue file
      */
     public function __toString(): string
@@ -67,5 +54,19 @@ class VueFile extends GeneratedFileBase implements GeneratedFile
 
 {$this->style}
 VUE;
+    }
+
+    /**
+     * Create instance from array
+     */
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            fileName: $data['fileName'] ?? throw new InvalidArgumentException("File 'fileName' is required"),
+            directory: $data['directory'] ?? '.',
+            script: $data['script'] ?? '',
+            template: $data['template'] ?? '',
+            style: $data['style'] ?? ''
+        );
     }
 }

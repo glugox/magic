@@ -22,17 +22,17 @@ class NameRenderer extends Renderer
         $indent2 = str_repeat(' ', 2);
         $tableCellLines = [
             "const href = '{$entity->getHref()}';",
-            "const id = cell.row.original.id;",
+            'const id = cell.row.original.id;',
             "const nameVal: string = cell.getValue() ? String(cell.getValue()) : '';",
             $avatarDefinition,
             "return h('a', {",
-            $indent2 . "href: href + '/' + id,",
-            $indent2. "class: 'flex items-center gap-2 text-blue-600 hover:underline'",
-            "}, [",
-            $indent2 . "#AvatarPlaceholder#",
-            $indent2 . "h('span', null, nameVal)",
-            "]);"
-            ];
+            $indent2."href: href + '/' + id,",
+            $indent2."class: 'flex items-center gap-2 text-blue-600 hover:underline'",
+            '}, [',
+            $indent2.'#AvatarPlaceholder#',
+            $indent2."h('span', null, nameVal)",
+            ']);'
+        ];
 
         $tableCellStr = implode("\n$indent", $tableCellLines);
 

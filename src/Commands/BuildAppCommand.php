@@ -2,9 +2,11 @@
 
 namespace Glugox\Magic\Commands;
 
+use Exception;
 use Glugox\Magic\Actions\Build\GenerateAppAction;
 use Glugox\Magic\Support\ConsoleBlock;
 use Illuminate\Support\Facades\Log;
+use ReflectionException;
 use Symfony\Component\Console\Command\Command as CommandAlias;
 
 class BuildAppCommand extends MagicBaseCommand
@@ -17,8 +19,8 @@ class BuildAppCommand extends MagicBaseCommand
     protected $description = 'Build Laravel app parts from JSON config';
 
     /**
-     * @throws \ReflectionException
-     * @throws \Exception
+     * @throws ReflectionException
+     * @throws Exception
      */
     public function handle(): int
     {
@@ -32,7 +34,7 @@ class BuildAppCommand extends MagicBaseCommand
 
         // If manifest file exists , throw an error
         if (file_exists(storage_path('magic/generated_files.json'))) {
-            throw new \Exception('Manifest file exist. Please reset the app first by running  magic:reset');
+            throw new Exception('Manifest file exist. Please reset the app first by running  magic:reset');
         }
 
         // V2 - Actions

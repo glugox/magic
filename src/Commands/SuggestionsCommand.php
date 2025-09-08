@@ -5,6 +5,8 @@ namespace Glugox\Magic\Commands;
 use Glugox\Ai\AiManager;
 use Glugox\Magic\Actions\Config\ResolveAppConfigAction;
 use Illuminate\Support\Facades\Log;
+use JsonException;
+use ReflectionException;
 
 class SuggestionsCommand extends MagicBaseCommand
 {
@@ -21,8 +23,8 @@ class SuggestionsCommand extends MagicBaseCommand
     protected $description = 'AI powered suggestions for improving your JSON config';
 
     /**
-     * @throws \ReflectionException
-     * @throws \JsonException
+     * @throws ReflectionException
+     * @throws JsonException
      */
     public function handle(): int
     {
