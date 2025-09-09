@@ -203,9 +203,24 @@ export function useResourceTable<T>(props: {
             },
         },
         enableRowSelection: true,
+        onSortingChange: (updater) => {
+            sorting.value =
+                typeof updater === "function"
+                    ? updater(sorting.value)
+                    : updater
+            // keep filters in sync
+            if (sorting.value.length > 0) {
+                sortKey.value = sorting.value[0].id
+                sortDir.value = sorting.value[0].desc ? "desc" : "asc"
+            } else {
+                sortKey.value = null
+                sortDir.value = null
+            }
+        },
         onRowSelectionChange: toggleRowSelection, // 🔑 ← THIS WAS MISSING
         getCoreRowModel: getCoreRowModel(),
         manualPagination: true,
+        manualSorting: true,
         pageCount: computed(() => Math.ceil(total.value / perPage.value)).value,
     })
 
@@ -220,7 +235,7 @@ export function useResourceTable<T>(props: {
     })
 
     // auto-send when page/perPage/search change
-    watch([page, perPage, search], send)
+    watch([page, perPage, search, sortKey, sortDir], send)
 
     return {
         table,

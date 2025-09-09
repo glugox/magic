@@ -309,7 +309,7 @@ onMounted(() => {
     <AppLayout :breadcrumbs="breadcrumbs">
         <Head title="User" />
         <ResourceLayout :title="item.data.name" description="$mainEntityName" :sidebar-nav-items="sidebarNavItems">
-            <div class="flex space-x-12">
+            <div class="flex space-x-12 space-y-12 flex-wrap">
                <div v-if="showCreateForm" class="flex flex-col space-y-6 max-w-2xl">
                    <HeadingSmall title="Add new $relatedEntityName" description="Fill $relatedEntityName details" />
                    <ResourceForm
