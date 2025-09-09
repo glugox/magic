@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use {{modelClassFull}};
 use App\Services\TableQueryService;
 use App\Http\Resources\{{modelClass}}Resource;
-use App\Http\Resources\{{modelClass}}Collection;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -50,11 +49,17 @@ class {{controllerClass}} extends Controller
         ]);
     }
 
+    /**
+     * Show the form for creating a new {{modelClass}}.
+     */
     public function create()
     {
         return Inertia::render('{{folderName}}/Create');
     }
 
+    /**
+     * Store a newly created {{modelClass}} in database.
+     */
     public function store(Request $request)
     {
         $data = $request->validate({{rulesArrayStrCreate}});
@@ -64,6 +69,9 @@ class {{controllerClass}} extends Controller
             ->with('success', '{{modelClass}} created successfully.');
     }
 
+    /**
+     * Display the specified {{modelClass}}.
+     */
     public function show({{modelClass}} ${{modelClassCamel}})
     {
         $relations = {{relationNamesCode}};
@@ -74,6 +82,9 @@ class {{controllerClass}} extends Controller
         ]);
     }
 
+    /**
+     * Show the form for editing the specified {{modelClass}}.
+     */
     public function edit({{modelClass}} ${{modelClassCamel}})
     {
         $relations = {{relationNamesCode}};
@@ -84,6 +95,9 @@ class {{controllerClass}} extends Controller
         ]);
     }
 
+    /**
+     * Update the specified {{modelClass}} in database.
+     */
     public function update(Request $request, {{modelClass}} ${{modelClassCamel}})
     {
         $data = $request->validate({{rulesArrayStrUpdate}});
@@ -93,6 +107,9 @@ class {{controllerClass}} extends Controller
             ->with('success', '{{modelClass}} updated successfully.');
     }
 
+    /**
+     * Remove the specified {{modelClass}} from database.
+     */
     public function destroy({{modelClass}} ${{modelClassCamel}})
     {
         ${{modelClassCamel}}->delete();

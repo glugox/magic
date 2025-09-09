@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Services\TableQueryService;
 use {{modelClassFull}};
 use {{resourceClassFull}};
-use {{collectionClassFull}};
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -45,7 +44,7 @@ class {{controllerClass}} extends Controller
             $request->get('sortDir', 'asc')
          )->paginate();
 
-        return new {{collectionClass}}($items);
+        return {{resourceClass}}::collection($items)->response()->getData();
     }
 
     /**
@@ -88,35 +87,5 @@ class {{controllerClass}} extends Controller
         ${{modelClassCamel}}->delete();
 
         return response()->json(null, 204);
-    }
-
-    /**
-     * Search endpoint (optional)
-     */
-    public function search(Request $request)
-    {
-        $query = {{modelClass}}::query();
-        $searchableFields = {{searchableFieldsCode}};
-
-        // Apply search
-        $query = $this->searchService->applySearch(
-            $query,
-            $request->get('{{searchQueryString}}'),
-            $searchableFields
-        );
-
-        $items = $query->select({{tableFieldsNamesStr}})->get();
-
-        return {{resourceClass}}::collection($items);
-    }
-
-    /**
-     * Options endpoint for select dropdowns
-     */
-    public function options()
-    {
-        $items = {{modelClass}}::select({{tableFieldsNamesStr}})->get();
-
-        return {{resourceClass}}::collection($items);
     }
 }

@@ -127,6 +127,8 @@ class GenerateVuePagesAction implements DescribableAction
         $path = "{$this->pagesPath}/{$folderName}/{$relation->getRelationName()}/Index.vue";
 
         // Build the template for the relation index page
+        // This template will also be used for create/edit forms if needed. Controller will pass showEditForm flag
+        // to indicate if the form should be shown above the table.
         $template = $this->getRelationIndexTemplate($entity, $relation); // You might want a different template for relations
 
         // Ensure directory exists
@@ -219,13 +221,16 @@ PHP;
         $href = $relatedEntity->getHref();
         $relationType = $relation->getType()->value;
 
+        // Foreign key name in main entity pointing to related entity, eg. role_id in users table
+        $foreignKey = $relation->getForeignKey();
+
         $mainEntityImports = $this->tsHelper->writeEntityImports($entity, options: ['controller' => false]);
         $relatedEntityImports = $this->tsHelper->writeEntityImports($relatedEntity, $entity);
-        $supportImports = $this->tsHelper->writeIndexPageSupportImports($relatedEntity);
+        $supportImports = $this->tsHelper->writeRelationIndexPageSupportImports($relatedEntity, $entity);
         $relationSidebarItems = $this->tsHelper->writeRelationSidebarItems($entity, $this->context->getConfig());
         $folderName = $entity->getFolderName();
 
-        // Controllrer name, eg. UserController
+        // Controller name, eg. UserRoleController
         $controllerClass = $entity->name.$relatedEntityName.'Controller';
 
         return <<<PHP
@@ -237,6 +242,7 @@ import { type BreadcrumbItem, type NavItem } from '@/types';
 import { edit, show } from '@/routes/{$folderName}';
 import { Head } from '@inertiajs/vue3';
 import ResourceTable from '@/components/ResourceTable.vue';
+import ResourceForm from '@/components/ResourceForm.vue';
 import {ColumnDef} from "@tanstack/vue-table";
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import { type DbId } from '@/types/support';
@@ -265,6 +271,7 @@ interface Props {
     $relationName: PaginatedResponse<$relatedEntityName>;
     item_{$relationName}_ids?: DbId[];
     filters?: TableFilters;
+    showCreateForm?: boolean; // If true, show the create form above the table
 }
 const { item, $relationName, item_{$relationName}_ids, filters }: Props = defineProps<Props>();
 
@@ -280,6 +287,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 const columns: ColumnDef<{$relatedEntityName}>[] = get{$relatedEntityName}Columns();
 const entity = get{$relatedEntityName}EntityMeta();
+const parentEntity = get{$mainEntityName}EntityMeta();
 const sidebarNavItems: NavItem[] = [
     {
         title: 'General Information',
@@ -301,17 +309,29 @@ onMounted(() => {
     <AppLayout :breadcrumbs="breadcrumbs">
         <Head title="User" />
         <ResourceLayout :title="item.data.name" description="$mainEntityName" :sidebar-nav-items="sidebarNavItems">
-            <div class="flex flex-col space-y-6 max-w-2xl">
-                <HeadingSmall title="$relatedEntityPluralName" description="Update $mainEntityName $relationName" />
-                <ResourceTable
-                    :data="$relationName"
-                    :parent-id="item.data.id"
-                    :columns="columns"
-                    :entity="entity"
-                    :filters="currentFilters"
-                    :controller="{$controllerClass}"
-                    />
-            </div>
+            <div class="flex space-x-12">
+               <div v-if="showCreateForm" class="flex flex-col space-y-6 max-w-2xl">
+                   <HeadingSmall title="Add new $relatedEntityName" description="Fill $relatedEntityName details" />
+                   <ResourceForm
+                       :entity="entity"
+                       :controller="{$controllerClass}"
+                       :parent-entity="get{$mainEntityName}EntityMeta()"
+                       :parent-id="item.data.id"
+                       :item="{{$foreignKey}: item.data.id}"
+                   />
+               </div>
+               <div class="flex flex-col space-y-6 max-w-2xl">
+                   <HeadingSmall title="$relatedEntityPluralName" description="Update $relatedEntityPluralName for this $mainEntityName" />
+                   <ResourceTable
+                       :data="$relationName"
+                       :parent-id="item.data.id"
+                       :columns="columns"
+                       :entity="entity"
+                       :filters="currentFilters"
+                       :controller="{$controllerClass}"
+                   />
+               </div>
+           </div>
         </ResourceLayout>
     </AppLayout>
 </template>

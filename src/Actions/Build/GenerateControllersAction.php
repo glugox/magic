@@ -152,6 +152,12 @@ class GenerateControllersAction implements DescribableAction
         // Searchable fields for related entity
         $searchableFieldsCode = StubHelper::getSearchableFieldsString($relatedEntity);
 
+        /** @var EntityRuleSet $validationRules */
+        $validationRules = $this->validationHelper->make($relatedEntity);
+        // Prepare rules
+        $rulesArrayStrCreate = exportPhpValue($validationRules->getCreateRules(), 2);
+        $rulesArrayStrUpdate = exportPhpValue($validationRules->getUpdateRules(), 2);
+
         // Convert relation type enum to kebab-case for stub file
         $relationType = $relation->type->value ?? null;
         if (! $relationType) {
@@ -184,6 +190,8 @@ class GenerateControllersAction implements DescribableAction
             '{{foreignKey}}' => $relation->getForeignKey(),
             '{{relatedModelResourceClass}}' => $relatedModelResourceClass,
             '{{parentModelResourceClass}}' => $parentModelResourceClass,
+            '{{rulesArrayStrCreate}}' => $rulesArrayStrCreate,
+            '{{rulesArrayStrUpdate}}' => $rulesArrayStrUpdate,
             '{{selectedIdsCode}}' => $selectedIdsCode,
             '{{searchableFieldsCode}}' => $searchableFieldsCode,
             '{{searchQueryString}}' => $this->context->getConfig()->getConfigValue('naming.search_query_string', 'search')
@@ -213,7 +221,6 @@ class GenerateControllersAction implements DescribableAction
 
         /** @var EntityRuleSet $validationRules */
         $validationRules = $this->validationHelper->make($entity);
-
         // Prepare rules
         $rulesArrayStrCreate = exportPhpValue($validationRules->getCreateRules(), 2);
         $rulesArrayStrUpdate = exportPhpValue($validationRules->getUpdateRules(), 2);
@@ -223,7 +230,6 @@ class GenerateControllersAction implements DescribableAction
 
         // Add Resource imports
         $resourceClass = $modelClass.'Resource';
-        $collectionClass = $modelClass.'Collection';
 
         $replacements = [
             '{{classDescription}}' => "Controller for managing {$entity->getSingularName()}",
@@ -239,7 +245,6 @@ class GenerateControllersAction implements DescribableAction
             '{{rulesArrayStrCreate}}' => $rulesArrayStrCreate,
             '{{rulesArrayStrUpdate}}' => $rulesArrayStrUpdate,
             '{{resourceClass}}' => $resourceClass,
-            '{{collectionClass}}' => $collectionClass,
             '{{searchQueryString}}' => $this->context->getConfig()->getConfigValue('naming.search_query_string', 'search'),
         ];
 
@@ -263,17 +268,17 @@ class GenerateControllersAction implements DescribableAction
     {
         // Paths to stubs
         $mainStubPath = $this->stubsPath.'/routes/main.stub';
-        $relationStubPath = $this->stubsPath.'/routes/relation.stub';
+        $relationDefaultStubPath = $this->stubsPath.'/routes/relation/default.stub';
 
         if (! File::exists($mainStubPath)) {
             throw new RuntimeException("Missing stub: $mainStubPath");
         }
-        if (! File::exists($relationStubPath)) {
-            throw new RuntimeException("Missing stub: $relationStubPath");
+        if (! File::exists($relationDefaultStubPath)) {
+            throw new RuntimeException("Missing stub: $relationDefaultStubPath");
         }
 
         $mainStub = File::get($mainStubPath);
-        $relationStub = File::get($relationStubPath);
+        $relationDefaultStub = File::get($relationDefaultStubPath);
 
         $importedControllers = [];
         $mainRoutes = [];
@@ -314,6 +319,16 @@ class GenerateControllersAction implements DescribableAction
                     continue;
                 }
 
+                // Convert relation type enum to kebab-case for stub file
+                $relationType = $relation->type->value ?? null;
+                $relationStubFile = Str::kebab($relationType).'.stub';
+                $relationStubPath = $this->stubsPath."/routes/relation/{$relationStubFile}";
+                if (File::exists($relationStubPath)) {
+                    $relationStub = File::get($relationStubPath);
+                } else {
+                    $relationStub = $relationDefaultStub;
+                }
+
                 $relatedEntity = $relation->getRelatedEntity();
                 $controllerFQCN = $relation->getControllerFullQualifiedName();
                 $controllerShort = class_basename($controllerFQCN);
@@ -325,7 +340,7 @@ class GenerateControllersAction implements DescribableAction
                 // For many-to-many relations we need updateSelection method
                 $updateSelectionRoute = '';
                 if (in_array($relation->getType(), [RelationType::BELONGS_TO_MANY, RelationType::MORPH_MANY])) {
-                    $updateSelectionRoute = "Route::post('{{entityRouteName}}/{{{entitySingular}}}/{{relationRoute}}/updateSelection', [{{controllerClass}}::class, 'updateSelection'])->name('{{entityRouteName}}-updateSelection-{{relationName}}');";
+                    $updateSelectionRoute = "Route::post('{{entityRouteName}}/{{{entitySingularLower}}}/{{relationRoute}}/updateSelection', [{{controllerClass}}::class, 'updateSelection'])->name('{{entityRouteName}}-updateSelection-{{relationName}}');";
                 }
 
                 $replacements = [
@@ -334,7 +349,7 @@ class GenerateControllersAction implements DescribableAction
                     '{{relationRoute}}' => $relatedEntity->getRouteName(),
                     '{{controllerClass}}' => $controllerShort,
                     '{{relationType}}' => $relation->type->value,
-                    '{{entitySingular}}' => Str::camel(Str::singular($entity->getName())),
+                    '{{entitySingularLower}}' => Str::camel(Str::singular($entity->getName())),
                 ];
 
                 $currentRelationStub = $relationStub;
@@ -388,10 +403,6 @@ class GenerateControllersAction implements DescribableAction
         $resourceClass = $modelClass.'Resource';               // 'UserResource'
         $resourceClassFull = 'App\Http\Resources\\'.$resourceClass; // 'App\Http\Resources\UserResource'
 
-        // Collection class names
-        $collectionClass = $modelClass.'Collection';           // 'UserCollection'
-        $collectionClassFull = 'App\Http\Resources\\'.$collectionClass; // 'App\Http\Resources\UserCollection'
-
         // Use StubHelper for strings
         $searchableFieldsCode = StubHelper::getSearchableFieldsString($entity);
         $tableFieldsNamesStr = StubHelper::getTableFieldsString($entity);
@@ -424,8 +435,6 @@ class GenerateControllersAction implements DescribableAction
             '{{rulesArrayStrUpdate}}' => $rulesArrayStrUpdate,
             '{{resourceClass}}' => $resourceClass,
             '{{resourceClassFull}}' => $resourceClassFull,
-            '{{collectionClass}}' => $collectionClass,
-            '{{collectionClassFull}}' => $collectionClassFull,
             '{{searchQueryString}}' => $this->context->getConfig()->getConfigValue('naming.search_query_string', 'search'),
         ];
 

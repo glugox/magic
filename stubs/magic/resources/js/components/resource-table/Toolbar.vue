@@ -2,13 +2,14 @@
 
 import {Button} from "@/components/ui/button";
 import {ref, watch} from "vue";
-import {Entity, Controller} from "@/types/support";
+import {Entity, Controller, DbId} from "@/types/support";
 import {debounced} from "@/lib/app";
 
 // props
-const { entity, controller } = defineProps<{
+const { entity, controller, parentId } = defineProps<{
     entity: Entity
     controller: Controller
+    parentId?: DbId
 }>()
 
 // state
@@ -38,7 +39,7 @@ watch(search, () => {
         />
         <Button
             v-if="entity && controller && controller.create"
-            :href="controller.create().url"
+            :href="controller.create(parentId).url"
             as="a"
             class="ml-auto"
         >

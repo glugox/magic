@@ -1,0 +1,4 @@
+/**
+ * Has Many Relation Routes
+ */
+Route::resource('{{entityRouteName}}/{{{entitySingularLower}}}/{{relationRoute}}', {{controllerClass}}::class)->names('{{entityRouteName}}.{{relationName}}');

@@ -15,6 +15,7 @@ use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use ReflectionException;
 
 #[ActionDescription(
@@ -160,6 +161,7 @@ class PublishFilesAction implements DescribableAction
     private function generateEntityHelperFile(Entity $entity)
     {
         $entityName = $entity->getName();
+        $entitySingularLower = Str::camel(Str::singular($entity->getName()));
         $folderName = $entity->getFolderName();
         $fileName = $folderName.'_helper.ts';
         $path = "{$this->jsPath}/helpers/{$fileName}";
@@ -191,6 +193,7 @@ export function get{$entityName}EntityMeta(): Entity {
         name: '{$entityName}',
         indexRouteName: '{$entity->getIndexRouteName()}',
         singularName: '{$entity->getSingularName()}',
+        singularNameLower: '{$entitySingularLower}',
         pluralName: '{$entity->getPluralName()}',
         fields: [
             // Define fields for the entity

@@ -6,7 +6,7 @@ it('generates controller and routes for entities', function () {
 
     // Prepare
     $action = app(GenerateControllersAction::class);
-    $buildContext = getFixtureBuildContext();
+    $buildContext = getFixtureBuildContext('resume');
 
     // Act
     $buildContext = $action($buildContext);
@@ -43,9 +43,7 @@ it('generates both API and regular controllers for entities', function () {
         'public function store',
         'public function show',
         'public function update',
-        'public function destroy',
-        'public function search',
-        'public function options',
+        'public function destroy'
     ];
     foreach ($expectedApiMethods as $method) {
         expect($apiContents)->toContain($method);

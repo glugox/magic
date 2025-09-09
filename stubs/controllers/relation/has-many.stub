@@ -23,13 +23,8 @@ class {{controllerClass}} extends Controller
         protected TableQueryService $tableQueryService
     ){}
 
-    public function index({{parentModelClass}} ${{parentModelClassLower}})
+    public function index(Request $request, {{parentModelClass}} ${{parentModelClassLower}})
     {
-        $request = request();
-
-        // Load parent relation
-        ${{parentModelClassLower}}->load('{{relationName}}');
-
         // Base query for related model
         $query = ${{parentModelClassLower}}->{{relationName}}()->getQuery();
         $searchableFields = {{searchableFieldsCode}};
@@ -47,10 +42,51 @@ class {{controllerClass}} extends Controller
             $request->get('sortDir', 'asc')
         )->paginate();
 
-
         return Inertia::render('{{parentModelFolderName}}/{{relationName}}/Index', [
             'item' => new {{parentModelResourceClass}}(${{parentModelClassLower}}),
             '{{relationName}}' => {{relatedModelResourceClass}}::collection($relatedItems)->response()->getData(),
         ]);
     }
+
+    /**
+     * Show the form for creating a new {{modelClass}}.
+     */
+     public function create(Request $request, {{parentModelClass}} ${{parentModelClassLower}})
+     {
+        // Base query for related model
+        $query = ${{parentModelClassLower}}->{{relationName}}()->getQuery();
+        $searchableFields = {{searchableFieldsCode}};
+        $relations = {{relationNamesCode}};
+        $selectFields = {{tableFieldsNamesStr}};
+
+        // Apply table query (search, sort, filters)
+        $relatedItems = $this->tableQueryService->applyAll(
+            $query,
+            $searchableFields,
+            $relations,
+            $selectFields,
+            $request->get('{{searchQueryString}}', ''),
+            $request->get('sortKey', 'id'),
+            $request->get('sortDir', 'asc')
+        )->paginate();
+
+        return Inertia::render('{{parentModelFolderName}}/{{relationName}}/Index', [
+            'item' => new {{parentModelResourceClass}}(${{parentModelClassLower}}),
+            '{{relationName}}' => {{relatedModelResourceClass}}::collection($relatedItems)->response()->getData(),
+            'showCreateForm' => true
+        ]);
+     }
+
+     /**
+      * Store a newly created {{modelClass}} in storage.
+      */
+     public function store(Request $request, {{parentModelClass}} ${{parentModelClassLower}})
+     {
+        $data = $request->validate({{rulesArrayStrCreate}});
+
+        // Create the related model instance for has-many relationship
+        ${{parentModelClassLower}}->{{relationName}}()->create($data);
+        ${{parentModelClassLower}}->save();
+
+     }
 }

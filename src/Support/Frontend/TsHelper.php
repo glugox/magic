@@ -86,6 +86,21 @@ class TsHelper
     }
 
     /**
+     * writeRelationIndexPageSupportImports
+     */
+    public function writeRelationIndexPageSupportImports(Entity $relatedEntity, Entity $entity): string
+    {
+        $imports = [
+            // Eg. import { getUserColumns, getUserEntityMeta } from '@/helpers/users_helper';
+            "import { get{$entity->name}EntityMeta } from '@/helpers/{$entity->getFolderName()}_helper'",
+            "import { get{$relatedEntity->name}Columns, get{$relatedEntity->name}EntityMeta } from '@/helpers/{$relatedEntity->getFolderName()}_helper'",
+            "import { type PaginatedResponse, type TableFilters } from '@/types/support';"
+        ];
+
+        return implode("\n", $imports)."\n";
+    }
+
+    /**
      * In entity helper files like @/helpers/users_helper'
      * we need some support imports.
      */

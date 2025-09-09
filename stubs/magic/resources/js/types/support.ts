@@ -40,6 +40,7 @@ export interface Entity {
     name: string
     indexRouteName: string
     singularName: string
+    singularNameLower: string
     pluralName: string
     fields: Field[]
     relations: Relation[]

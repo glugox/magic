@@ -32,18 +32,191 @@ function sampleConfigsFilePaths($max = 3): array
 /**
  * @throws JsonException
  */
-function getFixtureBuildContext(): BuildContext
+function getFixtureBuildContext(?string $sample = null): BuildContext
 {
     $buildContext = new BuildContext;
-    $buildContext->setConfig(getFixtureConfig());
+    $buildContext->setConfig(getFixtureConfig($sample));
 
     return $buildContext;
+}
+
+function getFixtureConfig(?string $sample = null): Config
+{
+    return match ($sample) {
+        'resume' => getFixtureConfigResume(),
+        default => getFixtureConfigInventory()
+    };
+}
+function getFixtureConfigResume(): Config
+{
+    return Config::fromJson('
+    {
+    "app": {
+        "name": "UNO"
+    },
+    "entities": [
+        {
+            "name": "User",
+            "icon": "Users",
+            "fields": [
+                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "name", "type": "string", "nullable": false, "sortable": true, "searchable": true },
+                { "name": "email", "type": "string", "nullable": false, "unique": true, "sortable": true, "searchable": true },
+                { "name": "password", "type": "password", "nullable": false, "hidden": true }
+            ],
+            "relations": [
+                { "type": "hasMany", "entity": "Address", "foreign_key": "user_id" },
+                { "type": "hasMany", "entity": "Resume", "foreign_key": "user_id" },
+                { "type": "belongsToMany", "entity": "Role", "pivot": "role_user", "foreign_key": "user_id", "related_key": "role_id" }
+            ],
+            "casts": {
+                "email_verified_at": "datetime"
+            }
+        },
+        {
+            "name": "Address",
+            "icon": "MapPin",
+            "fields": [
+                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "user_id", "type": "unsignedBigInteger", "nullable": false },
+                { "name": "street", "type": "string", "nullable": false, "searchable": true },
+                { "name": "city", "type": "string", "nullable": false, "searchable": true },
+                { "name": "country", "type": "string", "nullable": false, "searchable": true },
+                { "name": "postal_code", "type": "string", "nullable": true, "searchable": true }
+            ],
+            "relations": [
+                { "type": "belongsTo", "entity": "User", "foreign_key": "user_id" }
+            ]
+        },
+        {
+            "name": "Resume",
+            "icon": "FileText",
+            "fields": [
+                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "user_id", "type": "unsignedBigInteger", "nullable": false },
+                { "name": "title", "type": "string", "nullable": false, "searchable": true },
+                { "name": "summary", "type": "text", "nullable": true, "searchable": true, "showInTable": false }
+            ],
+            "relations": [
+                { "type": "belongsTo", "entity": "User", "foreign_key": "user_id" },
+                { "type": "hasMany", "entity": "WorkExperience", "foreign_key": "resume_id" },
+                { "type": "hasMany", "entity": "Education", "foreign_key": "resume_id" },
+                { "type": "hasMany", "entity": "Skill", "foreign_key": "resume_id" },
+                { "type": "hasMany", "entity": "Certification", "foreign_key": "resume_id" },
+                { "type": "hasMany", "entity": "Project", "foreign_key": "resume_id" },
+                { "type": "hasMany", "entity": "Language", "foreign_key": "resume_id" }
+            ]
+        },
+        {
+            "name": "WorkExperience",
+            "icon": "Briefcase",
+            "fields": [
+                { "name": "id", "type": "bigIncrements" },
+                { "name": "resume_id", "type": "unsignedBigInteger" },
+                { "name": "company", "type": "string", "searchable": true },
+                { "name": "position", "type": "string", "searchable": true },
+                { "name": "start_date", "type": "date" },
+                { "name": "end_date", "type": "date", "nullable": true },
+                { "name": "description", "type": "text", "nullable": true, "showInTable": false }
+            ],
+            "relations": [
+                { "type": "belongsTo", "entity": "Resume", "foreign_key": "resume_id" }
+            ]
+        },
+        {
+            "name": "Education",
+            "icon": "GraduationCap",
+            "fields": [
+                { "name": "id", "type": "bigIncrements" },
+                { "name": "resume_id", "type": "unsignedBigInteger" },
+                { "name": "institution", "type": "string", "searchable": true },
+                { "name": "degree", "type": "string", "searchable": true },
+                { "name": "field_of_study", "type": "string", "nullable": true },
+                { "name": "start_date", "type": "date" },
+                { "name": "end_date", "type": "date", "nullable": true }
+            ],
+            "relations": [
+                { "type": "belongsTo", "entity": "Resume", "foreign_key": "resume_id" }
+            ]
+        },
+        {
+            "name": "Skill",
+            "icon": "Sparkles",
+            "fields": [
+                { "name": "id", "type": "bigIncrements" },
+                { "name": "resume_id", "type": "unsignedBigInteger" },
+                { "name": "name", "type": "string", "searchable": true },
+                { "name": "level", "type": "string", "nullable": true }
+            ],
+            "relations": [
+                { "type": "belongsTo", "entity": "Resume", "foreign_key": "resume_id" }
+            ]
+        },
+        {
+            "name": "Certification",
+            "icon": "Award",
+            "fields": [
+                { "name": "id", "type": "bigIncrements" },
+                { "name": "resume_id", "type": "unsignedBigInteger" },
+                { "name": "name", "type": "string", "searchable": true },
+                { "name": "organization", "type": "string", "nullable": true },
+                { "name": "date_received", "type": "date", "nullable": true }
+            ],
+            "relations": [
+                { "type": "belongsTo", "entity": "Resume", "foreign_key": "resume_id" }
+            ]
+        },
+        {
+            "name": "Project",
+            "icon": "FolderKanban",
+            "fields": [
+                { "name": "id", "type": "bigIncrements" },
+                { "name": "resume_id", "type": "unsignedBigInteger" },
+                { "name": "title", "type": "string", "searchable": true },
+                { "name": "description", "type": "longText", "nullable": true, "showInTable": false },
+                { "name": "url", "type": "url", "nullable": true }
+            ],
+            "relations": [
+                { "type": "belongsTo", "entity": "Resume", "foreign_key": "resume_id" }
+            ]
+        },
+        {
+            "name": "Language",
+            "icon": "Languages",
+            "fields": [
+                { "name": "id", "type": "bigIncrements" },
+                { "name": "resume_id", "type": "unsignedBigInteger" },
+                { "name": "name", "type": "string" },
+                { "name": "proficiency", "type": "string", "nullable": true }
+            ],
+            "relations": [
+                { "type": "belongsTo", "entity": "Resume", "foreign_key": "resume_id" }
+            ]
+        },
+        {
+            "name": "Role",
+            "icon": "Shield",
+            "fields": [
+                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "name", "type": "string", "nullable": false, "unique": true, "searchable": true }
+            ],
+            "relations": [
+                { "type": "belongsToMany", "entity": "User", "pivot": "role_user", "foreign_key": "role_id", "related_key": "user_id" }
+            ]
+        }
+    ],
+    "dev": {
+        "seedEnabled": true,
+        "seedCount": 20
+    }
+}
+');
 }
 
 /**
  * @throws JsonException
  */
-function getFixtureConfig(): Config
+function getFixtureConfigInventory(): Config
 {
     return Config::fromJson('{
     "app": {

@@ -20,7 +20,7 @@ const { table, rows, page, perPage, total, search } = useResourceTable(props)
 </script>
 
 <template>
-    <Toolbar class="mb-2" @update:search="value => search = value" :controller="props.controller" :entity="props.entity" />
+    <Toolbar class="mb-2" @update:search="value => search = value" :controller="props.controller" :parent-id="props.parentId" :entity="props.entity" />
     <div class="rounded-md border">
         <Table>
             <!-- headers -->
