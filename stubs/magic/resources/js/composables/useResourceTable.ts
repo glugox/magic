@@ -1,5 +1,5 @@
 import { computed, ref, toRefs, watch } from "vue"
-import { router } from "@inertiajs/vue3"
+import {router, useForm} from "@inertiajs/vue3"
 import {
     getCoreRowModel,
     RowSelectionState,
@@ -47,6 +47,9 @@ export function useResourceTable<T>(props: {
     // --- global truth ---
     const selectedIds = ref<DbId[]>(filters.value?.selectedIds ?? [])
     const lastSavedIds = ref<DbId[]>(filters.value?.selectedIds ?? [])
+
+    // Processing state for displaying spinner during network requests
+    const bulkActionProcessing = ref(false)
 
     // 🔑 Keep local state in sync with Inertia-provided filters
     watch(
@@ -224,6 +227,68 @@ export function useResourceTable<T>(props: {
         pageCount: computed(() => Math.ceil(total.value / perPage.value)).value,
     })
 
+    /**
+     * Perform bulk action on selected rows
+     */
+    async function performBulkAction(action: "edit" | "delete" | "archive") {
+        if (selectedIds.value.length === 0) {
+            alert("No items selected.")
+            return
+        }
+
+        const confirmed =
+            action === "delete"
+                ? confirm(`Are you sure you want to delete ${selectedIds.value.length} item(s)?`)
+                : confirm(`Archive ${selectedIds.value.length} item(s)?`)
+
+        if (!confirmed) return
+
+        try {
+            bulkActionProcessing.value = true // show spinner
+
+            switch (action) {
+                case "delete": {
+                    // Use Wayfinder-generated form
+                    const form = useForm({ ids: selectedIds.value })
+                    const postForm = controller.value.bulkDestroy(parentId?.value)
+                    await new Promise<void>((resolve, reject) => {
+                        form.submit(postForm, {
+                            onSuccess: () => resolve(),
+                            onError: (err) => reject(err),
+                        })
+                    })
+
+                    // clear selection after success
+                    selectedIds.value = []
+                    lastSavedIds.value = []
+                    filters.value.selectedIds = []
+
+                    break
+                }
+                case "archive": {
+                    const form = useForm({ ids: selectedIds.value })
+                    const postForm = controller.value.bulkArchiveForm?.(parentId?.value)
+                    if (postForm) {
+                        await new Promise<void>((resolve, reject) => {
+                            form.submit(postForm, {
+                                onSuccess: () => resolve(),
+                                onError: (err) => reject(err),
+                            })
+                        })
+                    }
+                    break
+                }
+                case "edit":
+                    // optionally handle bulk edit here
+                    break
+            }
+        } catch (err) {
+            console.error(`Failed to ${action}`, err)
+        } finally {
+            bulkActionProcessing.value = false // hide spinner
+        }
+    }
+
     // sync inertia updates
     watch(data, (newData) => {
         rows.value = newData.data
@@ -247,6 +312,8 @@ export function useResourceTable<T>(props: {
         search,
         sorting,
         selectedIds,
+        performBulkAction,
+        bulkActionProcessing,
         send,
     }
 }

@@ -30,6 +30,7 @@ class InstallNodePackagesAction implements DescribableAction
 
         'calendar',
         'command',
+        'dropdown-menu',
         'form',
         'popover',
         'select',

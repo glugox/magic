@@ -4,6 +4,7 @@ import {Button} from "@/components/ui/button";
 import {ref, watch} from "vue";
 import {Entity, Controller, DbId} from "@/types/support";
 import {debounced} from "@/lib/app";
+import ToolBarActions from "@/components/resource-table/ToolBarActions.vue";
 
 // props
 const { entity, controller, parentId } = defineProps<{
@@ -18,6 +19,7 @@ const search = ref("")
 // Emits
 const emit = defineEmits<{
     (e: 'update:search', value: string): void
+    (e: "bulk-action", action: "edit" | "delete" | "archive"): void
 }>()
 
 // Track search input with debounce and emit event
@@ -45,6 +47,7 @@ watch(search, () => {
         >
             New {{ entity.singularName }}
         </Button>
+        <ToolBarActions @action="action => emit('bulk-action', action)" />
     </div>
 </template>
 

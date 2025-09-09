@@ -2,3 +2,5 @@
  * Has Many Relation Routes
  */
 Route::resource('{{entityRouteName}}/{{{entitySingularLower}}}/{{relationRoute}}', {{controllerClass}}::class)->names('{{entityRouteName}}.{{relationName}}');
+// Bulk Delete
+Route::delete('{{entityRouteName}}/{{{entitySingularLower}}}/{{relationRoute}}', [{{controllerClass}}::class, 'bulkDestroy'])->name('{{entityRouteName}}.{{relationName}}.bulk-destroy');

@@ -126,6 +126,8 @@ class GenerateControllersAction implements DescribableAction
         $parentModelClass = $entity->getClassName();
         $parentModelClassLower = Str::camel($parentModelClass);
         $relatedModelClass = $relatedEntity->getClassName();
+        $relatedModelClassLower = Str::lower($relatedModelClass);
+        $relatedTableName = $relatedEntity->getTableName();
         $controllerClass = Str::studly($entity->getName()).Str::studly($relatedEntity->getSingularName()).'Controller';
         $relationName = $relation->getRelationName();
         $parentModelFolderName = $entity->getFolderName();
@@ -187,6 +189,8 @@ class GenerateControllersAction implements DescribableAction
             '{{tableFieldsNamesStr}}' => $tableFieldsNamesStr,
             '{{selectRelatedFieldsStr}}' => $selectRelatedFieldsStr,
             '{{relatedModelClass}}' => $relatedModelClass,
+            '{{relatedModelClassLower}}' => $relatedModelClassLower,
+            '{{relatedTableName}}' => $relatedTableName,
             '{{foreignKey}}' => $relation->getForeignKey(),
             '{{relatedModelResourceClass}}' => $relatedModelResourceClass,
             '{{parentModelResourceClass}}' => $parentModelResourceClass,

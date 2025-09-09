@@ -4,16 +4,15 @@ import { useForm } from '@inertiajs/vue3'
 import { Button } from '@/components/ui/button'
 import { Entity } from '@/types/support'
 import FieldRenderer from '@/components/form/FieldRenderer.vue'
-import {DbId} from "../types/support";
+import { DbId } from "../types/support"
 
 // Props
 const { item, entity, controller, parentEntity, parentId } = defineProps<{
     item?: Record<string, any>
     entity: Entity
-    controller: any,
-    parentEntity?: Entity,
-    parentId?: DbId,
-
+    controller: any
+    parentEntity?: Entity
+    parentId?: DbId
 }>()
 
 // Build initial form data
@@ -27,27 +26,28 @@ const form = useForm(initialData)
 
 // Decide CRUD action URL
 const formAction = computed(() => {
-    // item ? controller.update(item.id) : controller.store()
-    var args = {}
+    let args = {}
 
-    // If item has id, use it
-    if (item && item.id) {
+    if (item?.id) {
         args = { id: item.id }
     }
 
-    // If parentId is provided, add it to args in a format suitable for the controller method
-    // E.g., if parent entity is 'User', add { user: parentId }
     const parentEntitySingularLower = parentEntity?.singularNameLower
     if (parentId && parentEntitySingularLower) {
         args = { [parentEntitySingularLower]: parentId }
     }
 
-    // Call the appropriate controller method from Wayfinder
     if (!item?.id) {
         return controller.store(args)
     } else {
         return controller.update(args)
     }
+})
+
+// Decide delete action URL
+const deleteAction = computed(() => {
+    if (!item?.id) return null
+    return controller.destroy({ id: item.id })
 })
 
 // Decide crud action type
@@ -60,6 +60,14 @@ function submit() {
     } else {
         form.put(formAction.value)
     }
+}
+
+// Delete handler
+function destroy() {
+    if (!deleteAction.value) return
+    //if (confirm("Are you sure you want to delete this item?")) {
+    form.delete(deleteAction.value)
+    //}
 }
 </script>
 
@@ -78,7 +86,17 @@ function submit() {
 
         <div class="flex items-center gap-4">
             <Button :disabled="form.processing">
-                {{ !item?.id ? 'Create' : 'Update'}}
+                {{ !item?.id ? 'Create' : 'Update' }}
+            </Button>
+
+            <Button
+                v-if="item?.id"
+                type="button"
+                variant="destructive"
+                :disabled="form.processing"
+                @click="destroy"
+            >
+                Delete
             </Button>
 
             <Transition

@@ -434,6 +434,7 @@ class Entity
 
     /**
      * Get name fields as names strings.
+     * Example: ['first_name', 'last_name']
      */
     public function getNameFieldsNames(): array
     {

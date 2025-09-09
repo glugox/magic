@@ -89,4 +89,32 @@ class {{controllerClass}} extends Controller
         ${{parentModelClassLower}}->save();
 
      }
+
+     /**
+      * Remove the specified {{modelClass}} from database.
+      */
+      public function destroy({{parentModelClass}} ${{parentModelClassLower}}, {{relatedModelClass}} ${{relatedModelClassLower}})
+      {
+          // Delete the related model instance
+          ${{relatedModelClassLower}}->delete();
+
+          return back()->with('success', '{{relatedModelClass}} deleted.');
+      }
+
+      /**
+       * Bulk delete the specified {{modelClass}} from database.
+       */
+       public function bulkDestroy(Request $request, {{parentModelClass}} ${{parentModelClassLower}})
+       {
+            $data = $request->validate([
+              'ids' => 'required|array',
+              'ids.*' => 'exists:{{relatedTableName}},id'
+            ]);
+
+            // Bulk delete related model instances
+            ${{parentModelClassLower}}->{{relationName}}()->whereIn('id', $data['ids'])->delete();
+
+            return back()->with('success', '{{relatedModelClass}}s deleted.');
+       }
+
 }

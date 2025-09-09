@@ -33,5 +33,8 @@ class {{modelClass}} extends {{extends}}
     // Custom appended attributes
     {{appends}}
 
+    // Name fields for display purposes
+    {{nameFields}}
+
     {{relations}}
 }

@@ -167,6 +167,7 @@ class GenerateModelsAction implements DescribableAction
                 $casts
             )),
             '{{appends}}' => ! empty($appends) ? "protected \$appends = [\n        '".implode("',\n        '", $appends)."'\n    ];" : '',
+            '{{nameFields}}' => ! empty($nameFields) ? "protected \$nameFields = [\n        '".implode("',\n        '", $nameFields)."'\n    ];" : '',
             '{{relations}}' => $relationsCode,
         ];
 

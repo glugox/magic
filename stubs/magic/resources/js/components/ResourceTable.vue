@@ -16,11 +16,17 @@ export interface ResourceTableProps<T> {
     controller: any
 }
 const props = defineProps<ResourceTableProps<T>>()
-const { table, rows, page, perPage, total, search } = useResourceTable(props)
+const { table, rows, page, perPage, total, search, performBulkAction } = useResourceTable(props)
 </script>
 
 <template>
-    <Toolbar class="mb-2" @update:search="value => search = value" :controller="props.controller" :parent-id="props.parentId" :entity="props.entity" />
+    <Toolbar
+        class="mb-2"
+        @update:search="value => search = value"
+        :controller="props.controller"
+        :parent-id="props.parentId"
+        @bulk-action="performBulkAction"
+        :entity="props.entity" />
     <div class="rounded-md border">
         <Table>
             <!-- headers -->
