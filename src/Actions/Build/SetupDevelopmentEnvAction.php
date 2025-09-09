@@ -2,7 +2,6 @@
 
 namespace Glugox\Magic\Actions\Build;
 
-use Artisan;
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Support\BuildContext;
@@ -27,7 +26,7 @@ class SetupDevelopmentEnvAction implements DescribableAction
         /**
          * Write this in main.js or app.js to simulate slow server in development en
          */
-        $slowServerSnippet = <<<EOT
+        $slowServerSnippet = <<<'EOT'
 import axios from "axios";
 if (import.meta.env.DEV) {
     // Add a global delay to simulate slow server
@@ -45,13 +44,14 @@ EOT;
             $mainFilePath = $mainAppPath;
         } else {
             Log::channel('magic')->warning("Neither main.ts nor app.ts found in resources/js. Please add the following snippet manually to simulate a slow server in development environment:\n$slowServerSnippet");
+
             return $context;
         }
 
         // Check if the snippet already exists to avoid duplication
         $mainFileContent = file_get_contents($mainFilePath);
-        if (!str_contains($mainFileContent, 'import.meta.env.DEV')) {
-            file_put_contents($mainFilePath, $mainFileContent . "\n" . $slowServerSnippet );
+        if (! str_contains($mainFileContent, 'import.meta.env.DEV')) {
+            file_put_contents($mainFilePath, $mainFileContent."\n".$slowServerSnippet);
             Log::channel('magic')->info("Added slow server simulation snippet to $mainFilePath");
         } else {
             Log::channel('magic')->info("Slow server simulation snippet already exists in $mainFilePath");
