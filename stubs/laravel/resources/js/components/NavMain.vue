@@ -21,6 +21,6 @@ const page = usePage();
                     </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
-        </SidebarMenu>∂
+        </SidebarMenu>
     </SidebarGroup>
 </template>
