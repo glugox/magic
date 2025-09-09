@@ -285,7 +285,7 @@ class Entity
      *
      * @return Field[]
      */
-    public function getTableFields(?bool $skipRelations = false): array
+    public function getTableFields(?bool $skipRelations = true): array
     {
         $visible = [];
 
@@ -332,7 +332,7 @@ class Entity
     /**
      * Get names of fields that should be visible in tables/lists.
      */
-    public function getTableFieldsNames(?bool $skipRelations = false): array
+    public function getTableFieldsNames(?bool $skipRelations = true): array
     {
         $visible = [];
         foreach ($this->getTableFields($skipRelations) as $field) {

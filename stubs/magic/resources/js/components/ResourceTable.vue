@@ -16,7 +16,7 @@ export interface ResourceTableProps<T> {
     controller: any
 }
 const props = defineProps<ResourceTableProps<T>>()
-const { table, rows, page, perPage, total, search, performBulkAction } = useResourceTable(props)
+const { table, rows, page, perPage, total, search, performBulkAction, bulkActionProcessing } = useResourceTable(props)
 </script>
 
 <template>
@@ -26,6 +26,7 @@ const { table, rows, page, perPage, total, search, performBulkAction } = useReso
         :controller="props.controller"
         :parent-id="props.parentId"
         @bulk-action="performBulkAction"
+        :bulk-action-processing="bulkActionProcessing"
         :entity="props.entity" />
     <div class="rounded-md border">
         <Table>
@@ -58,5 +59,5 @@ const { table, rows, page, perPage, total, search, performBulkAction } = useReso
             </TableBody>
         </Table>
     </div>
-    <Pagination :total="total" :per-page="perPage" :page="page" @update:page="p => (page = p)" />
+    <Pagination :disabled="bulkActionProcessing" :total="total" :per-page="perPage" :page="page" @update:page="p => (page = p)" />
 </template>

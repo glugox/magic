@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import {computed, ref} from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { Button } from '@/components/ui/button'
 import { Entity } from '@/types/support'
 import FieldRenderer from '@/components/form/FieldRenderer.vue'
 import { DbId } from "../types/support"
+import {Loader} from "lucide-vue-next";
 
 // Props
 const { item, entity, controller, parentEntity, parentId } = defineProps<{
@@ -54,7 +55,7 @@ const deleteAction = computed(() => {
 const crudActionType = computed(() => (item ? 'update' : 'create'))
 
 // Submit handler
-function submit() {
+async function submit() {
     if (!item?.id) {
         form.post(formAction.value)
     } else {
@@ -98,6 +99,8 @@ function destroy() {
             >
                 Delete
             </Button>
+
+            <Loader v-if="form.processing" class="w-4 h-4 mr-2 animate-spin" />
 
             <Transition
                 enter-active-class="transition ease-in-out"

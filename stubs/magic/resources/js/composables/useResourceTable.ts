@@ -82,10 +82,16 @@ export function useResourceTable<T>(props: {
         if (sortKey.value) params.sortKey = sortKey.value
         if (sortDir.value) params.sortDir = sortDir.value
 
+        // Show loading state in UI
+        bulkActionProcessing.value = true
+
         router.get(controller.value.index(parentId?.value), params, {
             preserveState: true,
             preserveScroll: true,
             replace: true,
+            onFinish: () => {
+                bulkActionProcessing.value = false
+            },
         })
     }
 
@@ -169,8 +175,14 @@ export function useResourceTable<T>(props: {
             const url = controller.value.updateSelection(parentId?.value).url
             console.log("Saving selection diff:", { added, removed })
 
+            // Show loader in UI
+            bulkActionProcessing.value = true
+
             const response = await axios.post(url, { added, removed })
             console.log("Selection saved:", response.data)
+
+            // Hide loader in UI
+            bulkActionProcessing.value = false
 
             // Update lastSavedIds with confirmed server state
             lastSavedIds.value = [...response.data.selectedIds]
@@ -220,7 +232,7 @@ export function useResourceTable<T>(props: {
                 sortDir.value = null
             }
         },
-        onRowSelectionChange: toggleRowSelection, // 🔑 ← THIS WAS MISSING
+        onRowSelectionChange: toggleRowSelection,
         getCoreRowModel: getCoreRowModel(),
         manualPagination: true,
         manualSorting: true,
@@ -236,12 +248,12 @@ export function useResourceTable<T>(props: {
             return
         }
 
-        const confirmed =
+        /*const confirmed =
             action === "delete"
                 ? confirm(`Are you sure you want to delete ${selectedIds.value.length} item(s)?`)
                 : confirm(`Archive ${selectedIds.value.length} item(s)?`)
 
-        if (!confirmed) return
+        if (!confirmed) return*/
 
         try {
             bulkActionProcessing.value = true // show spinner

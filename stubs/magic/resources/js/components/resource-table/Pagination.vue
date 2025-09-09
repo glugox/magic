@@ -5,10 +5,11 @@ import {Button} from "@/components/ui/button";
 import {ref} from "vue";
 
 // props
-const { total, perPage, page } = defineProps<{
+const { total, perPage, page, disabled } = defineProps<{
     total: number
     perPage: number
-    page?: number
+    page?: number,
+    disabled?: boolean
 }>()
 
 // emits
@@ -32,18 +33,19 @@ const lastPage = Math.ceil(total / perPage)
             @update:page="(p) => { emit('update:page', p) }"
         >
             <PaginationContent v-slot="{ items }" class="flex space-x-1">
-                <PaginationFirst as-child>
-                    <Button size="sm" :disabled="page === 1">« First</Button>
+                <PaginationFirst as-child >
+                    <Button size="sm" :disabled="disabled || page === 1">« First</Button>
                 </PaginationFirst>
 
                 <PaginationPrevious as-child>
-                    <Button size="sm" :disabled="page === 1">‹ Prev</Button>
+                    <Button size="sm" :disabled="disabled || page === 1">‹ Prev</Button>
                 </PaginationPrevious>
 
                 <template v-for="item in items" :key="item.type + '-' + item">
                     <PaginationItem v-if="item.type === 'page'" :value="item.value" as-child>
                         <Button
                             size="sm"
+                            :disabled="disabled"
                             :variant="item.value === page ? 'default' : 'outline'"
                         >
                             {{ item.value }}
@@ -53,11 +55,11 @@ const lastPage = Math.ceil(total / perPage)
                 </template>
 
                 <PaginationNext as-child>
-                    <Button size="sm" :disabled="page === lastPage">Next ›</Button>
+                    <Button size="sm" :disabled="disabled || page === lastPage">Next ›</Button>
                 </PaginationNext>
 
                 <PaginationLast as-child>
-                    <Button size="sm" :disabled="page === lastPage">Last »</Button>
+                    <Button size="sm" :disabled="disabled || page === lastPage">Last »</Button>
                 </PaginationLast>
             </PaginationContent>
         </Pagination>

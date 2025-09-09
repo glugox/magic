@@ -2,6 +2,7 @@
 
 import {Button} from "@/components/ui/button";
 import {ref, watch} from "vue";
+import { Loader } from 'lucide-vue-next';
 import {Entity, Controller, DbId} from "@/types/support";
 import {debounced} from "@/lib/app";
 import ToolBarActions from "@/components/resource-table/ToolBarActions.vue";
@@ -10,7 +11,8 @@ import ToolBarActions from "@/components/resource-table/ToolBarActions.vue";
 const { entity, controller, parentId } = defineProps<{
     entity: Entity
     controller: Controller
-    parentId?: DbId
+    parentId?: DbId,
+    bulkActionProcessing?: boolean
 }>()
 
 // state
@@ -32,22 +34,28 @@ watch(search, () => {
 </script>
 
 <template>
-    <div class="flex gap-2 items-center">
-        <input
-            v-model="search"
-            type="search"
-            placeholder="Search…"
-            class="border rounded px-2 py-1 w-64"
-        />
-        <Button
-            v-if="entity && controller && controller.create"
-            :href="controller.create(parentId).url"
-            as="a"
-            class="ml-auto"
-        >
-            New {{ entity.singularName }}
-        </Button>
-        <ToolBarActions @action="action => emit('bulk-action', action)" />
+    <div class="flex gap-2 items-center justify-between">
+        <div>
+            <input
+                v-model="search"
+                type="search"
+                placeholder="Search…"
+                class="border rounded px-2 py-1 w-52"
+            />
+        </div>
+        <div class="flex items-center gap-2">
+            <Loader v-if="bulkActionProcessing" class="w-4 h-4 mr-2 animate-spin" />
+            <Button
+                variant="default" size="sm"
+                v-if="entity && controller && controller.create"
+                :href="controller.create(parentId).url"
+                as="a"
+                class="ml-auto"
+            >
+                New {{ entity.singularName }}
+            </Button>
+            <ToolBarActions @action="action => emit('bulk-action', action)" />
+        </div>
     </div>
 </template>
 

@@ -75,6 +75,12 @@ class GenerateAppAction implements DescribableAction
         $buildContext = app(UpdateDbAction::class)($buildContext);
 
         // Step 13: Write Manifest
-        return app(GenerateManifestAction::class)($buildContext);
+        $buildContext = app(GenerateManifestAction::class)($buildContext);
+
+        // Step 14: Setup Development Environment (optional)
+        $buildContext = app(SetupDevelopmentEnvAction::class)($buildContext);
+
+        // Return the final BuildContext
+        return $buildContext;
     }
 }
