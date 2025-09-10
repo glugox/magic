@@ -2,7 +2,7 @@
 
 use Glugox\Magic\Actions\Build\GenerateControllersAction;
 
-it('generates controller and routes for entities', function () {
+it('generates controller and routes for entities', function (): void {
 
     // Prepare
     $action = app(GenerateControllersAction::class);
@@ -16,7 +16,7 @@ it('generates controller and routes for entities', function () {
 
 });
 
-it('generates both API and regular controllers for entities', function () {
+it('generates both API and regular controllers for entities', function (): void {
     // Prepare
     $action = app(GenerateControllersAction::class);
     $buildContext = getFixtureBuildContext();
@@ -87,7 +87,7 @@ Expected generated controllers based on current JSON config:
     Attachment: 0
     Review: 0
 */
-it('generates relation controllers for entities', function () {
+it('generates relation controllers for entities', function (): void {
 
     $action = app(GenerateControllersAction::class);
     $buildContext = getFixtureBuildContext();
@@ -101,7 +101,7 @@ it('generates relation controllers for entities', function () {
     expect($createdFiles)->toBeArray()->not()->toBeEmpty();
 
     // Filter relation controllers by naming convention
-    $relationControllers = array_filter($createdFiles, function ($file) use ($controllersBase) {
+    $relationControllers = array_filter($createdFiles, function ($file) use ($controllersBase): bool {
         // Only consider files under app/Http/Controllers/
         if (! str_starts_with($file, $controllersBase)) {
             return false;
@@ -118,7 +118,7 @@ it('generates relation controllers for entities', function () {
     expect($relationControllers)->not()->toBeEmpty();
 
     // Strip base path for easier reading
-    $relationControllersShort = array_map(fn ($f) => mb_substr($f, mb_strlen($controllersBase)), $relationControllers);
+    $relationControllersShort = array_map(fn ($f): string => mb_substr((string) $f, mb_strlen($controllersBase)), $relationControllers);
     // Sort for consistency
     sort($relationControllersShort);
 

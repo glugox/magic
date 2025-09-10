@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('api')
     ->prefix('attachments')
-    ->group(function () {
+    ->group(function (): void {
         // Upload a new attachment (image/file)
         Route::post('/', [AttachmentController::class, 'store'])->name('attachments.store');
 

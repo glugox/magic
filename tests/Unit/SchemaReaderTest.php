@@ -3,7 +3,7 @@
 use Glugox\Magic\Support\Config\Config;
 use Glugox\Magic\Support\Config\Readers\SchemaReader;
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->schema = <<<'GQL'
     type User {
       id: ID!

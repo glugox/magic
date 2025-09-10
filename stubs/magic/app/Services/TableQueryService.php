@@ -43,17 +43,17 @@ class TableQueryService
     ): Builder {
 
         // Eager load relations
-        if (! empty($relations)) {
+        if ($relations !== null && $relations !== []) {
             $query->with($relations);
         }
 
         // Select specific fields if any
-        if (! empty($selectFields)) {
+        if ($selectFields !== []) {
             $query->select($selectFields);
         }
 
         // Apply search
-        if (! empty($searchString)) {
+        if ($searchString !== null && $searchString !== '' && $searchString !== '0') {
             $query = $this->searchService->apply(
                 $query,
                 $searchString,

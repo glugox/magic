@@ -6,7 +6,7 @@ use Glugox\Magic\Support\Config\Config;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 
-beforeEach(function () {
+beforeEach(function (): void {
     // Mock filesystem methods
     File::shouldReceive('exists')->andReturn(false);
     File::shouldReceive('is_dir')->andReturn(false);
@@ -19,7 +19,7 @@ beforeEach(function () {
     Log::shouldReceive('info')->andReturnNull();
 });
 
-it('skips when no entities have images', function () {
+it('skips when no entities have images', function (): void {
     $configMock = Mockery::mock(Config::class);
     $configMock->shouldReceive('anyEntityHasImages')->andReturn(false);
 
@@ -32,7 +32,7 @@ it('skips when no entities have images', function () {
     expect($result)->toBe($contextMock);
 });
 
-it('copies files and includes attachable routes', function () {
+it('copies files and includes attachable routes', function (): void {
     $configMock = Mockery::mock(Config::class);
     $configMock->shouldReceive('anyEntityHasImages')->andReturn(true);
 

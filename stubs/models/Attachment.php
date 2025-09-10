@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -72,24 +73,25 @@ class Attachment extends Model
     /**
      * Accessor: full URL for the file.
      */
-    public function getUrlAttribute(): string
+    protected function url(): Attribute
     {
-        $disk = Config::get('attachments.attachments_disk', 'public');
+        return Attribute::make(get: function () {
+            $disk = Config::get('attachments.attachments_disk', 'public');
+            if (Config::get('attachments.use_signed_urls', false)) {
+                $expiration = now()->addMinutes(Config::get('attachments.signed_url_expiration_minutes', 60));
 
-        if (Config::get('attachments.use_signed_urls', false)) {
-            $expiration = now()->addMinutes(Config::get('attachments.signed_url_expiration_minutes', 60));
+                return Storage::disk($disk)->temporaryUrl($this->file_path, $expiration);
+            }
 
-            return Storage::disk($disk)->temporaryUrl($this->file_path, $expiration);
-        }
-
-        return Storage::disk($disk)->url($this->file_path);
+            return Storage::disk($disk)->url($this->file_path);
+        });
     }
 
     /**
      * Accessor: check if this attachment is an image.
      */
-    public function getIsImageAttribute(): bool
+    protected function isImage(): Attribute
     {
-        return str_starts_with($this->file_type, 'image/');
+        return Attribute::make(get: fn (): bool => str_starts_with($this->file_type, 'image/'));
     }
 }

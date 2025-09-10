@@ -67,7 +67,7 @@ class AttachmentController extends Controller
      */
     public function destroy(Attachment $attachment)
     {
-        DB::transaction(function () use ($attachment) {
+        DB::transaction(function () use ($attachment): void {
             Storage::disk('public')->delete($attachment->path);
 
             // delete thumbnail if exists

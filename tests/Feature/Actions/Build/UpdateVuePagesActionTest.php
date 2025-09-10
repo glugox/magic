@@ -4,7 +4,7 @@ use Glugox\Magic\Actions\Build\UpdateVuePagesAction;
 use Glugox\Magic\Actions\Files\GenerateFileAction;
 use Illuminate\Support\Facades\File;
 
-beforeEach(function () {
+beforeEach(function (): void {
     // Fake filesystem
     File::partialMock()->shouldReceive('exists')->andReturn(true);
 
@@ -33,16 +33,14 @@ VUE
     );
 
     // Fake GenerateFileAction (don't actually write)
-    app()->bind(GenerateFileAction::class, function () {
-        return function ($path, $content) {
-            $this->writtenFiles[$path] = $content;
-        };
+    app()->bind(GenerateFileAction::class, fn (): Closure => function ($path, $content): void {
+        $this->writtenFiles[$path] = $content;
     });
 
     $this->writtenFiles = [];
 });
 
-it('updates sidebar and app logo', function () {
+it('updates sidebar and app logo', function (): void {
     // Fake entity
 
     // Mock BuildContext

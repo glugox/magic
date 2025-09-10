@@ -3,7 +3,7 @@
 use Glugox\Magic\Actions\Files\GenerateFileAction;
 use Illuminate\Support\Facades\File;
 
-test('it generates a model file', function () {
+test('it generates a model file', function (): void {
     $path = base_path('app/Models/User.php');
 
     // run your generator with overridden output dir

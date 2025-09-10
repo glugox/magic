@@ -41,7 +41,7 @@ class TestCase extends Orchestra
         parent::tearDown();
     }
 
-    public function getEnvironmentSetUp($app)
+    public function getEnvironmentSetUp($app): void
     {
         config()->set('database.default', 'testing');
     }

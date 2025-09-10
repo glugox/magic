@@ -6,7 +6,7 @@ use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Config\Relation;
 
-it('parses a JSON file path into Config object', function () {
+it('parses a JSON file path into Config object', function (): void {
 
     $tmpFilePath = 'fixtures/config.json';
     prepareConfigInFile($tmpFilePath);

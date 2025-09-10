@@ -6,7 +6,7 @@ use Glugox\Magic\Support\Config\Config;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
-it('generates migration for each sample config', function () {
+it('generates migration for each sample config', function (): void {
 
     foreach (sampleConfigsFilePaths() as $configJsonPath) {
 

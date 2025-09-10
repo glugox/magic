@@ -3,13 +3,13 @@
 use Glugox\Magic\Actions\Build\GenerateApiResourcesAction;
 use Illuminate\Support\Facades\File;
 
-beforeEach(function () {
+beforeEach(function (): void {
     // Clean up generated files before each test
     File::deleteDirectory(app_path('Http/Resources'));
     File::makeDirectory(app_path('Http/Resources'), 0755, true);
 });
 
-it('generates api resource and collection for entity', function () {
+it('generates api resource and collection for entity', function (): void {
 
     $buildCotext = getFixtureBuildContext();
 
@@ -36,7 +36,7 @@ it('generates api resource and collection for entity', function () {
 
 });
 
-it('respects name accessor from HasName', function () {
+it('respects name accessor from HasName', function (): void {
     $buildCotext = getFixtureBuildContext();
 
     $action = app(GenerateApiResourcesAction::class);

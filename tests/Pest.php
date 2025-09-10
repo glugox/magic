@@ -392,7 +392,7 @@ function getFixtureConfigInventory(): Config
 
 }
 
-function getFixtureConfigStringInventoryGraphQl()
+function getFixtureConfigStringInventoryGraphQl(): string
 {
     return '# App configuration
 type App @config {

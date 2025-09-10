@@ -78,7 +78,7 @@ class GenerateAppAction implements DescribableAction
         $buildContext = app(GenerateManifestAction::class)($buildContext);
 
         // Step 14: Setup Development Environment (optional)
-        $buildContext = app(SetupDevelopmentEnvAction::class)($buildContext);
+        // $buildContext = app(SetupDevelopmentEnvAction::class)($buildContext);
 
         // Return the final BuildContext
         return $buildContext;

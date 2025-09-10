@@ -6,7 +6,7 @@ use Glugox\Magic\Support\Config\Config;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
-it('generates model for each sample config', function () {
+it('generates model for each sample config', function (): void {
     $configFiles = sampleConfigsFilePaths();
 
     foreach ($configFiles as $configJsonPath) {
@@ -35,7 +35,7 @@ it('generates model for each sample config', function () {
     }
 });
 
-it('generates models with enum casting when enum fields exist', function () {
+it('generates models with enum casting when enum fields exist', function (): void {
     // Arrange
     $context = getFixtureBuildContext();
     $action = app(GenerateModelsAction::class);

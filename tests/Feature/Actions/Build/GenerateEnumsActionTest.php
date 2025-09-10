@@ -5,7 +5,7 @@ use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Illuminate\Support\Facades\File;
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->phpEnumsPath = app_path('Enums');
     $this->tsEnumsPath = resource_path('js/enums');
 
@@ -14,7 +14,7 @@ beforeEach(function () {
     File::deleteDirectory($this->tsEnumsPath);
 });
 
-it('generates PHP and TS enums for enum fields', function () {
+it('generates PHP and TS enums for enum fields', function (): void {
     // Arrange: mock entity with enum field
     $buildContext = getFixtureBuildContext();
 

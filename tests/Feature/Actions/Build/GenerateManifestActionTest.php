@@ -3,11 +3,11 @@
 use Glugox\Magic\Actions\Build\GenerateManifestAction;
 use Glugox\Magic\Support\BuildContext;
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->contextMock = Mockery::mock(BuildContext::class);
 });
 
-it('writes manifest and returns context', function () {
+it('writes manifest and returns context', function (): void {
     $this->contextMock->shouldReceive('writeManifest')->once();
 
     $action = new GenerateManifestAction;
@@ -16,7 +16,7 @@ it('writes manifest and returns context', function () {
     expect($result)->toBe($this->contextMock);
 });
 
-it('handles exception during manifest writing gracefully', function () {
+it('handles exception during manifest writing gracefully', function (): void {
     $this->contextMock->shouldReceive('writeManifest')->andThrow(new Exception('Manifest error'));
 
     $action = new GenerateManifestAction;
@@ -24,7 +24,7 @@ it('handles exception during manifest writing gracefully', function () {
     $exceptionThrown = false;
     try {
         $action($this->contextMock);
-    } catch (Exception $e) {
+    } catch (Exception) {
         $exceptionThrown = true;
     }
 

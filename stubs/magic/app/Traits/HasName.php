@@ -30,7 +30,7 @@ trait HasName
                     $nameParts[] = $this->{$field};
                 }
             }
-            if (! empty($nameParts)) {
+            if ($nameParts !== []) {
                 return implode(' ', $nameParts);
             }
 

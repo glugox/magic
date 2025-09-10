@@ -7,7 +7,7 @@ use Glugox\Magic\Support\Config\Config;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
-it('generates seeder for each sample config', function () {
+it('generates seeder for each sample config', function (): void {
 
     // Mock
     $mock = Mockery::mock(CodeGenerationHelper::class);

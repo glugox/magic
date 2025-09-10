@@ -4,11 +4,11 @@ use Glugox\Magic\Actions\Build\Migration\GenerateMigrationForEntityAction;
 
 use function Glugox\Magic\Tests\Helpers\makeDummyProductEntityConfig;
 
-beforeEach(function () {
+beforeEach(function (): void {
     config()->set('logging.channels.magic_console.level', 'error');
 });
 
-it('generates migration for entity', function () {
+it('generates migration for entity', function (): void {
 
     // Set up a dummy entity configuration
     $entity = makeDummyProductEntityConfig();

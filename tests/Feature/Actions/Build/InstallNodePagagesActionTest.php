@@ -4,7 +4,7 @@ use Glugox\Magic\Actions\Build\InstallNodePackagesAction;
 use Glugox\Magic\Support\BuildContext;
 use Illuminate\Support\Facades\Log;
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->context = Mockery::mock(BuildContext::class);
 
     // Mock logging globally
@@ -12,7 +12,7 @@ beforeEach(function () {
     Log::shouldReceive('info')->andReturnNull();
 });
 
-it('skips already installed shadcn components', function () {
+it('skips already installed shadcn components', function (): void {
     $action = Mockery::mock(InstallNodePackagesAction::class)->makePartial();
 
     // Make shadcn components appear installed
@@ -24,7 +24,7 @@ it('skips already installed shadcn components', function () {
     ($action)($this->context);
 });
 
-it('runs process for missing shadcn components without executing real command', function () {
+it('runs process for missing shadcn components without executing real command', function (): void {
     $action = Mockery::mock(InstallNodePackagesAction::class)->makePartial();
 
     // Components are missing
@@ -32,7 +32,7 @@ it('runs process for missing shadcn components without executing real command', 
     $action->shouldReceive('isPackageInstalled')->andReturn(true);
 
     // Mock runProcess to prevent actual command execution
-    $action->shouldReceive('runProcess')->once()->withArgs(function ($command, $message) {
+    $action->shouldReceive('runProcess')->once()->withArgs(function ($command, $message): true {
         expect($command[0])->toBe('/usr/local/bin/npx');
         expect($command[1])->toContain('shadcn-vue@latest');
 
@@ -42,7 +42,7 @@ it('runs process for missing shadcn components without executing real command', 
     ($action)($this->context);
 });
 
-it('skips already installed npm packages', function () {
+it('skips already installed npm packages', function (): void {
     $action = Mockery::mock(InstallNodePackagesAction::class)->makePartial();
 
     // Make npm packages appear installed

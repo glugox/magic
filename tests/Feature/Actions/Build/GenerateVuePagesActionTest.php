@@ -2,7 +2,7 @@
 
 use Glugox\Magic\Actions\Build\GenerateVuePagesAction;
 
-it('generates Vue pages for entities', function () {
+it('generates Vue pages for entities', function (): void {
 
     // Prepare
     $action = app(GenerateVuePagesAction::class);

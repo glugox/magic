@@ -18,18 +18,10 @@ class ProcessAttachment implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected Attachment $attachment;
-
-    protected string $tempFilePath;
-
     /**
      * Create a new job instance.
      */
-    public function __construct(Attachment $attachment, string $tempFilePath)
-    {
-        $this->attachment = $attachment;
-        $this->tempFilePath = $tempFilePath;
-    }
+    public function __construct(protected Attachment $attachment, protected string $tempFilePath) {}
 
     /**
      * Execute the job.

@@ -18,8 +18,8 @@ class SearchService
     ): Builder {
 
         // Apply search
-        if ($searchTerm && ! empty($searchableFields)) {
-            $query->where(function ($q) use ($searchTerm, $searchableFields) {
+        if ($searchTerm && ($searchableFields !== null && $searchableFields !== [])) {
+            $query->where(function ($q) use ($searchTerm, $searchableFields): void {
                 foreach ($searchableFields as $field) {
                     $q->orWhere($field, 'like', "%{$searchTerm}%");
                 }

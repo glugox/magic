@@ -3,8 +3,9 @@
 use Glugox\Magic\Enums\CrudActionType;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Validation\RuleSetHelper;
+use Glugox\Magic\Validation\ValidationRule;
 
-it('applies base ruleset for field type', function () {
+it('applies base ruleset for field type', function (): void {
 
     $field = Field::fromConfig([
         'name' => 'username',
@@ -13,9 +14,7 @@ it('applies base ruleset for field type', function () {
         'sometimes' => false,
     ]);
     $rules = RuleSetHelper::rulesFor($field, CrudActionType::CREATE);
-    $rulesArr = array_map(function ($rule) {
-        return (string) $rule;
-    }, $rules);
+    $rulesArr = array_map(fn (ValidationRule $rule): string => (string) $rule, $rules);
 
     expect($rulesArr)->toBeArray()
         ->toContain('required')
@@ -23,7 +22,7 @@ it('applies base ruleset for field type', function () {
         ->toContain('max:255');
 });
 
-it('removes required and adds nullable if field is nullable', function () {
+it('removes required and adds nullable if field is nullable', function (): void {
 
     $nullableField = Field::fromConfig([
         'name' => 'email',
@@ -33,9 +32,7 @@ it('removes required and adds nullable if field is nullable', function () {
     ]);
 
     $rules = RuleSetHelper::rulesFor($nullableField);
-    $rulesArr = array_map(function ($rule) {
-        return (string) $rule;
-    }, $rules);
+    $rulesArr = array_map(fn (ValidationRule $rule): string => (string) $rule, $rules);
 
     expect($rulesArr)->not->toContain('required')
         ->toContain('nullable')
@@ -43,7 +40,7 @@ it('removes required and adds nullable if field is nullable', function () {
         ->toContain('max:255');
 });
 
-it('adds sometimes if field is marked sometimes', function () {
+it('adds sometimes if field is marked sometimes', function (): void {
     $sometimeField = Field::fromConfig([
         'name' => 'password',
         'type' => 'password',
@@ -52,9 +49,7 @@ it('adds sometimes if field is marked sometimes', function () {
     ]);
 
     $rules = RuleSetHelper::rulesFor($sometimeField);
-    $rulesArr = array_map(function ($rule) {
-        return (string) $rule;
-    }, $rules);
+    $rulesArr = array_map(fn (ValidationRule $rule): string => (string) $rule, $rules);
 
     expect($rulesArr)->toContain('sometimes')
         ->toContain('string')
@@ -62,7 +57,7 @@ it('adds sometimes if field is marked sometimes', function () {
         ->toContain('confirmed');
 });
 
-it('nullable and sometimes together', function () {
+it('nullable and sometimes together', function (): void {
     $nullableButSometimeField = Field::fromConfig([
         'name' => 'email',
         'type' => 'email',
@@ -71,9 +66,7 @@ it('nullable and sometimes together', function () {
     ]);
 
     $rules = RuleSetHelper::rulesFor($nullableButSometimeField);
-    $rulesArr = array_map(function ($rule) {
-        return (string) $rule;
-    }, $rules);
+    $rulesArr = array_map(fn (ValidationRule $rule): string => (string) $rule, $rules);
 
     expect($rulesArr)->toContain('nullable')
         ->not->toContain('sometimes')

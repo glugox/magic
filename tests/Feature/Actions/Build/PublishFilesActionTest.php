@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Psr\Log\LoggerInterface;
 
-beforeEach(function () {
+beforeEach(function (): void {
     // Fake logs
     Log::spy();
     $fakeLogger = Mockery::mock(LoggerInterface::class);
@@ -40,7 +40,7 @@ beforeEach(function () {
     $this->action = app(PublishFilesAction::class);
 });
 
-test('it publishes files and generates support files', function () {
+test('it publishes files and generates support files', function (): void {
     $result = ($this->action)($this->context);
 
     expect($result)->toBeInstanceOf(BuildContext::class);

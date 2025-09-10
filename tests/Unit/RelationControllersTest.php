@@ -5,7 +5,7 @@ use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Relation;
 use Glugox\Magic\Support\Config\RelationType;
 
-it('generates a relation controller template when related entity exists', function () {
+it('generates a relation controller template when related entity exists', function (): void {
     // Fake config entities
     $userEntity = new Entity('User');
     $roleEntity = new Entity('Role');
@@ -26,7 +26,6 @@ it('generates a relation controller template when related entity exists', functi
     // Inject context into action
     $reflection = new ReflectionClass($action);
     $property = $reflection->getProperty('context');
-    $property->setAccessible(true);
     $property->setValue($action, $buildContext);
 
     $result = $action->buildRelationControllers($userEntity, $relation);
