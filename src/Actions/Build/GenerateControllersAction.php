@@ -212,7 +212,11 @@ class GenerateControllersAction implements DescribableAction
         $modelClass = $entity->getClassName();
         $modelClassFull = $entity->getFullyQualifiedModelClass();
         $modelClassCamel = Str::camel($modelClass);
+        $modelClassPlural = Str::plural($modelClass);
         $controllerClass = Str::studly(Str::singular($entity->getName())).'Controller';
+
+        // Table ( db ) name
+        $tableName = $entity->getTableName();
 
         // Relations for eager loading
         $relationNamesCode = StubHelper::getRelationNamesString($entity, RelationType::BELONGS_TO);
@@ -240,7 +244,9 @@ class GenerateControllersAction implements DescribableAction
             '{{modelClass}}' => $modelClass,
             '{{modelClassFull}}' => $modelClassFull,
             '{{modelClassCamel}}' => $modelClassCamel,
+            '{{modelClassPlural}}' => $modelClassPlural,
             '{{controllerClass}}' => $controllerClass,
+            '{{tableName}}' => $tableName,
             '{{folderName}}' => $entity->getFolderName(),
             '{{routeName}}' => $entity->getRouteName(),
             '{{relationNamesCode}}' => $relationNamesCode,

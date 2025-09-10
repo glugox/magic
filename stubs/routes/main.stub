@@ -1,1 +1,2 @@
 Route::resource('{{routeName}}', {{controllerClass}}::class);
+Route::delete('{{routeName}}', [{{controllerClass}}::class, 'bulkDestroy'])->name('{{routeName}}.bulk-destroy');

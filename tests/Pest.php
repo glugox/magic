@@ -59,7 +59,7 @@ function getFixtureConfigResume(): Config
             "name": "User",
             "icon": "Users",
             "fields": [
-                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "id", "type": "id", "nullable": false },
                 { "name": "name", "type": "string", "nullable": false, "sortable": true, "searchable": true },
                 { "name": "email", "type": "string", "nullable": false, "unique": true, "sortable": true, "searchable": true },
                 { "name": "password", "type": "password", "nullable": false, "hidden": true }
@@ -77,8 +77,8 @@ function getFixtureConfigResume(): Config
             "name": "Address",
             "icon": "MapPin",
             "fields": [
-                { "name": "id", "type": "bigIncrements", "nullable": false },
-                { "name": "user_id", "type": "unsignedBigInteger", "nullable": false },
+                { "name": "id", "type": "id", "nullable": false },
+                { "name": "user_id", "type": "foreignId", "nullable": false },
                 { "name": "street", "type": "string", "nullable": false, "searchable": true },
                 { "name": "city", "type": "string", "nullable": false, "searchable": true },
                 { "name": "country", "type": "string", "nullable": false, "searchable": true },
@@ -92,8 +92,8 @@ function getFixtureConfigResume(): Config
             "name": "Resume",
             "icon": "FileText",
             "fields": [
-                { "name": "id", "type": "bigIncrements", "nullable": false },
-                { "name": "user_id", "type": "unsignedBigInteger", "nullable": false },
+                { "name": "id", "type": "id", "nullable": false },
+                { "name": "user_id", "type": "foreignId", "nullable": false },
                 { "name": "title", "type": "string", "nullable": false, "searchable": true },
                 { "name": "summary", "type": "text", "nullable": true, "searchable": true, "showInTable": false }
             ],
@@ -111,8 +111,8 @@ function getFixtureConfigResume(): Config
             "name": "WorkExperience",
             "icon": "Briefcase",
             "fields": [
-                { "name": "id", "type": "bigIncrements" },
-                { "name": "resume_id", "type": "unsignedBigInteger" },
+                { "name": "id", "type": "id" },
+                { "name": "resume_id", "type": "foreignId" },
                 { "name": "company", "type": "string", "searchable": true },
                 { "name": "position", "type": "string", "searchable": true },
                 { "name": "start_date", "type": "date" },
@@ -127,8 +127,8 @@ function getFixtureConfigResume(): Config
             "name": "Education",
             "icon": "GraduationCap",
             "fields": [
-                { "name": "id", "type": "bigIncrements" },
-                { "name": "resume_id", "type": "unsignedBigInteger" },
+                { "name": "id", "type": "id" },
+                { "name": "resume_id", "type": "foreignId" },
                 { "name": "institution", "type": "string", "searchable": true },
                 { "name": "degree", "type": "string", "searchable": true },
                 { "name": "field_of_study", "type": "string", "nullable": true },
@@ -143,8 +143,8 @@ function getFixtureConfigResume(): Config
             "name": "Skill",
             "icon": "Sparkles",
             "fields": [
-                { "name": "id", "type": "bigIncrements" },
-                { "name": "resume_id", "type": "unsignedBigInteger" },
+                { "name": "id", "type": "id" },
+                { "name": "resume_id", "type": "foreignId" },
                 { "name": "name", "type": "string", "searchable": true },
                 { "name": "level", "type": "string", "nullable": true }
             ],
@@ -156,8 +156,8 @@ function getFixtureConfigResume(): Config
             "name": "Certification",
             "icon": "Award",
             "fields": [
-                { "name": "id", "type": "bigIncrements" },
-                { "name": "resume_id", "type": "unsignedBigInteger" },
+                { "name": "id", "type": "id" },
+                { "name": "resume_id", "type": "foreignId" },
                 { "name": "name", "type": "string", "searchable": true },
                 { "name": "organization", "type": "string", "nullable": true },
                 { "name": "date_received", "type": "date", "nullable": true }
@@ -170,8 +170,8 @@ function getFixtureConfigResume(): Config
             "name": "Project",
             "icon": "FolderKanban",
             "fields": [
-                { "name": "id", "type": "bigIncrements" },
-                { "name": "resume_id", "type": "unsignedBigInteger" },
+                { "name": "id", "type": "id" },
+                { "name": "resume_id", "type": "foreignId" },
                 { "name": "title", "type": "string", "searchable": true },
                 { "name": "description", "type": "longText", "nullable": true, "showInTable": false },
                 { "name": "url", "type": "url", "nullable": true }
@@ -184,8 +184,8 @@ function getFixtureConfigResume(): Config
             "name": "Language",
             "icon": "Languages",
             "fields": [
-                { "name": "id", "type": "bigIncrements" },
-                { "name": "resume_id", "type": "unsignedBigInteger" },
+                { "name": "id", "type": "id" },
+                { "name": "resume_id", "type": "foreignId" },
                 { "name": "name", "type": "string" },
                 { "name": "proficiency", "type": "string", "nullable": true }
             ],
@@ -197,7 +197,7 @@ function getFixtureConfigResume(): Config
             "name": "Role",
             "icon": "Shield",
             "fields": [
-                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "id", "type": "id", "nullable": false },
                 { "name": "name", "type": "string", "nullable": false, "unique": true, "searchable": true }
             ],
             "relations": [
@@ -226,7 +226,7 @@ function getFixtureConfigInventory(): Config
         {
             "name": "User",
             "fields": [
-                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "id", "type": "id", "nullable": false },
                 { "name": "name", "type": "string", "nullable": false, "sortable": true, "searchable": true },
                 { "name": "email", "type": "string", "nullable": false, "unique": true, "sortable": true, "searchable": true },
                 { "name": "password", "type": "password", "nullable": false, "hidden": true },
@@ -244,7 +244,7 @@ function getFixtureConfigInventory(): Config
         {
             "name": "Role",
             "fields": [
-                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "id", "type": "id", "nullable": false },
                 { "name": "name", "type": "string", "nullable": false, "unique": true }
             ],
             "relations": [
@@ -254,7 +254,7 @@ function getFixtureConfigInventory(): Config
         {
             "name": "Warehouse",
             "fields": [
-                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "id", "type": "id", "nullable": false },
                 { "name": "name", "type": "string", "nullable": false, "searchable": true },
                 { "name": "location", "type": "string", "nullable": false },
                 { "name": "capacity", "type": "integer", "nullable": false, "min": 0, "max": 200 },
@@ -268,7 +268,7 @@ function getFixtureConfigInventory(): Config
         {
             "name": "Category",
             "fields": [
-                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "id", "type": "id", "nullable": false },
                 { "name": "name", "type": "string", "nullable": false, "searchable": true },
                 { "name": "description", "type": "text", "nullable": true }
             ],
@@ -279,8 +279,8 @@ function getFixtureConfigInventory(): Config
         {
             "name": "Product",
             "fields": [
-                { "name": "id", "type": "bigIncrements", "nullable": false },
-                { "name": "warehouse_id", "type": "unsignedBigInteger", "nullable": false },
+                { "name": "id", "type": "id", "nullable": false },
+                { "name": "warehouse_id", "type": "foreignId", "nullable": false },
                 { "name": "name", "type": "string", "nullable": false, "searchable": true, "sortable": true },
                 { "name": "sku", "type": "string", "nullable": false, "unique": true },
                 { "name": "price", "type": "decimal", "nullable": false, "min": 0, "max": 10000, "sortable": true },
@@ -293,15 +293,15 @@ function getFixtureConfigInventory(): Config
             "relations": [
                 { "type": "belongsTo", "entity": "Warehouse", "foreign_key": "warehouse_id" },
                 { "type": "belongsToMany", "entity": "Category", "pivot": "category_product", "foreign_key": "product_id", "related_key": "category_id" },
-                { "type": "morphMany", "entity": "Attachment", "name": "attachments" },
-                { "type": "morphMany", "entity": "Review", "name": "reviews" }
+                { "type": "morphMany", "entity": "Attachment"},
+                { "type": "morphMany", "entity": "Review"}
             ]
         },
         {
             "name": "Order",
             "fields": [
-                { "name": "id", "type": "bigIncrements", "nullable": false },
-                { "name": "user_id", "type": "unsignedBigInteger", "nullable": false },
+                { "name": "id", "type": "id", "nullable": false },
+                { "name": "user_id", "type": "foreignId", "nullable": false },
                 { "name": "order_number", "type": "string", "nullable": false, "unique": true },
                 { "name": "status", "type": "enum", "nullable": false, "values": ["pending", "processing", "shipped", "delivered"] },
                 { "name": "total", "type": "decimal", "nullable": false, "min": 0, "max": 10000 },
@@ -316,9 +316,9 @@ function getFixtureConfigInventory(): Config
         {
             "name": "OrderItem",
             "fields": [
-                { "name": "id", "type": "bigIncrements", "nullable": false },
-                { "name": "order_id", "type": "unsignedBigInteger", "nullable": false },
-                { "name": "product_id", "type": "unsignedBigInteger", "nullable": false },
+                { "name": "id", "type": "id", "nullable": false },
+                { "name": "order_id", "type": "foreignId", "nullable": false },
+                { "name": "product_id", "type": "foreignId", "nullable": false },
                 { "name": "quantity", "type": "integer", "nullable": false, "min": 1, "max": 10 },
                 { "name": "unit_price", "type": "decimal", "nullable": false, "min": 0, "max": 10000 }
             ],
@@ -330,8 +330,8 @@ function getFixtureConfigInventory(): Config
         {
             "name": "Shipment",
             "fields": [
-                { "name": "id", "type": "bigIncrements", "nullable": false },
-                { "name": "order_id", "type": "unsignedBigInteger", "nullable": false },
+                { "name": "id", "type": "id", "nullable": false },
+                { "name": "order_id", "type": "foreignId", "nullable": false },
                 { "name": "shipped_at", "type": "dateTime", "nullable": true },
                 { "name": "delivered_at", "type": "dateTime", "nullable": true },
                 { "name": "carrier", "type": "string", "nullable": true }
@@ -344,8 +344,8 @@ function getFixtureConfigInventory(): Config
         {
             "name": "CarrierDetail",
             "fields": [
-                { "name": "id", "type": "bigIncrements", "nullable": false },
-                { "name": "shipment_id", "type": "unsignedBigInteger", "nullable": false },
+                { "name": "id", "type": "id", "nullable": false },
+                { "name": "shipment_id", "type": "foreignId", "nullable": false },
                 { "name": "tracking_number", "type": "string", "nullable": true },
                 { "name": "service_level", "type": "string", "nullable": true }
             ],
@@ -356,8 +356,8 @@ function getFixtureConfigInventory(): Config
         {
             "name": "Attachment",
             "fields": [
-                { "name": "id", "type": "bigIncrements", "nullable": false },
-                { "name": "attachable_id", "type": "unsignedBigInteger", "nullable": false },
+                { "name": "id", "type": "id", "nullable": false },
+                { "name": "attachable_id", "type": "foreignId", "nullable": false },
                 { "name": "attachable_type", "type": "string", "nullable": false },
                 { "name": "file_path", "type": "string", "nullable": false },
                 { "name": "file_type", "type": "string", "nullable": false }
@@ -369,8 +369,8 @@ function getFixtureConfigInventory(): Config
         {
             "name": "Review",
             "fields": [
-                { "name": "id", "type": "bigIncrements", "nullable": false },
-                { "name": "reviewable_id", "type": "unsignedBigInteger", "nullable": false },
+                { "name": "id", "type": "id", "nullable": false },
+                { "name": "reviewable_id", "type": "foreignId", "nullable": false },
                 { "name": "reviewable_type", "type": "string", "nullable": false },
                 { "name": "rating", "type": "integer", "nullable": false, "min": 0, "max": 10 },
                 { "name": "comment", "type": "text", "nullable": true }
@@ -390,4 +390,130 @@ function getFixtureConfigInventory(): Config
 }
 ');
 
+}
+
+function getFixtureConfigStringInventoryGraphQl()
+{
+    return '# App configuration
+type App @config {
+  name: String! @default("InventoryHub GraphQl")
+  defaultLocale: String! @default("en")
+  enableAdvancedLogging: Boolean! @default(false)
+  defaultPerPage: Int! @default(50)
+}
+
+# Entities
+
+type User {
+  id: ID!
+  name: String! @search @sort
+  email: String! @unique @search @sort
+  password: Password!
+  settings: JSON
+  active: Boolean! @default(true)
+  image: Image
+  orders: Order! @hasMany
+  shipments: Shipment! @hasMany
+  roles: Role! @belongsToMany @pivot("role_user") @foreignKey("user_id") @relatedKey("role_id")
+  attachments: Attachment! @morphMany
+}
+
+type Role {
+  id: ID!
+  name: String! @unique
+  users: User! @belongsToMany @pivot("role_user") @foreignKey("role_id") @relatedKey("user_id")
+}
+
+type Warehouse {
+  id: ID!
+  name: String! @search
+  location: String!
+  capacity: Int! @min(0) @max(200)
+  metadata: JSON
+  products: Product! @hasMany
+  manager: User! @hasOne @name("user") @foreignKey("manager_id")
+}
+
+type Category {
+  id: ID!
+  name: String! @search
+  description: Text
+  products: Product! @belongsToMany @pivot("category_product") @foreignKey("category_id") @relatedKey("product_id")
+}
+
+type Product {
+  id: ID!
+  warehouse_id: ForeignId!
+  name: String! @search @sort
+  sku: String! @unique
+  price: Decimal! @sort @min(0) @max(10000)
+  weight: Float @sort @min(0) @max(100)
+  available_from: Date @sort
+  expires_at: DateTime @sort
+  image: Image
+  status: Enum! @enum(values: ["active","inactive","discontinued"]) @sort
+  warehouse: Warehouse! @belongsTo
+  categories: Category! @belongsToMany
+  attachments: Attachment! @morphMany
+  reviews: Review! @morphMany
+}
+
+type Order {
+  id: ID!
+  user_id: ForeignId!
+  order_number: String! @unique
+  status: String! @enum(values:["pending","processing","shipped","delivered"])
+  total: Float!
+  placed_at: DateTime!
+  user: User! @belongsTo
+  items: OrderItem! @hasMany
+  shipment: Shipment! @hasOne
+}
+
+type OrderItem {
+  id: ID!
+  order_id: ForeignId!
+  product_id: ForeignId!
+  quantity: Int!
+  unit_price: Float!
+  order: Order! @belongsTo
+  product: Product! @belongsTo
+}
+
+type Shipment {
+  id: ID!
+  order_id: ForeignId!
+  shipped_at: DateTime
+  delivered_at: DateTime
+  carrier: String
+  order: Order! @belongsTo
+  carrier_detail: CarrierDetail! @hasOne
+}
+
+type CarrierDetail {
+  id: ID!
+  shipment_id: ForeignId!
+  tracking_number: String
+  service_level: String
+  shipment: Shipment! @belongsTo
+}
+
+type Attachment {
+  id: ID!
+  attachable_id: ForeignId!
+  attachable_type: String!
+  file_path: String!
+  file_type: String!
+  attachable: @morphTo
+}
+
+type Review {
+  id: ID!
+  reviewable_id: ForeignId!
+  reviewable_type: String!
+  rating: Int!
+  comment: String
+  reviewable: @morphTo
+}
+';
 }

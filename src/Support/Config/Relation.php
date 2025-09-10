@@ -15,11 +15,25 @@ class Relation
         private readonly Entity $localEntity,
         private readonly ?string $entityName = null,
         private ?Entity $relatedEntity = null,
-        private readonly ?string $foreignKey = null,
+        private ?string $foreignKey = null,
         private ?string $localKey = null,
         private ?string $relationName = null,
     ) {
         $this->type = $type instanceof RelationType ? $type : RelationType::from($type);
+
+        if (! $this->foreignKey) {
+            // For belongsTo, the foreign key is on the local entity
+            if ($this->type === RelationType::BELONGS_TO && $this->entityName) {
+                $this->foreignKey = Str::snake($this->entityName).'_id';
+            }
+            // For hasOne and hasMany, the foreign key is on the related entity
+            elseif (in_array($this->type, [RelationType::HAS_ONE, RelationType::HAS_MANY])) {
+                $this->foreignKey = Str::snake($this->localEntity->getName()).'_id';
+            }
+        }
+
+        // Relation name default to plural of entity name
+        $this->relationName ??= $this->entityName ? Str::plural(Str::camel($this->entityName)) : null;
     }
 
     public function getType(): RelationType
@@ -263,6 +277,7 @@ class Relation
         return json_encode([
             'type' => $this->type->value,
             'entity' => $this->entityName,
+            'local_entity' => $this->localEntity->getName(),
             'foreign_key' => $this->foreignKey,
             'local_key' => $this->localKey,
             'relation_name' => $this->relationName,

@@ -48,7 +48,7 @@ const formAction = computed(() => {
 // Decide delete action URL
 const deleteAction = computed(() => {
     if (!item?.id) return null
-    return controller.destroy({ id: item.id })
+    return controller.destroy(item.id)
 })
 
 // Decide crud action type

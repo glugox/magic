@@ -74,4 +74,18 @@ class TypeHelper
             default => null,
         };
     }
+
+    /**
+     * Return value with proper type casting for a given FieldType
+     */
+    public function castValueForFieldType(FieldType $fieldType, mixed $value): mixed
+    {
+        return match ($fieldType) {
+            FieldType::STRING, FieldType::TEXT, FieldType::CHAR, FieldType::EMAIL, FieldType::MEDIUM_TEXT, FieldType::LONG_TEXT => (string) $value,
+            FieldType::INTEGER, FieldType::BIG_INTEGER, FieldType::BIG_INCREMENTS, FieldType::UNSIGNED_BIG_INTEGER => (int) $value,
+            FieldType::BOOLEAN => (bool) $value,
+            FieldType::JSON, FieldType::JSONB, FieldType::HAS_MANY => is_array($value) ? $value : json_decode((string) $value, true),
+            default => $value,
+        };
+    }
 }

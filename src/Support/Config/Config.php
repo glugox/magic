@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Glugox\Magic\Support\Config;
 
+use Glugox\Magic\Support\Config\Readers\SchemaReader;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use JsonException;
@@ -34,16 +35,11 @@ class Config
     public Dev $dev;
 
     /**
-     * @param  Entity[]  $entities
+     * @param  SchemaReader  $schemaReader  The schema reader instance to load SDL.
      */
-    public function __construct(App $app, array $entities, ?Dev $dev = null)
-    {
-        $this->entities = $entities;
-        $this->app = $app;
-        $this->dev = $dev ?? new Dev;
-
-        $this->processEntities();
-    }
+    public function __construct(
+        protected SchemaReader $schemaReader,
+    ) {}
 
     /**
      * Convert the configuration from JSON string to Config object.
@@ -63,7 +59,13 @@ class Config
         $app = App::fromConfig($data['app'] ?? []);
         $dev = isset($data['dev']) ? Dev::fromJson($data['dev']) : null;
 
-        return new self($app, $entities, $dev);
+        $config = app(self::class);
+        $config->app = $app;
+        $config->entities = $entities;
+        $config->dev = $dev ?? new Dev();
+        $config->processEntities();
+
+        return $config;
     }
 
     /**
@@ -99,6 +101,49 @@ class Config
         }
 
         return base_path($path);
+    }
+
+    /**
+     * Initialize a new Config instance.
+     */
+    public function init(): self
+    {
+        $this->processEntities();
+
+        return $this;
+    }
+
+    /**
+     * Load JSON into typed entities
+     */
+    public function loadJson(string $json): void
+    {
+        $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+        $entities = [];
+        foreach ($data['entities'] ?? [] as $entityData) {
+            $entities[] = Entity::fromConfig($entityData);
+        }
+
+        $app = App::fromConfig($data['app'] ?? []);
+        $dev = isset($data['dev']) ? Dev::fromJson($data['dev']) : null;
+
+        $this->app = $app;
+        $this->entities = $entities;
+        $this->dev = $dev ?? new Dev();
+    }
+
+    /**
+     * Load SDL into typed entities
+     */
+    public function loadGraphQL(string $sdl): self
+    {
+        $this->schemaReader->load($sdl);
+
+        $this->app = $this->schemaReader->getApp();
+        $this->entities = $this->schemaReader->getEntities();
+        $this->dev = new Dev();
+
+        return $this;
     }
 
     /**

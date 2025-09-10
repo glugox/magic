@@ -117,4 +117,21 @@ class {{controllerClass}} extends Controller
         return redirect()->route(strtolower('{{routeName}}') . '.index')
             ->with('success', '{{modelClass}} deleted successfully.');
     }
+
+    /**
+     * Remove multiple {{modelClass}} from database.
+     */
+    public function bulkDestroy(Request $request)
+    {
+        $ids = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:{{tableName}},id',
+        ])['ids'];
+
+        {{modelClass}}::whereIn('id', $ids)->delete();
+
+        return back()->with('success', 'Selected {{modelClassPlural}} deleted successfully.');
+    }
+
+
 }
