@@ -1,0 +1,91 @@
+<script setup lang="ts" generic="T">
+import { ref, onMounted } from "vue";
+import AppLayout from '@/layouts/AppLayout.vue';
+import ResourceLayout from '@/layouts/resource/Layout.vue';
+import { type BreadcrumbItem, type NavItem } from '@/types';
+import { edit, show } from '@/routes/{{folderName}}';
+import { Head } from '@inertiajs/vue3';
+import ResourceTable from '@/components/ResourceTable.vue';
+import ResourceForm from '@/components/ResourceForm.vue';
+import { ColumnDef } from "@tanstack/vue-table";
+import HeadingSmall from '@/components/HeadingSmall.vue';
+import { type DbId } from '@/types/support';
+import { SquareMinus, Link, CornerDownRight, FolderTree, GitCompareArrows } from 'lucide-vue-next';
+
+{{mainEntityImports}}
+{{relatedEntityImports}}
+{{supportImports}}
+
+type T = {{relatedEntityName}};
+
+interface {{mainEntityName}}ApiResponse {
+    data: {{mainEntityName}};
+}
+
+interface Props {
+    item: {{mainEntityName}}ApiResponse;
+    {{relationName}}: PaginatedResponse<{{relatedEntityName}}>;
+    item_{{relationName}}_ids?: DbId[];
+    filters?: TableFilters;
+    showCreateForm?: boolean;
+}
+const { item, {{relationName}}, item_{{relationName}}_ids, filters }: Props = defineProps<Props>();
+
+const selectedIds = ref<DbId[]>(item_{{relationName}}_ids ?? []);
+const currentFilters = ref<TableFilters>(filters ?? {});
+
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: '{{mainEntityPluralName}}',
+        href: '{{href}}',
+    },
+];
+const columns: ColumnDef<{{relatedEntityName}}>[] = get{{relatedEntityName}}Columns();
+const entity = get{{relatedEntityName}}EntityMeta();
+const parentEntity = get{{mainEntityName}}EntityMeta();
+const sidebarNavItems: NavItem[] = [
+    {
+        title: 'General Information',
+        href: edit(item.data.id),
+        icon: SquareMinus
+    },
+    {{relationSidebarItems}}
+];
+
+onMounted(() => {
+    if (!currentFilters.value.selectedIds || currentFilters.value.selectedIds.length === 0) {
+        currentFilters.value.selectedIds = item_{{relationName}}_ids ?? [];
+    }
+})
+</script>
+
+<template>
+    <Head title="{{entitySingularName}}" />
+    <AppLayout :breadcrumbs="breadcrumbs">
+        <ResourceLayout :title="item.data.name" description="{{mainEntityName}}" :sidebar-nav-items="sidebarNavItems">
+            <div class="flex space-x-12 space-y-12 flex-wrap">
+               <div v-if="showCreateForm" class="flex flex-col space-y-6 max-w-2xl">
+                   <HeadingSmall title="Add new {{relatedEntityName}}" description="Fill {{relatedEntityName}} details" />
+                   <ResourceForm
+                       :entity="entity"
+                       :controller="{{controllerClass}}"
+                       :parent-entity="get{{mainEntityName}}EntityMeta()"
+                       :parent-id="item.data.id"
+                       :item="{{{foreignKey}}: item.data.id}"
+                   />
+               </div>
+               <div class="flex flex-col space-y-6 max-w-[900px] w-full">
+                   <HeadingSmall title="{{relatedEntityPluralName}}" description="Update {{relatedEntityPluralName}} for this {{mainEntityName}}" />
+                   <ResourceTable
+                       :data="{{relationName}}"
+                       :parent-id="item.data.id"
+                       :columns="columns"
+                       :entity="entity"
+                       :filters="currentFilters"
+                       :controller="{{controllerClass}}"
+                   />
+               </div>
+           </div>
+        </ResourceLayout>
+    </AppLayout>
+</template>

@@ -3,6 +3,8 @@
 namespace Glugox\Magic\Helpers;
 
 use Glugox\Magic\Support\Config\Entity;
+use Glugox\Magic\Support\Config\RelationType;
+use RuntimeException;
 
 class StubHelper
 {
@@ -80,9 +82,16 @@ class StubHelper
      *
      * Example output: "['relationName:field1,field2','otherRelation:field1']"
      */
-    public static function getRelationNamesString(Entity $entity, $relationType = null): string
+    public static function getRelationNamesString(Entity $entity, $relationType = null, bool $withMorphs = false): string
     {
-        $relations = $entity->getRelations($relationType);
+        $relations = $entity->getRelations($relationType, $withMorphs ? null : [
+            RelationType::MORPH_TO,
+            RelationType::MORPH_MANY,
+            RelationType::MORPH_ONE,
+            RelationType::MORPH_TO_MANY,
+            RelationType::MORPHED_BY_MANY,
+        ]);
+
         $names = array_map(fn ($r) => $r->getRelationName().':'.$r->getEagerFieldsStr(), $relations);
 
         return empty($names) ? '[]' : "['".implode("','", $names)."']";
@@ -113,5 +122,26 @@ class StubHelper
         }
 
         return str_replace($normalizedKeys, $values, $stub);
+    }
+
+    /**
+     * Load a stub file and apply replacements using applyReplacements().
+     *
+     * @param  string  $stubPath  Relative path inside the stubs folder, e.g., 'vue/index.stub'
+     * @param  array  $replacements  Key-value pairs to replace in the stub
+     */
+    public static function loadStub(string $stubPath, array $replacements = []): string
+    {
+        // Resolve full stub path (assuming stubs are inside package resources/stubs/)
+        $fullPath = __DIR__.'/../../stubs/'.$stubPath;
+
+        if (! file_exists($fullPath)) {
+            throw new RuntimeException("Stub file not found: {$fullPath}");
+        }
+
+        $stub = file_get_contents($fullPath);
+
+        // Use existing applyReplacements() method to inject variables
+        return self::applyReplacements($stub, $replacements);
     }
 }

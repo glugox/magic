@@ -600,9 +600,11 @@ class Entity
     }
 
     /**
+     * @param  RelationType|null  $type  If provided, only relations of this type are returned.
+     * @param  RelationType[]|null  $excludeTypes  If provided, relations of these types
      * @return Relation[]
      */
-    public function getRelations(?RelationType $type = null): array
+    public function getRelations(?RelationType $type = null, ?array $excludeTypes = null): array
     {
         if (! is_null($type)) {
             return array_filter($this->relations, function (Relation $relation) use ($type) {
@@ -610,7 +612,30 @@ class Entity
             });
         }
 
+        // Exclude types if provided
+        if (! is_null($excludeTypes)) {
+            return array_filter($this->relations, function (Relation $relation) use ($excludeTypes) {
+                return ! in_array($relation->getType(), $excludeTypes);
+            });
+        }
+
         return $this->relations;
+    }
+
+    /**
+     * Get relations without morph relations.
+     */
+    public function getRelationsWithoutMorph(): array
+    {
+        return array_filter($this->relations, function (Relation $relation) {
+            return ! in_array($relation->getType(), [
+                RelationType::MORPH_TO,
+                RelationType::MORPH_MANY,
+                RelationType::MORPH_ONE,
+                RelationType::MORPH_TO_MANY,
+                RelationType::MORPHED_BY_MANY,
+            ]);
+        });
     }
 
     /**

@@ -1,0 +1,55 @@
+<script setup lang="ts">
+import { edit, show } from '@/routes/{{folderName}}';
+import { Head, usePage } from '@inertiajs/vue3';
+import HeadingSmall from '@/components/HeadingSmall.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
+import ResourceLayout from '@/layouts/resource/Layout.vue';
+import { type BreadcrumbItem, type NavItem } from '@/types';
+import ResourceForm from '@/components/ResourceForm.vue';
+import { SquareMinus, Link, CornerDownRight, FolderTree, GitCompareArrows } from 'lucide-vue-next';
+{{entityImports}}
+{{supportImports}}
+
+interface {{entityName}}ApiResponse {
+    data: {{entityName}};
+}
+
+interface Props {
+    item: {{entityName}}ApiResponse;
+}
+const { item }: Props = defineProps<Props>();
+
+const breadcrumbItems: BreadcrumbItem[] = [
+    {
+        title: '{{pluralName}}',
+        href: edit(item.data.id).url,
+    },
+];
+const sidebarNavItems: NavItem[] = [
+    {
+        title: 'General Information',
+        href: edit(item.data.id),
+        icon: SquareMinus
+    },
+    {{relationSidebarItems}}
+];
+
+const page = usePage();
+const entity = get{{entityName}}EntityMeta();
+</script>
+
+<template>
+    <AppLayout :breadcrumbs="breadcrumbItems">
+        <Head title="{{entityName}}" />
+        <ResourceLayout :title="item.data.name" description="{{entityName}}" :sidebar-nav-items="sidebarNavItems">
+            <div class="flex flex-col space-y-6 max-w-2xl">
+                <HeadingSmall title="{{entityName}} information" description="Update {{entityName}} details" />
+                <ResourceForm
+                    :entity="entity"
+                    :item="item.data"
+                    :controller="{{entityName}}Controller"
+                />
+            </div>
+        </ResourceLayout>
+    </AppLayout>
+</template>
