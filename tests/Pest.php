@@ -220,10 +220,7 @@ function getFixtureConfigInventory(): Config
     "app": {
         "name": "InventoryHub",
         "seedEnabled": true,
-        "seedCount": 50,
-        "fakerMappings": {
-            "carrier": "randomElement([\"FedEx\", \"UPS\", \"DHL\", \"USPS\"])"
-        }
+        "seedCount": 50
     },
     "entities": [
         {
@@ -395,7 +392,6 @@ type App @config {
   name: String! @default("InventoryHub")
   seedEnabled: Boolean! @default(true)
   seedCount: Int! @default(50)
-  fakerMappings: JSON
   defaultLocale: String! @default("en")
   enableAdvancedLogging: Boolean! @default(false)
   defaultPerPage: Int! @default(50)
