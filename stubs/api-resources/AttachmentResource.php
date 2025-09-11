@@ -3,8 +3,22 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * Resource representation of an Attachment model.
+ *
+ * @property int $id
+ * @property string $mime_type
+ * @property int $size
+ * @property string|null $path
+ * @property string $attachable_type
+ * @property int $attachable_id
+ * @property int $order_index
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
+ */
 class AttachmentResource extends JsonResource
 {
     /**

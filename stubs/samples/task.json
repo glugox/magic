@@ -1,6 +1,8 @@
 {
     "app": {
-        "name": "TaskMaster"
+        "name": "TaskMaster",
+        "seedEnabled": true,
+        "seedCount": 50
     },
     "entities": [
         {
@@ -12,9 +14,9 @@
                 { "name": "password", "type": "password", "nullable": false, "hidden": true }
             ],
             "relations": [
-                { "type": "hasMany", "entity": "Project", "foreign_key": "owner_id" },
-                { "type": "hasMany", "entity": "Task", "foreign_key": "assigned_to" },
-                { "type": "belongsToMany", "entity": "Team", "pivot": "team_user", "foreign_key": "user_id", "related_key": "team_id" }
+                { "type": "hasMany", "relatedEntityName": "Project", "foreignKey": "owner_id" },
+                { "type": "hasMany", "relatedEntityName": "Task", "foreignKey": "assigned_to" },
+                { "type": "belongsToMany", "relatedEntityName": "Team", "pivot": "team_user", "foreignKey": "user_id", "relatedKey": "team_id" }
             ],
             "settings": {
                 "searchable": true,
@@ -29,8 +31,8 @@
                 { "name": "description", "type": "text", "nullable": true }
             ],
             "relations": [
-                { "type": "belongsToMany", "entity": "User", "pivot": "team_user", "foreign_key": "team_id", "related_key": "user_id" },
-                { "type": "hasMany", "entity": "Project", "foreign_key": "team_id" }
+                { "type": "belongsToMany", "relatedEntityName": "User", "pivot": "team_user", "foreignKey": "team_id", "relatedKey": "user_id" },
+                { "type": "hasMany", "relatedEntityName": "Project", "foreignKey": "team_id" }
             ]
         },
         {
@@ -44,9 +46,9 @@
                 { "name": "status", "type": "enum", "values": ["planning", "in_progress", "completed", "archived"], "nullable": false, "sortable": true }
             ],
             "relations": [
-                { "type": "belongsTo", "entity": "User", "foreign_key": "owner_id" },
-                { "type": "belongsTo", "entity": "Team", "foreign_key": "team_id" },
-                { "type": "hasMany", "entity": "Task", "foreign_key": "project_id" }
+                { "type": "belongsTo", "relatedEntityName": "User", "foreignKey": "owner_id" },
+                { "type": "belongsTo", "relatedEntityName": "Team", "foreignKey": "team_id" },
+                { "type": "hasMany", "relatedEntityName": "Task", "foreignKey": "project_id" }
             ]
         },
         {
@@ -62,9 +64,9 @@
                 { "name": "due_date", "type": "date", "nullable": true, "sortable": true }
             ],
             "relations": [
-                { "type": "belongsTo", "entity": "Project", "foreign_key": "project_id" },
-                { "type": "belongsTo", "entity": "User", "foreign_key": "assigned_to" },
-                { "type": "hasMany", "entity": "Comment", "foreign_key": "task_id" }
+                { "type": "belongsTo", "relatedEntityName": "Project", "foreignKey": "project_id" },
+                { "type": "belongsTo", "relatedEntityName": "User", "foreignKey": "assigned_to" },
+                { "type": "hasMany", "relatedEntityName": "Comment", "foreignKey": "task_id" }
             ]
         },
         {
@@ -76,13 +78,9 @@
                 { "name": "content", "type": "text", "nullable": false }
             ],
             "relations": [
-                { "type": "belongsTo", "entity": "Task", "foreign_key": "task_id" },
-                { "type": "belongsTo", "entity": "User", "foreign_key": "user_id" }
+                { "type": "belongsTo", "relatedEntityName": "Task", "foreignKey": "task_id" },
+                { "type": "belongsTo", "relatedEntityName": "User", "foreignKey": "user_id" }
             ]
         }
-    ],
-    "dev": {
-        "seedEnabled": true,
-        "seedCount": 50
-    }
+    ]
 }

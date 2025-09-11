@@ -29,8 +29,8 @@ class UpdateDbAction implements DescribableAction
         Artisan::call('migrate', ['--force' => true]);
 
         // Step 2. Seed the database if enabled in config
-        if ($context->getConfig()->dev->seedEnabled) {
-            Log::channel('magic')->info("Seeding the database with default seedCount of {$context->getConfig()->dev->seedCount}...");
+        if ($context->getConfig()->app->seedEnabled) {
+            Log::channel('magic')->info("Seeding the database with default seedCount of {$context->getConfig()->app->seedCount}...");
 
             // Run the db:seed Artisan command with the --force option
             Artisan::call('db:seed', ['--force' => true]);

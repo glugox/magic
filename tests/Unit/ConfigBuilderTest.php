@@ -8,7 +8,7 @@ use Glugox\Magic\Support\Config\FieldType;
 use Glugox\Magic\Support\Config\Readers\SchemaReader;
 use Glugox\Magic\Support\Config\Relation;
 
-/*it('builds a Config from SDL', function () {
+it('builds a Config from SDL', function () {
 
     $graphQl = getFixtureConfigStringInventoryGraphQl();
 
@@ -63,4 +63,4 @@ it('SchemaReader creates same toJson output as regular Config toJson', function 
 
 
     expect($jsonFromGraphQl)->toBe($jsonFromConfig);
-});*/
+});

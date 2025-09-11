@@ -3,39 +3,38 @@
 namespace Glugox\Magic\Support\Config;
 
 use Illuminate\Support\Str;
+use JsonException;
 use RuntimeException;
 
 class Relation
 {
-    public RelationType $type;      // e.g. 'hasMany', 'belongsTo'
+    public RelationType $type;
 
-    // getters ...
     public function __construct(
-        RelationType|string $type,
-        private readonly Entity $localEntity,
-        private readonly ?string $entityName = null,
-        private ?Entity $relatedEntity = null,
-        private ?string $foreignKey = null,
-        private ?string $localKey = null,
-        private ?string $relationName = null,
+        RelationType|string      $type, // e.g. 'hasMany', 'belongsTo', etc.
+        private readonly Entity  $localEntity, // the entity that owns this relation, e.g. 'User'
+        private readonly ?string $relatedEntityName = null, // name of the related entity, e.g. 'Role'
+        private ?Entity          $relatedEntity = null, // the related entity object, e.g. Role entity
+        private ?string          $foreignKey = null, // usually local entity's fk, e.g. user_id
+        private ?string          $localKey = null, // usually related entity's pk, e.g. id
+        private ?string          $relatedKey = null, // // points to related entity in pivot table, e.g. role_id
+        private ?string          $relationName = null,
     ) {
         $this->type = $type instanceof RelationType ? $type : RelationType::from($type);
 
-        if (! $this->foreignKey) {
-            // For belongsTo, the foreign key is on the local entity
-            if ($this->type === RelationType::BELONGS_TO && $this->entityName) {
-                $this->foreignKey = Str::snake($this->entityName).'_id';
-            }
-            // For hasOne and hasMany, the foreign key is on the related entity
-            elseif (in_array($this->type, [RelationType::HAS_ONE, RelationType::HAS_MANY])) {
-                $this->foreignKey = Str::snake($this->localEntity->getName()).'_id';
-            }
+        $this->relationName ??= $this->inferRelationName();
+        $this->foreignKey ??= $this->inferForeignKey();
+        $this->localKey ??= $this->inferLocalKey();
+        // relatedForeignKey is only used in BelongsToMany relations
+        if ($this->type === RelationType::BELONGS_TO_MANY && ! $this->relatedKey) {
+            $this->relatedKey = Str::snake($this->getRelatedEntityName()).'_id';
         }
-
-        // Relation name default to plural of entity name
-        $this->relationName ??= $this->entityName ? Str::plural(Str::camel($this->entityName)) : null;
     }
 
+    /**
+     * The related entity's ty
+     * @return RelationType
+     */
     public function getType(): RelationType
     {
         return $this->type;
@@ -47,6 +46,232 @@ class Relation
     public function getLocalEntity(): Entity
     {
         return $this->localEntity;
+    }
+
+    public function getRelationName(): string
+    {
+        return $this->relationName;
+    }
+
+    public function getForeignKey(): ?string
+    {
+        return $this->foreignKey;
+    }
+
+    public function getLocalKey(): ?string
+    {
+        return $this->localKey;
+    }
+
+    public function getRelatedKey(): ?string
+    {
+        return $this->relatedKey;
+    }
+
+    /**
+     * Gets local entity name
+     */
+    public function getLocalEntityName(): string
+    {
+        return $this->localEntity->getName();
+    }
+
+    /**
+     * The related entity name, or null if not set
+     * This can not be inferred from $this->relatedEntity
+     * because the related entity may not be set yet. We actually
+     * need the name to find the related entity in the config.
+     *
+     * @return string|null
+     */
+    public function getRelatedEntityName(): ?string
+    {
+        return $this->relatedEntityName;
+    }
+
+    /**
+     * Sets the related entity
+     */
+    public function setRelatedEntity(Entity $entity): void
+    {
+        $this->relatedEntity = $entity;
+    }
+
+    /**
+     * Get the related entity object.
+     * If the related entity is not set, it throws an exception.
+     *
+     * @throws RuntimeException
+     */
+    public function getRelatedEntity(): Entity
+    {
+        if (! $this->relatedEntity) {
+            throw new RuntimeException("Related entity is not set for relation of type {$this->type->value}");
+        }
+
+        return $this->relatedEntity;
+    }
+
+    protected function inferRelationName(): string
+    {
+        if ($this->relationName) {
+            return $this->relationName;
+        }
+
+        if (! $this->getRelatedEntityName()) {
+            if ($this->type === RelationType::MORPH_TO) {
+                throw new RuntimeException("MorphTo requires explicit relation name");
+            }
+            throw new RuntimeException("Entity name is not set for relation of type {$this->type->value} in entity {$this->getLocalEntityName()}");
+        }
+
+        return match ($this->type) {
+            RelationType::HAS_MANY,
+            RelationType::BELONGS_TO_MANY,
+            RelationType::MORPH_MANY => Str::plural(Str::camel($this->getRelatedEntityName())),
+            default => Str::camel($this->getRelatedEntityName()),
+        };
+    }
+
+    protected function inferForeignKey(): ?string
+    {
+        if ($this->foreignKey) {
+            return $this->foreignKey;
+        }
+
+        return match ($this->type) {
+            RelationType::BELONGS_TO => Str::snake($this->getRelatedEntityName()) . '_id',
+            RelationType::HAS_ONE,
+            RelationType::HAS_MANY => Str::snake($this->getLocalEntityName()) . '_id',
+            RelationType::MORPH_TO => null, // handled by *_id + *_type in fields
+            default => null, // belongsToMany & morphMany usually need explicit
+        };
+    }
+
+    protected function inferLocalKey(): ?string
+    {
+        if ($this->localKey) {
+            return $this->localKey;
+        }
+
+        return Str::snake($this->getRelatedEntityName()).'_id';
+    }
+
+    /**
+     * Has route
+     */
+    public function hasRoute(): bool
+    {
+        return in_array($this->type, [
+            RelationType::HAS_MANY,
+            RelationType::BELONGS_TO_MANY,
+            RelationType::MORPH_MANY
+        ]);
+    }
+
+    /**
+     * @return string Returns the name of the pivot table for many-to-many relations.
+     */
+    public function getPivotName(): string
+    {
+        // alphabetical order of related tables (Laravel convention)
+        $tables = [
+            Str::snake($this->getLocalEntityName()),
+            Str::snake($this->getRelatedEntityName()),
+        ];
+        sort($tables);
+
+        return implode('_', $tables);
+    }
+
+    /**
+     * Get the name of the related table in snake_case. Ex. 'users', 'posts', etc.
+     * // It differs from relation name which is camelCase and pluralized.
+     */
+    public function getTableName(): string
+    {
+
+        // If entity name is not set, return empty string
+        if (! $this->getRelatedEntityName()) {
+            // If relation is MorphTo, return local entity's table name
+            if ($this->type === RelationType::MORPH_TO) {
+                return $this->getLocalEntity()->getTableName();
+            }
+
+            throw new RuntimeException("Entity name is not set for relation of type {$this->type->value}");
+        }
+
+        // Convert entity name to snake_case for table name
+        return Str::snake(Str::plural($this->getRelatedEntityName()));
+    }
+
+    /**
+     * Returns the API path for the related entity.
+     * This is usually the plural snake_case of the related entity name.
+     * Ex. 'users', 'posts', etc.
+     */
+    public function getApiPath(): string
+    {
+        return Str::kebab(Str::plural($this->getRelatedEntityName()));
+    }
+
+    /**
+     * Returns the morph name for polymorphic relations.
+     * Ex. 'imageable' for Image model relation to various models.
+     * For non-polymorphic relations, it returns null.
+     */
+    public function getMorphName(): ?string
+    {
+        // For polymorphic relations, return the relation name
+        return $this->getRelationName();
+    }
+
+    /**
+     * Returns controller name for the related entity.
+     * // we need to be able to easily generate these php lines in order to write them to routes file
+     * Route::get('users/{user}/roles', [\App\Http\Controllers\User\UserRoleController::class, 'edit'])
+     * ->name('users.roles.edit');
+     * Route::put('users/{user}/roles', [\App\Http\Controllers\User\UserRoleController::class, 'update'])
+     * ->name('users.roles.update');
+     */
+    public function getControllerFullQualifiedName(): string
+    {
+        $localEntityName = $this->localEntity->getName();
+        $relatedEntityName = $this->getRelatedEntityName();
+
+        return "\\App\\Http\\Controllers\\{$localEntityName}\\{$localEntityName}{$relatedEntityName}Controller";
+    }
+
+    /**
+     * Returns route definition name for the relation.
+     * Ex. 'users/{user}/roles'
+     */
+    public function getRouteDefinitionPath(): string
+    {
+        $localEntityNamePlural = Str::snake($this->localEntity->getPluralName());
+        $localEntityNameSingular = Str::snake($this->localEntity->getName());
+        $relatedEntityName = Str::snake($this->getRelationName());
+
+        return "{$localEntityNamePlural}/{{$localEntityNameSingular}}/{$relatedEntityName}";
+    }
+
+    /**
+     * Returns a comma-separated string of fields to be eagerly loaded for the related entity.
+     * This is usually "id,name" or "id,title" depending on the related entity's name field.
+     * s
+     * @return string
+     */
+    public function getEagerFieldsStr(): string
+    {
+        // If the entity does not have a 'name' field, we will try to find first field that can be used as name
+        // so we can load them in index listing
+        $eagerFieldNames = ['id'];
+        $nameFields = $this->getRelatedEntity()->getNameFieldsNames();
+        if (count($nameFields) > 0) {
+            $eagerFieldNames[] = $nameFields[0];
+        }
+
+        return implode(',', array_filter($eagerFieldNames));
     }
 
     /**
@@ -114,191 +339,22 @@ class Relation
     }
 
     /**
-     * Get the name of the related entity. Ex. 'User', 'Post', etc.
-     */
-    public function getRelatedEntityName(): ?string
-    {
-        return $this->entityName;
-    }
-
-    /**
-     * Sets the related entity
-     */
-    public function setRelatedEntity(Entity $entity): void
-    {
-        $this->relatedEntity = $entity;
-    }
-
-    /**
-     * Get the related entity object.
-     * If the related entity is not set, it throws an exception.
-     *
-     * @throws RuntimeException
-     */
-    public function getRelatedEntity(): Entity
-    {
-        if (! $this->relatedEntity) {
-            throw new RuntimeException("Related entity is not set for relation of type {$this->type->value}");
-        }
-
-        return $this->relatedEntity;
-    }
-
-    /**
-     * Get the name of the related table in snake_case. Ex. 'users', 'posts', etc.
-     * // It differs from relation name which is camelCase and pluralized.
-     */
-    public function getTableName(): string
-    {
-
-        // If entity name is not set, return empty string
-        if (! $this->entityName) {
-            // If relation is MorphTo, return local entity's table name
-            if ($this->type === RelationType::MORPH_TO) {
-                return $this->getLocalEntity()->getTableName();
-            }
-
-            throw new RuntimeException("Entity name is not set for relation of type {$this->type->value}");
-        }
-
-        // Convert entity name to snake_case for table name
-        return Str::snake(Str::plural($this->entityName));
-    }
-
-    /**
-     * Get href for the related entity.
-     */
-    public function getHref(): string
-    {
-        // Convert entity name to kebab-case for href
-        return $this->getTableName();
-    }
-
-    /**
-     * Get the name of the local table in snake_case. Ex. 'users', 'posts', etc.
-     */
-    public function getLocalTableName(): string
-    {
-        return $this->getLocalEntity()->getTableName();
-    }
-
-    /**
-     * Get the name of the relation in camelCase. Ex. 'posts', 'comments', etc.
-     */
-    public function getRelationName(): string
-    {
-        // Lowercase and pluralize
-        return $this->relationName ??= Str::plural(Str::camel($this->entityName));
-    }
-
-    /**
-     * Has route
-     */
-    public function hasRoute(): bool
-    {
-        return in_array($this->type, [
-            RelationType::HAS_MANY,
-            RelationType::BELONGS_TO_MANY,
-            RelationType::MORPH_MANY
-        ]);
-    }
-
-    /**
-     * @return string Returns the name of the pivot table for many-to-many relations.
-     */
-    public function getPivotName(): string
-    {
-        // alphabetical order of related tables (Laravel convention)
-        $tables = [
-            Str::snake($this->localEntity->getName()),
-            Str::snake($this->entityName),
-        ];
-        sort($tables);
-
-        return implode('_', $tables);
-    }
-
-    /**
-     * Returns controller name for the related entity.
-     * // we need to be able to easily generate these php lines in order to write them to routes file
-     * Route::get('users/{user}/roles', [\App\Http\Controllers\User\UserRoleController::class, 'edit'])
-     * ->name('users.roles.edit');
-     * Route::put('users/{user}/roles', [\App\Http\Controllers\User\UserRoleController::class, 'update'])
-     * ->name('users.roles.update');
-     */
-    public function getControllerFullQualifiedName(): string
-    {
-        $localEntityName = $this->localEntity->getName();
-        $relatedEntityName = $this->entityName;
-
-        return "\\App\\Http\\Controllers\\{$localEntityName}\\{$localEntityName}{$relatedEntityName}Controller";
-    }
-
-    /**
-     * Returns route definition name for the relation.
-     * Ex. 'users/{user}/roles'
-     */
-    public function getRouteDefinitionPath(): string
-    {
-        $localEntityNamePlural = Str::snake($this->localEntity->getPluralName());
-        $localEntityNameSingular = Str::snake($this->localEntity->getName());
-        $relatedEntityName = Str::snake($this->getRelationName());
-
-        return "{$localEntityNamePlural}/{{$localEntityNameSingular}}/{$relatedEntityName}";
-    }
-
-    /**
-     * Returns the foreign key for this relation.
-     * If not set, it defaults to snake_case of the entity name + '_id'.
-     * For example, if the entity name is 'Post', the foreign key will be 'post_id'.
-     * If the relation is polymorphic, it will return null.
-     */
-    public function getForeignKey(): ?string
-    {
-        return $this->foreignKey;
-    }
-
-    public function getLocalKey(): ?string
-    {
-        return $this->localKey ??= Str::snake($this->entityName).'_id';
-    }
-
-    public function getMorphName(): ?string
-    {
-        // For polymorphic relations, return the relation name
-        return $this->getRelationName();
-    }
-
-    /**
      * Json representation of the relation.
+     * @throws JsonException
      */
     public function toJson(): string
     {
-        return json_encode([
+        $data = [
             'type' => $this->type->value,
-            'entity' => $this->entityName,
-            'local_entity' => $this->localEntity->getName(),
-            'foreign_key' => $this->foreignKey,
-            'local_key' => $this->localKey,
-            'relation_name' => $this->relationName,
-        ], JSON_PRETTY_PRINT);
-    }
+            'relatedEntityName' => $this->getRelatedEntityName(),
+            'relationName' => $this->getRelationName(),
+            'foreignKey' => $this->getForeignKey(),
+            'localKey' => $this->getLocalKey(),
+            'relatedForeignKey' => $this->getRelatedKey(),
+            'localEntityName' => $this->getLocalEntityName(),
 
-    /**
-     * @return string
-     *                Returns a comma-separated string of fields to be eagerly loaded for the related entity.
-     *                This is usually "id,name" or "id,title" depending on the related entity's name field.
-     */
-    public function getEagerFieldsStr(): string
-    {
-        // If the entity does not have a 'name' field, we will try to find first field that can be used as name
-        // so we can load them in index listing
-        $eagerFieldNames = ['id'];
-        $nameFields = $this->getRelatedEntity()->getNameFieldsNames();
-        if (count($nameFields) > 0) {
-            $eagerFieldNames[] = $nameFields[0];
-        }
+        ];
 
-        return implode(',', array_filter($eagerFieldNames));
+        return json_encode($data, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR);
     }
 }

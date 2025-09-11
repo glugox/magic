@@ -213,7 +213,6 @@ class GenerateModelsAction implements DescribableAction
         $methodName = $relation->getRelationName();
         $relatedClass = $relation->getRelatedEntityName();
         $foreignKey = $relation->getForeignKey() ? "'{$relation->getForeignKey()}'" : '';
-        $localKey = $relation->getLocalKey() ? ", '{$relation->getLocalKey()}'" : '';
 
         $relationCall = match ($relation->getType()) {
             RelationType::HAS_ONE => "return \$this->hasOne($relatedClass::class, $foreignKey);",
@@ -223,7 +222,7 @@ class GenerateModelsAction implements DescribableAction
             RelationType::MORPH_ONE => "return \$this->morphOne($relatedClass::class, '{$relation->getMorphName()}');",
             RelationType::MORPH_MANY => "return \$this->morphMany($relatedClass::class, '{$relation->getMorphName()}');",
             RelationType::MORPH_TO => 'return $this->morphTo();',
-            default => "// Unknown relation type '{$relation->getType()->name}' for {$relation->getRelatedEntityName()}",
+            //default => "// Unknown relation type '{$relation->getType()->name}' for {$relation->getRelatedEntityName()}",
         };
 
         return <<<PHP

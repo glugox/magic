@@ -96,7 +96,7 @@ class GenerateSeedersAction implements DescribableAction
 
         $name = mb_strtolower($field->name);
         $mapFromConfig = config('magic.faker_mappings', []);
-        $mapFromJsonConfig = $this->context->getConfig()->dev->fakerMappings ?? [];
+        $mapFromJsonConfig = $this->context->getConfig()->app->fakerMappings ?? [];
         $map = array_merge($mapFromConfig, $mapFromJsonConfig);
 
         // If the name of the field contains a word that is associated with a Faker method,
@@ -232,7 +232,7 @@ class GenerateSeedersAction implements DescribableAction
     protected function generateSeeder(Entity $entity): void
     {
         $entityName = $entity->getName();
-        $seedCount = $this->context->getConfig()->dev->seedCount;
+        $seedCount = $this->context->getConfig()->app->seedCount;
         $className = $entityName.'Seeder';
         $namespace = 'Database\Seeders';
 
@@ -296,7 +296,7 @@ PHP;
     {
 
         $pivotTable = $relation->getPivotName();
-        $seedCount = $this->context->getConfig()->dev->seedCount;
+        $seedCount = $this->context->getConfig()->app->seedCount;
 
         // Skip if we already generated this pivot table seeder
         if (in_array($pivotTable, $this->generatedPivotSeeders)) {
@@ -388,7 +388,7 @@ PHP;
             Log::channel('magic')->info("Processing field: {$field->name} of type {$field->type->value}");
 
             // Check if field is a belongsTo relation
-            /** @var Relation $belongsTo */
+            /** @var Relation|null $belongsTo */
             $belongsTo = collect($entity->getRelations())
                 ->first(fn ($rel) => $rel->isBelongsTo() && $rel->getForeignKey() === $field->name);
 

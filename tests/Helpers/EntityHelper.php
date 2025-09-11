@@ -18,9 +18,9 @@ if (! function_exists('makeDummyEntity')) {
                 { "name": "is_active", "type": "boolean", "nullable": false, "default": false, "sortable": true }
             ],
             "relations": [
-                { "type": "hasMany", "entity": "Project", "foreign_key": "owner_id" },
-                { "type": "hasMany", "entity": "Task", "foreign_key": "assigned_to" },
-                { "type": "belongsToMany", "entity": "Team", "pivot": "team_user", "foreign_key": "user_id", "related_key": "team_id" }
+                { "type": "hasMany", "relatedEntityName": "Project", "foreignKey": "owner_id" },
+                { "type": "hasMany", "relatedEntityName": "Task", "foreignKey": "assigned_to" },
+                { "type": "belongsToMany", "relatedEntityName": "Team", "pivot": "team_user", "foreignKey": "user_id", "relatedKey": "team_id" }
             ],
             "settings": {
                 "searchable": true,
@@ -54,9 +54,9 @@ if (! function_exists('makeDummyProductEntityConfig')) {
                 { "name": "image", "type": "string", "nullable": true }
             ],
             "relations": [
-                { "type": "belongsTo", "entity": "User", "foreign_key": "created_by" },
-                { "type": "hasMany", "entity": "Review", "foreign_key": "product_id" },
-                { "type": "belongsToMany", "entity": "Tag", "pivot": "product_tag", "foreign_key": "product_id", "related_key": "tag_id" }
+                { "type": "belongsTo", "relatedEntityName": "User", "foreignKey": "created_by" },
+                { "type": "hasMany", "relatedEntityName": "Review", "foreignKey": "product_id" },
+                { "type": "belongsToMany", "relatedEntityName": "Tag", "pivot": "product_tag", "foreignKey": "product_id", "relatedKey": "tag_id" }
             ],
             "settings": {
                 "searchable": true,

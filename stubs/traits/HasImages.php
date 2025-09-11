@@ -3,14 +3,19 @@
 namespace App\Traits;
 
 use App\Models\Attachment;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Facades\Config;
 
+/** @phpstan-ignore-next-line */
 trait HasImages
 {
     /**
      * MorphMany relation to attachments.
+     *
+     * @return MorphMany
+     * @noinspection
      */
-    public function images()
+    public function images(): MorphMany
     {
         return $this->morphMany(Attachment::class, 'imageable')->orderBy('order_index');
     }

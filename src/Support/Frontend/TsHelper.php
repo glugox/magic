@@ -104,7 +104,7 @@ class TsHelper
      * In entity helper files like @/helpers/users_helper'
      * we need some support imports.
      */
-    public function writeEntityHelperSupportImports()
+    public function writeEntityHelperSupportImports(Entity $entity): string
     {
         $imports = [
             "import { type Entity, type Field } from '@/types/support';",
@@ -168,16 +168,20 @@ class TsHelper
         $relatedEntityStr = $relatedEntityName ? "'{$relatedEntityName}'" : 'null';
         $foreignKeyStr = $relation->getForeignKey() ? "'{$relation->getForeignKey()}'" : 'null';
         $localKeyStr = $relation->getLocalKey() ? "'{$relation->getLocalKey()}'" : 'null';
+        $relatedKeyStr = $relation->getRelatedKey() ? "'{$relation->getRelatedKey()}'" : 'null';
         $relationNameStr = $relation->getRelationName() ? "'{$relation->getRelationName()}'" : 'null';
+        $apiPathStr = $relation->getApiPath() ? "'{$relation->getApiPath()}'" : 'null';
 
         return "{
             type: '{$relation->getType()->value}',
-            localEntity: '{$entity->name}',
-            entityName: {$relatedEntityStr},
+            localEntityName: '{$entity->name}',
             relatedEntity: null, // Related entity can be set later if needed
+            relatedEntityName: {$relatedEntityStr},
             foreignKey: {$foreignKeyStr},
             localKey: {$localKeyStr},
+            relatedKey: {$relatedKeyStr},
             relationName: {$relationNameStr},
+            apiPath: {$apiPathStr}
         }";
     }
 

@@ -23,12 +23,14 @@ export interface Field {
 
 export interface Relation {
     type: 'belongsTo' | 'hasMany' | 'hasOne' | 'belongsToMany' | 'morphTo' | 'morphMany' | 'morphOne' | 'morphToMany' | 'morphedByMany'
-    localEntity: string | null
-    entityName?: string | null
+    localEntityName: string | null
+    relatedEntityName?: string | null
     relatedEntity?: string | null
     foreignKey?: string | null
     localKey?: string | null
+    relatedKey?: string | null
     relationName?: string | null
+    apiPath?: string | null
 }
 
 export interface ValidationRuleSet {

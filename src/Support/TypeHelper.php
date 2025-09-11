@@ -27,13 +27,10 @@ class TypeHelper
     public function relationTypeToFieldType(RelationType $relationType): FieldType
     {
         return match ($relationType) {
-            RelationType::BELONGS_TO => FieldType::BELONGS_TO,
-            RelationType::HAS_MANY, RelationType::BELONGS_TO_MANY => FieldType::HAS_MANY,
-            RelationType::HAS_ONE => FieldType::HAS_ONE,
-            RelationType::MORPH_ONE => FieldType::HAS_ONE,
-            RelationType::MORPH_MANY => FieldType::HAS_MANY,
-            RelationType::MORPH_TO => FieldType::BELONGS_TO,
-            default => FieldType::STRING,
+            RelationType::BELONGS_TO, RelationType::MORPH_TO => FieldType::BELONGS_TO,
+            RelationType::HAS_MANY, RelationType::BELONGS_TO_MANY, RelationType::MORPH_MANY => FieldType::HAS_MANY,
+            RelationType::HAS_ONE, RelationType::MORPH_ONE => FieldType::HAS_ONE,
+            //default => FieldType::STRING,
         };
     }
 

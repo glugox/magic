@@ -20,15 +20,19 @@ use Illuminate\Support\Facades\Storage;
  */
 
 /**
+ * @property int $id
  * @property string $file_path
  * @property string $file_type
- * @property array|null $meta
- * @property-read string|null $url
- * @property-read bool $is_image
+ * @property int $attachable_id
+ * @property string $attachable_type
+ * @property array<string, mixed>|null $meta
  */
 class Attachment extends Model
 {
-    use HasFactory;
+    /**
+     * @use HasFactory<AttachmentFactory>
+     */
+    //use HasFactory;
 
     /**
      * The table associated with the model.
@@ -64,6 +68,8 @@ class Attachment extends Model
 
     /**
      * Morph relation: the model this file is attached to.
+     *
+     * @return MorphTo<Model, $this>
      */
     public function attachable(): MorphTo
     {
@@ -72,6 +78,8 @@ class Attachment extends Model
 
     /**
      * Accessor: full URL for the file.
+     *
+     * @return Attribute
      */
     protected function url(): Attribute
     {

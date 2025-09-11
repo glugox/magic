@@ -39,14 +39,14 @@ const lastQuery = ref<string>('')
 
 // Get relation metadata
 const relationMetadata = props.entity.relations.find(r => r.foreignKey === props.field.name)
-const modelNameSingular = relationMetadata?.entityName
+const modelNameSingular = relationMetadata?.relatedEntityName
 
 const normalize = (d: any) => ({ ...d, id: String(d.id) })
 
 onMounted(async () => {
     // Fetch initial record by ID
     if (model.value) {
-        const res = await get(`/${relationMetadata?.relationName}/${model.value}`)
+        const res = await get(`/${relationMetadata?.apiPath}/${model.value}`)
         const record = res?.data ?? res
         if (record) {
             const normalized = normalize(record)
@@ -96,7 +96,7 @@ const fetchOptions = async (query: string = '') => {
     lastQuery.value = query
     isLoading.value = true
     try {
-        const res = await get(`/${relationMetadata?.relationName}`, {
+        const res = await get(`/${relationMetadata?.apiPath}`, {
             search: query,
             limit: '5',
         })
@@ -182,7 +182,7 @@ const fetchOptions = async (query: string = '') => {
             <!-- link to edit related record -->
             <div v-if="selectedOption" class="mt-2">
                 <Link
-                    :href="`/${relationMetadata?.relationName}/${selectedOption.id}/edit`"
+                    :href="`/${relationMetadata?.apiPath}/${selectedOption.id}/edit`"
                     class="text-sm text-blue-600 hover:underline"
                 >
                     Edit this {{ modelNameSingular }}

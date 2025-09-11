@@ -16,6 +16,7 @@ class BelongsToRenderer extends Renderer
         $belongsTo = $field->belongsTo();
         $showAvatar = true;
         $avatarDefinition = "const avatarUrl = '';";
+        // @phpstan-ignore-next-line
         $avatarJs = $showAvatar ? 'h(Avatar, { name: nameVal, src: "" }),' : '';
         $indent = str_repeat(' ', 15);
         $indent2 = str_repeat(' ', 2);

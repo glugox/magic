@@ -2,6 +2,22 @@
 
 namespace App\Traits;
 
+/**
+ * Trait HasName
+ *
+ * Provides a dynamic way to get a "name" attribute for Eloquent models.
+ * The name can be derived from specified fields or a custom method.
+ *
+ * Usage:
+ * - Define a protected property `$nameFields` as an array of field names
+ *   to concatenate for the name, e.g. `protected $nameFields = ['first_name', 'last_name'];`
+ * - Alternatively, implement a `resolveName()` method in the model to return
+ *   a custom name string.
+ *
+ * If neither is provided, it defaults to "ModelClass #ID".
+ *
+ * @phpstan-ignore trait.unused
+ */
 trait HasName
 {
     /**

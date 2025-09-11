@@ -1,6 +1,8 @@
 {
     "app": {
-        "name": "UNO"
+        "name": "UNO",
+        "seedEnabled": false,
+        "seedCount": 20
     },
     "entities": [
         {
@@ -13,9 +15,9 @@
                 { "name": "password", "type": "password", "nullable": false, "hidden": true }
             ],
             "relations": [
-                { "type": "hasMany", "entity": "Address", "foreign_key": "user_id" },
-                { "type": "hasMany", "entity": "Resume", "foreign_key": "user_id" },
-                { "type": "belongsToMany", "entity": "Role", "pivot": "role_user", "foreign_key": "user_id", "related_key": "role_id" }
+                { "type": "hasMany", "relatedEntityName": "Address", "foreignKey": "user_id" },
+                { "type": "hasMany", "relatedEntityName": "Resume", "foreignKey": "user_id" },
+                { "type": "belongsToMany", "relatedEntityName": "Role", "pivot": "role_user", "foreignKey": "user_id", "relatedKey": "role_id" }
             ],
             "casts": {
                 "email_verified_at": "datetime"
@@ -33,7 +35,7 @@
                 { "name": "postal_code", "type": "string", "nullable": true, "searchable": true }
             ],
             "relations": [
-                { "type": "belongsTo", "entity": "User", "foreign_key": "user_id" }
+                { "type": "belongsTo", "relatedEntityName": "User", "foreignKey": "user_id" }
             ]
         },
         {
@@ -46,13 +48,13 @@
                 { "name": "summary", "type": "text", "nullable": true, "searchable": true, "showInTable": false }
             ],
             "relations": [
-                { "type": "belongsTo", "entity": "User", "foreign_key": "user_id" },
-                { "type": "hasMany", "entity": "WorkExperience", "foreign_key": "resume_id" },
-                { "type": "hasMany", "entity": "Education", "foreign_key": "resume_id" },
-                { "type": "hasMany", "entity": "Skill", "foreign_key": "resume_id" },
-                { "type": "hasMany", "entity": "Certification", "foreign_key": "resume_id" },
-                { "type": "hasMany", "entity": "Project", "foreign_key": "resume_id" },
-                { "type": "hasMany", "entity": "Language", "foreign_key": "resume_id" }
+                { "type": "belongsTo", "relatedEntityName": "User", "foreignKey": "user_id" },
+                { "type": "hasMany", "relatedEntityName": "WorkExperience", "foreignKey": "resume_id" },
+                { "type": "hasMany", "relatedEntityName": "Education", "foreignKey": "resume_id" },
+                { "type": "hasMany", "relatedEntityName": "Skill", "foreignKey": "resume_id" },
+                { "type": "hasMany", "relatedEntityName": "Certification", "foreignKey": "resume_id" },
+                { "type": "hasMany", "relatedEntityName": "Project", "foreignKey": "resume_id" },
+                { "type": "hasMany", "relatedEntityName": "Language", "foreignKey": "resume_id" }
             ]
         },
         {
@@ -68,7 +70,7 @@
                 { "name": "description", "type": "text", "nullable": true, "showInTable": false }
             ],
             "relations": [
-                { "type": "belongsTo", "entity": "Resume", "foreign_key": "resume_id" }
+                { "type": "belongsTo", "relatedEntityName": "Resume", "foreignKey": "resume_id" }
             ]
         },
         {
@@ -84,7 +86,7 @@
                 { "name": "end_date", "type": "date", "nullable": true }
             ],
             "relations": [
-                { "type": "belongsTo", "entity": "Resume", "foreign_key": "resume_id" }
+                { "type": "belongsTo", "relatedEntityName": "Resume", "foreignKey": "resume_id" }
             ]
         },
         {
@@ -97,7 +99,7 @@
                 { "name": "level", "type": "string", "nullable": true }
             ],
             "relations": [
-                { "type": "belongsTo", "entity": "Resume", "foreign_key": "resume_id" }
+                { "type": "belongsTo", "relatedEntityName": "Resume", "foreignKey": "resume_id" }
             ]
         },
         {
@@ -111,7 +113,7 @@
                 { "name": "date_received", "type": "date", "nullable": true }
             ],
             "relations": [
-                { "type": "belongsTo", "entity": "Resume", "foreign_key": "resume_id" }
+                { "type": "belongsTo", "relatedEntityName": "Resume", "foreignKey": "resume_id" }
             ]
         },
         {
@@ -125,7 +127,7 @@
                 { "name": "url", "type": "url", "nullable": true }
             ],
             "relations": [
-                { "type": "belongsTo", "entity": "Resume", "foreign_key": "resume_id" }
+                { "type": "belongsTo", "relatedEntityName": "Resume", "foreignKey": "resume_id" }
             ]
         },
         {
@@ -138,7 +140,7 @@
                 { "name": "proficiency", "type": "string", "nullable": true }
             ],
             "relations": [
-                { "type": "belongsTo", "entity": "Resume", "foreign_key": "resume_id" }
+                { "type": "belongsTo", "relatedEntityName": "Resume", "foreignKey": "resume_id" }
             ]
         },
         {
@@ -149,12 +151,8 @@
                 { "name": "name", "type": "string", "nullable": false, "unique": true, "searchable": true }
             ],
             "relations": [
-                { "type": "belongsToMany", "entity": "User", "pivot": "role_user", "foreign_key": "role_id", "related_key": "user_id" }
+                { "type": "belongsToMany", "relatedEntityName": "User", "pivot": "role_user", "foreignKey": "role_id", "relatedKey": "user_id" }
             ]
         }
-    ],
-    "dev": {
-        "seedEnabled": true,
-        "seedCount": 20
-    }
+    ]
 }

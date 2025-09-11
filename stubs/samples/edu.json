@@ -1,6 +1,8 @@
 {
     "app": {
-        "name": "EduTrack"
+        "name": "EduTrack",
+        "seedEnabled": true,
+        "seedCount": 50
     },
     "entities": [
         {
@@ -13,8 +15,8 @@
                 { "name": "enrollment_date", "type": "date", "nullable": false, "sortable": true }
             ],
             "relations": [
-                { "type": "hasMany", "entity": "Enrollment", "foreign_key": "student_id" },
-                { "type": "belongsToMany", "entity": "Course", "pivot": "enrollments", "foreign_key": "student_id", "related_key": "course_id" }
+                { "type": "hasMany", "relatedEntityName": "Enrollment", "foreignKey": "student_id" },
+                { "type": "belongsToMany", "relatedEntityName": "Course", "pivot": "enrollments", "foreignKey": "student_id", "relatedKey": "course_id" }
             ]
         },
         {
@@ -26,8 +28,8 @@
                 { "name": "credits", "type": "integer", "nullable": false, "sortable": true }
             ],
             "relations": [
-                { "type": "belongsToMany", "entity": "Student", "pivot": "enrollments", "foreign_key": "course_id", "related_key": "student_id" },
-                { "type": "hasMany", "entity": "Assignment", "foreign_key": "course_id" }
+                { "type": "belongsToMany", "relatedEntityName": "Student", "pivot": "enrollments", "foreignKey": "course_id", "relatedKey": "student_id" },
+                { "type": "hasMany", "relatedEntityName": "Assignment", "foreignKey": "course_id" }
             ]
         },
         {
@@ -40,8 +42,8 @@
                 { "name": "status", "type": "enum", "nullable": false, "values": ["active", "completed", "dropped"], "default": "active" }
             ],
             "relations": [
-                { "type": "belongsTo", "entity": "Student", "foreign_key": "student_id" },
-                { "type": "belongsTo", "entity": "Course", "foreign_key": "course_id" }
+                { "type": "belongsTo", "relatedEntityName": "Student", "foreignKey": "student_id" },
+                { "type": "belongsTo", "relatedEntityName": "Course", "foreignKey": "course_id" }
             ]
         },
         {
@@ -54,8 +56,8 @@
                 { "name": "due_date", "type": "date", "nullable": false }
             ],
             "relations": [
-                { "type": "belongsTo", "entity": "Course", "foreign_key": "course_id" },
-                { "type": "hasMany", "entity": "Submission", "foreign_key": "assignment_id" }
+                { "type": "belongsTo", "relatedEntityName": "Course", "foreignKey": "course_id" },
+                { "type": "hasMany", "relatedEntityName": "Submission", "foreignKey": "assignment_id" }
             ]
         },
         {
@@ -75,13 +77,9 @@
                 }
             ],
             "relations": [
-                { "type": "belongsTo", "entity": "Assignment", "foreign_key": "assignment_id" },
-                { "type": "belongsTo", "entity": "Student", "foreign_key": "student_id" }
+                { "type": "belongsTo", "relatedEntityName": "Assignment", "foreignKey": "assignment_id" },
+                { "type": "belongsTo", "relatedEntityName": "Student", "foreignKey": "student_id" }
             ]
         }
-    ],
-    "dev": {
-        "seedEnabled": true,
-        "seedCount": 50
-    }
+    ]
 }

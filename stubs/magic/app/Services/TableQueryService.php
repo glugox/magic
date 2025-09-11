@@ -31,6 +31,16 @@ class TableQueryService
      * );
      * $items = $query->paginate(12);
      * ```
+     *
+     * @param Builder $query The Eloquent query builder instance.
+     * @param array $searchableFields Fields to search in.
+     * @param string[] $relations Relations to eager load.
+     * @param array $selectFields Fields to select in the query.
+     * @param string|null $searchString The search string from request.
+     * @param string $defaultSortField Default field to sort by if none specified in request.
+     * @param string $defaultSortDir Default sort direction ('asc' or 'desc').
+     *
+     * @return Builder The modified query builder instance.
      */
     public function applyAll(
         Builder $query,
@@ -73,7 +83,12 @@ class TableQueryService
      * Apply sorting to a query.
      *
      * If `sortKey` exists in request, uses it.
-     * Otherwise, can optionally order `selectedIds` first, then by default field.
+     * Otherwise, can optionally order `selectedIds` first, then by default field and direction.
+     *
+     * @param Builder $query The Eloquent query builder instance.
+     * @param string $defaultField Default field to sort by if none specified in request.
+     * @param string $defaultDir Default sort direction ('asc' or 'desc').
+     * @return Builder The modified query builder instance.
      */
     public function applySort(
         Builder $query,
@@ -83,7 +98,7 @@ class TableQueryService
         $request = request();
 
         if ($request->has('sortKey')) {
-            $query->orderBy($request->get('sortKey'), $request->get('sortDir', 'asc'));
+            $query->orderBy($request->get('sortKey', 'id'), $request->get('sortDir', 'asc'));
         }/* elseif (!empty($selectedIds)) {
             // Selected first
             $ids = implode(',', $selectedIds);

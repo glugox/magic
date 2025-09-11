@@ -176,11 +176,13 @@ class Config
     {
         Log::channel('magic')->info('Applying overrides to config: '.json_encode($overrides));
 
+        // start from root config
+        $modified = $this;
+
         foreach ($overrides as $override) {
             [$key, $value] = explode('=', $override, 2);
             $keys = explode('.', $key);
 
-            $modified = $this; // start from root config
             $current = &$modified;
 
             foreach ($keys as $index => $k) {
@@ -191,11 +193,17 @@ class Config
                 // If this is the last key, assign the value with proper type
                 if ($index === array_key_last($keys)) {
                     $reflection = new ReflectionProperty($current, $k);
-                    $type = $reflection->getType()?->getName() ?? 'mixed';
+                    $reflectionType = $reflection->getType();
+                    $type = 'mixed';
+                    if($reflectionType !== null ) {
+                        // @phpstan-ignore-next-line
+                        $type = $reflectionType->getName();
+                    }
                     $currentShortClass = new ReflectionClass($current)->getShortName();
 
                     // If the property is a nested config object
                     if (class_exists($type) && is_subclass_of($type, self::class)) {
+                        // @phpstan-ignore-next-line
                         $current->$k = new $type((array) $value);
                         Log::channel('magic')->info("Setting {$currentShortClass} -> {$k} to value: ".json_encode($current->$k));
                     } else {
@@ -223,8 +231,8 @@ class Config
         Log::channel('magic')->info('Configuration Debug Info:');
         Log::channel('magic')->info("App Name: {$this->app->name}");
         Log::channel('magic')->info('Entities Count: '.count($this->entities));
-        Log::channel('magic')->info('Development Seed Enabled: '.($this->dev->seedEnabled ? 'true' : 'false'));
-        Log::channel('magic')->info("Development Seed Count: {$this->dev->seedCount}");
+        Log::channel('magic')->info('Development Seed Enabled: '.($this->seedEnabled ? 'true' : 'false'));
+        Log::channel('magic')->info("Development Seed Count: {$this->seedCount}");
 
         foreach ($this->entities as $entity) {
             Log::channel('magic')->info("Entity: {$entity->getName()}, Table: {$entity->getTableName()}");

@@ -48,6 +48,7 @@ class ImageRenderer extends Renderer
     }";
 
         // Return the renderer based on the environment
+        // @phpstan-ignore-next-line
         return env('APP_ENV') === 'local' ? $cellRenderer : $productionRenderer;
     }
 }

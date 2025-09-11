@@ -52,7 +52,9 @@ function getFixtureConfigResume(): Config
     return Config::fromJson('
     {
     "app": {
-        "name": "UNO"
+        "name": "UNO",
+        "seedEnabled": true,
+        "seedCount": 20
     },
     "entities": [
         {
@@ -65,9 +67,9 @@ function getFixtureConfigResume(): Config
                 { "name": "password", "type": "password", "nullable": false, "hidden": true }
             ],
             "relations": [
-                { "type": "hasMany", "entity": "Address", "foreign_key": "user_id" },
-                { "type": "hasMany", "entity": "Resume", "foreign_key": "user_id" },
-                { "type": "belongsToMany", "entity": "Role", "pivot": "role_user", "foreign_key": "user_id", "related_key": "role_id" }
+                { "type": "hasMany", "relatedEntityName": "Address", "foreignKey": "user_id" },
+                { "type": "hasMany", "relatedEntityName": "Resume", "foreignKey": "user_id" },
+                { "type": "belongsToMany", "relatedEntityName": "Role", "pivot": "role_user", "foreignKey": "user_id", "relatedKey": "role_id" }
             ],
             "casts": {
                 "email_verified_at": "datetime"
@@ -85,7 +87,7 @@ function getFixtureConfigResume(): Config
                 { "name": "postal_code", "type": "string", "nullable": true, "searchable": true }
             ],
             "relations": [
-                { "type": "belongsTo", "entity": "User", "foreign_key": "user_id" }
+                { "type": "belongsTo", "relatedEntityName": "User", "foreignKey": "user_id" }
             ]
         },
         {
@@ -98,13 +100,13 @@ function getFixtureConfigResume(): Config
                 { "name": "summary", "type": "text", "nullable": true, "searchable": true, "showInTable": false }
             ],
             "relations": [
-                { "type": "belongsTo", "entity": "User", "foreign_key": "user_id" },
-                { "type": "hasMany", "entity": "WorkExperience", "foreign_key": "resume_id" },
-                { "type": "hasMany", "entity": "Education", "foreign_key": "resume_id" },
-                { "type": "hasMany", "entity": "Skill", "foreign_key": "resume_id" },
-                { "type": "hasMany", "entity": "Certification", "foreign_key": "resume_id" },
-                { "type": "hasMany", "entity": "Project", "foreign_key": "resume_id" },
-                { "type": "hasMany", "entity": "Language", "foreign_key": "resume_id" }
+                { "type": "belongsTo", "relatedEntityName": "User", "foreignKey": "user_id" },
+                { "type": "hasMany", "relatedEntityName": "WorkExperience", "foreignKey": "resume_id" },
+                { "type": "hasMany", "relatedEntityName": "Education", "foreignKey": "resume_id" },
+                { "type": "hasMany", "relatedEntityName": "Skill", "foreignKey": "resume_id" },
+                { "type": "hasMany", "relatedEntityName": "Certification", "foreignKey": "resume_id" },
+                { "type": "hasMany", "relatedEntityName": "Project", "foreignKey": "resume_id" },
+                { "type": "hasMany", "relatedEntityName": "Language", "foreignKey": "resume_id" }
             ]
         },
         {
@@ -120,7 +122,7 @@ function getFixtureConfigResume(): Config
                 { "name": "description", "type": "text", "nullable": true, "showInTable": false }
             ],
             "relations": [
-                { "type": "belongsTo", "entity": "Resume", "foreign_key": "resume_id" }
+                { "type": "belongsTo", "relatedEntityName": "Resume", "foreignKey": "resume_id" }
             ]
         },
         {
@@ -136,7 +138,7 @@ function getFixtureConfigResume(): Config
                 { "name": "end_date", "type": "date", "nullable": true }
             ],
             "relations": [
-                { "type": "belongsTo", "entity": "Resume", "foreign_key": "resume_id" }
+                { "type": "belongsTo", "relatedEntityName": "Resume", "foreignKey": "resume_id" }
             ]
         },
         {
@@ -149,7 +151,7 @@ function getFixtureConfigResume(): Config
                 { "name": "level", "type": "string", "nullable": true }
             ],
             "relations": [
-                { "type": "belongsTo", "entity": "Resume", "foreign_key": "resume_id" }
+                { "type": "belongsTo", "relatedEntityName": "Resume", "foreignKey": "resume_id" }
             ]
         },
         {
@@ -163,7 +165,7 @@ function getFixtureConfigResume(): Config
                 { "name": "date_received", "type": "date", "nullable": true }
             ],
             "relations": [
-                { "type": "belongsTo", "entity": "Resume", "foreign_key": "resume_id" }
+                { "type": "belongsTo", "relatedEntityName": "Resume", "foreignKey": "resume_id" }
             ]
         },
         {
@@ -177,7 +179,7 @@ function getFixtureConfigResume(): Config
                 { "name": "url", "type": "url", "nullable": true }
             ],
             "relations": [
-                { "type": "belongsTo", "entity": "Resume", "foreign_key": "resume_id" }
+                { "type": "belongsTo", "relatedEntityName": "Resume", "foreignKey": "resume_id" }
             ]
         },
         {
@@ -190,7 +192,7 @@ function getFixtureConfigResume(): Config
                 { "name": "proficiency", "type": "string", "nullable": true }
             ],
             "relations": [
-                { "type": "belongsTo", "entity": "Resume", "foreign_key": "resume_id" }
+                { "type": "belongsTo", "relatedEntityName": "Resume", "foreignKey": "resume_id" }
             ]
         },
         {
@@ -201,14 +203,10 @@ function getFixtureConfigResume(): Config
                 { "name": "name", "type": "string", "nullable": false, "unique": true, "searchable": true }
             ],
             "relations": [
-                { "type": "belongsToMany", "entity": "User", "pivot": "role_user", "foreign_key": "role_id", "related_key": "user_id" }
+                { "type": "belongsToMany", "relatedEntityName": "User", "pivot": "role_user", "foreignKey": "role_id", "relatedKey": "user_id" }
             ]
         }
-    ],
-    "dev": {
-        "seedEnabled": true,
-        "seedCount": 20
-    }
+    ]
 }
 ');
 }
@@ -220,7 +218,12 @@ function getFixtureConfigInventory(): Config
 {
     return Config::fromJson('{
     "app": {
-        "name": "InventoryHub"
+        "name": "InventoryHub",
+        "seedEnabled": true,
+        "seedCount": 50,
+        "fakerMappings": {
+            "carrier": "randomElement([\"FedEx\", \"UPS\", \"DHL\", \"USPS\"])"
+        }
     },
     "entities": [
         {
@@ -235,10 +238,10 @@ function getFixtureConfigInventory(): Config
                 { "name": "image", "type": "image", "nullable": true }
             ],
             "relations": [
-                { "type": "hasMany", "entity": "Order", "foreign_key": "user_id" },
-                { "type": "hasMany", "entity": "Shipment", "foreign_key": "user_id" },
-                { "type": "belongsToMany", "entity": "Role", "pivot": "role_user", "foreign_key": "user_id", "related_key": "role_id" },
-                { "type": "morphMany", "entity": "Attachment", "name": "attachments" }
+                { "type": "hasMany", "relatedEntityName": "Order", "foreignKey": "user_id" },
+                { "type": "hasMany", "relatedEntityName": "Shipment", "foreignKey": "user_id" },
+                { "type": "belongsToMany", "relatedEntityName": "Role", "pivot": "role_user", "foreignKey": "user_id", "relatedKey": "role_id" },
+                { "type": "morphMany", "relatedEntityName": "Attachment", "relationName": "attachments" }
             ]
         },
         {
@@ -248,7 +251,7 @@ function getFixtureConfigInventory(): Config
                 { "name": "name", "type": "string", "nullable": false, "unique": true }
             ],
             "relations": [
-                { "type": "belongsToMany", "entity": "User", "pivot": "role_user", "foreign_key": "role_id", "related_key": "user_id" }
+                { "type": "belongsToMany", "relatedEntityName": "User", "pivot": "role_user", "foreignKey": "role_id", "relatedKey": "user_id" }
             ]
         },
         {
@@ -261,8 +264,8 @@ function getFixtureConfigInventory(): Config
                 { "name": "metadata", "type": "json", "nullable": true }
             ],
             "relations": [
-                { "type": "hasMany", "entity": "Product", "foreign_key": "warehouse_id" },
-                { "type": "hasOne", "entity": "User", "foreign_key": "manager_id" }
+                { "type": "hasMany", "relatedEntityName": "Product", "foreignKey": "warehouse_id" },
+                { "type": "hasOne", "relatedEntityName": "User", "foreignKey": "manager_id" }
             ]
         },
         {
@@ -273,7 +276,7 @@ function getFixtureConfigInventory(): Config
                 { "name": "description", "type": "text", "nullable": true }
             ],
             "relations": [
-                { "type": "belongsToMany", "entity": "Product", "pivot": "category_product", "foreign_key": "category_id", "related_key": "product_id" }
+                { "type": "belongsToMany", "relatedEntityName": "Product", "pivot": "category_product", "foreignKey": "category_id", "relatedKey": "product_id" }
             ]
         },
         {
@@ -291,10 +294,10 @@ function getFixtureConfigInventory(): Config
                 { "name": "status", "type": "enum", "nullable": false, "values": ["active", "inactive", "discontinued"], "sortable": true }
             ],
             "relations": [
-                { "type": "belongsTo", "entity": "Warehouse", "foreign_key": "warehouse_id" },
-                { "type": "belongsToMany", "entity": "Category", "pivot": "category_product", "foreign_key": "product_id", "related_key": "category_id" },
-                { "type": "morphMany", "entity": "Attachment"},
-                { "type": "morphMany", "entity": "Review"}
+                { "type": "belongsTo", "relatedEntityName": "Warehouse", "foreignKey": "warehouse_id" },
+                { "type": "belongsToMany", "relatedEntityName": "Category", "pivot": "category_product", "foreignKey": "product_id", "relatedKey": "category_id" },
+                { "type": "morphMany", "relatedEntityName": "Attachment", "relationName": "attachments" },
+                { "type": "morphMany", "relatedEntityName": "Review", "relationName": "reviews" }
             ]
         },
         {
@@ -308,9 +311,9 @@ function getFixtureConfigInventory(): Config
                 { "name": "placed_at", "type": "dateTime", "nullable": false }
             ],
             "relations": [
-                { "type": "belongsTo", "entity": "User", "foreign_key": "user_id" },
-                { "type": "hasMany", "entity": "OrderItem", "foreign_key": "order_id" },
-                { "type": "hasOne", "entity": "Shipment", "foreign_key": "order_id" }
+                { "type": "belongsTo", "relatedEntityName": "User", "foreignKey": "user_id" },
+                { "type": "hasMany", "relatedEntityName": "OrderItem", "foreignKey": "order_id" },
+                { "type": "hasOne", "relatedEntityName": "Shipment", "foreignKey": "order_id" }
             ]
         },
         {
@@ -323,8 +326,8 @@ function getFixtureConfigInventory(): Config
                 { "name": "unit_price", "type": "decimal", "nullable": false, "min": 0, "max": 10000 }
             ],
             "relations": [
-                { "type": "belongsTo", "entity": "Order", "foreign_key": "order_id" },
-                { "type": "belongsTo", "entity": "Product", "foreign_key": "product_id" }
+                { "type": "belongsTo", "relatedEntityName": "Order", "foreignKey": "order_id" },
+                { "type": "belongsTo", "relatedEntityName": "Product", "foreignKey": "product_id" }
             ]
         },
         {
@@ -337,8 +340,8 @@ function getFixtureConfigInventory(): Config
                 { "name": "carrier", "type": "string", "nullable": true }
             ],
             "relations": [
-                { "type": "belongsTo", "entity": "Order", "foreign_key": "order_id" },
-                { "type": "hasOne", "entity": "CarrierDetail", "foreign_key": "shipment_id" }
+                { "type": "belongsTo", "relatedEntityName": "Order", "foreignKey": "order_id" },
+                { "type": "hasOne", "relatedEntityName": "CarrierDetail", "foreignKey": "shipment_id" }
             ]
         },
         {
@@ -350,7 +353,7 @@ function getFixtureConfigInventory(): Config
                 { "name": "service_level", "type": "string", "nullable": true }
             ],
             "relations": [
-                { "type": "belongsTo", "entity": "Shipment", "foreign_key": "shipment_id" }
+                { "type": "belongsTo", "relatedEntityName": "Shipment", "foreignKey": "shipment_id" }
             ]
         },
         {
@@ -363,7 +366,7 @@ function getFixtureConfigInventory(): Config
                 { "name": "file_type", "type": "string", "nullable": false }
             ],
             "relations": [
-                { "type": "morphTo", "name": "attachable" }
+                { "type": "morphTo", "relationName": "attachable" }
             ]
         },
         {
@@ -376,17 +379,10 @@ function getFixtureConfigInventory(): Config
                 { "name": "comment", "type": "text", "nullable": true }
             ],
             "relations": [
-                { "type": "morphTo", "name": "reviewable" }
+                { "type": "morphTo", "relationName": "reviewable" }
             ]
         }
-    ],
-    "dev": {
-        "seedEnabled": true,
-        "seedCount": 50,
-        "fakerMappings": {
-            "carrier": "randomElement([\"FedEx\", \"UPS\", \"DHL\", \"USPS\"])"
-        }
-    }
+    ]
 }
 ');
 
@@ -396,7 +392,10 @@ function getFixtureConfigStringInventoryGraphQl(): string
 {
     return '# App configuration
 type App @config {
-  name: String! @default("InventoryHub GraphQl")
+  name: String! @default("InventoryHub")
+  seedEnabled: Boolean! @default(true)
+  seedCount: Int! @default(50)
+  fakerMappings: JSON
   defaultLocale: String! @default("en")
   enableAdvancedLogging: Boolean! @default(false)
   defaultPerPage: Int! @default(50)
@@ -441,6 +440,12 @@ type Category {
   products: Product! @belongsToMany @pivot("category_product") @foreignKey("category_id") @relatedKey("product_id")
 }
 
+enum Status {
+  active
+  inactive
+  discontinued
+}
+
 type Product {
   id: ID!
   warehouse_id: ForeignId!
@@ -451,22 +456,29 @@ type Product {
   available_from: Date @sort
   expires_at: DateTime @sort
   image: Image
-  status: Enum! @enum(values: ["active","inactive","discontinued"]) @sort
+  status: Status! @sort
   warehouse: Warehouse! @belongsTo
-  categories: Category! @belongsToMany
+  categories: Category! @belongsToMany @pivot("category_product") @foreignKey("product_id") @relatedKey("category_id")
   attachments: Attachment! @morphMany
   reviews: Review! @morphMany
+}
+
+enum OrderStatus {
+  pending
+  processing
+  shipped
+  delivered
 }
 
 type Order {
   id: ID!
   user_id: ForeignId!
   order_number: String! @unique
-  status: String! @enum(values:["pending","processing","shipped","delivered"])
-  total: Float!
+  status: OrderStatus!
+  total: Decimal! @min(0) @max(10000)
   placed_at: DateTime!
   user: User! @belongsTo
-  items: OrderItem! @hasMany
+  orderItems: OrderItem! @hasMany
   shipment: Shipment! @hasOne
 }
 
@@ -474,8 +486,8 @@ type OrderItem {
   id: ID!
   order_id: ForeignId!
   product_id: ForeignId!
-  quantity: Int!
-  unit_price: Float!
+  quantity: Int! @min(1) @max(10)
+  unit_price: Decimal! @min(0) @max(10000)
   order: Order! @belongsTo
   product: Product! @belongsTo
 }
@@ -487,7 +499,7 @@ type Shipment {
   delivered_at: DateTime
   carrier: String
   order: Order! @belongsTo
-  carrier_detail: CarrierDetail! @hasOne
+  carrierDetail: CarrierDetail! @hasOne
 }
 
 type CarrierDetail {
@@ -511,8 +523,8 @@ type Review {
   id: ID!
   reviewable_id: ForeignId!
   reviewable_type: String!
-  rating: Int!
-  comment: String
+  rating: Int! @min(0) @max(10)
+  comment: Text
   reviewable: @morphTo
 }
 ';

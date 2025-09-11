@@ -5,14 +5,14 @@ namespace Glugox\Magic\Validation;
 class EntityRuleSet
 {
     /**
-     * @var ValidationRuleSet Rules for create action
+     * @var ValidationRuleSet[] Rules for create action
      */
-    protected $create = [];
+    protected array $create = [];
 
     /**
-     * @var ValidationRuleSet Rules for update action
+     * @var ValidationRuleSet[] Rules for update action
      */
-    protected $update = [];
+    protected array $update = [];
 
     /**
      * Add rules for create action
@@ -69,7 +69,7 @@ class EntityRuleSet
      *
      * @return ValidationRuleSet|null
      */
-    public function getUpdateRuleSetForField(string $name)
+    public function getUpdateRuleSetForField(string $name): ?ValidationRuleSet
     {
         return $this->update[$name] ?? null;
     }

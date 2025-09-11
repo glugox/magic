@@ -20,13 +20,15 @@ beforeEach(function (): void {
     GQL;
 });
 
-/*it('can load graphql schema into config', function () {
-    $reader = new SchemaReader();
+it('can load graphql schema into config', function () {
+    $reader = app(SchemaReader::class);
 
     // Parse GraphQL DSL into old JSON format
-    $jsonConfig = $reader->load($this->schema);
+    $reader->load($this->schema);
 
-    // Load Config using existing class
+    $jsonConfig = $reader->toJson();
+
+        // Load Config using existing class
     $config = Config::fromJson($jsonConfig);
 
     expect($config->isValid())->toBeTrue()
@@ -39,6 +41,6 @@ beforeEach(function (): void {
         ->and($user->getTableName())->toBe('users');
 
     // Example: assert directives converted into settings
-    expect($user->settings->searchable)->toBeTrue()
-        ->and($user->settings->sortable)->toBeTrue();
-});*/
+    expect($user->getFieldByName('email')->searchable)->toBeTrue()
+        ->and($user->getFieldByName('name')->sortable)->toBeTrue();
+});

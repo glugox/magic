@@ -51,11 +51,11 @@ class Entity
             $relation = new Relation(
                 $relationData['type'],
                 $entity,
-                $relationData['entity'] ?? null,
-                null, // related entity will be set later in processRelations
-                $relationData['foreign_key'] ?? null,
-                $relationData['local_key'] ?? null,
-                $relationData['name'] ?? null
+                relatedEntityName: $relationData['relatedEntityName'] ?? null,
+                foreignKey: $relationData['foreignKey'] ?? null,
+                localKey: $relationData['localKey'] ?? null,
+                relatedKey: $relationData['relatedKey'] ?? null,
+                relationName: $relationData['relationName'] ?? null
             );
 
             // Add the relation to the entity
@@ -281,6 +281,19 @@ class Entity
     }
 
     /**
+     * Get a field by name.
+     */
+    public function getFieldByName(string $name): ?Field
+    {
+        foreach ($this->fields as $field) {
+            if ($field->name === $name) {
+                return $field;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Get fields that should be visible in tables/lists.
      *
      * @return Field[]
@@ -387,18 +400,7 @@ class Entity
                 $visible[] = $field;
             }
         }
-        // Relations
-        foreach ($this->getRelations() as $relation) {
-
-            // Add only BELONGS_TO relations to forms
-            if ($relation->getType() !== RelationType::BELONGS_TO
-                || $relation->getType() !== RelationType::HAS_ONE) {
-                continue;
-            }
-
-            $relationField = Field::fromRelation($relation);
-            $visible[] = $relationField;
-        }
+        // Relations are not needed here, as belongsTo relations are represented by foreign key fields
 
         return $visible;
     }

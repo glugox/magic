@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\AttachmentResource;
 use App\Jobs\ProcessAttachment;
 use App\Models\Attachment;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -57,21 +58,22 @@ class AttachmentController extends Controller
         ]);
 
         // Queue processing (thumbnails, etc.)
-        ProcessAttachment::dispatch($attachment);
+        ProcessAttachment::dispatch($attachment, $file->getPathname());
 
         return new AttachmentResource($attachment);
     }
 
     /**
      * Delete an attachment.
+     * @throws \Throwable
      */
-    public function destroy(Attachment $attachment)
+    public function destroy(Attachment $attachment): JsonResponse
     {
         DB::transaction(function () use ($attachment): void {
-            Storage::disk('public')->delete($attachment->path);
+            Storage::disk('public')->delete($attachment->file_path);
 
             // delete thumbnail if exists
-            $thumbnailPath = preg_replace('/(\.\w+)$/', '_thumb$1', $attachment->path);
+            $thumbnailPath = preg_replace('/(\.\w+)$/', '_thumb$1', $attachment->file_path);
             if (Storage::disk('public')->exists($thumbnailPath)) {
                 Storage::disk('public')->delete($thumbnailPath);
             }

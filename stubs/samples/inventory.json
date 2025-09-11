@@ -1,6 +1,11 @@
 {
     "app": {
-        "name": "InventoryHub"
+        "name": "InventoryHub",
+        "seedEnabled": true,
+        "seedCount": 50,
+        "fakerMappings": {
+            "carrier": "randomElement([\"FedEx\", \"UPS\", \"DHL\", \"USPS\"])"
+        }
     },
     "entities": [
         {
@@ -14,9 +19,9 @@
                 { "name": "active", "type": "boolean", "nullable": false, "default": true }
             ],
             "relations": [
-                { "type": "hasMany", "entity": "Order", "foreign_key": "user_id" },
-                { "type": "hasMany", "entity": "Shipment", "foreign_key": "user_id" },
-                { "type": "belongsToMany", "entity": "Role", "pivot": "role_user", "foreign_key": "user_id", "related_key": "role_id" }
+                { "type": "hasMany", "relatedEntityName": "Order", "foreignKey": "user_id" },
+                { "type": "hasMany", "relatedEntityName": "Shipment", "foreignKey": "user_id" },
+                { "type": "belongsToMany", "relatedEntityName": "Role", "pivot": "role_user", "foreignKey": "user_id", "relatedKey": "role_id" }
             ],
             "settings": {
                 "has_images": true
@@ -29,7 +34,7 @@
                 { "name": "name", "type": "string", "nullable": false, "unique": true }
             ],
             "relations": [
-                { "type": "belongsToMany", "entity": "User", "pivot": "role_user", "foreign_key": "role_id", "related_key": "user_id" }
+                { "type": "belongsToMany", "relatedEntityName": "User", "pivot": "role_user", "foreignKey": "role_id", "relatedKey": "user_id" }
             ]
         },
         {
@@ -42,8 +47,8 @@
                 { "name": "metadata", "type": "json", "nullable": true }
             ],
             "relations": [
-                { "type": "hasMany", "entity": "Product", "foreign_key": "warehouse_id" },
-                { "type": "hasOne", "entity": "User", "foreign_key": "manager_id" }
+                { "type": "hasMany", "relatedEntityName": "Product", "foreignKey": "warehouse_id" },
+                { "type": "hasOne", "relatedEntityName": "User", "foreignKey": "manager_id" }
             ]
         },
         {
@@ -54,7 +59,7 @@
                 { "name": "description", "type": "text", "nullable": true }
             ],
             "relations": [
-                { "type": "belongsToMany", "entity": "Product", "pivot": "category_product", "foreign_key": "category_id", "related_key": "product_id" }
+                { "type": "belongsToMany", "relatedEntityName": "Product", "pivot": "category_product", "foreignKey": "category_id", "relatedKey": "product_id" }
             ]
         },
         {
@@ -71,8 +76,8 @@
                 { "name": "status", "type": "enum", "nullable": false, "values": ["active", "inactive", "discontinued"], "sortable": true }
             ],
             "relations": [
-                { "type": "belongsTo", "entity": "Warehouse", "foreign_key": "warehouse_id" },
-                { "type": "belongsToMany", "entity": "Category", "pivot": "category_product", "foreign_key": "product_id", "related_key": "category_id" }
+                { "type": "belongsTo", "relatedEntityName": "Warehouse", "foreignKey": "warehouse_id" },
+                { "type": "belongsToMany", "relatedEntityName": "Category", "pivot": "category_product", "foreignKey": "product_id", "relatedKey": "category_id" }
             ],
             "settings": {
                 "has_images": true
@@ -89,9 +94,9 @@
                 { "name": "placed_at", "type": "dateTime", "nullable": false }
             ],
             "relations": [
-                { "type": "belongsTo", "entity": "User", "foreign_key": "user_id" },
-                { "type": "hasMany", "entity": "OrderItem", "foreign_key": "order_id" },
-                { "type": "hasOne", "entity": "Shipment", "foreign_key": "order_id" }
+                { "type": "belongsTo", "relatedEntityName": "User", "foreignKey": "user_id" },
+                { "type": "hasMany", "relatedEntityName": "OrderItem", "foreignKey": "order_id" },
+                { "type": "hasOne", "relatedEntityName": "Shipment", "foreignKey": "order_id" }
             ]
         },
         {
@@ -104,8 +109,8 @@
                 { "name": "unit_price", "type": "decimal", "nullable": false, "min": 0, "max": 10000 }
             ],
             "relations": [
-                { "type": "belongsTo", "entity": "Order", "foreign_key": "order_id" },
-                { "type": "belongsTo", "entity": "Product", "foreign_key": "product_id" }
+                { "type": "belongsTo", "relatedEntityName": "Order", "foreignKey": "order_id" },
+                { "type": "belongsTo", "relatedEntityName": "Product", "foreignKey": "product_id" }
             ]
         },
         {
@@ -119,8 +124,8 @@
                 { "name": "carrier", "type": "string", "nullable": true }
             ],
             "relations": [
-                { "type": "belongsTo", "entity": "Order", "foreign_key": "order_id" },
-                { "type": "hasOne", "entity": "CarrierDetail", "foreign_key": "shipment_id" }
+                { "type": "belongsTo", "relatedEntityName": "Order", "foreignKey": "order_id" },
+                { "type": "hasOne", "relatedEntityName": "CarrierDetail", "foreignKey": "shipment_id" }
             ]
         },
         {
@@ -132,15 +137,8 @@
                 { "name": "service_level", "type": "string", "nullable": true }
             ],
             "relations": [
-                { "type": "belongsTo", "entity": "Shipment", "foreign_key": "shipment_id" }
+                { "type": "belongsTo", "relatedEntityName": "Shipment", "foreignKey": "shipment_id" }
             ]
         }
-    ],
-    "dev": {
-        "seedEnabled": true,
-        "seedCount": 50,
-        "fakerMappings": {
-            "carrier": "randomElement([\"FedEx\", \"UPS\", \"DHL\", \"USPS\"])"
-        }
-    }
+    ]
 }

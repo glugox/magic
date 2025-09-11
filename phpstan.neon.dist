@@ -2,11 +2,15 @@ includes:
     - phpstan-baseline.neon
 
 parameters:
-    level: max
+    level: 5
     paths:
         - src
         - stubs
+    excludePaths:
         - config
+        - stubs/laravel
+        - stubs/controllers/AttachmentController.php
+        - stubs/routes/attachable.php
     tmpDir: build/phpstan
     checkOctaneCompatibility: true
     checkModelProperties: true

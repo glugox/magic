@@ -150,7 +150,7 @@ PHP;
 
                 $columnsCode = <<<PHP
             \$table->foreignId('{$entity->getForeignKey()}')->constrained('{$entity->getTableName()}')->cascadeOnDelete();
-            \$table->foreignId('{$relation->getLocalKey()}')->constrained('{$relation->getTableName()}')->cascadeOnDelete();
+            \$table->foreignId('{$relation->getRelatedKey()}')->constrained('{$relation->getTableName()}')->cascadeOnDelete();
 PHP;
 
                 $template = <<<PHP

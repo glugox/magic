@@ -30,7 +30,7 @@ const formAction = computed(() => {
     let args = {}
 
     if (item?.id) {
-        args = { id: item.id }
+        args = [item.id]
     }
 
     const parentEntitySingularLower = parentEntity?.singularNameLower

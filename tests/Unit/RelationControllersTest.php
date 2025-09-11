@@ -14,7 +14,7 @@ it('generates a relation controller template when related entity exists', functi
     $relation = new Relation(
         type: RelationType::BELONGS_TO_MANY,
         localEntity: $userEntity,
-        entityName: 'Role',
+        relatedEntityName: 'Role',
         relatedEntity: $roleEntity,
     );
     $userEntity->addRelation($relation);

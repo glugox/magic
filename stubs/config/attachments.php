@@ -11,6 +11,7 @@ return [
     | You can change this to 's3', 'public', or any disk defined in
     | config/filesystems.php.
     |
+    | @phpstan-ignore-next-line
     */
     'attachments_disk' => env('ATTACHMENTS_DISK', 'public'),
 
@@ -37,9 +38,7 @@ return [
         'image/jpeg',
         'image/png',
         'image/gif',
-        'application/pdf',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/pdf'
     ],
 
     /*

@@ -30,8 +30,8 @@ class Field
      * @param  bool  $sortable  Whether sortable in UI
      * @param  bool  $searchable  Whether searchable in UI
      * @param  string[]  $values  Enum or option values
-     * @param  float  $min  Minimum allowed numeric value
-     * @param  float  $max  Maximum allowed numeric value
+     * @param  int  $min  Minimum allowed numeric value
+     * @param  int  $max  Maximum allowed numeric value
      */
     public function __construct(
         public string $name,                 // field name
@@ -52,8 +52,8 @@ class Field
         public bool $showInForm = true,      // show in forms
         /** @var string[] Allowed enum/options */
         public array $values = [],
-        public $min = null,
-        public $max = null,
+        public ?int $min = null,
+        public ?int $max = null,
         public ?Relation $relation = null,
     ) {
         // Validate min/max values
