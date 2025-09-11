@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Throwable;
 
 class AttachmentController extends Controller
 {
@@ -65,7 +66,8 @@ class AttachmentController extends Controller
 
     /**
      * Delete an attachment.
-     * @throws \Throwable
+     *
+     * @throws Throwable
      */
     public function destroy(Attachment $attachment): JsonResponse
     {

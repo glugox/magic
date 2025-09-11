@@ -20,6 +20,13 @@ class SchemaReader
      */
     protected array $entities = [];
 
+    public function __construct(
+        protected GraphQlTypeNormalizer $typeNormalizer,
+        protected GraphQlHelper $graphQlHelper
+    ) {
+        $this->app = new App('');
+    }
+
     /**
      * Returns all enums found in the SDL.
      *
@@ -28,13 +35,6 @@ class SchemaReader
     public function getEnums(): array
     {
         return $this->graphQlHelper->getEnums();
-    }
-
-    public function __construct(
-        protected GraphQlTypeNormalizer $typeNormalizer,
-        protected GraphQlHelper $graphQlHelper
-    ) {
-        $this->app = new App('');
     }
 
     /**
@@ -50,7 +50,7 @@ class SchemaReader
         // Extract config first
         foreach ($matches as $match) {
             [$full, $kind, $name, $config, $body] = $match;
-            if (trim($config) === '@config') {
+            if (mb_trim($config) === '@config') {
                 $this->graphQlHelper->populateApp($this->app, $match[4]);
                 break; // Assuming only one @config block
             }
@@ -67,7 +67,7 @@ class SchemaReader
         // Extract entities after all enums are added
         foreach ($matches as $match) {
             [$full, $kind, $name, $config, $body] = $match;
-            if (trim($kind) === 'type' && trim($config) !== '@config') {
+            if (mb_trim($kind) === 'type' && mb_trim($config) !== '@config') {
                 $entity = $this->graphQlHelper->extractEntity($match);
                 $this->entities[$entity->getName()] = $entity;
             }
@@ -76,8 +76,8 @@ class SchemaReader
         // Extract relations after all entities are added
         foreach ($matches as $match) {
             [$full, $kind, $name, $config, $body] = $match;
-            if (trim($kind) === 'type' && trim($config) !== '@config') {
-                $entityName = trim($match[2]);
+            if (mb_trim($kind) === 'type' && mb_trim($config) !== '@config') {
+                $entityName = mb_trim($match[2]);
                 $relations = $this->graphQlHelper->extractRelationsForEntity($match, $this->entities);
                 foreach ($relations as $relation) {
                     $this->entities[$entityName]->addRelation($relation);
@@ -106,8 +106,8 @@ class SchemaReader
     {
         $data = [
             'app' => $this->app->toArray(),
-            'entities' => array_map(fn($entity) => json_decode($entity->toJson(), true), $this->getEntities()),
-            'enums' => array_map(fn($enum) => json_decode($enum->toJson(), true), $this->getEnums()),
+            'entities' => array_map(fn ($entity) => json_decode($entity->toJson(), true), $this->getEntities()),
+            'enums' => array_map(fn ($enum) => json_decode($enum->toJson(), true), $this->getEnums()),
         ];
 
         return json_encode($data, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR);

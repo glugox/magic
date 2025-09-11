@@ -290,6 +290,7 @@ class Entity
                 return $field;
             }
         }
+
         return null;
     }
 

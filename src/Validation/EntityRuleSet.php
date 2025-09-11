@@ -66,8 +66,6 @@ class EntityRuleSet
 
     /**
      * Get ruleset for a specific field for update action
-     *
-     * @return ValidationRuleSet|null
      */
     public function getUpdateRuleSetForField(string $name): ?ValidationRuleSet
     {

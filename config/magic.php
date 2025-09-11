@@ -1,8 +1,5 @@
 <?php
 
-use Illuminate\Foundation\Auth\User;
-use Illuminate\Notifications\Notifiable;
-
 // config file for the Magic package
 return [
 

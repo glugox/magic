@@ -222,7 +222,7 @@ class GenerateModelsAction implements DescribableAction
             RelationType::MORPH_ONE => "return \$this->morphOne($relatedClass::class, '{$relation->getMorphName()}');",
             RelationType::MORPH_MANY => "return \$this->morphMany($relatedClass::class, '{$relation->getMorphName()}');",
             RelationType::MORPH_TO => 'return $this->morphTo();',
-            //default => "// Unknown relation type '{$relation->getType()->name}' for {$relation->getRelatedEntityName()}",
+            // default => "// Unknown relation type '{$relation->getType()->name}' for {$relation->getRelatedEntityName()}",
         };
 
         return <<<PHP

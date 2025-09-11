@@ -195,7 +195,7 @@ class Config
                     $reflection = new ReflectionProperty($current, $k);
                     $reflectionType = $reflection->getType();
                     $type = 'mixed';
-                    if($reflectionType !== null ) {
+                    if ($reflectionType !== null) {
                         // @phpstan-ignore-next-line
                         $type = $reflectionType->getName();
                     }

@@ -2,8 +2,8 @@
 
 use Glugox\Magic\Helpers\GraphQlHelper;
 use Glugox\Magic\Support\Config\App;
-use Glugox\Magic\Support\Config\FieldType;
 use Glugox\Magic\Support\Config\Entity;
+use Glugox\Magic\Support\Config\FieldType;
 use Glugox\Magic\Support\Config\Normalizer\GraphQlTypeNormalizer;
 use Glugox\Magic\Support\Config\RelationType;
 
@@ -12,7 +12,7 @@ beforeEach(function () {
 });
 
 it('can populate App from SDL', function () {
-    $sdl = <<<SDL
+    $sdl = <<<'SDL'
 type App @config {
     name: String @default("MyApp")
 }
@@ -21,7 +21,7 @@ SDL;
     $app = new App('');
     $this->helper->populateApp($app, $sdl);
 
-    expect($app->name)->toBe('MyApp')   ;
+    expect($app->name)->toBe('MyApp');
 });
 
 it('can extract entity with scalar fields', function () {
@@ -29,7 +29,7 @@ it('can extract entity with scalar fields', function () {
         1 => 'type',
         2 => 'User',
         3 => null,
-        4 => <<<SDL
+        4 => <<<'SDL'
 id: ID!
 name: String
 age: Int @default(18) @min(0)

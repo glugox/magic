@@ -12,7 +12,6 @@ trait HasImages
     /**
      * MorphMany relation to attachments.
      *
-     * @return MorphMany
      * @noinspection
      */
     public function images(): MorphMany

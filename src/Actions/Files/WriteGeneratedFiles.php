@@ -4,9 +4,7 @@ namespace Glugox\Magic\Actions\Files;
 
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
-use Glugox\Magic\Contracts\GeneratedFile;
 use Glugox\Magic\Support\File\GeneratedFileBase;
-use Glugox\Magic\Support\File\VueFile;
 use Glugox\Magic\Traits\AsDescribableAction;
 
 #[ActionDescription(
@@ -19,7 +17,7 @@ class WriteGeneratedFiles implements DescribableAction
     use AsDescribableAction;
 
     /**
-     * @param GeneratedFileBase $input JSON string or array
+     * @param  GeneratedFileBase  $input  JSON string or array
      */
     public function __invoke(GeneratedFileBase $input): bool
     {

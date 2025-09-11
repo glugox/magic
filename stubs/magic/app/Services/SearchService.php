@@ -8,11 +8,6 @@ class SearchService
 {
     /**
      * Apply search to a query builder.
-     *
-     * @param Builder $query
-     * @param string|null $searchTerm
-     * @param array|null $searchableFields
-     * @return Builder
      */
     public function apply(
         Builder $query,

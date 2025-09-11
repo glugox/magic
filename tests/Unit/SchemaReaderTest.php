@@ -28,7 +28,7 @@ it('can load graphql schema into config', function () {
 
     $jsonConfig = $reader->toJson();
 
-        // Load Config using existing class
+    // Load Config using existing class
     $config = Config::fromJson($jsonConfig);
 
     expect($config->isValid())->toBeTrue()

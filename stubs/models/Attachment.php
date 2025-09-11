@@ -32,7 +32,7 @@ class Attachment extends Model
     /**
      * @use HasFactory<AttachmentFactory>
      */
-    //use HasFactory;
+    // use HasFactory;
 
     /**
      * The table associated with the model.
@@ -78,8 +78,6 @@ class Attachment extends Model
 
     /**
      * Accessor: full URL for the file.
-     *
-     * @return Attribute
      */
     protected function url(): Attribute
     {
