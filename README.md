@@ -4,112 +4,126 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 ![Coverage](https://codecov.io/gh/glugox/magic/branch/main/graph/badge.svg)
 
-Lightweight PHP/Laravel toolkit designed to auto-generate all essential application files from entity configurations stored in [JSON files](stubs/samples/inventory.json). It streamlines tasks like database seeding and realistic data generation using Faker, making it perfect for testing, prototyping, and automation.
+Magic is a lightweight PHP/Laravel toolkit that **auto-generates application files from entity configurations** stored in [JSON files](stubs/samples/inventory.json).
+
+It streamlines tasks like database migrations, seeding, and realistic data generation with Faker — making it ideal for testing, prototyping, and automation.
 
 With Magic, you can build full-featured Laravel applications directly from configuration files, eliminating repetitive boilerplate and speeding up development.
 
-🔧 How it works
+---
+
+## 🔧 How it works
+
 ![magic-demo.svg](magic-demo.svg)
 
-## Quick Start
+---
 
-1. Create a new Laravel project (if you don't have one already):
+## 🚀 Quick Start
 
-```bash
-laravel new my-magic-app
-```
+1. **Create a new Laravel project** (if you don’t have one yet):
 
-- Choose Vue starter when prompted.
-- Choose Laravel's built-in authentication when prompted.
-- Choose Pest for testing when prompted.
-- Allow Laravel to install the necessary packages when prompted.
+   ```bash
+   laravel new my-magic-app
+   ```
 
-2. Navigate to your project directory:
+   When prompted:
+    - Choose **Vue** starter.
+    - Choose **Laravel’s built-in authentication**.
+    - Choose **Pest** for testing.
+    - Allow Laravel to install the required packages.
 
-```bash
-cd my-magic-app
-```
+2. **Navigate into your project**:
 
-3. Install the Magic package via Composer:
+   ```bash
+   cd my-magic-app
+   ```
 
-```bash
-composer require glugox/magic --dev
-```
-4. Publish the configuration file:
+3. **Install Magic via Composer**:
 
-```bash
-php artisan vendor:publish --provider="Glugox\Magic\MagicServiceProvider"
-```
+   ```bash
+   composer require glugox/magic --dev
+   ```
 
-5. For quick start Magic has some demo samples which are just json configuration files located in the `stubs/samples` directory. You can use one of these samples to quickly set up your application.
-To list all available samples, you can run:
+4. **Publish the configuration file**:
 
-```bash 
-php artisan magic:list-samples
-```
+   ```bash
+   php artisan vendor:publish --provider="Glugox\Magic\MagicServiceProvider"
+   ```
 
-6. Run the magic build command with your chosen sample or your own configuration file:
+5. **Explore demo samples** (JSON config files in `stubs/samples`):
 
-```bash
-php artisan magic:build --starter=inventory
-```
+   ```bash
+   php artisan magic:list-samples
+   ```
 
-7. If you have your own json configuration file, you can run:
+6. **Build your app** using a starter:
 
-```bash
-php artisan magic:build --config=path/to/your/config.json
-```
+   ```bash
+   php artisan magic:build --starter=inventory
+   ```
 
-To see how to create your own configuration file, check the [sample configurations](./stubs/samples) directory.
+7. **Or use your own config file**:
 
+   ```bash
+   php artisan magic:build --config=path/to/your/config.json
+   ```
 
-8. Start your application:
+   👉 See the [sample configurations](./stubs/samples) directory for examples.
 
-```bash
-npm run dev && php artisan serve
-```
+8. **Run the app**:
 
-## Magic Features
+   ```bash
+   npm run dev
+   php artisan serve
+   ```
 
-- **Entity Management**: Define entities with fields, relations, and casts.
-- **CRUD Operations**: Automatically generate CRUD operations for each entity.
-- **Database Migrations**: Create migrations based on your entity definitions.
-- **Seed Data**: Optionally seed your database with sample data.
-- **Configuration**: Use a JSON configuration file to define your app's structure and behavior.
-- **Customizable**: Easily extend and customize the generated code to fit your needs.
-- **Laravel Integration**: Seamlessly integrates with Laravel's ecosystem.
-- **Development Mode**: Enable development mode to seed your database with sample data.
-- **Searchable and Sortable Fields**: Define fields that can be searched and sorted in your application.
-- **Hidden Fields**: Specify fields that should be hidden in the generated forms and views.
-- **Casts**: Define casts for fields to ensure data types are handled correctly.
-- **Relations**: Define relationships between entities, such as `hasMany` and `belongsTo`.
-- 
+---
 
-## Starters
+## ✨ Features
 
-- **Starter Kits**: Use the provided starter kits to quickly set up your application with predefined entities and configurations.
+- **Entity Management** – Define entities with fields, relations, casts.
+- **CRUD Generation** – Auto-generate CRUD for every entity.
+- **Migrations** – Create DB migrations from your definitions.
+- **Seeding** – Seed sample or Faker-based data.
+- **Config-Driven** – JSON-powered structure & behavior.
+- **Extensible** – Override stubs, extend generators.
+- **Laravel Native** – Fully integrated into Laravel workflow.
+- **Development Mode** – Quickly spin up test data.
+- **Search & Sort** – Mark fields as searchable/sortable.
+- **Hidden Fields** – Exclude fields from forms/views.
+- **Casts** – Ensure correct field data types.
+- **Relations** – Define `hasMany`, `belongsTo`, etc.
 
-- **These are just predefined configurations that you can use to start your application quickly.**
+---
 
-Available starter kits:
+## 📦 Starter Kits
+
+Use predefined configurations to bootstrap your app:
 
 - Task Management
 - E-commerce
 - Education
 - Resume Builder
 
-How to use a starter kit:
-1. Choose a starter kit from the [starter kits](./stubs/samples) directory. Use the file name as the starter kit name.
-2. Run the magic command with the `--starter` option:
+**How to use:**
 
-```bash
-php artisan magic:build --starter=task-management
-```
+1. Pick a starter from the [samples](./stubs/samples) directory (use file name as starter name).
+2. Run:
 
-## Ready to join?
+   ```bash
+   php artisan magic:build --starter=task
+   ```
 
-Contact me at [email](mailto:ervinbeciragic@gmail.com) for any questions or suggestions.
+---
 
-## License
+## 🤝 Contributing / Contact
 
-The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+Got ideas or feedback?  
+Reach out via [email](mailto:ervinbeciragic@gmail.com).
+
+---
+
+## 📄 License
+
+The MIT License (MIT). See [LICENSE](LICENSE.md) for details.
+
