@@ -5,6 +5,7 @@ namespace Glugox\Magic\Actions\Build\Migration;
 use Glugox\Magic\Actions\Files\GenerateFileAction;
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
+use Glugox\Magic\Helpers\StubHelper;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Config\FieldType;
@@ -31,93 +32,46 @@ class GenerateMigrationForEntityAction implements DescribableAction
         return $filesGenerationUpdate->merge($pivotTableUpdate);
     }
 
+    /**
+     * Generate or update the migration file for the given entity.
+     */
     protected function generateMigrationForEntity(Entity $entity): FilesGenerationUpdate
     {
-        // We will return the list of generated/updated/deleted files
         $update = new FilesGenerationUpdate;
-
         $tableName = $entity->getTableName();
         $isUpdate = Schema::hasTable($tableName);
 
-        // 1. Check if migration already exists
         $migrationFiles = File::glob(database_path("migrations/*_create_{$tableName}_table.php"));
         if (! $isUpdate && ! empty($migrationFiles)) {
-            // Delete the existing migration files for create (they are obsolete)
             foreach ($migrationFiles as $file) {
                 File::delete($file);
                 $update->addDeleted($file);
-                $fileRelative = str_replace(database_path('migrations/'), '', $file);
-                Log::channel('magic')->debug("Deleted obsolete migration file: $fileRelative");
+                Log::channel('magic')->debug('Deleted obsolete migration file: '.basename($file));
             }
         }
 
-        // 2. Decide create vs update
-        $updateOrCreateKey = $isUpdate ? 'update' : 'create';
-        $fileName = date('Y_m_d_His').'_'.$updateOrCreateKey.'_'.$tableName.'_table.php';
-
+        $fileName = date('Y_m_d_His').'_'.($isUpdate ? 'update' : 'create')."_{$tableName}_table.php";
         $migrationPath = database_path('migrations/'.$fileName);
 
         if ($isUpdate) {
             $columnsCode = $this->buildColumnsCodeForUpdate($entity);
-            $template = <<<PHP
-<?php
-
-use Illuminate\\Database\\Migrations\\Migration;
-use Illuminate\\Database\\Schema\\Blueprint;
-use Illuminate\\Support\\Facades\\Schema;
-use Illuminate\Support\Facades\DB;
-
-return new class extends Migration
-{
-    public function up(): void
-    {
-        Schema::table('$tableName', function (Blueprint \$table) {
-$columnsCode
-        });
-    }
-
-    public function down(): void
-    {
-        // Rollback logic for updated columns (optional)
-    }
-};
-PHP;
+            $template = StubHelper::loadStub('migration/update.stub', [
+                'tableName' => $tableName,
+                'columnsCode' => $columnsCode,
+            ]);
         } else {
             $columnsCode = $this->buildColumnsCode($entity);
-            // Keep db statements after the table is created
             $dbStatements = $this->buildDbStatements($entity);
-
-            $template = <<<PHP
-<?php
-
-use Illuminate\\Database\\Migrations\\Migration;
-use Illuminate\\Database\\Schema\\Blueprint;
-use Illuminate\\Support\\Facades\\Schema;
-use Illuminate\Support\Facades\DB;
-
-return new class extends Migration
-{
-    public function up(): void
-    {
-        Schema::create('$tableName', function (Blueprint \$table) {
-$columnsCode
-        });
-$dbStatements
-    }
-
-    public function down(): void
-    {
-        Schema::dropIfExists('$tableName');
-    }
-};
-PHP;
+            $template = StubHelper::loadStub('migration/create.stub', [
+                'tableName' => $tableName,
+                'columnsCode' => $columnsCode,
+                'dbStatements' => $dbStatements,
+            ]);
         }
 
         app(GenerateFileAction::class)($migrationPath, $template);
         $update->addCreated($migrationPath);
-
-        $migrationPathRelative = str_replace(database_path('migrations/'), '', $migrationPath);
-        Log::channel('magic')->debug(($isUpdate ? 'Update' : 'Create')." migration created: $migrationPathRelative");
+        Log::channel('magic')->debug(($isUpdate ? 'Update' : 'Create').' migration created: '.$fileName);
 
         return $update;
     }
@@ -130,58 +84,38 @@ PHP;
         $update = new FilesGenerationUpdate;
 
         foreach ($entity->getRelations() as $relation) {
-            if ($relation->isManyToMany()) {
-                $pivotTableName = $relation->getPivotName();
-                $fileName = date('Y_m_d_His')."_create_{$pivotTableName}_table.php";
-
-                $migrationPath = database_path('migrations/'.$fileName);
-
-                // 1. Check if migration already exists
-                $migrationFiles = File::glob(database_path("migrations/*_create_{$pivotTableName}_table.php"));
-                if (! empty($migrationFiles)) {
-                    // Delete the existing migration files for create (they are obsolete)
-                    foreach ($migrationFiles as $file) {
-                        File::delete($file);
-                        $update->addDeleted($file);
-                        $fileRelative = str_replace(database_path('migrations/'), '', $file);
-                        Log::channel('magic')->debug("Deleted obsolete migration file: $fileRelative");
-                    }
-                }
-
-                $columnsCode = <<<PHP
-            \$table->foreignId('{$entity->getForeignKey()}')->constrained('{$entity->getTableName()}')->cascadeOnDelete();
-            \$table->foreignId('{$relation->getRelatedKey()}')->constrained('{$relation->getTableName()}')->cascadeOnDelete();
-PHP;
-
-                $template = <<<PHP
-<?php
-
-use Illuminate\\Database\\Migrations\\Migration;
-use Illuminate\\Database\\Schema\\Blueprint;
-use Illuminate\\Support\\Facades\\Schema;
-
-return new class extends Migration
-{
-    public function up(): void
-    {
-        Schema::create('$pivotTableName', function (Blueprint \$table) {
-$columnsCode
-        });
-    }
-
-    public function down(): void
-    {
-        Schema::dropIfExists('$pivotTableName');
-    }
-};
-PHP;
-
-                app(GenerateFileAction::class)($migrationPath, $template);
-                $update->addCreated($migrationPath);
-
-                $migrationPathRelative = str_replace(database_path('migrations/'), '', $migrationPath);
-                Log::channel('magic')->debug("Pivot migration created: $migrationPathRelative");
+            if (! $relation->isManyToMany()) {
+                continue;
             }
+
+            $pivotTableName = $relation->getPivotName();
+            $fileName = date('Y_m_d_His')."_create_{$pivotTableName}_table.php";
+            $migrationPath = database_path('migrations/'.$fileName);
+
+            // Delete existing migration files if they exist
+            $migrationFiles = File::glob(database_path("migrations/*_create_{$pivotTableName}_table.php"));
+            foreach ($migrationFiles as $file) {
+                File::delete($file);
+                $update->addDeleted($file);
+                Log::channel('magic')->debug('Deleted obsolete migration file: '.basename($file));
+            }
+
+            // Columns code
+            $columnsCode = <<<PHP
+    \$table->foreignId('{$entity->getForeignKey()}')->constrained('{$entity->getTableName()}')->cascadeOnDelete();
+    \$table->foreignId('{$relation->getRelatedKey()}')->constrained('{$relation->getTableName()}')->cascadeOnDelete();
+PHP;
+
+            // Load pivot stub
+            $template = StubHelper::loadStub('migration/pivot.stub', [
+                'pivotTableName' => $pivotTableName,
+                'columnsCode' => $columnsCode,
+            ]);
+
+            // Generate the file
+            app(GenerateFileAction::class)($migrationPath, $template);
+            $update->addCreated($migrationPath);
+            Log::channel('magic')->debug('Pivot migration created: '.$fileName);
         }
 
         return $update;
