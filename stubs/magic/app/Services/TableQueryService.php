@@ -142,12 +142,12 @@ class TableQueryService
 
         // Exclude *_id fields
         $filteredFields = array_filter($selectFields, function ($field) {
-            return !str_ends_with($field, '_id');
+            return ! str_ends_with($field, '_id');
         });
 
         $filters['allColumns'] = array_map(function ($item) {
             return [
-                'name'  => $item,
+                'name' => $item,
                 'label' => ucfirst(str_replace('_', ' ', $item)),
             ];
         }, $filteredFields);
