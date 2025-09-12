@@ -8,6 +8,7 @@ use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Helpers\StubHelper;
 use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\Config\Entity;
+use Glugox\Magic\Support\Config\RelationType;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Support\Facades\File;
@@ -97,11 +98,21 @@ class GenerateApiResourcesAction implements DescribableAction
             $nameLine = "            'name' => \$this->name,";
         }
 
+        // Build lines for relations
+        $relationsLines = [];
+        foreach ($entity->getRelations(RelationType::BELONGS_TO) as $relation) {
+            $relatedEntity = $relation->getRelatedEntity();
+            $relatedResourceClass = Str::studly(Str::singular($relatedEntity->getName())).'Resource';
+            $relationsLines[] = "            '{$relation->getRelationName()}' => new {$relatedResourceClass}(\$this->whenLoaded('{$relation->getRelationName()}')),";
+        }
+        $relationsFieldsBlock = implode("\n", $relationsLines);
+
         // Prepare replacements (clear and explicit)
         $replacements = [
             '{{resourceClass}}' => $resourceClass,
             '{{fields}}' => $fieldsBlock,
             '{{nameField}}' => $nameLine,
+            '{{relationFields}}' => $relationsFieldsBlock
         ];
 
         $content = StubHelper::applyReplacements($resourceStub, $replacements);

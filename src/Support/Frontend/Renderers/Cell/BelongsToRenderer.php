@@ -22,7 +22,7 @@ class BelongsToRenderer extends Renderer
         $indent2 = str_repeat(' ', 2);
         $tableCellLines = [
             "const relatedEntity = cell.row.original.{$belongsTo->getRelationName()};",
-            "const href = '{$belongsTo->getHref()}';",
+            "const href = '{$belongsTo->getWebPath()}';",
             'const relId = cell.row.original.id;',
             "if (!relatedEntity) return '—';",
             'const nameVal: string = relatedEntity.name;',

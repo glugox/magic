@@ -11,6 +11,7 @@ import { ColumnDef } from "@tanstack/vue-table";
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import { type DbId } from '@/types/support';
 import { SquareMinus, Link, CornerDownRight, FolderTree, GitCompareArrows } from 'lucide-vue-next';
+import {ResourceData} from '@/types/support';
 
 {{mainEntityImports}}
 {{relatedEntityImports}}
@@ -79,7 +80,7 @@ onMounted(() => {
                    <ResourceTable
                        :data="{{relationName}}"
                        :parent-id="item.data.id"
-                       :columns="columns"
+                       :columns="columns as ColumnDef<ResourceData>[]"
                        :entity="entity"
                        :filters="currentFilters"
                        :controller="{{controllerClass}}"

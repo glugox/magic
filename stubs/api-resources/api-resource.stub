@@ -14,6 +14,7 @@ class {{resourceClass}} extends JsonResource
         return [
 {{fields}}
 {{nameField}}
+{{relationFields}}
         ];
     }
 }

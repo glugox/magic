@@ -30,11 +30,6 @@ class Config
     public array $entities = [];
 
     /**
-     * Config related to development environment.
-     */
-    public Dev $dev;
-
-    /**
      * @param  SchemaReader  $schemaReader  The schema reader instance to load SDL.
      */
     public function __construct(
@@ -57,12 +52,10 @@ class Config
         }
 
         $app = App::fromConfig($data['app'] ?? []);
-        $dev = isset($data['dev']) ? Dev::fromJson($data['dev']) : null;
 
         $config = app(self::class);
         $config->app = $app;
         $config->entities = $entities;
-        $config->dev = $dev ?? new Dev();
         $config->processEntities();
 
         return $config;
@@ -129,7 +122,6 @@ class Config
 
         $this->app = $app;
         $this->entities = $entities;
-        $this->dev = $dev ?? new Dev();
     }
 
     /**
@@ -141,7 +133,6 @@ class Config
 
         $this->app = $this->schemaReader->getApp();
         $this->entities = $this->schemaReader->getEntities();
-        $this->dev = new Dev();
 
         return $this;
     }
@@ -246,8 +237,7 @@ class Config
     {
         $data = [
             'app' => $this->app,
-            'entities' => array_map(fn ($entity) => json_decode($entity->toJson(), true), $this->entities),
-            'dev' => $this->dev,
+            'entities' => array_map(fn ($entity) => json_decode($entity->toJson(), true), $this->entities)
         ];
 
         return json_encode($data, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR);

@@ -5,6 +5,9 @@ namespace App\Services;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 
+/**
+ * Service to handle table queries: search, sort, pagination.
+ */
 class TableQueryService
 {
     /**
@@ -122,5 +125,35 @@ class TableQueryService
             'page',
             $page
         );
+    }
+
+    /**
+     * Prepare filters from request data.
+     *
+     * This can be extended to handle more complex filter logic.
+     *
+     * @param  array  $requestData  The request data (e.g. $request->all()).
+     * @param  array  $selectFields  The fields available for selection.
+     * @return array The prepared filters.
+     */
+    public function prepareFilters(array $requestData, array $selectFields): array
+    {
+        $filters = $requestData;
+
+        // Exclude *_id fields
+        $filteredFields = array_filter($selectFields, function ($field) {
+            return !str_ends_with($field, '_id');
+        });
+
+        $filters['allColumns'] = array_map(function ($item) {
+            return [
+                'name'  => $item,
+                'label' => ucfirst(str_replace('_', ' ', $item)),
+            ];
+        }, $filteredFields);
+
+        $filters['visibleColumns'] = array_values($filteredFields); // reset array keys
+
+        return $filters;
     }
 }

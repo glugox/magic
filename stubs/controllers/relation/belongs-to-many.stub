@@ -53,6 +53,7 @@ class {{controllerClass}} extends Controller
             'item' => new {{parentModelResourceClass}}(${{parentModelClassLower}}),
             '{{relationName}}' => {{relatedModelResourceClass}}::collection($relatedItems)->response()->getData(),
             'item_{{relationName}}_ids' => $selectedIds,
+            'filters' => $this->tableQueryService->prepareFilters($request->all(), $selectFields),
         ]);
     }
 

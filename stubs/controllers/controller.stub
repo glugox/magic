@@ -44,7 +44,7 @@ class {{controllerClass}} extends Controller
          )->paginate();
 
         return Inertia::render('{{folderName}}/Index', [
-            'filters' => request()->only(['search', 'sortKey', 'sortDir']),
+            'filters' => $this->tableQueryService->prepareFilters($request->all(), $selectFields),
             'data' => {{resourceClass}}::collection($items)->response()->getData(),
         ]);
     }

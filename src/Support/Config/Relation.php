@@ -168,6 +168,16 @@ class Relation
     }
 
     /**
+     * Returns the web path for the related entity.
+     * This is usually the plural snake_case of the related entity name.
+     * Ex. 'users', 'posts', etc.
+     */
+    public function getWebPath(): string
+    {
+        return Str::kebab(Str::plural($this->getRelatedEntityName()));
+    }
+
+    /**
      * Returns the morph name for polymorphic relations.
      * Ex. 'imageable' for Image model relation to various models.
      * For non-polymorphic relations, it returns null.

@@ -1,6 +1,7 @@
-import { computed, ref, toRefs, watch } from "vue"
+import {computed, ref, toRefs, watch} from "vue"
 import {router, useForm} from "@inertiajs/vue3"
 import {
+    ColumnDef,
     getCoreRowModel,
     RowSelectionState,
     SortingState,
@@ -9,7 +10,7 @@ import {
 import type {
     Controller,
     DbId,
-    PaginatedResponse,
+    PaginatedResponse, ResourceData,
     TableFilters,
 } from "@/types/support"
 import { arraysEqualIgnoreOrder, debounced } from "@/lib/app"
@@ -17,11 +18,15 @@ import axios from "axios"
 
 export function useResourceTable<T>(props: {
     data: PaginatedResponse<T>
-    filters: TableFilters
+    filters?: TableFilters
     controller: Controller
     parentId?: DbId
-    columns: any[]
+    columns: ColumnDef<ResourceData>[]
 }) {
+
+    console.log("useResourceTable")
+    console.log(props)
+
     const { data, filters, controller, parentId, columns } = toRefs(props)
 
     const rows = ref<T[]>(data.value.data as T[])
@@ -31,29 +36,29 @@ export function useResourceTable<T>(props: {
     const lastPage = ref(data.value.meta.last_page)
 
     const sorting = ref<SortingState>(
-        filters.value?.sortKey
+        filters?.value?.sortKey
             ? [
                 {
-                    id: filters.value.sortKey,
-                    desc: filters.value.sortDir === "desc",
+                    id: filters?.value.sortKey,
+                    desc: filters?.value.sortDir === "desc",
                 },
             ]
             : []
     )
-    const sortKey = ref(filters.value?.sortKey ?? null)
-    const sortDir = ref(filters.value?.sortDir ?? null)
-    const search = ref(filters.value?.search ?? "")
+    const sortKey = ref(filters?.value?.sortKey ?? null)
+    const sortDir = ref(filters?.value?.sortDir ?? null)
+    const search = ref(filters?.value?.search ?? "")
 
     // --- global truth ---
-    const selectedIds = ref<DbId[]>(filters.value?.selectedIds ?? [])
-    const lastSavedIds = ref<DbId[]>(filters.value?.selectedIds ?? [])
+    const selectedIds = ref<DbId[]>(filters?.value?.selectedIds ?? [])
+    const lastSavedIds = ref<DbId[]>(filters?.value?.selectedIds ?? [])
 
     // Processing state for displaying spinner during network requests
     const bulkActionProcessing = ref(false)
 
     // 🔑 Keep local state in sync with Inertia-provided filters
     watch(
-        () => filters.value.selectedIds,
+        () => filters?.value?.selectedIds,
         (ids) => {
             if (ids) {
                 selectedIds.value = [...ids]
@@ -62,6 +67,7 @@ export function useResourceTable<T>(props: {
         },
         { immediate: true }
     )
+
 
     // --- current page selection (mutable for table) ---
     const rowSelection = ref<RowSelectionState>(mapIdsToRowSelection(selectedIds.value, rows.value as T[]))
@@ -186,7 +192,7 @@ export function useResourceTable<T>(props: {
 
             // Update lastSavedIds with confirmed server state
             lastSavedIds.value = [...response.data.selectedIds]
-            filters.value.selectedIds = [...response.data.selectedIds]
+            //filters.value.selectedIds = [...response.data.selectedIds]
         } catch (err) {
             console.error("Failed to save selection", err)
         }

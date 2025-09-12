@@ -4,6 +4,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
 import ResourceTable from '@/components/ResourceTable.vue';
 import { ColumnDef } from "@tanstack/vue-table";
+import {ResourceData} from '@/types/support';
 {{entityImports}}
 {{supportImports}}
 
@@ -33,7 +34,7 @@ const entity = get{{entityName}}EntityMeta();
             <div class="relative p-4 min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
                 <ResourceTable
                     :data="data"
-                    :columns="columns"
+                    :columns="columns as ColumnDef<ResourceData>[]"
                     :entity="entity"
                     :filters="filters"
                     :controller="{{entityName}}Controller"

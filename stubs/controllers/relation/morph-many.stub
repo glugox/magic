@@ -47,10 +47,10 @@ class {{controllerClass}} extends Controller
             $request->get('sortDir', 'asc')
         )->paginate();
 
-
         return Inertia::render('{{parentModelFolderName}}/{{relationName}}/Index', [
             'item' => new {{parentModelResourceClass}}(${{parentModelClassLower}}),
             '{{relationName}}' => {{relatedModelResourceClass}}::collection($relatedItems)->response()->getData(),
+            'filters' => $this->tableQueryService->prepareFilters($request->all(), $selectFields),
         ]);
     }
 }

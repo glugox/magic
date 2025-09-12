@@ -1,22 +1,32 @@
 <script setup lang="ts" generic="T">
-import {defineProps} from "vue"
+import {defineProps, ref} from "vue"
 import { useResourceTable } from "@/composables/useResourceTable"
-import { Entity, DbId, TableFilters, PaginatedResponse } from "@/types/support"
-import Toolbar from "@/components/resource-table/Toolbar.vue";
+import {Entity, DbId, TableFilters, PaginatedResponse, Controller, Column, ResourceData} from "@/types/support"
+import Toolbar from "@/components/resource-table/toolbar/Toolbar.vue";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
-import {FlexRender} from "@tanstack/vue-table";
+import {ColumnDef, FlexRender} from "@tanstack/vue-table";
 import Pagination from "@/components/resource-table/Pagination.vue";
 
 export interface ResourceTableProps<T> {
     entity: Entity
-    columns: any[]
+    columns: ColumnDef<ResourceData>[]
     data: PaginatedResponse<T>
     parentId?: DbId
-    filters: TableFilters
-    controller: any
+    filters?: TableFilters
+    controller: Controller
 }
 const props = defineProps<ResourceTableProps<T>>()
-const { table, rows, page, perPage, total, search, performBulkAction, bulkActionProcessing } = useResourceTable(props)
+const {
+    table, rows, page, perPage, total, search, selectedIds,
+    performBulkAction, bulkActionProcessing
+} = useResourceTable(props)
+
+
+const setColumnsVisibility = (visibleColumns: string[]) => {
+    props.columns.forEach(column => {
+        table.getColumn(<string>column.id)?.toggleVisibility(visibleColumns.includes(<string>column.id))
+    })
+}
 </script>
 
 <template>
@@ -25,7 +35,10 @@ const { table, rows, page, perPage, total, search, performBulkAction, bulkAction
         @update:search="value => search = value"
         :controller="props.controller"
         :parent-id="props.parentId"
+        :initial-filters="props.filters"
+        :columns="props.filters?.allColumns"
         @bulk-action="performBulkAction"
+        @update:visible-columns="setColumnsVisibility"
         :bulk-action-processing="bulkActionProcessing"
         :entity="props.entity" />
     <div class="rounded-md border">

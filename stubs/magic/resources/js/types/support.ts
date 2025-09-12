@@ -103,6 +103,10 @@ export interface PaginatedResponse<T> {
     meta: PaginationMeta
 }
 
+export interface Column {
+    name: string
+    label: string
+}
 
 export interface TableFilters {
     search?: string
@@ -110,7 +114,9 @@ export interface TableFilters {
     sortDir?: 'asc' | 'desc'
     page?: number
     per_page?: number
-    selectedIds?: number[]
+    selectedIds?: number[],
+    allColumns?: Column[]
+    visibleColumns?: string[]
     [key: string]: any
 }
 
