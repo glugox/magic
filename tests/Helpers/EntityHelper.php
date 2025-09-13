@@ -53,11 +53,6 @@ if (! function_exists('makeDummyProductEntityConfig')) {
                 { "name": "released_at", "type": "dateTime", "nullable": true },
                 { "name": "image", "type": "string", "nullable": true }
             ],
-            "relations": [
-                { "type": "belongsTo", "relatedEntityName": "User", "foreignKey": "created_by" },
-                { "type": "hasMany", "relatedEntityName": "Review", "foreignKey": "product_id" },
-                { "type": "belongsToMany", "relatedEntityName": "Tag", "pivot": "product_tag", "foreignKey": "product_id", "relatedKey": "tag_id" }
-            ],
             "settings": {
                 "searchable": true,
                 "has_media": true

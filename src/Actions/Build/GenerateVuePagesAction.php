@@ -164,6 +164,7 @@ class GenerateVuePagesAction implements DescribableAction
         return StubHelper::loadStub('vue/relation/index.stub', [
             'mainEntityName' => $entity->getName(),
             'relatedEntityName' => $relation->getRelatedEntity()->getName(),
+            'mainEntityPluralName' => $entity->getPluralName(),
             'relatedEntityPluralName' => $relation->getRelatedEntity()->getPluralName(),
             'entitySingularName' => $entity->getSingularName(),
             'mainEntityNamePlural' => $entity->getPluralName(),
@@ -187,7 +188,7 @@ class GenerateVuePagesAction implements DescribableAction
     {
         return StubHelper::loadStub('vue/edit.stub', [
             'entityName' => $entity->getName(),
-            'title' => $entity->getPluralName(),
+            'pluralName' => $entity->getPluralName(),
             'folderName' => $entity->getRouteName(),
             'entityImports' => $this->tsHelper->writeEntityImports($entity),
             'supportImports' => $this->tsHelper->writeFormPageSupportImports($entity),

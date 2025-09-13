@@ -103,7 +103,7 @@ class GenerateMigrationForEntityAction implements DescribableAction
             // Columns code
             $columnsCode = <<<PHP
     \$table->foreignId('{$entity->getForeignKey()}')->constrained('{$entity->getTableName()}')->cascadeOnDelete();
-    \$table->foreignId('{$relation->getRelatedKey()}')->constrained('{$relation->getTableName()}')->cascadeOnDelete();
+    \$table->foreignId('{$relation->getRelatedKey()}')->constrained('{$relation->getRelatedEntity()->getTableName()}')->cascadeOnDelete();
 PHP;
 
             // Load pivot stub
@@ -196,7 +196,7 @@ PHP;
 
         // If the field is a foreign key, add the foreign key constraint
         if ($field->belongsTo()) {
-            $relatedTable = $field->belongsTo()->getTableName();
+            $relatedTable = $field->belongsTo()->getRelatedEntity()->getTableName();
             $line .= "->constrained('{$relatedTable}')->cascadeOnDelete()";
         }
 

@@ -37,31 +37,6 @@ class Config
     ) {}
 
     /**
-     * Convert the configuration from JSON string to Config object.
-     *
-     * @throws JsonException
-     */
-    public static function fromJson(string|array $json): self
-    {
-        // Decode JSON if it's a string
-        $data = is_string($json) ? json_decode($json, true, 512, JSON_THROW_ON_ERROR) : $json;
-
-        $entities = [];
-        foreach ($data['entities'] ?? [] as $entityData) {
-            $entities[] = Entity::fromConfig($entityData);
-        }
-
-        $app = App::fromConfig($data['app'] ?? []);
-
-        $config = app(self::class);
-        $config->app = $app;
-        $config->entities = $entities;
-        $config->processEntities();
-
-        return $config;
-    }
-
-    /**
      * Convert the configuration from json file path to Config object.
      *
      * @throws JsonException
@@ -97,6 +72,31 @@ class Config
     }
 
     /**
+     * Convert the configuration from JSON string to Config object.
+     *
+     * @throws JsonException
+     */
+    public static function fromJson(string|array $json): self
+    {
+        // Decode JSON if it's a string
+        $data = is_string($json) ? json_decode($json, true, 512, JSON_THROW_ON_ERROR) : $json;
+
+        $entities = [];
+        foreach ($data['entities'] ?? [] as $entityData) {
+            $entities[] = Entity::fromConfig($entityData);
+        }
+
+        $app = App::fromConfig($data['app'] ?? []);
+
+        $config = app(self::class);
+        $config->app = $app;
+        $config->entities = $entities;
+        $config->processEntities();
+
+        return $config;
+    }
+
+    /**
      * Initialize a new Config instance.
      */
     public function init(): self
@@ -118,7 +118,6 @@ class Config
         }
 
         $app = App::fromConfig($data['app'] ?? []);
-        $dev = isset($data['dev']) ? Dev::fromJson($data['dev']) : null;
 
         $this->app = $app;
         $this->entities = $entities;
@@ -222,12 +221,22 @@ class Config
         Log::channel('magic')->info('Configuration Debug Info:');
         Log::channel('magic')->info("App Name: {$this->app->name}");
         Log::channel('magic')->info('Entities Count: '.count($this->entities));
-        Log::channel('magic')->info('Development Seed Enabled: '.($this->seedEnabled ? 'true' : 'false'));
-        Log::channel('magic')->info("Development Seed Count: {$this->seedCount}");
+
+        Log::channel('magic')->info('Development Seed Enabled: '.($this->app->seedEnabled ? 'true' : 'false'));
+        Log::channel('magic')->info("Development Seed Count: {$this->app->seedCount}");
 
         foreach ($this->entities as $entity) {
             Log::channel('magic')->info("Entity: {$entity->getName()}, Table: {$entity->getTableName()}");
         }
+    }
+
+    /**
+     * Writes the content json to file path provided.
+     */
+    public function saveToFile(string $tmpFilePath)
+    {
+        File::ensureDirectoryExists(dirname($tmpFilePath));
+        file_put_contents($tmpFilePath, $this->toJson());
     }
 
     /**
@@ -241,15 +250,6 @@ class Config
         ];
 
         return json_encode($data, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR);
-    }
-
-    /**
-     * Writes the content json to file path provided.
-     */
-    public function saveToFile(string $tmpFilePath)
-    {
-        File::ensureDirectoryExists(dirname($tmpFilePath));
-        file_put_contents($tmpFilePath, $this->toJson());
     }
 
     /**

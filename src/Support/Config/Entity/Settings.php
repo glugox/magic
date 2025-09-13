@@ -14,6 +14,11 @@ class Settings
      */
     public bool $isSearchable = true;
 
+    /**
+     * Constructor to initialize settings with default values or provided settings.
+     *
+     * @param  array{ has_images?: bool, is_searchable?: bool }  $settings
+     */
     public function __construct(array $settings = [])
     {
         $this->hasImages = $settings['has_images'] ?? false;

@@ -59,6 +59,11 @@ class EnableAttachableAction implements DescribableAction
         return $context;
     }
 
+    /**
+     * Copies a file from the stubs directory to the specified destination.
+     *
+     * @param  array{src: string, dest: string, timestamped?: bool}  $file
+     */
     protected function copyFile(array $file): void
     {
         $source = $this->stubsDir.'/'.$file['src'];

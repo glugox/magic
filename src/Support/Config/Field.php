@@ -30,8 +30,8 @@ class Field
      * @param  bool  $sortable  Whether sortable in UI
      * @param  bool  $searchable  Whether searchable in UI
      * @param  string[]  $values  Enum or option values
-     * @param  int  $min  Minimum allowed numeric value
-     * @param  int  $max  Maximum allowed numeric value
+     * @param  int|null  $min  Minimum allowed numeric value
+     * @param  int|null  $max  Maximum allowed numeric value
      */
     public function __construct(
         public string $name,                 // field name
@@ -81,8 +81,8 @@ class Field
      *     showInTable?: bool,
      *     showInForm?: bool,
      *     values?: string[],
-     *     min?: float,
-     *     max?: float
+     *     min?: int,
+     *     max?: int
      * } $data
      */
     public static function fromConfig(array $data, ?Entity $entity = null): self
@@ -145,6 +145,8 @@ class Field
 
     /**
      * Return Entity this field belongs to.
+     *
+     * @return Entity|null The entity this field belongs to, or null if not set.
      */
     public function getEntity(): ?Entity
     {
@@ -193,6 +195,34 @@ class Field
     }
 
     /**
+     * Returns BelongsTo relation if this field is a foreign key.
+     *
+     * @return Relation|null The BelongsTo relation if this field is a foreign key, or null otherwise.
+     */
+    public function belongsTo(): ?Relation
+    {
+        if ($this->relation && $this->relation->getType() === RelationType::BELONGS_TO) {
+            return $this->relation;
+        }
+
+        if ($this->entityRef === null) {
+            return null; // No entity reference, cannot determine relation
+        }
+
+        /**
+         * The rest of the code if for getting other relations by field,
+         * but currently we only consider BelongsTo relations as foreign keys.
+         * And if it catches morph relations, it would be incorrect and throw errors.
+         */
+        $relationField = $this->entityRef->getRelationByField($this);
+        if ($relationField && $relationField->getType() === RelationType::BELONGS_TO) {
+            return $relationField;
+        }
+
+        return null; // Not a foreign key field
+    }
+
+    /**
      * Get migration arguments for this field.
      *
      * @return array<string|int> Returns an array of arguments for the migration method.
@@ -224,25 +254,11 @@ class Field
     }
 
     /**
-     * Returns BelongsTo relation if this field is a foreign key.
+     * Type checks.
      */
-    public function belongsTo(): ?Relation
+    public function isEnum(): bool
     {
-        if ($this->relation && in_array($this->relation->getType(), [RelationType::BELONGS_TO, RelationType::MORPH_TO], true)) {
-            return $this->relation;
-        }
-
-        if ($this->entityRef === null) {
-            return null; // No entity reference, cannot determine relation
-        }
-        // Check if the field name ends with '_id' which is a common convention for foreign keys
-        // if (Str::endsWith($this->name, '_id')) {
-        // Find the related entity in the entity reference
-        $relationField = $this->entityRef->getRelationByField($this);
-
-        // }
-
-        return $relationField; // Not a foreign key field
+        return $this->type === FieldType::ENUM;
     }
 
     /**
@@ -272,15 +288,8 @@ class Field
             || Str::endsWith($this->name, '_name');
     }
 
-    /**
-     * Type checks.
-     */
-    public function isEnum(): bool
-    {
-        return $this->type === FieldType::ENUM;
-    }
-
     // Semantic checks for field types
+
     public function isDate(): bool
     {
         return $this->type === FieldType::DATE;
@@ -320,6 +329,14 @@ class Field
             FieldType::DOUBLE,
             FieldType::DECIMAL,
         ], true);
+    }
+
+    /**
+     * Debug log
+     */
+    public function debugLog(): void
+    {
+        Log::channel('magic')->debug($this->printDebug());
     }
 
     /**
@@ -378,29 +395,23 @@ class Field
     }
 
     /**
-     * Debug log
-     */
-    public function debugLog(): void
-    {
-        Log::channel('magic')->debug($this->printDebug());
-    }
-
-    /**
      * Returns true if this field is a foreign key (i.e., belongs to another entity).
      * TODO: Make this more certain by checking actual relations.
      */
-    public function isForeignKey()
+    public function isForeignKey(): bool
     {
         // Check if the field name ends with '_id' which is a common convention for foreign keys
         if (Str::endsWith($this->name, '_id')) {
             return true;
         }
+
+        return false;
     }
 
     /**
      * Json representation of the field.
      */
-    public function toJson(): string
+    public function toJson(): string|false
     {
         return json_encode([
             'name' => $this->name,

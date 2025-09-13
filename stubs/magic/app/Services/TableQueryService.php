@@ -145,12 +145,12 @@ class TableQueryService
             return ! str_ends_with($field, '_id');
         });
 
-        $filters['allColumns'] = array_map(function ($item) {
+        $filters['allColumns'] = array_values(array_map(function ($item) {
             return [
                 'name' => $item,
                 'label' => ucfirst(str_replace('_', ' ', $item)),
             ];
-        }, $filteredFields);
+        }, $filteredFields));
 
         $filters['visibleColumns'] = array_values($filteredFields); // reset array keys
 

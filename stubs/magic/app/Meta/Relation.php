@@ -10,39 +10,24 @@ class Relation
 {
     public RelationType $type;
 
-    private string $relationName;
-
-    private string $foreignKey;
-
-    private string $localKey;
-
-    private string $morphName;
-
     public function __construct(
         RelationType|string $type, // e.g. 'hasMany', 'belongsTo', etc.
         private readonly Entity $localEntity, // the entity that owns this relation, e.g. 'User'
         private readonly ?string $relatedEntityName = null, // name of the related entity, e.g. 'Role'
         private ?Entity $relatedEntity = null, // the related entity object, e.g. Role entity
-        ?string $foreignKey = null, // usually local entity's fk, e.g. user_id
-        ?string $localKey = null, // usually related entity's pk, e.g. id
+        private ?string $foreignKey = null, // usually local entity's fk, e.g. user_id
+        private ?string $localKey = null, // usually related entity's pk, e.g. id
         private ?string $relatedKey = null, // // points to related entity in pivot table, e.g. role_id
-        ?string $relationName = null,
-        ?string $morphName = null // for polymorphic relations, e.g. 'imageable'
+        private ?string $relationName = null,
     ) {
         $this->type = $type instanceof RelationType ? $type : RelationType::from($type);
 
-        $this->morphName = $morphName ?? $this->inferMorphName(); // Should come with infer before foreign key inference
-        $this->relationName = $relationName ?? $this->inferRelationName();
-        $this->foreignKey = $foreignKey ?? $this->inferForeignKey();
-        $this->localKey = $localKey ?? $this->inferLocalKey();
-
+        $this->relationName ??= $this->inferRelationName();
+        $this->foreignKey ??= $this->inferForeignKey();
+        $this->localKey ??= $this->inferLocalKey();
         // relatedForeignKey is only used in BelongsToMany relations
         if ($this->type === RelationType::BELONGS_TO_MANY && ! $this->relatedKey) {
-            $relatedEntityName = $this->getRelatedEntityName();
-            if (! $relatedEntityName) {
-                throw new RuntimeException("Related entity name is not set for BelongsToMany relation in entity {$this->getLocalEntityName()}");
-            }
-            $this->relatedKey = Str::snake($relatedEntityName).'_id';
+            $this->relatedKey = Str::snake($this->getRelatedEntityName()).'_id';
         }
     }
 
@@ -82,11 +67,6 @@ class Relation
         return $this->relatedKey;
     }
 
-    public function getMorphTypeKey(): ?string
-    {
-        return $this->morphName ? $this->morphName.'_type' : null;
-    }
-
     /**
      * Gets local entity name
      */
@@ -100,27 +80,10 @@ class Relation
      * This can not be inferred from $this->relatedEntity
      * because the related entity may not be set yet. We actually
      * need the name to find the related entity in the config.
-     *
-     * @return string|null The name of the related entity, or null if not set ( null for MorphTo relations )
      */
     public function getRelatedEntityName(): ?string
     {
         return $this->relatedEntityName;
-    }
-
-    /**
-     * Forcing related entity to be set
-     * because we need it for various code generation tasks.
-     * Throws exception if not set.
-     */
-    public function getRelatedEntityNameOrFail(): string
-    {
-        $name = $this->getRelatedEntityName();
-        if (! $name) {
-            throw new RuntimeException("Related entity name is not set for relation of type {$this->type->value} in entity {$this->getLocalEntityName()}");
-        }
-
-        return $name;
     }
 
     /**
@@ -140,7 +103,7 @@ class Relation
     public function getRelatedEntity(): Entity
     {
         if (! $this->relatedEntity) {
-            throw new RuntimeException("Related entity is not set for relation of type {$this->type->value}, related entity name: {$this->getRelatedEntityName()}, in entity {$this->getLocalEntityName()}");
+            throw new RuntimeException("Related entity is not set for relation of type {$this->type->value}");
         }
 
         return $this->relatedEntity;
@@ -163,14 +126,10 @@ class Relation
      */
     public function getPivotName(): string
     {
-        if ($this->isPolymorphic()) {
-            return Str::plural($this->morphName);
-        }
-
         // alphabetical order of related tables (Laravel convention)
         $tables = [
             Str::snake($this->getLocalEntityName()),
-            Str::snake($this->getRelatedEntityNameOrFail()),
+            Str::snake($this->getRelatedEntityName()),
         ];
         sort($tables);
 
@@ -183,7 +142,19 @@ class Relation
      */
     public function getTableName(): string
     {
-        throw new RuntimeException('Not implemented');
+
+        // If entity name is not set, return empty string
+        if (! $this->getRelatedEntityName()) {
+            // If relation is MorphTo, return local entity's table name
+            if ($this->type === RelationType::MORPH_TO) {
+                return $this->getLocalEntity()->getTableName();
+            }
+
+            throw new RuntimeException("Entity name is not set for relation of type {$this->type->value}");
+        }
+
+        // Convert entity name to snake_case for table name
+        return Str::snake(Str::plural($this->getRelatedEntityName()));
     }
 
     /**
@@ -193,7 +164,7 @@ class Relation
      */
     public function getApiPath(): string
     {
-        return Str::plural($this->getRelationName());
+        return Str::kebab(Str::plural($this->getRelatedEntityName()));
     }
 
     /**
@@ -203,7 +174,7 @@ class Relation
      */
     public function getWebPath(): string
     {
-        return Str::kebab(Str::plural($this->getRelationName()));
+        return Str::kebab(Str::plural($this->getRelatedEntityName()));
     }
 
     /**
@@ -214,7 +185,7 @@ class Relation
     public function getMorphName(): ?string
     {
         // For polymorphic relations, return the relation name
-        return $this->morphName;
+        return $this->getRelationName();
     }
 
     /**
@@ -228,7 +199,7 @@ class Relation
     public function getControllerFullQualifiedName(): string
     {
         $localEntityName = $this->localEntity->getName();
-        $relatedEntityName = $this->getRelatedEntityNameOrFail();
+        $relatedEntityName = $this->getRelatedEntityName();
 
         return "\\App\\Http\\Controllers\\{$localEntityName}\\{$localEntityName}{$relatedEntityName}Controller";
     }
@@ -328,36 +299,6 @@ class Relation
         return $this->type === RelationType::MORPH_ONE;
     }
 
-    /*
-     * @return bool Returns true if the relation is of type 'morphedByMany'.
-     */
-    public function isMorphedByMany(): bool
-    {
-        return $this->type === RelationType::MORPHED_BY_MANY;
-    }
-
-    /**
-     * @return bool Returns true if the relation is of type 'morphToMany'.
-     */
-    public function isMorphToMany(): bool
-    {
-        return $this->type === RelationType::MORPH_TO_MANY;
-    }
-
-    /**
-     * Returns true if the relation is polymorphic (morphOne, morphMany, morphTo, morphToMany, morphedByMany)
-     */
-    public function isPolymorphic(): bool
-    {
-        return in_array($this->type, [
-            RelationType::MORPH_ONE,
-            RelationType::MORPH_MANY,
-            RelationType::MORPH_TO,
-            RelationType::MORPH_TO_MANY,
-            RelationType::MORPHED_BY_MANY,
-        ]);
-    }
-
     /**
      * Json representation of the relation.
      *
@@ -379,14 +320,15 @@ class Relation
         return json_encode($data, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR);
     }
 
-    /**
-     * Infers the relation name if not explicitly set.
-     */
     protected function inferRelationName(): string
     {
+        if ($this->relationName) {
+            return $this->relationName;
+        }
+
         if (! $this->getRelatedEntityName()) {
             if ($this->type === RelationType::MORPH_TO) {
-                return Str::snake($this->getLocalEntityName());
+                throw new RuntimeException('MorphTo requires explicit relation name');
             }
             throw new RuntimeException("Entity name is not set for relation of type {$this->type->value} in entity {$this->getLocalEntityName()}");
         }
@@ -394,60 +336,32 @@ class Relation
         return match ($this->type) {
             RelationType::HAS_MANY,
             RelationType::BELONGS_TO_MANY,
-            RelationType::MORPH_MANY => Str::plural(Str::camel($this->getRelatedEntityNameOrFail())),
-            default => Str::camel($this->getRelatedEntityNameOrFail()),
+            RelationType::MORPH_MANY => Str::plural(Str::camel($this->getRelatedEntityName())),
+            default => Str::camel($this->getRelatedEntityName()),
         };
     }
 
-    /**
-     * Infers the foreign key if not explicitly set.
-     */
-    protected function inferForeignKey(): string
+    protected function inferForeignKey(): ?string
     {
+        if ($this->foreignKey) {
+            return $this->foreignKey;
+        }
+
         return match ($this->type) {
-            RelationType::BELONGS_TO => Str::snake($this->getRelatedEntityNameOrFail()).'_id',
-            RelationType::HAS_ONE, RelationType::HAS_MANY, RelationType::BELONGS_TO_MANY => Str::snake($this->getLocalEntityName()).'_id',
-            RelationType::MORPH_TO, RelationType::MORPH_ONE, RelationType::MORPH_TO_MANY, RelationType::MORPHED_BY_MANY, RelationType::MORPH_MANY => ($this->morphName).'_id'
+            RelationType::BELONGS_TO => Str::snake($this->getRelatedEntityName()).'_id',
+            RelationType::HAS_ONE,
+            RelationType::HAS_MANY => Str::snake($this->getLocalEntityName()).'_id',
+            RelationType::MORPH_TO => null, // handled by *_id + *_type in fields
+            default => null, // belongsToMany & morphMany usually need explicit
         };
     }
 
-    /**
-     * Infer foreign key for MorphTo relation.
-     * It is usually the relation name + _id
-     * Ex. for relation 'imageable', the foreign key is 'imageable_id'
-     * and the type key is 'imageable_type'
-     * This is only needed for MorphTo relations.
-     * For other polymorphic relations, the foreign key is on the related model.
-     * Ex. for morphMany relation from Post to Comment, the foreign key is on comments table.
-     * So we do not need to infer it here.
-     * We only need to infer it for MorphTo relations.
-     *
-     * @throws RuntimeException
-     */
-    protected function inferMorphToForeignKey(): string
+    protected function inferLocalKey(): ?string
     {
-        return $this->morphName.'_id';
-    }
+        if ($this->localKey) {
+            return $this->localKey;
+        }
 
-    /**
-     * Infers the local key if not explicitly set.
-     */
-    protected function inferLocalKey(): string
-    {
-        return 'id';
-    }
-
-    /**
-     * Infers the morph name for polymorphic relations.
-     * For MorphTo, it is usually the relation name.
-     * For other polymorphic relations, it is usually the related entity name + 'able'.
-     * Ex. for Image related to User and Post, the morph name is 'imageable'.
-     */
-    protected function inferMorphName(): string
-    {
-        return match ($this->type) {
-            RelationType::MORPH_ONE, RelationType::MORPH_MANY, RelationType::MORPH_TO_MANY, RelationType::MORPHED_BY_MANY => Str::snake($this->getRelatedEntityNameOrFail()).'able',
-            default => Str::snake($this->getLocalEntityName()).'able' // for MorphTo
-        };
+        return Str::snake($this->getRelatedEntityName()).'_id';
     }
 }

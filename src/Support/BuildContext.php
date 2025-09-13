@@ -8,6 +8,7 @@ use Glugox\Magic\Support\File\FilesGenerationUpdate;
 use Illuminate\Support\Facades\Log;
 use JsonException;
 use ReflectionException;
+use RuntimeException;
 
 class BuildContext
 {
@@ -62,11 +63,11 @@ class BuildContext
     /**
      * Return Config object.
      */
-    public function getConfig(): ?Config
+    public function getConfig(): Config
     {
         $this->ensureConfigLoaded();
 
-        return $this->config;
+        return $this->config ?? throw new RuntimeException('Config could not be loaded.');
     }
 
     /**

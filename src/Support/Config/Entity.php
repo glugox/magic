@@ -25,13 +25,49 @@ class Entity
     ) {}
 
     /**
-     * Create an Entity object from an array of properties.
+     * @param string|array{
+     *     name: string,
+     *     table?: string,
+     *     fields?: list<array{
+     *         name: string,
+     *         type: string
+     *     }>,
+     *     relations?: array<string, array{
+     *         type: string,
+     *         model: class-string,
+     *         relatedEntityName?: string,
+     *         foreignKey?: string,
+     *         localKey?: string,
+     *         relatedKey?: string,
+     *         relationName?: string
+     *     }>,
+     *     settings?: array{ has_images?: bool, is_searchable?: bool },
+     *     icon?: string
+     * } $data JSON string or associative array with entity configuration
      */
     public static function fromConfig(array|string $data): self
     {
         // Convert JSON string to array if needed
         if (is_string($data)) {
+            /** @var array{
+             *     name: string,
+             *     table?: string,
+             *     fields?: list<array{name: string, type: string}>,
+             *     relations?: array<string, array{
+             *         type: string,
+             *         model: class-string,
+             *         relatedEntityName?: string,
+             *         foreignKey?: string,
+             *         localKey?: string,
+             *         relatedKey?: string,
+             *         relationName?: string
+             *     }>,
+             *     settings?: array{ has_images?: bool, is_searchable?: bool },
+             *     icon?: string
+             * } $data
+             */
             $data = json_decode($data, true);
+
             if (json_last_error() !== JSON_ERROR_NONE) {
                 throw new InvalidArgumentException('Invalid JSON string provided for Entity configuration.');
             }
@@ -69,9 +105,7 @@ class Entity
         }
 
         // Set the entity's icon if provided
-        if (isset($data['icon'])) {
-            $entity->icon = $data['icon'] ?? null;
-        }
+        $entity->icon = $data['icon'] ?? null;
 
         return $entity;
     }
@@ -81,7 +115,7 @@ class Entity
      */
     public function processRelations(Config $config): void
     {
-        foreach ($this->relations as $relation) {
+        foreach (($this->relations ?? []) as $relation) {
             // If related entity is not set, skip processing
             if (empty($relation->getRelatedEntityName())) {
                 continue;
@@ -113,16 +147,6 @@ class Entity
     }
 
     /**
-     * Get the entity's short class name.
-     * Example: "User", "Post"
-     */
-    public function getClassName(): string
-    {
-        // Convert entity name to StudlyCase for class name
-        return $this->name;
-    }
-
-    /**
      * Get the fully qualified model class name.
      * Example: "\App\Models\User", "\App\Models\Post"
      */
@@ -130,6 +154,16 @@ class Entity
     {
         // Convert entity name to StudlyCase for fully qualified class name
         return '\\App\\Models\\'.$this->getClassName();
+    }
+
+    /**
+     * Get the entity's short class name.
+     * Example: "User", "Post"
+     */
+    public function getClassName(): string
+    {
+        // Convert entity name to StudlyCase for class name
+        return $this->name;
     }
 
     /**
@@ -148,35 +182,16 @@ class Entity
     public function getTableName(): string
     {
         // Convert entity name to snake_case for table name
-        return $this->tableName ??= mb_strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $this->getPluralName()));
+        return $this->tableName ??= mb_strtolower((string) preg_replace('/(?<!^)[A-Z]/', '_$0', $this->getPluralName()));
     }
 
     /**
-     * Get the foreign / primary key for the entity.
+     * Entity name in plural form.
+     * Ex. "Users", "Posts"
      */
-    public function getForeignKey(): string
+    public function getPluralName(): string
     {
-        // Usually the foreign key is snake_case of the entity name + '_id'
-        return Str::snake($this->getName()).'_id';
-    }
-
-    /**
-     * Get the route name for the entity.
-     * Example: "users", "posts"
-     */
-    public function getRouteName(): string
-    {
-        // Convert entity name to kebab-case for route name
-        return Str::kebab($this->getPluralName());
-    }
-
-    /**
-     * Get folder name for the entity.
-     * Example: "users", "posts", "failed_jobs"
-     */
-    public function getFolderName(): string
-    {
-        return $this->getTableName();
+        return Str::plural($this->name);
     }
 
     /**
@@ -191,6 +206,15 @@ class Entity
     }
 
     /**
+     * Get folder name for the entity.
+     * Example: "users", "posts", "failed_jobs"
+     */
+    public function getFolderName(): string
+    {
+        return $this->getTableName();
+    }
+
+    /**
      * Get the href for the entity.
      * Example: "/users", "/posts"
      */
@@ -201,12 +225,13 @@ class Entity
     }
 
     /**
-     * Entity name in plural form.
-     * Ex. "Users", "Posts"
+     * Get the route name for the entity.
+     * Example: "users", "posts"
      */
-    public function getPluralName(): string
+    public function getRouteName(): string
     {
-        return Str::plural($this->name);
+        // Convert entity name to kebab-case for route name
+        return Str::kebab($this->getPluralName());
     }
 
     /**
@@ -235,6 +260,21 @@ class Entity
     }
 
     /**
+     * Adds field only if it does not exist already.
+     *
+     * @param  Field|array  $field  Field instance or array configuration
+     */
+    public function addFieldIfNotExists(Field|array $field): void
+    {
+        if (is_array($field)) {
+            $field = Field::fromConfig($field, $this);
+        }
+        if (! $this->hasField($field->name)) {
+            $this->fields[] = $field;
+        }
+    }
+
+    /**
      * Add a field to the entity.
      */
     public function addField(Field|array $field): void
@@ -246,16 +286,11 @@ class Entity
     }
 
     /**
-     * Adds field only if it does not exist already.
+     * Add a relation to the entity.
      */
-    public function addFieldIfNotExists(Field|array $field): void
+    public function addRelation(Relation $relation): void
     {
-        if (is_array($field)) {
-            $field = Field::fromConfig($field, $this);
-        }
-        if (! $this->hasField($field->name)) {
-            $this->fields[] = $field;
-        }
+        $this->relations[] = $relation;
     }
 
     /**
@@ -292,6 +327,19 @@ class Entity
         }
 
         return null;
+    }
+
+    /**
+     * Get names of fields that should be visible in tables/lists.
+     */
+    public function getTableFieldsNames(?bool $skipRelations = false): array
+    {
+        $visible = [];
+        foreach ($this->getTableFields($skipRelations) as $field) {
+            $visible[] = $field->name;
+        }
+
+        return $visible;
     }
 
     /**
@@ -344,16 +392,40 @@ class Entity
     }
 
     /**
-     * Get names of fields that should be visible in tables/lists.
+     * Check if the entity has a name field.
      */
-    public function getTableFieldsNames(?bool $skipRelations = false): array
+    public function hasNameField(): bool
     {
-        $visible = [];
-        foreach ($this->getTableFields($skipRelations) as $field) {
-            $visible[] = $field->name;
+        foreach ($this->fields as $field) {
+            if ($field->isName()) {
+                return true;
+            }
         }
 
-        return $visible;
+        return false;
+    }
+
+    /**
+     * @param  RelationType|null  $type  If provided, only relations of this type are returned.
+     * @param  RelationType[]|null  $excludeTypes  If provided, relations of these types
+     * @return Relation[]
+     */
+    public function getRelations(?RelationType $type = null, ?array $excludeTypes = null): array
+    {
+        if (! is_null($type)) {
+            return array_filter($this->relations, function (Relation $relation) use ($type) {
+                return $relation->getType() === $type;
+            });
+        }
+
+        // Exclude types if provided
+        if (! is_null($excludeTypes)) {
+            return array_filter($this->relations, function (Relation $relation) use ($excludeTypes) {
+                return ! in_array($relation->getType(), $excludeTypes);
+            });
+        }
+
+        return $this->relations;
     }
 
     /**
@@ -387,6 +459,8 @@ class Entity
 
     /**
      * Get the names of fields that should be visible in forms.
+     *
+     * @return Field[]
      */
     public function getFormFields(): array
     {
@@ -407,17 +481,17 @@ class Entity
     }
 
     /**
-     * Check if the entity has a name field.
+     * Get name fields as names strings.
+     * Example: ['first_name', 'last_name']
      */
-    public function hasNameField(): bool
+    public function getNameFieldsNames(): array
     {
-        foreach ($this->fields as $field) {
-            if ($field->isName()) {
-                return true;
-            }
+        $nameFields = [];
+        foreach ($this->getNameFields() as $field) {
+            $nameFields[] = $field->name;
         }
 
-        return false;
+        return $nameFields;
     }
 
     /**
@@ -430,20 +504,6 @@ class Entity
             if ($field->isName()) {
                 $nameFields[] = $field;
             }
-        }
-
-        return $nameFields;
-    }
-
-    /**
-     * Get name fields as names strings.
-     * Example: ['first_name', 'last_name']
-     */
-    public function getNameFieldsNames(): array
-    {
-        $nameFields = [];
-        foreach ($this->getNameFields() as $field) {
-            $nameFields[] = $field->name;
         }
 
         return $nameFields;
@@ -478,6 +538,10 @@ class Entity
         return $fillable;
     }
 
+    /*
+     * Get setting vale for a specific key.
+     */
+
     /**
      * Get fillable fields.
      *
@@ -493,6 +557,21 @@ class Entity
         }
 
         return $fillable;
+    }
+
+    /**
+     * Get the names of hidden fields.
+     *
+     * @return string[]
+     */
+    public function getHiddenFieldsNames(): array
+    {
+        $hidden = [];
+        foreach ($this->getHiddenFields() as $field) {
+            $hidden[] = $field->name;
+        }
+
+        return $hidden;
     }
 
     /**
@@ -513,18 +592,18 @@ class Entity
     }
 
     /**
-     * Get the names of hidden fields.
+     * Get the names of searchable fields.
      *
      * @return string[]
      */
-    public function getHiddenFieldsNames(): array
+    public function getSearchableFieldsNames(): array
     {
-        $hidden = [];
-        foreach ($this->getHiddenFields() as $field) {
-            $hidden[] = $field->name;
+        $searchable = [];
+        foreach ($this->getSearchableFields() as $field) {
+            $searchable[] = $field->getName();
         }
 
-        return $hidden;
+        return $searchable;
     }
 
     /**
@@ -542,24 +621,6 @@ class Entity
         return $searchable;
     }
 
-    /**
-     * Get the names of searchable fields.
-     *
-     * @return string[]
-     */
-    public function getSearchableFieldsNames(): array
-    {
-        $searchable = [];
-        foreach ($this->getSearchableFields() as $field) {
-            $searchable[] = $field->getName();
-        }
-
-        return $searchable;
-    }
-
-    /*
-     * Get setting vale for a specific key.
-     */
     public function getSetting(string $key): mixed
     {
         return $this->settings->get($key);
@@ -600,29 +661,6 @@ class Entity
     }
 
     /**
-     * @param  RelationType|null  $type  If provided, only relations of this type are returned.
-     * @param  RelationType[]|null  $excludeTypes  If provided, relations of these types
-     * @return Relation[]
-     */
-    public function getRelations(?RelationType $type = null, ?array $excludeTypes = null): array
-    {
-        if (! is_null($type)) {
-            return array_filter($this->relations, function (Relation $relation) use ($type) {
-                return $relation->getType() === $type;
-            });
-        }
-
-        // Exclude types if provided
-        if (! is_null($excludeTypes)) {
-            return array_filter($this->relations, function (Relation $relation) use ($excludeTypes) {
-                return ! in_array($relation->getType(), $excludeTypes);
-            });
-        }
-
-        return $this->relations;
-    }
-
-    /**
      * Get relations without morph relations.
      */
     public function getRelationsWithoutMorph(): array
@@ -651,25 +689,11 @@ class Entity
     }
 
     /**
-     * Add a relation to the entity.
-     */
-    public function addRelation(Relation $relation): void
-    {
-        $this->relations[] = $relation;
-    }
-
-    /**
      * Get the relation by name.
      */
     public function getRelationByName(string $name): ?Relation
     {
-        foreach ($this->relations as $relation) {
-            if ($relation->getTableName() === $name) {
-                return $relation;
-            }
-        }
-
-        return null;
+        return array_find($this->relations ?? [], fn ($relation) => $relation->getRelationName() === $name);
     }
 
     /**
@@ -684,6 +708,15 @@ class Entity
         }
 
         return null;
+    }
+
+    /**
+     * Get the foreign / primary key for the entity.
+     */
+    public function getForeignKey(): string
+    {
+        // Usually the foreign key is snake_case of the entity name + '_id'
+        return Str::snake($this->getName()).'_id';
     }
 
     /**

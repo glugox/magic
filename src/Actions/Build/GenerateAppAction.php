@@ -21,6 +21,8 @@ class GenerateAppAction implements DescribableAction
     use AsDescribableAction;
 
     /**
+     * @param  array{ config?: string, starter?: string, set?: array<string, mixed> }  $options
+     *
      * @throws ReflectionException
      * @throws Exception
      */
