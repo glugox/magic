@@ -1,7 +1,6 @@
 <?php
 
-namespace Glugox\Magic\Support\Config;
-
+namespace App\Meta;
 enum RelationType: string
 {
     // Standard relations
