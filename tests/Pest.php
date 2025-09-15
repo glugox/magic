@@ -4,7 +4,7 @@ use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\Config\Config;
 use Glugox\Magic\Tests\TestCase;
 
-uses(TestCase::class)->in(__DIR__);
+uses(TestCase::class)->in('Feature', 'Unit');
 
 /**
  * If we pass "fixtures/config.json",

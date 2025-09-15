@@ -127,3 +127,5 @@ Reach out via [email](mailto:ervinbeciragic@gmail.com).
 
 The MIT License (MIT). See [LICENSE](LICENSE.md) for details.
 
+
+composer require glugox/magic:@dev --prefer-source --repository='{"type":"path","url":"/Users/ervin/Code/github.com/glugox/magic"}'

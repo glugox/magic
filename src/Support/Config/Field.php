@@ -47,7 +47,7 @@ class Field
         public ?string $comment = null,      // optional DB comment
         public bool $sortable = false,       // sortable in UI
         public bool $searchable = false,     // searchable in UI
-        public bool $isName = false,         // is this a name field, that is used for example to open the entity record when clicked on?
+        public bool $main = false,         // is this a main field, that is used for example to open the entity record when clicked on?
         public bool $showInTable = true,     // show in table views
         public bool $showInForm = true,      // show in forms
         /** @var string[] Allowed enum/options */
@@ -77,7 +77,7 @@ class Field
      *     comment?: string|null,
      *     sortable?: bool,
      *     searchable?: bool,
-     *     isName?: bool,
+     *     main?: bool,
      *     showInTable?: bool,
      *     showInForm?: bool,
      *     values?: string[],
@@ -103,7 +103,7 @@ class Field
             comment: $data['comment'] ?? null,
             sortable: $data['sortable'] ?? false,
             searchable: $data['searchable'] ?? false,
-            isName: $data['isName'] ?? false,
+            main: $data['main'] ?? false,
             showInTable: $data['showInTable'] ?? true,
             showInForm: $data['showInForm'] ?? true,
             values: $data['values'] ?? [],
@@ -135,7 +135,7 @@ class Field
             comment: 'Foreign key to '.$relation->getRelatedEntityName(),
             sortable: true,
             searchable: false,
-            isName: false,
+            main: false,
             values: [],
             min: null,
             max: null,
@@ -280,10 +280,19 @@ class Field
     /**
      * Check if this field is a name field.
      */
-    public function isName(): bool
+    public function asMain(): self
+    {
+        $this->main = true;
+        return $this;
+    }
+
+    /**
+     * @return bool True if the field is main (name/title) field.
+     */
+    public function isMain(): bool
     {
         // Check if the field name is 'name' or 'title', which are common conventions for name fields
-        return $this->isName
+        return $this->main
             || in_array($this->name, ['name', 'title'], true)
             || Str::endsWith($this->name, '_name');
     }
@@ -329,6 +338,66 @@ class Field
             FieldType::DOUBLE,
             FieldType::DECIMAL,
         ], true);
+    }
+
+    /**
+     * Check if the given flag/identifier is true for this field.
+     *
+     * Example:
+     *   $field->is('required');   // true if required
+     *   $field->is('nullable');   // true if nullable
+     *   $field->is('id');         // true if field name is 'id'
+     */
+    public function is(string $key): bool
+    {
+        $key = Str::camel($key);
+
+        // Semantic method, e.g. isMain(), isEnum(), isId()
+        $method = 'is'.Str::studly($key);
+        if (method_exists($this, $method)) {
+            return (bool) $this->{$method}();
+        }
+
+        // Direct property
+        if (property_exists($this, $key)) {
+            $value = $this->{$key};
+
+            return is_bool($value) ? $value : (bool) $value;
+        }
+
+        return false;
+    }
+
+    /**
+     * Get the value of a property or semantic accessor.
+     *
+     * Example:
+     *   $field->get('length');    // 255
+     *   $field->get('default');   // some default value
+     *   $field->get('main');    // true if it is a name field
+     */
+    public function get(string $key): mixed
+    {
+        $key = Str::camel($key);
+
+        // Direct property
+        if (property_exists($this, $key)) {
+            return $this->{$key};
+        }
+
+        // Semantic method
+        $method = Str::camel($key);
+        if (method_exists($this, $method)) {
+            return $this->{$method}();
+        }
+
+        // Semantic "isX" method fallback
+        $isMethod = 'is'.Str::studly($key);
+        if (method_exists($this, $isMethod)) {
+            return $this->{$isMethod}();
+        }
+
+        return null;
     }
 
     /**

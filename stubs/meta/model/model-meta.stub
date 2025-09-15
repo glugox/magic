@@ -1,0 +1,24 @@
+<?php
+
+namespace {{namespace}};
+
+use Glugox\ModelMeta\Field;
+use Glugox\ModelMeta\ModelMeta;
+use Glugox\ModelMeta\Fields\{
+    {{importedFields}}
+};
+
+class {{className}} extends ModelMeta
+{
+    /**
+     * Define fields for the {{className}} resource.
+     *
+     * @return array<int, Field>
+     */
+    public function fields(): array
+    {
+        return [
+            {{fields}}
+        ];
+    }
+}

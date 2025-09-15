@@ -1,0 +1,101 @@
+{
+    "app": {
+        "name": "CallCenterPro",
+        "seedEnabled": true,
+        "seedCount": 50
+    },
+    "entities": [
+        {
+            "name": "Agent",
+            "icon": "Users",
+            "fields": [
+                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "name", "type": "string", "nullable": false, "sortable": true, "searchable": true },
+                { "name": "email", "type": "string", "nullable": false, "unique": true, "sortable": true, "searchable": true },
+                { "name": "password", "type": "password", "nullable": false, "hidden": true },
+                { "name": "status", "type": "string", "nullable": false, "default": "offline" }
+            ],
+            "relations": [
+                { "type": "belongsToMany", "relatedEntityName": "Team", "pivot": "agent_team", "foreignKey": "agent_id", "relatedKey": "team_id" },
+                { "type": "hasMany", "relatedEntityName": "Call", "foreignKey": "agent_id" },
+                { "type": "hasMany", "relatedEntityName": "Ticket", "foreignKey": "agent_id" }
+            ]
+        },
+        {
+            "name": "Customer",
+            "icon": "User",
+            "fields": [
+                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "name", "type": "string", "nullable": false, "searchable": true },
+                { "name": "email", "type": "string", "nullable": true, "searchable": true },
+                { "name": "phone", "type": "string", "nullable": false, "searchable": true },
+                { "name": "company", "type": "string", "nullable": true, "searchable": true }
+            ],
+            "relations": [
+                { "type": "hasMany", "relatedEntityName": "Call", "foreignKey": "customer_id" },
+                { "type": "hasMany", "relatedEntityName": "Ticket", "foreignKey": "customer_id" }
+            ]
+        },
+        {
+            "name": "Call",
+            "icon": "Phone",
+            "fields": [
+                { "name": "id", "type": "bigIncrements" },
+                { "name": "agent_id", "type": "unsignedBigInteger" },
+                { "name": "customer_id", "type": "unsignedBigInteger" },
+                { "name": "start_time", "type": "dateTime", "nullable": false },
+                { "name": "end_time", "type": "dateTime", "nullable": true },
+                { "name": "duration", "type": "integer", "nullable": true },
+                { "name": "status", "type": "string", "nullable": false, "default": "pending" },
+                { "name": "notes", "type": "text", "nullable": true, "showInTable": false }
+            ],
+            "relations": [
+                { "type": "belongsTo", "relatedEntityName": "Agent", "foreignKey": "agent_id" },
+                { "type": "belongsTo", "relatedEntityName": "Customer", "foreignKey": "customer_id" }
+            ]
+        },
+        {
+            "name": "Ticket",
+            "icon": "Clipboard",
+            "fields": [
+                { "name": "id", "type": "bigIncrements" },
+                { "name": "agent_id", "type": "unsignedBigInteger", "nullable": true },
+                { "name": "customer_id", "type": "unsignedBigInteger", "nullable": false },
+                { "name": "title", "type": "string", "nullable": false, "searchable": true },
+                { "name": "description", "type": "text", "nullable": true, "showInTable": false },
+                { "name": "status", "type": "string", "nullable": false, "default": "open" },
+                { "name": "priority", "type": "string", "nullable": false, "default": "medium" },
+                { "name": "due_date", "type": "date", "nullable": true }
+            ],
+            "relations": [
+                { "type": "belongsTo", "relatedEntityName": "Agent", "foreignKey": "agent_id" },
+                { "type": "belongsTo", "relatedEntityName": "Customer", "foreignKey": "customer_id" }
+            ]
+        },
+        {
+            "name": "Team",
+            "icon": "Users",
+            "fields": [
+                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "name", "type": "string", "nullable": false, "unique": true, "searchable": true },
+                { "name": "description", "type": "text", "nullable": true, "showInTable": false }
+            ],
+            "relations": [
+                { "type": "belongsToMany", "relatedEntityName": "Agent", "pivot": "agent_team", "foreignKey": "team_id", "relatedKey": "agent_id" }
+            ]
+        },
+        {
+            "name": "Department",
+            "icon": "Briefcase",
+            "fields": [
+                { "name": "id", "type": "bigIncrements", "nullable": false },
+                { "name": "name", "type": "string", "nullable": false, "unique": true, "searchable": true },
+                { "name": "manager_id", "type": "unsignedBigInteger", "nullable": true }
+            ],
+            "relations": [
+                { "type": "hasMany", "relatedEntityName": "Team", "foreignKey": "department_id" },
+                { "type": "belongsTo", "relatedEntityName": "Agent", "foreignKey": "manager_id" }
+            ]
+        }
+    ]
+}

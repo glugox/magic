@@ -29,9 +29,11 @@ class InstallNodePackagesAction implements DescribableAction
     protected array $shadcnComponents = [
 
         'calendar',
+        'combobox',
         'command',
         'dropdown-menu',
         'form',
+        'pagination',
         'popover',
         'select',
         'switch',
@@ -59,7 +61,7 @@ class InstallNodePackagesAction implements DescribableAction
             Log::channel('magic')->info('Installing missing npm packages: '.implode(', ', $missingPackages));
 
             $this->runProcess(
-                array_merge(['/usr/local/bin/npx', 'install', '--save-dev'], $missingPackages),
+                array_merge(['/usr/local/bin/npm', 'install', '--save-dev'], $missingPackages),
                 'Installing npm packages...'
             );
         } else {
@@ -72,10 +74,19 @@ class InstallNodePackagesAction implements DescribableAction
         if (! empty($missingComponents)) {
             Log::channel('magic')->info('Installing missing shadcn-vue components: '.implode(', ', $missingComponents));
 
-            $this->runProcess(
-                array_merge(['/usr/local/bin/npx', 'shadcn-vue@latest', 'add'], $missingComponents),
-                'Installing shadcn-vue components...'
-            );
+            foreach ($missingComponents as $component) {
+
+                if ($this->isShadcnInstalled($component)) {
+                    Log::channel('magic')->info("Component {$component} is already installed, skipping.");
+
+                    continue;
+                }
+
+                $this->runProcess(
+                    ['/usr/local/bin/npx', 'shadcn-vue@latest', 'add', $component],
+                    "Installing shadcn-vue component: {$component}..."
+                );
+            }
         } else {
             Log::channel('magic')->info('All shadcn-vue components are already installed.');
         }

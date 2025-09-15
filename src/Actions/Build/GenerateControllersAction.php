@@ -221,12 +221,6 @@ class GenerateControllersAction implements DescribableAction
         // Relations for eager loading
         $relationNamesCode = StubHelper::getRelationNamesString($entity, RelationType::BELONGS_TO);
 
-        // Fields visible in index listing
-        $tableFieldsNamesStr = StubHelper::getTableFieldsString($entity);
-
-        // Searchable fields
-        $searchableFieldsCode = StubHelper::getSearchableFieldsString($entity);
-
         /** @var EntityRuleSet $validationRules */
         $validationRules = $this->validationHelper->make($entity);
         // Prepare rules
@@ -250,8 +244,6 @@ class GenerateControllersAction implements DescribableAction
             '{{folderName}}' => $entity->getFolderName(),
             '{{routeName}}' => $entity->getRouteName(),
             '{{relationNamesCode}}' => $relationNamesCode,
-            '{{tableFieldsNamesStr}}' => $tableFieldsNamesStr,
-            '{{searchableFieldsCode}}' => $searchableFieldsCode,
             '{{rulesArrayStrCreate}}' => $rulesArrayStrCreate,
             '{{rulesArrayStrUpdate}}' => $rulesArrayStrUpdate,
             '{{resourceClass}}' => $resourceClass,
@@ -413,11 +405,6 @@ class GenerateControllersAction implements DescribableAction
         $resourceClass = $modelClass.'Resource';               // 'UserResource'
         $resourceClassFull = 'App\Http\Resources\\'.$resourceClass; // 'App\Http\Resources\UserResource'
 
-        // Use StubHelper for strings
-        $searchableFieldsCode = StubHelper::getSearchableFieldsString($entity);
-        $tableFieldsNamesStr = StubHelper::getTableFieldsString($entity);
-        $selectableFieldsCode = '"'.implode(',', $entity->getTableFieldsNames(skipRelations: true)).'"';
-
         // Relations for eager loading
         $relationNamesCode = StubHelper::getRelationNamesString($entity, RelationType::BELONGS_TO);
 
@@ -438,9 +425,6 @@ class GenerateControllersAction implements DescribableAction
             '{{modelClassCamel}}' => $modelClassCamel,
             '{{controllerClass}}' => $controllerClass,
             '{{relationNamesCode}}' => $relationNamesCode,
-            '{{searchableFieldsCode}}' => $searchableFieldsCode,
-            '{{selectableFieldsCode}}' => $selectableFieldsCode,
-            '{{tableFieldsNamesStr}}' => $tableFieldsNamesStr,
             '{{rulesArrayStrCreate}}' => $rulesArrayStrCreate,
             '{{rulesArrayStrUpdate}}' => $rulesArrayStrUpdate,
             '{{resourceClass}}' => $resourceClass,

@@ -8,6 +8,7 @@ use {{modelClassFull}};
 use {{resourceClassFull}};
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Glugox\ModelMeta\Requests\MetaRequest;
 
 /**
  * {{classDescription}}
@@ -24,21 +25,21 @@ class {{controllerClass}} extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(MetaRequest $request)
     {
         $query = {{modelClass}}::query();
 
         // Apply search (if needed)
-        $searchableFields = {{searchableFieldsCode}};
+        $searchableFields = $request->meta()->searchableFields();
         $relations = {{relationNamesCode}};
-        $selectFields = {{tableFieldsNamesStr}};
+        $tableFields = $request->meta()->tableFields();
 
          // Apply table query (search, sort, filters)
          $items = $this->tableQueryService->applyAll(
             $query,
             $searchableFields,
             $relations,
-            $selectFields,
+            $tableFields,
             $request->get('{{searchQueryString}}', ''),
             $request->get('sortKey', 'id'),
             $request->get('sortDir', 'asc')
@@ -50,7 +51,7 @@ class {{controllerClass}} extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(MetaRequest $request)
     {
         $validated = $request->validate({{rulesArrayStrCreate}});
 
@@ -62,7 +63,7 @@ class {{controllerClass}} extends Controller
     /**
      * Display the specified resource.
      */
-    public function show({{modelClass}} ${{modelClassCamel}})
+    public function show(MetaRequest $request, {{modelClass}} ${{modelClassCamel}})
     {
         return new {{resourceClass}}(${{modelClassCamel}});
     }
@@ -70,7 +71,7 @@ class {{controllerClass}} extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, {{modelClass}} ${{modelClassCamel}})
+    public function update(MetaRequest $request, {{modelClass}} ${{modelClassCamel}})
     {
         $validated = $request->validate({{rulesArrayStrUpdate}});
 

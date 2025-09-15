@@ -62,6 +62,8 @@ class GenerateModelsAction implements DescribableAction
         $className = Str::studly(Str::singular($entityName));
 
         // Load model presets
+
+        /** @var array<string, array<string,mixed>> $modelPresets */
         $modelPresets = config('magic.model_presets', []);
 
         $extends = '\Illuminate\Database\Eloquent\Model';

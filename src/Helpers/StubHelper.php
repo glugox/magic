@@ -56,6 +56,8 @@ class StubHelper
      * Get searchable fields string for stub
      *
      * Example output: "['name','email']"
+     *
+     * @deprecated Use ModelMeta::searchableFields() instead
      */
     public static function getSearchableFieldsString(Entity $entity): string
     {
@@ -69,6 +71,8 @@ class StubHelper
      * Get table fields string (for index listing) for stub
      *
      * Example output: "['id','name','email','created_at']"
+     *
+     * @deprecated Use ModelMeta::tableFields() instead
      */
     public static function getTableFieldsString(Entity $entity): string
     {

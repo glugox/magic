@@ -374,7 +374,6 @@ PHP;
             if (is_array($preset)) {
                 foreach ($preset as $fieldName => $presetValue) {
                     $entity->addFieldIfNotExists($presetValue);
-                    Log::channel('magic')->info("  --- Adding field: {$fieldName}");
                 }
             }
         }

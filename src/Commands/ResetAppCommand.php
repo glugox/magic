@@ -90,6 +90,9 @@ class ResetAppCommand extends MagicBaseCommand
         // This could delete create user migration, so make sure it is run before resetLaravelApp
         $this->resetMigrations();
 
+        // Delete model meta files
+        $this->resetModelMeta();
+
         // Delete seeders, factories and controllers
         $this->resetModelsSeedersFactoriesControllers();
 
@@ -171,6 +174,18 @@ class ResetAppCommand extends MagicBaseCommand
         foreach ($migrationFiles as $file) {
             $this->deleteFile($file, 'Migration');
         }
+    }
+
+    /**
+     * Reset model meta files by deleting them.
+     */
+    private function resetModelMeta(): void
+    {
+        $this->logInfo('Resetting Model Meta files...');
+        foreach ($this->config->entities as $entity) {
+            $this->deleteFile(app_path("Meta/Models/{$entity->getName()}Meta.php"), 'Model Meta', $entity->getName());
+        }
+        $this->logInfo('Model Meta files reset successfully!');
     }
 
     /**

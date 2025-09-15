@@ -32,7 +32,7 @@ it('runs process for missing shadcn components without executing real command', 
     $action->shouldReceive('isPackageInstalled')->andReturn(true);
 
     // Mock runProcess to prevent actual command execution
-    $action->shouldReceive('runProcess')->once()->withArgs(function ($command, $message): true {
+    $action->shouldReceive('runProcess')->times(11)->withArgs(function ($command, $message): true {
         expect($command[0])->toBe('/usr/local/bin/npx');
         expect($command[1])->toContain('shadcn-vue@latest');
 
@@ -49,7 +49,7 @@ it('skips already installed npm packages', function (): void {
     $action->shouldReceive('isPackageInstalled')->andReturn(true);
 
     // runProcess should be called once just to install shadcn components, not npm packages
-    $action->shouldReceive('runProcess')->once();
+    $action->shouldReceive('runProcess')->times(11);
 
     ($action)($this->context);
 });

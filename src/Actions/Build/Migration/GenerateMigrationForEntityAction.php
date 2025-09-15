@@ -41,6 +41,7 @@ class GenerateMigrationForEntityAction implements DescribableAction
         $tableName = $entity->getTableName();
         $isUpdate = Schema::hasTable($tableName);
 
+        /** @var string[] $migrationFiles */
         $migrationFiles = File::glob(database_path("migrations/*_create_{$tableName}_table.php"));
         if (! $isUpdate && ! empty($migrationFiles)) {
             foreach ($migrationFiles as $file) {
@@ -178,7 +179,7 @@ PHP;
         $line .= "\$table->{$migrationType}(".implode(', ', $args).')';
 
         // Nullable
-        if ($field->nullable) {
+        if ($field->nullable || ! $field->required) {
             $line .= '->nullable()';
         }
 

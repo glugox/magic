@@ -294,6 +294,7 @@ class Config
     private function processEntities()
     {
         foreach ($this->entities as $entity) {
+            $entity->ensureMainField();
             $entity->processRelations($this);
         }
     }

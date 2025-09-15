@@ -40,46 +40,52 @@ class GenerateAppAction implements DescribableAction
         // Step 2: Publish Files
         $buildContext = app(PublishFilesAction::class)($buildContext);
 
-        // Step 2a: Enable Attachable (copy traits, resources, stubs conditionally)
-        $buildContext = app(EnableAttachableAction::class)($buildContext);
-
-        // Step 2b: Generate Enums
-        $buildContext = app(GenerateEnumsAction::class)($buildContext);
-
-        // Step 3: Generate Migrations
-        $buildContext = app(GenerateMigrationsAction::class)($buildContext);
-
-        // Step 4: Generate Models
-        $buildContext = app(GenerateModelsAction::class)($buildContext);
-
-        // Step 5: Generate Seeders
-        $buildContext = app(GenerateSeedersAction::class)($buildContext);
-
-        // Step 6: Generate API Resources
-        $buildContext = app(GenerateApiResourcesAction::class)($buildContext);
-
-        // Step 7: Generate Controllers
-        $buildContext = app(GenerateControllersAction::class)($buildContext);
-
-        // Step 8: Run Install API Command
-        $buildContext = app(InstallApiCommand::class)($buildContext);
-
-        // Step 9: Install Node Packages
+        // Step 3: Install Node Packages
         $buildContext = app(InstallNodePackagesAction::class)($buildContext);
 
-        // Step 10: Generate Vue Pages
+        // Step 4: Install Composer Packages
+        $buildContext = app(InstallComposerPackagesAction::class)($buildContext);
+
+        // Step 5: Enable Attachable (copy traits, resources, stubs conditionally)
+        $buildContext = app(EnableAttachableAction::class)($buildContext);
+
+        // Step 6: Generate Enums
+        $buildContext = app(GenerateEnumsAction::class)($buildContext);
+
+        // Step 7: Run Install API Command
+        $buildContext = app(InstallApiCommand::class)($buildContext);
+
+        // Step 8: Generate Migrations
+        $buildContext = app(GenerateMigrationsAction::class)($buildContext);
+
+        // Step 9: Generate Models
+        $buildContext = app(GenerateModelsAction::class)($buildContext);
+
+        // Step 9.1: Generate ModelMeta classes
+        $buildContext = app(GenerateModelMetaAction::class)($buildContext);
+
+        // Step 10: Generate Seeders
+        $buildContext = app(GenerateSeedersAction::class)($buildContext);
+
+        // Step 11: Generate API Resources
+        $buildContext = app(GenerateApiResourcesAction::class)($buildContext);
+
+        // Step 12: Generate Controllers
+        $buildContext = app(GenerateControllersAction::class)($buildContext);
+
+        // Step 13: Generate Vue Pages
         $buildContext = app(GenerateVuePagesAction::class)($buildContext);
 
-        // Step 11: Update Vue Pages
+        // Step 14: Update Vue Pages
         $buildContext = app(UpdateVuePagesAction::class)($buildContext);
 
-        // Step 12: Update Database
+        // Step 15: Update Database
         $buildContext = app(UpdateDbAction::class)($buildContext);
 
-        // Step 13: Write Manifest
+        // Step 16: Write Manifest
         $buildContext = app(GenerateManifestAction::class)($buildContext);
 
-        // Step 14: Setup Development Environment (optional)
+        // Step 17: Setup Development Environment (optional)
         // $buildContext = app(SetupDevelopmentEnvAction::class)($buildContext);
 
         // Return the final BuildContext

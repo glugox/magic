@@ -7,6 +7,7 @@ use App\Services\TableQueryService;
 use App\Http\Resources\{{modelClass}}Resource;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Glugox\ModelMeta\Requests\MetaRequest;
 
 /**
  * {{classDescription}}
@@ -23,28 +24,25 @@ class {{controllerClass}} extends Controller
     /**
      * Show the {{modelClass}} index page.
      */
-    public function index()
+    public function index(MetaRequest $request)
     {
-        $request = request();
-
         $query = {{modelClass}}::query();
-        $searchableFields = {{searchableFieldsCode}};
         $relations = {{relationNamesCode}};
-        $selectFields = {{tableFieldsNamesStr}};
+        $tableFields = $request->meta()->tableFields();
 
          // Apply table query (search, sort, filters)
          $items = $this->tableQueryService->applyAll(
              $query,
-             $searchableFields,
+             $request->meta()->searchableFields(),
              $relations,
-             $selectFields,
+             $tableFields,
              $request->get('{{searchQueryString}}', ''),
              $request->get('sortKey', 'id'),
              $request->get('sortDir', 'asc')
          )->paginate();
 
         return Inertia::render('{{folderName}}/Index', [
-            'filters' => $this->tableQueryService->prepareFilters($request->all(), $selectFields),
+            'filters' => $this->tableQueryService->prepareFilters($request->all(), $tableFields),
             'data' => {{resourceClass}}::collection($items)->response()->getData(),
         ]);
     }
@@ -60,9 +58,9 @@ class {{controllerClass}} extends Controller
     /**
      * Store a newly created {{modelClass}} in database.
      */
-    public function store(Request $request)
+    public function store(MetaRequest $request)
     {
-        $data = $request->validate({{rulesArrayStrCreate}});
+        $data = $request->validated();
         $item = {{modelClass}}::create($data);
 
         return redirect()->route(strtolower('{{routeName}}') . '.index')
@@ -72,7 +70,7 @@ class {{controllerClass}} extends Controller
     /**
      * Display the specified {{modelClass}}.
      */
-    public function show({{modelClass}} ${{modelClassCamel}})
+    public function show(MetaRequest $request, {{modelClass}} ${{modelClassCamel}})
     {
         $relations = {{relationNamesCode}};
         ${{modelClassCamel}}->load($relations);
@@ -85,7 +83,7 @@ class {{controllerClass}} extends Controller
     /**
      * Show the form for editing the specified {{modelClass}}.
      */
-    public function edit({{modelClass}} ${{modelClassCamel}})
+    public function edit(MetaRequest $request, {{modelClass}} ${{modelClassCamel}})
     {
         $relations = {{relationNamesCode}};
         ${{modelClassCamel}}->load($relations);
@@ -98,9 +96,9 @@ class {{controllerClass}} extends Controller
     /**
      * Update the specified {{modelClass}} in database.
      */
-    public function update(Request $request, {{modelClass}} ${{modelClassCamel}})
+    public function update(MetaRequest $request, {{modelClass}} ${{modelClassCamel}})
     {
-        $data = $request->validate({{rulesArrayStrUpdate}});
+        $data = $request->validated();
         ${{modelClassCamel}}->update($data);
 
         return redirect()->route(strtolower('{{routeName}}') . '.index')

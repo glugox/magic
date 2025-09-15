@@ -396,8 +396,8 @@ class Entity
      */
     public function hasNameField(): bool
     {
-        foreach ($this->fields as $field) {
-            if ($field->isName()) {
+        foreach (($this->fields ?? []) as $field) {
+            if ($field->isMain()) {
                 return true;
             }
         }
@@ -413,19 +413,19 @@ class Entity
     public function getRelations(?RelationType $type = null, ?array $excludeTypes = null): array
     {
         if (! is_null($type)) {
-            return array_filter($this->relations, function (Relation $relation) use ($type) {
+            return array_filter(($this->relations ?? []), function (Relation $relation) use ($type) {
                 return $relation->getType() === $type;
             });
         }
 
         // Exclude types if provided
         if (! is_null($excludeTypes)) {
-            return array_filter($this->relations, function (Relation $relation) use ($excludeTypes) {
+            return array_filter(($this->relations ?? []), function (Relation $relation) use ($excludeTypes) {
                 return ! in_array($relation->getType(), $excludeTypes);
             });
         }
 
-        return $this->relations;
+        return $this->relations ?? [];
     }
 
     /**
@@ -437,7 +437,7 @@ class Entity
     {
         $visible = [];
 
-        foreach ($this->fields as $field) {
+        foreach (($this->fields ?? []) as $field) {
             if (! in_array($field->name, ['password', 'remember_token'])) {
                 $visible[] = $field;
             }
@@ -465,7 +465,7 @@ class Entity
     public function getFormFields(): array
     {
         $visible = [];
-        foreach ($this->fields as $field) {
+        foreach (($this->fields ?? []) as $field) {
             // Exclude showInForm false fields
             if ($field->showInForm === false) {
                 continue;
@@ -483,12 +483,14 @@ class Entity
     /**
      * Get name fields as names strings.
      * Example: ['first_name', 'last_name']
+     *
+     * @return string[]
      */
     public function getNameFieldsNames(): array
     {
         $nameFields = [];
-        foreach ($this->getNameFields() as $field) {
-            $nameFields[] = $field->name;
+        foreach ($this->getNameFields() as $fieldName) {
+            $nameFields[] = $fieldName->name;
         }
 
         return $nameFields;
@@ -496,12 +498,14 @@ class Entity
 
     /**
      * Get all name fields of the entity.
+     *
+     * @return Field[]
      */
     public function getNameFields(): array
     {
         $nameFields = [];
-        foreach ($this->fields as $field) {
-            if ($field->isName()) {
+        foreach (($this->fields ?? []) as $field) {
+            if ($field->isMain()) {
                 $nameFields[] = $field;
             }
         }
@@ -514,8 +518,8 @@ class Entity
      */
     public function getPrimaryNameField(): ?Field
     {
-        foreach ($this->fields as $field) {
-            if ($field->isName()) {
+        foreach (($this->fields ?? []) as $field) {
+            if ($field->isMain()) {
                 return $field;
             }
         }
@@ -754,7 +758,7 @@ class Entity
             return 0;
         }
 
-        if ($field->isName()) {
+        if ($field->isMain()) {
             return 1;
         }
 
@@ -764,5 +768,31 @@ class Entity
 
         // everything else after
         return 3;
+    }
+
+    /**
+     * Ensure there is at least one main field defined.
+     * If not, set the first string field as main.
+     *
+     * @return void
+     */
+    public function ensureMainField(): void
+    {
+        if ($this->hasNameField()) {
+            return;
+        }
+
+        // Try to find first string field
+        foreach (($this->fields ?? []) as $field) {
+            if ( in_array($field->type, [FieldType::STRING, FieldType::TEXT, FieldType::CHAR, FieldType::EMAIL], true)) {
+                $field->asMain();
+                return;
+            }
+        }
+
+        // If no string field, set the first field as main
+        if (! empty($this->fields)) {
+            $this->fields[0]->asMain();
+        }
     }
 }

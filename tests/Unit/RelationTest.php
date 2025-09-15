@@ -10,7 +10,7 @@ beforeEach(function () {
     $fieldName = Field::fromConfig([
         'name' => 'name',
         'type' => 'string',
-        'isName' => true,
+        'main' => true,
     ]);
 
     $this->imageEntity = Entity::fromConfig([
