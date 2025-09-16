@@ -10,6 +10,7 @@ use App\Http\Resources\{{parentModelResourceClass}};
 use App\Http\Resources\{{relatedModelResourceClass}};
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Glugox\ModelMeta\Requests\MetaRequest;
 
 /**
  * {{classDescription}}
@@ -23,25 +24,23 @@ class {{controllerClass}} extends Controller
         protected TableQueryService $tableQueryService
     ){}
 
-    public function index({{parentModelClass}} ${{parentModelClassLower}})
+    public function index(MetaRequest $request, {{parentModelClass}} ${{parentModelClassLower}})
     {
-        $request = request();
-
         // Load parent relation
         ${{parentModelClassLower}}->load('{{relationName}}');
 
         // Base query for related model
         $query = ${{parentModelClassLower}}->{{relationName}}()->getQuery();
-        $searchableFields = {{searchableFieldsCode}};
+        $searchableFields = $request->meta()->searchableFields();
         $relations = {{relationNamesCode}};
-        $selectFields = {{tableFieldsNamesStr}};
+        $tableFields = $request->meta()->tableFields();
 
         // Apply table query (search, sort, filters)
         $relatedItems = $this->tableQueryService->applyAll(
             $query,
             $searchableFields,
             $relations,
-            $selectFields,
+            $tableFields,
             $request->get('{{searchQueryString}}', ''),
             $request->get('sortKey', 'id'),
             $request->get('sortDir', 'asc')
@@ -50,7 +49,7 @@ class {{controllerClass}} extends Controller
         return Inertia::render('{{parentModelFolderName}}/{{relationName}}/Index', [
             'item' => new {{parentModelResourceClass}}(${{parentModelClassLower}}),
             '{{relationName}}' => {{relatedModelResourceClass}}::collection($relatedItems)->response()->getData(),
-            'filters' => $this->tableQueryService->prepareFilters($request->all(), $selectFields),
+            'filters' => $this->tableQueryService->prepareFilters($request->all(), $tableFields),
         ]);
     }
 }

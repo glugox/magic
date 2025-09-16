@@ -75,6 +75,7 @@ class GenerateModelMetaAction implements DescribableAction
         $replacements = [
             'namespace' => 'App\\Meta\\Models',
             'className' => $entity->getName().'Meta',
+            'tableName' => $entity->getTableName(),
             'fields' => implode("\n            ", $fieldLines),
             'importedFields' => implode(",\n    ", array_keys($this->uses)),
         ];

@@ -10,6 +10,7 @@ use App\Http\Resources\{{parentModelResourceClass}};
 use App\Http\Resources\{{relatedModelResourceClass}};
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Glugox\ModelMeta\Requests\MetaRequest;
 
 /**
  * {{classDescription}}
@@ -23,20 +24,20 @@ class {{controllerClass}} extends Controller
         protected TableQueryService $tableQueryService
     ){}
 
-    public function index(Request $request, {{parentModelClass}} ${{parentModelClassLower}})
+    public function index(MetaRequest $request, {{parentModelClass}} ${{parentModelClassLower}})
     {
         // Base query for related model
         $query = ${{parentModelClassLower}}->{{relationName}}()->getQuery();
-        $searchableFields = {{searchableFieldsCode}};
+        $searchableFields = $request->meta()->searchableFields();
         $relations = {{relationNamesCode}};
-        $selectFields = {{tableFieldsNamesStr}};
+        $tableFields = $request->meta()->tableFields();
 
         // Apply table query (search, sort, filters)
         $relatedItems = $this->tableQueryService->applyAll(
             $query,
             $searchableFields,
             $relations,
-            $selectFields,
+            $tableFields,
             $request->get('{{searchQueryString}}', ''),
             $request->get('sortKey', 'id'),
             $request->get('sortDir', 'asc')
@@ -45,27 +46,27 @@ class {{controllerClass}} extends Controller
         return Inertia::render('{{parentModelFolderName}}/{{relationName}}/Index', [
             'item' => new {{parentModelResourceClass}}(${{parentModelClassLower}}),
             '{{relationName}}' => {{relatedModelResourceClass}}::collection($relatedItems)->response()->getData(),
-            'filters' => $this->tableQueryService->prepareFilters($request->all(), $selectFields),
+            'filters' => $this->tableQueryService->prepareFilters($request->all(), $tableFields),
         ]);
     }
 
     /**
      * Show the form for creating a new {{modelClass}}.
      */
-     public function create(Request $request, {{parentModelClass}} ${{parentModelClassLower}})
+     public function create(MetaRequest $request, {{parentModelClass}} ${{parentModelClassLower}})
      {
         // Base query for related model
         $query = ${{parentModelClassLower}}->{{relationName}}()->getQuery();
-        $searchableFields = {{searchableFieldsCode}};
+        $searchableFields = $request->meta()->searchableFields();
         $relations = {{relationNamesCode}};
-        $selectFields = {{tableFieldsNamesStr}};
+        $tableFields = $request->meta()->tableFields();
 
         // Apply table query (search, sort, filters)
         $relatedItems = $this->tableQueryService->applyAll(
             $query,
             $searchableFields,
             $relations,
-            $selectFields,
+            $tableFields,
             $request->get('{{searchQueryString}}', ''),
             $request->get('sortKey', 'id'),
             $request->get('sortDir', 'asc')
@@ -74,7 +75,7 @@ class {{controllerClass}} extends Controller
         return Inertia::render('{{parentModelFolderName}}/{{relationName}}/Index', [
             'item' => new {{parentModelResourceClass}}(${{parentModelClassLower}}),
             '{{relationName}}' => {{relatedModelResourceClass}}::collection($relatedItems)->response()->getData(),
-            'filters' => $this->tableQueryService->prepareFilters($request->all(), $selectFields),
+            'filters' => $this->tableQueryService->prepareFilters($request->all(), $tableFields),
             'showCreateForm' => true
         ]);
      }
@@ -82,9 +83,9 @@ class {{controllerClass}} extends Controller
      /**
       * Store a newly created {{modelClass}} in storage.
       */
-     public function store(Request $request, {{parentModelClass}} ${{parentModelClassLower}})
+     public function store(MetaRequest $request, {{parentModelClass}} ${{parentModelClassLower}})
      {
-        $data = $request->validate({{rulesArrayStrCreate}});
+        $data = $request->validated();
 
         // Create the related model instance for has-many relationship
         ${{parentModelClassLower}}->{{relationName}}()->create($data);

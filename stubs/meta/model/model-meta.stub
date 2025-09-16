@@ -11,6 +11,14 @@ use Glugox\ModelMeta\Fields\{
 class {{className}} extends ModelMeta
 {
     /**
+     * Returns the database table name for the Agent model.
+     */
+     public function tableName(): string
+     {
+        return '{{tableName}}';
+     }
+
+    /**
      * Define fields for the {{className}} resource.
      *
      * @return array<int, Field>

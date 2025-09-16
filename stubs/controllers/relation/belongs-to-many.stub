@@ -10,6 +10,7 @@ use App\Http\Resources\{{relatedModelResourceClass}};
 use App\Http\Resources\{{parentModelResourceClass}};
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Glugox\ModelMeta\Requests\MetaRequest;
 
 /**
  * {{classDescription}}
@@ -26,24 +27,22 @@ class {{controllerClass}} extends Controller
     /**
      * Show the list of {{relationName}} for the given {{parentModelClassLower}}.
      */
-    public function index({{parentModelClass}} ${{parentModelClassLower}})
+    public function index(MetaRequest $request, {{parentModelClass}} ${{parentModelClassLower}})
     {
-        $request = request();
-
         ${{parentModelClassLower}}->load('{{relationName}}');
         $selectedIds = ${{parentModelClassLower}}->{{relationName}}->pluck('id')->toArray();
 
         $query = {{relatedModelClass}}::query();
-        $searchableFields = {{searchableFieldsCode}};
+        $searchableFields = $request->meta()->searchableFields();
         $relations = {{relationNamesCode}};
-        $selectFields = {{tableFieldsNamesStr}};
+        $tableFields = $request->meta()->tableFields();
 
         // Apply table query (search, sort, filters)
         $relatedItems = $this->tableQueryService->applyAll(
             $query,
             $searchableFields,
             $relations,
-            $selectFields,
+            $tableFields,
             $request->get('{{searchQueryString}}', ''),
             $request->get('sortKey', 'id'),
             $request->get('sortDir', 'asc')
@@ -53,14 +52,14 @@ class {{controllerClass}} extends Controller
             'item' => new {{parentModelResourceClass}}(${{parentModelClassLower}}),
             '{{relationName}}' => {{relatedModelResourceClass}}::collection($relatedItems)->response()->getData(),
             'item_{{relationName}}_ids' => $selectedIds,
-            'filters' => $this->tableQueryService->prepareFilters($request->all(), $selectFields),
+            'filters' => $this->tableQueryService->prepareFilters($request->all(), $tableFields),
         ]);
     }
 
-    /**
+        /**
          * Update the selection of {{relationName}} for the {{parentModelClassLower}}.
          */
-        public function updateSelection(Request $request, {{parentModelClass}} ${{parentModelClassLower}})
+        public function updateSelection(MetaRequest $request, {{parentModelClass}} ${{parentModelClassLower}})
         {
             $validated = $request->validate([
                 'added'   => 'array',

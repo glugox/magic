@@ -136,9 +136,6 @@ class GenerateControllersAction implements DescribableAction
         $relatedModelResourceClass = Str::studly($relatedModelClass).'Resource';
         $parentModelResourceClass = Str::studly($parentModelClass).'Resource';
 
-        // Fields visible in index listing
-        $tableFieldsNamesStr = StubHelper::getTableFieldsString($relatedEntity);
-
         // Relations for eager loading
         $relationNamesCode = StubHelper::getRelationNamesString($relatedEntity, RelationType::BELONGS_TO);
 
@@ -146,19 +143,6 @@ class GenerateControllersAction implements DescribableAction
         $selectedIdsCode = in_array($relation->getType(), [RelationType::BELONGS_TO_MANY, RelationType::MORPH_MANY])
             ? '$'.$parentModelClassLower.'->'.$relationName.'->pluck(\'id\')'
             : 'null';
-
-        // Use helper to build select fields
-        $selectFieldsStr = StubHelper::getSelectFieldsString($entity);
-        $selectRelatedFieldsStr = StubHelper::getSelectRelatedFieldsString($relatedEntity);
-
-        // Searchable fields for related entity
-        $searchableFieldsCode = StubHelper::getSearchableFieldsString($relatedEntity);
-
-        /** @var EntityRuleSet $validationRules */
-        $validationRules = $this->validationHelper->make($relatedEntity);
-        // Prepare rules
-        $rulesArrayStrCreate = exportPhpValue($validationRules->getCreateRules(), 2);
-        $rulesArrayStrUpdate = exportPhpValue($validationRules->getUpdateRules(), 2);
 
         // Convert relation type enum to kebab-case for stub file
         $relationType = $relation->type->value ?? null;
@@ -185,19 +169,13 @@ class GenerateControllersAction implements DescribableAction
             '{{relationName}}' => $relationName,
             '{{parentModelFolderName}}' => $parentModelFolderName,
             '{{relationNamesCode}}' => $relationNamesCode,
-            '{{selectFieldsStr}}' => $selectFieldsStr,
-            '{{tableFieldsNamesStr}}' => $tableFieldsNamesStr,
-            '{{selectRelatedFieldsStr}}' => $selectRelatedFieldsStr,
             '{{relatedModelClass}}' => $relatedModelClass,
             '{{relatedModelClassLower}}' => $relatedModelClassLower,
             '{{relatedTableName}}' => $relatedTableName,
             '{{foreignKey}}' => $relation->getForeignKey(),
             '{{relatedModelResourceClass}}' => $relatedModelResourceClass,
             '{{parentModelResourceClass}}' => $parentModelResourceClass,
-            '{{rulesArrayStrCreate}}' => $rulesArrayStrCreate,
-            '{{rulesArrayStrUpdate}}' => $rulesArrayStrUpdate,
             '{{selectedIdsCode}}' => $selectedIdsCode,
-            '{{searchableFieldsCode}}' => $searchableFieldsCode,
             '{{searchQueryString}}' => $this->context->getConfig()->getConfigValue('naming.search_query_string', 'search')
         ];
 
@@ -342,7 +320,7 @@ class GenerateControllersAction implements DescribableAction
                 // For many-to-many relations we need updateSelection method
                 $updateSelectionRoute = '';
                 if (in_array($relation->getType(), [RelationType::BELONGS_TO_MANY, RelationType::MORPH_MANY])) {
-                    $updateSelectionRoute = "Route::post('{{entityRouteName}}/{{{entitySingularLower}}}/{{relationRoute}}/updateSelection', [{{controllerClass}}::class, 'updateSelection'])->name('{{entityRouteName}}-updateSelection-{{relationName}}');";
+                    $updateSelectionRoute = "Route::post('{{entityRouteName}}/{{{entitySingularLower}}}/{{relationRoute}}/updateSelection', [{{controllerClass}}::class, 'updateSelection'])->name('{{entityRouteName}}.{{relationName}}.update-selection');";
                 }
 
                 $replacements = [
