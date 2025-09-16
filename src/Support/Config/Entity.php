@@ -501,6 +501,11 @@ class Entity
         }
         // Relations are not needed here, as belongsTo relations are represented by foreign key fields
 
+        // Reorder: id first, name second, BELONGS_TO fields next
+        usort($visible, function ($a, $b) {
+            return $this->fieldPriority($a) <=> $this->fieldPriority($b);
+        });
+
         return $visible;
     }
 
@@ -920,5 +925,22 @@ class Entity
     {
         // Ensure there is at least one main field defined
         $this->ensureMainField();
+
+        // Set default values for fields if needed
+        // e.g., the main field should be searchable and sortable
+        $this->setDefaults();
+    }
+
+    // Set default values for fields if needed
+    // e.g., the main field should be searchable and sortable
+    private function setDefaults(): void
+    {
+        foreach (($this->fields ?? []) as $field) {
+            if ($field->isMain()) {
+                $field->searchable = true;
+                $field->sortable = true;
+                $field->required = true;
+            }
+        }
     }
 }

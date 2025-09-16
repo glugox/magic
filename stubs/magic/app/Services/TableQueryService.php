@@ -35,13 +35,13 @@ class TableQueryService
      * $items = $query->paginate(12);
      * ```
      *
-     * @param  Builder  $query  The Eloquent query builder instance.
-     * @param  array  $searchableFields  Fields to search in.
-     * @param  string[]  $relations  Relations to eager load.
-     * @param  array  $selectFields  Fields to select in the query.
-     * @param  string|null  $searchString  The search string from request.
-     * @param  string  $defaultSortField  Default field to sort by if none specified in request.
-     * @param  string  $defaultSortDir  Default sort direction ('asc' or 'desc').
+     * @param Builder $query The Eloquent query builder instance.
+     * @param array $searchableFields Fields to search in.
+     * @param string[] $relations Relations to eager load.
+     * @param array $selectFields Fields to select in the query.
+     * @param string|null $searchString The search string from request.
+     * @param string|null $defaultSortField Default field to sort by if none specified in request.
+     * @param string|null $defaultSortDir Default sort direction ('asc' or 'desc').
      * @return Builder The modified query builder instance.
      */
     public function applyAll(
@@ -50,8 +50,8 @@ class TableQueryService
         ?array $relations = [],
         array $selectFields = [],
         ?string $searchString = '',
-        string $defaultSortField = 'id',
-        string $defaultSortDir = 'desc',
+        ?string $defaultSortField = null,
+        ?string $defaultSortDir = null,
     ): Builder {
 
         // Eager load relations
@@ -94,13 +94,16 @@ class TableQueryService
      */
     public function applySort(
         Builder $query,
-        string $defaultField = 'id',
-        string $defaultDir = 'desc'
+        ?string $defaultField = null,
+        ?string $defaultDir = null
     ): Builder {
         $request = request();
 
+        $defaultField = $defaultField ?? 'id';
+        $defaultDir = $defaultDir ?? 'desc';
+
         if ($request->has('sortKey')) {
-            $query->orderBy($request->get('sortKey', 'id'), $request->get('sortDir', 'asc'));
+            $query->orderBy($defaultField, $defaultDir);
         }/* elseif (!empty($selectedIds)) {
             // Selected first
             $ids = implode(',', $selectedIds);

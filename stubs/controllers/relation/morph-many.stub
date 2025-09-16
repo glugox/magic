@@ -42,8 +42,8 @@ class {{controllerClass}} extends Controller
             $relations,
             $tableFields,
             $request->get('{{searchQueryString}}', ''),
-            $request->get('sortKey', 'id'),
-            $request->get('sortDir', 'asc')
+            $request->get('sortKey'),
+            $request->get('sortDir')
         )->paginate();
 
         return Inertia::render('{{parentModelFolderName}}/{{relationName}}/Index', [
