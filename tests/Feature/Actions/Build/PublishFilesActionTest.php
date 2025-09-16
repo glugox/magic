@@ -36,7 +36,7 @@ beforeEach(function (): void {
     $this->app->instance(GenerateFileAction::class, $this->generateFileMock);
 
     // Build context with a sample config
-    $this->context = getFixtureBuildContext();
+    $this->context = $this->createBuildContextFromFile('callcenter.json');
     $this->action = app(PublishFilesAction::class);
 });
 

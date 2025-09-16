@@ -283,7 +283,7 @@ PHP;
 
         // Generate pivot seeders for belongsToMany
         foreach ($entity->getRelations() as $relation) {
-            if ($relation->isBelongsToMany()) {
+            if ($relation->requiresPivotTable()) {
                 $this->generatePivotSeeder($entity, $relation);
             }
         }

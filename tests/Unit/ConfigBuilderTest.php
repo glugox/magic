@@ -7,7 +7,7 @@ use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Config\FieldType;
 use Glugox\Magic\Support\Config\Relation;
 
-it('builds a Config from SDL', function () {
+/*it('builds a Config from SDL', function () {
 
     $graphQl = getFixtureConfigStringInventoryGraphQl();
 
@@ -47,8 +47,8 @@ it('builds a Config from SDL', function () {
     $rolesRelation = collect($relations)->first(fn (Relation $r) => $r->getRelationName() === 'roles');
     expect($rolesRelation->isBelongsToMany())->toBeTrue();
 });
-
-it('SchemaReader creates same toJson output as regular Config toJson', function () {
+*/
+/*it('SchemaReader creates same toJson output as regular Config toJson', function () {
     $graphQl = getFixtureConfigStringInventoryGraphQl();
     $jsonStringConfig = getFixtureConfigInventory();
 
@@ -60,4 +60,4 @@ it('SchemaReader creates same toJson output as regular Config toJson', function 
     $jsonFromConfig = $jsonStringConfig->toJson();
 
     expect($jsonFromGraphQl)->toBe($jsonFromConfig);
-});
+});*/

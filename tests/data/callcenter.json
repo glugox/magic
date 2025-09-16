@@ -77,7 +77,6 @@
             "icon": "Users",
             "fields": [
                 { "name": "id", "type": "bigIncrements", "nullable": false },
-                { "name": "department_id", "type": "foreignId", "nullable": true },
                 { "name": "name", "type": "string", "nullable": false, "unique": true, "searchable": true },
                 { "name": "description", "type": "text", "nullable": true, "showInTable": false }
             ],

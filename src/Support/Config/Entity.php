@@ -49,23 +49,7 @@ class Entity
     {
         // Convert JSON string to array if needed
         if (is_string($data)) {
-            /** @var array{
-             *     name: string,
-             *     table?: string,
-             *     fields?: list<array{name: string, type: string}>,
-             *     relations?: array<string, array{
-             *         type: string,
-             *         model: class-string,
-             *         relatedEntityName?: string,
-             *         foreignKey?: string,
-             *         localKey?: string,
-             *         relatedKey?: string,
-             *         relationName?: string
-             *     }>,
-             *     settings?: array{ has_images?: bool, is_searchable?: bool },
-             *     icon?: string
-             * } $data
-             */
+            /** @var string $data */
             $data = json_decode($data, true);
 
             if (json_last_error() !== JSON_ERROR_NONE) {
@@ -74,15 +58,30 @@ class Entity
         }
 
         // Create the entity with empty relations initially
+        /** @var array{
+         *     name: string,
+         *     table?: string,
+         *     fields?: list<array{name: string, type: string}>,
+         *     relations?: array<string, array{
+         *         type: string,
+         *         model: class-string,
+         *         relatedEntityName?: string,
+         *         foreignKey?: string,
+         *         localKey?: string,
+         *         relatedKey?: string,
+         *         relationName?: string
+         *     }>,
+         *     settings?: array{ has_images?: bool, is_searchable?: bool },
+         *     icon?: string
+         * } $data
+         */
         $entity = new self($data['name'], [], [], $data['table'] ?? null);
 
-        $fields = [];
         foreach ($data['fields'] ?? [] as $fieldData) {
             $field = Field::fromConfig($fieldData, $entity);
             $entity->addField($field);
         }
 
-        $relations = [];
         foreach ($data['relations'] ?? [] as $relationData) {
             $relation = new Relation(
                 $relationData['type'],
@@ -106,6 +105,9 @@ class Entity
 
         // Set the entity's icon if provided
         $entity->icon = $data['icon'] ?? null;
+
+        // Process Entity after creation
+        $entity->afterCreated();
 
         return $entity;
     }
@@ -262,7 +264,26 @@ class Entity
     /**
      * Adds field only if it does not exist already.
      *
-     * @param  Field|array  $field  Field instance or array configuration
+     * @param  Field|array{
+     *      name: string,
+     *      type: string,
+     *      required?: bool,
+     *      nullable?: bool,
+     *      sometimes?: bool,
+     *      length?: int|null,
+     *      precision?: int|null,
+     *      scale?: int|null,
+     *      default?: mixed,
+     *      comment?: string|null,
+     *      sortable?: bool,
+     *      searchable?: bool,
+     *      main?: bool,
+     *      showInTable?: bool,
+     *      showInForm?: bool,
+     *      values?: string[],
+     *      min?: int,
+     *      max?: int
+     *  }  $field  Field instance or array configuration
      */
     public function addFieldIfNotExists(Field|array $field): void
     {
@@ -276,6 +297,27 @@ class Entity
 
     /**
      * Add a field to the entity.
+     *
+     * @param  Field|array{
+     *      name: string,
+     *      type: string,
+     *      required?: bool,
+     *      nullable?: bool,
+     *      sometimes?: bool,
+     *      length?: int|null,
+     *      precision?: int|null,
+     *      scale?: int|null,
+     *      default?: mixed,
+     *      comment?: string|null,
+     *      sortable?: bool,
+     *      searchable?: bool,
+     *      main?: bool,
+     *      showInTable?: bool,
+     *      showInForm?: bool,
+     *      values?: string[],
+     *      min?: int,
+     *      max?: int
+     *  } $field  Field instance or array configuration
      */
     public function addField(Field|array $field): void
     {
@@ -298,13 +340,7 @@ class Entity
      */
     public function hasField(string $name): bool
     {
-        foreach ($this->fields as $field) {
-            if ($field->name === $name) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(($this->fields ?? []), fn ($field) => $field->name === $name);
     }
 
     /**
@@ -312,7 +348,7 @@ class Entity
      */
     public function getFields(): array
     {
-        return $this->fields;
+        return $this->fields ?? [];
     }
 
     /**
@@ -320,17 +356,13 @@ class Entity
      */
     public function getFieldByName(string $name): ?Field
     {
-        foreach ($this->fields as $field) {
-            if ($field->name === $name) {
-                return $field;
-            }
-        }
-
-        return null;
+        return array_find(($this->fields ?? []), fn ($field) => $field->name === $name);
     }
 
     /**
      * Get names of fields that should be visible in tables/lists.
+     *
+     * @return string[]
      */
     public function getTableFieldsNames(?bool $skipRelations = false): array
     {
@@ -350,9 +382,7 @@ class Entity
     public function getTableFields(?bool $skipRelations = false): array
     {
         $visible = [];
-
-        foreach ($this->fields as $field) {
-
+        foreach (($this->fields ?? []) as $field) {
             // Exclude showInTable false fields
             if ($field->showInTable === false) {
                 continue;
@@ -396,13 +426,7 @@ class Entity
      */
     public function hasNameField(): bool
     {
-        foreach (($this->fields ?? []) as $field) {
-            if ($field->isMain()) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(($this->fields ?? []), fn ($field) => $field->isMain());
     }
 
     /**
@@ -518,13 +542,7 @@ class Entity
      */
     public function getPrimaryNameField(): ?Field
     {
-        foreach (($this->fields ?? []) as $field) {
-            if ($field->isMain()) {
-                return $field;
-            }
-        }
-
-        return null;
+        return array_find(($this->fields ?? []), fn ($field) => $field->isMain());
     }
 
     /**
@@ -542,10 +560,6 @@ class Entity
         return $fillable;
     }
 
-    /*
-     * Get setting vale for a specific key.
-     */
-
     /**
      * Get fillable fields.
      *
@@ -554,7 +568,7 @@ class Entity
     public function getFillableFields(): array
     {
         $fillable = [];
-        foreach ($this->fields as $field) {
+        foreach (($this->fields ?? []) as $field) {
             if (! in_array($field->name, ['id', 'created_at', 'updated_at'])) {
                 $fillable[] = $field;
             }
@@ -586,7 +600,7 @@ class Entity
     public function getHiddenFields(): array
     {
         $hidden = [];
-        foreach ($this->fields as $field) {
+        foreach (($this->fields ?? []) as $field) {
             if (in_array($field->name, ['password', 'remember_token'])) {
                 $hidden[] = $field;
             }
@@ -604,7 +618,7 @@ class Entity
     {
         $searchable = [];
         foreach ($this->getSearchableFields() as $field) {
-            $searchable[] = $field->getName();
+            $searchable[] = $field->name;
         }
 
         return $searchable;
@@ -612,11 +626,13 @@ class Entity
 
     /**
      * Get searchable fields.
+     *
+     * @return Field[]
      */
     public function getSearchableFields(): array
     {
         $searchable = [];
-        foreach ($this->fields as $field) {
+        foreach (($this->fields ?? []) as $field) {
             if ($field->searchable) {
                 $searchable[] = $field;
             }
@@ -625,9 +641,12 @@ class Entity
         return $searchable;
     }
 
+    /**
+     * Get a setting by key.
+     */
     public function getSetting(string $key): mixed
     {
-        return $this->settings->get($key);
+        return $this->settings?->get($key);
     }
 
     /**
@@ -636,7 +655,7 @@ class Entity
     public function getFieldsJson(): string
     {
         $fields = [];
-        foreach ($this->fields as $field) {
+        foreach (($this->fields ?? []) as $field) {
             $fields[] = [
                 'name' => $field->name,
                 'type' => $field->type->value,
@@ -649,27 +668,30 @@ class Entity
                 'comment' => $field->comment,
             ];
         }
+        $json = json_encode($fields, JSON_PRETTY_PRINT);
 
-        return json_encode($fields, JSON_PRETTY_PRINT);
+        return $json ?: '{}';
     }
 
     /**
      * Get the casts for the fields.
+     *
+     * @return array<string, string> e.g. ['is_active' => 'boolean', 'created_at' => 'datetime']
      */
     public function getCasts(): array
     {
-        $casts = [];
-
         // TODO: Implement logic to determine casts based on field types
-        return $casts;
+        return [];
     }
 
     /**
      * Get relations without morph relations.
+     *
+     * @return Relation[]
      */
     public function getRelationsWithoutMorph(): array
     {
-        return array_filter($this->relations, function (Relation $relation) {
+        return array_filter(($this->relations ?? []), function (Relation $relation) {
             return ! in_array($relation->getType(), [
                 RelationType::MORPH_TO,
                 RelationType::MORPH_MANY,
@@ -687,7 +709,7 @@ class Entity
      */
     public function getRelationsWithValidEntity(): array
     {
-        return array_filter($this->relations, function (Relation $relation) {
+        return array_filter(($this->relations ?? []), function (Relation $relation) {
             return ! empty($relation->getRelatedEntityName());
         });
     }
@@ -705,13 +727,7 @@ class Entity
      */
     public function getRelationByField(Field $field): ?Relation
     {
-        foreach ($this->relations as $relation) {
-            if ($relation->getForeignKey() === $field->name) {
-                return $relation;
-            }
-        }
-
-        return null;
+        return array_find(($this->relations ?? []), fn ($relation) => $relation->getForeignKey() === $field->name);
     }
 
     /**
@@ -728,25 +744,133 @@ class Entity
      */
     public function toJson(): string
     {
-        $data = [
+        $json = json_encode([
             'name' => $this->name,
             'table' => $this->getTableName(),
             'icon' => $this->icon,
-            'fields' => array_map(fn ($field) => json_decode($field->toJson(), true), $this->fields),
-            'relations' => array_map(fn ($relation) => json_decode($relation->toJson(), true), $this->relations),
-            'settings' => json_decode($this->settings->toJson()),
-        ];
+            'fields' => array_map(fn ($field) => json_decode($field->toJson(), true), ($this->fields ?? [])),
+            'relations' => array_map(fn ($relation) => json_decode($relation->toJson(), true), ($this->relations ?? [])),
+            'settings' => $this->settings ? json_decode($this->settings->toJson()) : null,
+        ], JSON_PRETTY_PRINT);
 
-        return json_encode($data, JSON_PRETTY_PRINT);
+        return $json ?: '{}';
     }
 
     /**
      * Whether the entity has images
      * defined in settings json config.
      */
-    public function hasImages()
+    public function hasImages(): bool
     {
-        return $this->settings->hasImages;
+        return $this->settings->hasImages ?? false;
+    }
+
+    /**
+     * Ensure there is at least one main field defined.
+     * If not, set the first string field as main.
+     */
+    public function ensureMainField(): void
+    {
+        if ($this->hasNameField()) {
+            return;
+        }
+
+        // Try to find first string field
+        foreach (($this->fields ?? []) as $field) {
+            if (in_array($field->type, [FieldType::STRING, FieldType::TEXT, FieldType::CHAR, FieldType::EMAIL], true)) {
+                $field->asMain();
+
+                return;
+            }
+        }
+
+        // If no string field, set the first field as main
+        if (! empty($this->fields)) {
+            $this->fields[0]->asMain();
+        }
+    }
+
+    /**
+     * Ensure the foreign key is set, if not, add it as a new foreignId field.
+     */
+    public function ensureForeignKey(string $foreignKey, self $relatedEntity): void
+    {
+        if (! $this->hasField($foreignKey)) {
+            $foreignKeyField = Field::fromConfig([
+                'name' => $foreignKey,
+                'type' => FieldType::FOREIGN_ID->value,
+                'nullable' => true,
+            ], $this);
+            $this->addField($foreignKeyField);
+        }
+
+        // We also need to ensure the relation field is set
+        $this->ensureRelationByForeignKey($foreignKey, $relatedEntity);
+    }
+
+    /**
+     * Ensure the foreign key along with its relation field is set.
+     */
+    public function ensureForeignKeyWithRelation(Relation $relation, self $relatedEntity): void
+    {
+        $foreignKey = $relation->getForeignKey() ?? $this->getForeignKey();
+        $this->ensureForeignKey($foreignKey, $relatedEntity);
+
+        // TODO: Implement logic to ensure the relation field is set if needed
+
+    }
+
+    /**
+     * Ensures relation by foreign key.
+     * If it does not exist, it will be created.
+     */
+    public function ensureRelationByForeignKey(string $foreignKey, self $relatedEntity): void
+    {
+        $field = $this->getFieldByName($foreignKey);
+        if ($field === null) {
+            throw new InvalidArgumentException("Field with name '{$foreignKey}' not found in entity '{$this->getName()}'");
+        }
+
+        $relation = $this->getRelationByField($field);
+        if (! $relation) {
+            $this->addRelationByForeignKey($foreignKey, $relatedEntity);
+        }
+    }
+
+    /**
+     * Ensures relation by foreign key.
+     * If it does not exist, it will be created.
+     */
+    public function ensureRelationByForeignKeyField(Field $field, self $relatedEntity): void
+    {
+        $this->ensureRelationByForeignKey($field->name, $relatedEntity);
+    }
+
+    /**
+     * Ensures relation by pivot table.
+     * If it does not exist, it will be created.
+     */
+    public function ensureRelationByPivotTable(string $pivotTable): void
+    {
+        // Check if a BELONGS_TO_MANY relation with this pivot table already exists
+        $existingRelation = array_find(($this->relations ?? []), function (Relation $relation) use ($pivotTable) {
+            return $relation->requiresPivotTable() && $relation->getPivotName() === $pivotTable;
+        });
+
+        if ($existingRelation) {
+            return; // Relation already exists
+        }
+
+        // Create a new BELONGS_TO_MANY relation
+        $relation = Relation::make(
+            RelationType::BELONGS_TO_MANY,
+            $this
+        )
+            ->localEntity($this)
+            ->pivotName($pivotTable)
+            ->build();
+
+        $this->addRelation($relation);
     }
 
     /**
@@ -771,28 +895,30 @@ class Entity
     }
 
     /**
-     * Ensure there is at least one main field defined.
-     * If not, set the first string field as main.
-     *
-     * @return void
+     * Add a relation based on the foreign key.
+     * This is a placeholder for actual implementation.
      */
-    public function ensureMainField(): void
+    private function addRelationByForeignKey(string $foreignKey, self $relatedEntity): void
     {
-        if ($this->hasNameField()) {
-            return;
-        }
+        // Placeholder implementation
+        $relation = Relation::make(
+            RelationType::BELONGS_TO,
+            $this
+        )
+            ->localEntity($this)
+            ->relatedEntity($relatedEntity)
+            ->foreignKey($foreignKey)
+            ->build();
 
-        // Try to find first string field
-        foreach (($this->fields ?? []) as $field) {
-            if ( in_array($field->type, [FieldType::STRING, FieldType::TEXT, FieldType::CHAR, FieldType::EMAIL], true)) {
-                $field->asMain();
-                return;
-            }
-        }
+        $this->addRelation($relation);
+    }
 
-        // If no string field, set the first field as main
-        if (! empty($this->fields)) {
-            $this->fields[0]->asMain();
-        }
+    /**
+     * Hook called after the entity is created from config.
+     */
+    private function afterCreated(): void
+    {
+        // Ensure there is at least one main field defined
+        $this->ensureMainField();
     }
 }

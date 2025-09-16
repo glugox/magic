@@ -283,6 +283,7 @@ class Field
     public function asMain(): self
     {
         $this->main = true;
+
         return $this;
     }
 
@@ -480,9 +481,9 @@ class Field
     /**
      * Json representation of the field.
      */
-    public function toJson(): string|false
+    public function toJson(): string
     {
-        return json_encode([
+        $json = json_encode([
             'name' => $this->name,
             'type' => $this->type->value,
             'nullable' => $this->nullable,
@@ -501,5 +502,6 @@ class Field
             'max' => $this->max,
         ], JSON_PRETTY_PRINT);
 
+        return $json ?: '{}';
     }
 }

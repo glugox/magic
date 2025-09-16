@@ -37,3 +37,13 @@ it('generates migration for each sample config', function (): void {
         $this->assertGreaterThan(count($config->entities), count($allMigrations));
     }
 });
+
+/*it('properly creates pivot tables for relations', function (): void {
+
+    $buildContext = $this->createBuildContextFromFile('callcenter.json');
+
+    // Run action
+    app(GenerateMigrationsAction::class)($buildContext);
+
+    // Assert migrations exist in temp folder
+});*/

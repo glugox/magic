@@ -276,6 +276,9 @@ class ResetAppCommand extends MagicBaseCommand
     private function deletePivotSeeders($entity): void
     {
         foreach ($entity->getRelations() as $relation) {
+            if (! $relation->requiresPivotTable()) {
+                continue;
+            }
             $pivotNameStudly = Str::studly($relation->getPivotName());
             $this->deleteFile(database_path("seeders/{$pivotNameStudly}PivotSeeder.php"), 'Pivot Seeder', $pivotNameStudly);
         }

@@ -85,7 +85,7 @@ class GenerateMigrationForEntityAction implements DescribableAction
         $update = new FilesGenerationUpdate;
 
         foreach ($entity->getRelations() as $relation) {
-            if (! $relation->isManyToMany()) {
+            if (! $relation->requiresPivotTable()) {
                 continue;
             }
 
@@ -94,6 +94,7 @@ class GenerateMigrationForEntityAction implements DescribableAction
             $migrationPath = database_path('migrations/'.$fileName);
 
             // Delete existing migration files if they exist
+            /** @var string[] $migrationFiles */
             $migrationFiles = File::glob(database_path("migrations/*_create_{$pivotTableName}_table.php"));
             foreach ($migrationFiles as $file) {
                 File::delete($file);
@@ -103,8 +104,8 @@ class GenerateMigrationForEntityAction implements DescribableAction
 
             // Columns code
             $columnsCode = <<<PHP
-    \$table->foreignId('{$entity->getForeignKey()}')->constrained('{$entity->getTableName()}')->cascadeOnDelete();
-    \$table->foreignId('{$relation->getRelatedKey()}')->constrained('{$relation->getRelatedEntity()->getTableName()}')->cascadeOnDelete();
+            \$table->foreignId('{$entity->getForeignKey()}')->constrained('{$entity->getTableName()}')->cascadeOnDelete();
+            \$table->foreignId('{$relation->getRelatedKey()}')->constrained('{$relation->getRelatedEntity()->getTableName()}')->cascadeOnDelete();
 PHP;
 
             // Load pivot stub

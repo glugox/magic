@@ -75,3 +75,18 @@ it('nullable and sometimes together', function (): void {
         ->toContain('email')
         ->toContain('max:255');
 });
+
+/*it('applies foreign key exists rule for belongsTo relation', function (): void {
+    $field = Field::fromConfig([
+        'name' => 'department_id',
+        'type' => 'foreignId',
+        'nullable' => true
+    ]);
+
+    $rules = RuleSetHelper::rulesFor($field, CrudActionType::CREATE);
+    $rulesArr = array_map(fn (ValidationRule $rule): string => (string) $rule, $rules);
+
+    expect($rulesArr)->toContain('nullable')
+        ->toContain('integer')
+        ->toContain('exists:departments,id');
+});*/

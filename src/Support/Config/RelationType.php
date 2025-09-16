@@ -57,6 +57,29 @@ enum RelationType: string
      */
     case BELONGS_TO = 'belongsTo';
     case HAS_MANY = 'hasMany';
+
+    /**
+     * Many-to-many relation.
+     * https://laravel.com/docs/12.x/eloquent-relationships#many-to-many
+     * Example:
+     * class User extends Model {
+     *     public function roles() {
+     *         return $this->belongsToMany(Role::class);
+     *     }
+     * }
+     * class Role extends Model {
+     *     public function users() {
+     *         return $this->belongsToMany(User::class); // inverse
+     *     }
+     * }
+     *
+     * Database tables:
+     * - users (id, name, email, created_at, updated_at)
+     * - roles (id, name, created_at, updated_at)
+     * - role_user (user_id, role_id) // pivot table
+     * -- Note: The pivot table (role_user) holds the foreign keys --
+     * -- Neither side (User or Role) has the foreign key directly --
+     */
     case BELONGS_TO_MANY = 'belongsToMany';
 
     // -- Polymorphic relations -- //

@@ -3,6 +3,8 @@
 namespace Glugox\Magic\Tests;
 
 use Glugox\Magic\MagicServiceProvider;
+use Glugox\Magic\Support\BuildContext;
+use Glugox\Magic\Support\Config\Config;
 use Illuminate\Support\Facades\File;
 use Orchestra\Testbench\TestCase as Orchestra;
 
@@ -39,6 +41,30 @@ class TestCase extends Orchestra
         }
 
         parent::tearDown();
+    }
+
+    /**
+     * Creates Config from a config file in the Data directory.
+     */
+    public function createConfigFromFile(string $file): Config
+    {
+        $configJsonPath = __DIR__."/data/{$file}";
+
+        return Config::fromJsonFile($configJsonPath);
+    }
+
+    /**
+     * Load a test config from the Data directory.
+     */
+    public function createBuildContextFromFile(string $filename): BuildContext
+    {
+        $configJsonPath = __DIR__."/data/{$filename}";
+        $config = Config::fromJsonFile($configJsonPath);
+        $buildContext = BuildContext::fromOptions([
+            'config' => $configJsonPath,
+        ])->setConfig($config);
+
+        return $buildContext;
     }
 
     public function getEnvironmentSetUp($app): void

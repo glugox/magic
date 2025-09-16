@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Glugox\Magic\Support\Config;
 
 use Glugox\Magic\Support\Config\Readers\SchemaReader;
+use Glugox\Magic\Validation\MagicConfigValidator;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use JsonException;
@@ -34,6 +35,12 @@ class Config
      */
     public function __construct(
         protected SchemaReader $schemaReader,
+        /**
+         * Validator instance to validate the configuration.
+         * This is usually used to validate the configuration after loading it from JSON or SDL.
+         */
+        protected ?MagicConfigValidator $validator = null
+
     ) {}
 
     /**
@@ -92,6 +99,7 @@ class Config
         $config->app = $app;
         $config->entities = $entities;
         $config->processEntities();
+        $config->validate();
 
         return $config;
     }
@@ -134,6 +142,18 @@ class Config
         $this->entities = $this->schemaReader->getEntities();
 
         return $this;
+    }
+
+    /**
+     * Validate the configuration.
+     */
+    public function validate(): void
+    {
+        if ($this->validator === null) {
+            $this->validator = app(MagicConfigValidator::class);
+        }
+
+        $this->validator->validate($this);
     }
 
     /**
@@ -275,6 +295,15 @@ class Config
     }
 
     /**
+     * Process Entity to ensure it has a related entities set as objects and not only relation names,
+     * after all entities are loaded.
+     */
+    public function processEntity(Entity $entity): void
+    {
+        $entity->processRelations($this);
+    }
+
+    /**
      * Generic type caster
      */
     protected static function castType(string $type, mixed $value): mixed
@@ -290,12 +319,13 @@ class Config
 
     /**
      * Process entities to resolve relations and other settings.
+     * Process Entity to ensure it has a related entities set as objects and not only relation names,
+     *  after all entities are loaded.
      */
-    private function processEntities()
+    private function processEntities(): void
     {
         foreach ($this->entities as $entity) {
-            $entity->ensureMainField();
-            $entity->processRelations($this);
+            $this->processEntity($entity);
         }
     }
 }

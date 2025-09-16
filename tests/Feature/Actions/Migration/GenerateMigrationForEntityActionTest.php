@@ -23,13 +23,13 @@ it('generates migration for entity', function (): void {
 
     $this->assertStringContainsString('Schema::create(\'products\'', $migrationContent);
     $this->assertStringContainsString('$table->string(\'title\')', $migrationContent);
-    $this->assertStringContainsString('$table->text(\'description\')', $migrationContent);
-    $this->assertStringContainsString('$table->decimal(\'price\', 10, 2)', $migrationContent);
-    $this->assertStringContainsString('$table->integer(\'stock\')->default(0)', $migrationContent);
-    $this->assertStringContainsString('$table->uuid(\'sku\')', $migrationContent);
-    $this->assertStringContainsString('$table->boolean(\'is_active\')->default(true)', $migrationContent);
-    $this->assertStringContainsString('$table->json(\'tags\')', $migrationContent);
-    $this->assertStringContainsString('$table->enum(\'category\', [\'electronics\', \'books\', \'clothing\', \'home\'])', $migrationContent);
+    $this->assertStringContainsString('$table->text(\'description\')->nullable()', $migrationContent);
+    $this->assertStringContainsString('$table->decimal(\'price\', 10, 2)->nullable()', $migrationContent);
+    $this->assertStringContainsString('$table->integer(\'stock\')->nullable()->default(0)', $migrationContent);
+    $this->assertStringContainsString('$table->uuid(\'sku\')->nullable()', $migrationContent);
+    $this->assertStringContainsString('$table->boolean(\'is_active\')->nullable()->default(true)', $migrationContent);
+    $this->assertStringContainsString('$table->json(\'tags\')->nullable()', $migrationContent);
+    $this->assertStringContainsString('$table->enum(\'category\', [\'electronics\', \'books\', \'clothing\', \'home\'])->nullable()', $migrationContent);
     $this->assertStringContainsString('$table->dateTime(\'released_at\')->nullable()', $migrationContent);
     $this->assertStringContainsString('$table->string(\'image\')->nullable()', $migrationContent);
 });

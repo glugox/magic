@@ -46,9 +46,11 @@ class Settings
      */
     public function toJson(): string
     {
-        return json_encode([
+        $json = json_encode([
             'has_images' => $this->hasImages,
             'is_searchable' => $this->isSearchable,
         ], JSON_PRETTY_PRINT);
+
+        return $json === false ? '{}' : $json;
     }
 }

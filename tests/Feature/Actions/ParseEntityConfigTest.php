@@ -18,7 +18,7 @@ it('parses a JSON file path into Config object', function (): void {
 
     expect($config)->toBeInstanceOf(Config::class)
         ->and($config->entities[0])->toBeInstanceOf(Entity::class)
-        ->and(count($config->entities[0]->fields))->toBe(7)
+        ->and(count($config->entities[0]->fields))->toBe(8)
         ->and($config->entities[0]->fields[0])->toBeInstanceOf(Field::class)
         ->and($config->entities[0]->relations[0])->toBeInstanceOf(Relation::class)
         ->and($config->entities[0]->relations[0]->getRelationName())->toBe('orders');

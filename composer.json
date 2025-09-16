@@ -60,7 +60,7 @@
         "prepare": "@php vendor/bin/testbench package:discover --ansi",
         "analyse": "vendor/bin/phpstan analyse",
         "test": [
-            "vendor/bin/pest",
+            "vendor/bin/pest --bail",
             "vendor/bin/pint --test"
         ],
         "test-coverage": "vendor/bin/pest --coverage",

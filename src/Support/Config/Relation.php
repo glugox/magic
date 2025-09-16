@@ -2,13 +2,15 @@
 
 namespace Glugox\Magic\Support\Config;
 
+use Glugox\Magic\Support\Config\Builder\RelationBuilder;
 use Illuminate\Support\Str;
-use JsonException;
 use RuntimeException;
 
 class Relation
 {
     public RelationType $type;
+
+    private ?string $relatedEntityName;
 
     private string $relationName;
 
@@ -18,23 +20,32 @@ class Relation
 
     private string $morphName;
 
+    private ?string $pivotTable = null;
+
     public function __construct(
         RelationType|string $type, // e.g. 'hasMany', 'belongsTo', etc.
         private readonly Entity $localEntity, // the entity that owns this relation, e.g. 'User'
-        private readonly ?string $relatedEntityName = null, // name of the related entity, e.g. 'Role'
+        ?string $relatedEntityName = null, // name of the related entity, e.g. 'Role'
         private ?Entity $relatedEntity = null, // the related entity object, e.g. Role entity
         ?string $foreignKey = null, // usually local entity's fk, e.g. user_id
         ?string $localKey = null, // usually related entity's pk, e.g. id
         private ?string $relatedKey = null, // // points to related entity in pivot table, e.g. role_id
         ?string $relationName = null,
-        ?string $morphName = null // for polymorphic relations, e.g. 'imageable'
+        ?string $morphName = null, // for polymorphic relations, e.g. 'imageable'
+        ?string $pivotTable = null // for many-to-many relations, e.g. 'role_user'
     ) {
         $this->type = $type instanceof RelationType ? $type : RelationType::from($type);
+        $this->relatedEntityName = $relatedEntityName ?? $relatedEntity->name ?? null;
 
         $this->morphName = $morphName ?? $this->inferMorphName(); // Should come with infer before foreign key inference
-        $this->relationName = $relationName ?? $this->inferRelationName();
+        $this->relationName = $relationName ?? $relatedEntity->name ?? $this->inferRelationName();
         $this->foreignKey = $foreignKey ?? $this->inferForeignKey();
         $this->localKey = $localKey ?? $this->inferLocalKey();
+        $this->pivotTable = $pivotTable ?? ($this->requiresPivotTable() ? $this->inferPivotName() : null);
+
+        if ($this->relatedEntityName === null && $this->requiresRelatedEntityName()) {
+            throw new RuntimeException('The related entity name is required.');
+        }
 
         // relatedForeignKey is only used in BelongsToMany relations
         if ($this->type === RelationType::BELONGS_TO_MANY && ! $this->relatedKey) {
@@ -44,6 +55,16 @@ class Relation
             }
             $this->relatedKey = Str::snake($relatedEntityName).'_id';
         }
+    }
+
+    /**
+     * Static factory method to create a Relation instance.
+     */
+    public static function make(RelationType $type, Entity $localEntity): RelationBuilder
+    {
+        return new RelationBuilder()
+            ->type($type)
+            ->localEntity($localEntity);
     }
 
     /**
@@ -129,11 +150,35 @@ class Relation
     public function setRelatedEntity(Entity $entity): void
     {
         $this->relatedEntity = $entity;
+
+        // TODO: Check if foreign key exists in related entity and add it if not
+        /*if ($this->type === RelationType::HAS_MANY || $this->type === RelationType::HAS_ONE) {
+            $foreignKey = $this->getForeignKey();
+            if ($foreignKey !== null && ! $this->relatedEntity->getFieldByName($foreignKey)) {
+                // Add foreign key field to local entity
+                $this->relatedEntity->addField(Field::fromConfig([
+                    'name' => $foreignKey,
+                    'type' => 'foreignId',
+                    'nullable' => true
+                ], $this->relatedEntity) );
+
+                // Add relation to related entity
+                $this->relatedEntity->addRelation(new Relation(
+                    type: RelationType::BELONGS_TO,
+                    localEntity: $this->relatedEntity,
+                    relatedEntityName: $this->getLocalEntityName(),
+                    foreignKey: $foreignKey,
+                    localKey: $this->getLocalKey(),
+                ));
+            }
+        }*/
     }
 
     /**
      * Get the related entity object.
      * If the related entity is not set, it throws an exception.
+     *
+     * Call this method only if the relation type should have a related entity. Otherwise, it will throw an exception.
      *
      * @throws RuntimeException
      */
@@ -144,6 +189,14 @@ class Relation
         }
 
         return $this->relatedEntity;
+    }
+
+    /**
+     * Returns true if the relation does have related entity.
+     */
+    public function hasRelatedEntity(): bool
+    {
+        return $this->relatedEntity !== null;
     }
 
     /**
@@ -159,9 +212,9 @@ class Relation
     }
 
     /**
-     * @return string Returns the name of the pivot table for many-to-many relations.
+     * @return string Infer the name of the pivot table for many-to-many relations.
      */
-    public function getPivotName(): string
+    public function inferPivotName(): string
     {
         if ($this->isPolymorphic()) {
             return Str::plural($this->morphName);
@@ -175,6 +228,14 @@ class Relation
         sort($tables);
 
         return implode('_', $tables);
+    }
+
+    /**
+     * Gets pivot table name for the relation
+     */
+    public function getPivotName(): string
+    {
+        return $this->pivotTable ?? throw new RuntimeException("Pivot table name is not set for relation of type {$this->type->value} in entity {$this->getLocalEntityName()}");
     }
 
     /**
@@ -193,7 +254,7 @@ class Relation
      */
     public function getApiPath(): string
     {
-        return Str::plural($this->getRelationName());
+        return Str::kebab(Str::plural($this->getRelationName()));
     }
 
     /**
@@ -359,9 +420,24 @@ class Relation
     }
 
     /**
+     * Determines if the relation requires a pivot table.
+     */
+    public function requiresPivotTable(): bool
+    {
+        return in_array($this->type, [RelationType::BELONGS_TO_MANY, RelationType::MORPH_TO_MANY, RelationType::MORPHED_BY_MANY]);
+    }
+
+    /**
+     * Determines if the relation requires a related entity name to be set.
+     * MorphTo relations do not require related entity name.
+     */
+    public function requiresRelatedEntityName(): bool
+    {
+        return ! in_array($this->type, [RelationType::MORPH_TO]);
+    }
+
+    /**
      * Json representation of the relation.
-     *
-     * @throws JsonException
      */
     public function toJson(): string
     {
@@ -373,10 +449,26 @@ class Relation
             'localKey' => $this->getLocalKey(),
             'relatedForeignKey' => $this->getRelatedKey(),
             'localEntityName' => $this->getLocalEntityName(),
-
         ];
+        $json = json_encode($data, JSON_PRETTY_PRINT);
 
-        return json_encode($data, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR);
+        return $json === false ? '{}' : $json;
+    }
+
+    /**
+     * String representation of the relation.
+     */
+    public function toString(): string
+    {
+        /**
+         * User → hasMany(projects) → Project [ FK: user_id, LK: id ]
+         */
+        $relatedEntityPart = $this->hasRelatedEntity() ? $this->getRelatedEntityName() : 'N/A';
+        $fkPart = $this->getForeignKey() ? "FK: {$this->getForeignKey()}" : '';
+        $lkPart = $this->getLocalKey() ? "LK: {$this->getLocalKey()}" : '';
+        $relatedKeyPart = $this->getRelatedKey() ? "RK: {$this->getRelatedKey()}" : '';
+
+        return "{$this->getLocalEntityName()} → {$this->type->value}({$this->getRelationName()}) → {$relatedEntityPart} [{$fkPart}, {$lkPart}, {$relatedKeyPart}]";
     }
 
     /**
