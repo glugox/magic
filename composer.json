@@ -83,15 +83,6 @@
             }
         }
     },
-    "repositories": [
-        {
-            "type": "path",
-            "url": "/Users/ervin/Code/github.com/glugox/model-meta",
-            "options": {
-                "symlink": true
-            }
-        }
-    ],
     "minimum-stability": "dev",
     "prefer-stable": true
 }
