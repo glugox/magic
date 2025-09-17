@@ -328,6 +328,56 @@ class Entity
     }
 
     /**
+     * Adds field at position, after passed types
+     *
+     * @param Field|array{
+     *       name: string,
+     *       type: string,
+     *       required?: bool,
+     *       nullable?: bool,
+     *       sometimes?: bool,
+     *       length?: int|null,
+     *       precision?: int|null,
+     *       scale?: int|null,
+     *       default?: mixed,
+     *       comment?: string|null,
+     *       sortable?: bool,
+     *       searchable?: bool,
+     *       main?: bool,
+     *       showInTable?: bool,
+     *       showInForm?: bool,
+     *       values?: string[],
+     *       min?: int,
+     *       max?: int
+     *   } $field Field instance or array configuration
+     * @param  FieldType[]  $afterTypes
+     */
+    public function addFieldAfterTypes(Field|array $field, array $afterTypes): void
+    {
+        if (is_array($field)) {
+            $field = Field::fromConfig($field, $this);
+        }
+
+        // Default: append at the end
+        $insertPos = count($this->fields ?? []);
+
+        if (! empty($this->fields)) {
+            foreach (array_reverse($this->fields, true) as $index => $existingField) {
+                if (in_array($existingField->type, $afterTypes, true)) {
+                    $insertPos = $index + 1;
+                    break;
+                }
+            }
+        }
+
+        // Insert at the correct position
+        if (empty($this->fields)) {
+            $this->fields = [];
+        }
+        array_splice($this->fields, $insertPos, 0, [$field]);
+    }
+
+    /**
      * Add a relation to the entity.
      */
     public function addRelation(Relation $relation): void
@@ -824,7 +874,7 @@ class Entity
                 'type' => FieldType::FOREIGN_ID->value,
                 'nullable' => true,
             ], $this);
-            $this->addField($foreignKeyField);
+            $this->addFieldAfterTypes($foreignKeyField, [FieldType::ID]);
         }
 
         // We also need to ensure the relation field is set
@@ -897,6 +947,14 @@ class Entity
     }
 
     /**
+     * Index page title for this entity.
+     */
+    public function getIndexPageTitle(): string
+    {
+        return $this->getPluralName();
+    }
+
+    /**
      * Assign priority values to fields for ordering.
      */
     protected function fieldPriority(Field $field): int
@@ -965,13 +1023,5 @@ class Entity
                 $field->hidden = true;
             }
         }
-    }
-
-    /**
-     * Index page title for this entity.
-     */
-    public function getIndexPageTitle(): string
-    {
-        return $this->getPluralName();
     }
 }

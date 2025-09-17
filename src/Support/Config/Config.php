@@ -80,8 +80,11 @@ class Config
 
     /**
      * Convert the configuration from JSON string to Config object.
+
      *
      * @throws JsonException
+     *
+     * @phpstan-ignore-next-line
      */
     public static function fromJson(string|array $json): self
     {
@@ -89,10 +92,14 @@ class Config
         $data = is_string($json) ? json_decode($json, true, 512, JSON_THROW_ON_ERROR) : $json;
 
         $entities = [];
+
+        // @phpstan-ignore-next-line
         foreach ($data['entities'] ?? [] as $entityData) {
+            // @phpstan-ignore-next-line
             $entities[] = Entity::fromConfig($entityData);
         }
 
+        // @phpstan-ignore-next-line
         $app = App::fromConfig($data['app'] ?? []);
 
         $config = app(self::class);

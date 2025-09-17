@@ -3,6 +3,7 @@
 use {{modelClassFull}};
 use App\Models\User;
 use function Pest\Laravel\{actingAs};
+{{uses}}
 
 /**
 * {{classDescription}}
@@ -27,9 +28,7 @@ it('can create {{modelClass}}', function () {
     actingAs($user);
     // Act
     visit('{{modelHref}}/create')
-            ->type('name', 'Test {{modelClass}}')
-            //->type('email', 'test@example.com')
-            //->select('status', 'online')
+            {{formFieldsCodeCreate}}
             ->press('Create')
             // Assert
             ->assertPathIs('{{modelHref}}')
@@ -44,7 +43,7 @@ it('can edit an {{modelClass}}', function () {
     actingAs($user);
     // Act
     visit("{{modelHref}}/{${{modelClassLower}}->id}/edit")
-        ->type('name', 'Updated {{modelClass}}')
+        {{formFieldsCodeCreate}}
         ->press('Update')
         // Assert
         ->assertPathIs('{{modelHref}}')

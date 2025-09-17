@@ -5,9 +5,12 @@ namespace Glugox\Magic\Actions\Build;
 use Glugox\Magic\Actions\Files\GenerateFileAction;
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
+use Glugox\Magic\Helpers\StubHelper;
 use Glugox\Magic\Helpers\ValidationHelper;
 use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\Config\Entity;
+use Glugox\Magic\Support\Config\Relation;
+use Glugox\Magic\Support\Config\RelationType;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Support\Facades\File;
@@ -15,6 +18,9 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 #[ActionDescription(
+    name: 'generate_crud_tests',
+    description: 'Generates Pest CRUD tests for all entities defined in the configuration.',
+    parameters: ['context' => 'The BuildContext containing the Config object, the configuration instance that has info for app and all entities.']
 )]
 class GenerateCrudTestsAction implements DescribableAction
 {
@@ -72,15 +78,25 @@ class GenerateCrudTestsAction implements DescribableAction
      */
     protected function generateCrudTestForEntity(Entity $entity): void
     {
+        $uses = [];
         $modelClass = $entity->getClassName();
         $modelClassFull = $entity->getFullyQualifiedModelClass();
         $modelHref = $entity->getHref(); // e.g., '/users'
         $modelClassPlural = Str::plural($modelClass);
         $indexPageTitle = $entity->getIndexPageTitle();
         $testClass = Str::studly(Str::singular($entity->getName())).'Tests';
+        $belongsToRels = $entity->getRelations(RelationType::BELONGS_TO);
+
+        $uses = array_map(function (Relation $rel) {
+            return 'use '.$rel->getRelatedEntity()->getFullyQualifiedModelClass().';';
+        }, $belongsToRels);
+
+        // Pest browser test's filling code when creating a record
+        $formFieldsCodeCreate = StubHelper::writePestFormFields($entity);
 
         // Table ( db ) name
         $modelDbTable = $entity->getTableName();
+        $usesStr = implode("\n", $uses);
 
         $stubPath = $this->stubsPath.'/tests/crud-test.stub';
         $template = File::get($stubPath);
@@ -95,7 +111,9 @@ class GenerateCrudTestsAction implements DescribableAction
             '{{indexPageTitle}}' => $indexPageTitle,
             '{{testClass}}' => $testClass,
             '{{modelDbTable}}' => $modelDbTable,
-            //'{{folderName}}' => $entity->getFolderName()
+            '{{formFieldsCodeCreate}}' => $formFieldsCodeCreate,
+            '{{uses}}' => $usesStr
+            // '{{folderName}}' => $entity->getFolderName()
         ];
 
         $template = str_replace(array_keys($replacements), array_values($replacements), $template);

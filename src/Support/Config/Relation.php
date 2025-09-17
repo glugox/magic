@@ -38,7 +38,7 @@ class Relation
         $this->relatedEntityName = $relatedEntityName ?? $relatedEntity->name ?? null;
 
         $this->morphName = $morphName ?? $this->inferMorphName(); // Should come with infer before foreign key inference
-        $this->relationName = $relationName ?? $relatedEntity->name ?? $this->inferRelationName();
+        $this->relationName = $relationName ?? $this->inferRelationName();
         $this->foreignKey = $foreignKey ?? $this->inferForeignKey();
         $this->localKey = $localKey ?? $this->inferLocalKey();
         $this->pivotTable = $pivotTable ?? ($this->requiresPivotTable() ? $this->inferPivotName() : null);
@@ -476,10 +476,11 @@ class Relation
      */
     protected function inferRelationName(): string
     {
-        if (! $this->getRelatedEntityName()) {
-            if ($this->type === RelationType::MORPH_TO) {
-                return Str::snake($this->getLocalEntityName());
-            }
+        if ($this->type === RelationType::MORPH_TO) {
+            return Str::snake($this->getLocalEntityName());
+        }
+
+        if (! $this->getRelatedEntityName() && $this->requiresRelatedEntityName()) {
             throw new RuntimeException("Entity name is not set for relation of type {$this->type->value} in entity {$this->getLocalEntityName()}");
         }
 

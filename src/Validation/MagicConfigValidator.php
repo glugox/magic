@@ -11,11 +11,29 @@ use InvalidArgumentException;
 class MagicConfigValidator
 {
     /**
+     * Mainly for testing purposes.
+     * Disables changing the config data, by adding foreign keys for
+     * relations when they are missing.
+     * And also the adding of inverse BelongsTo relations when they are missing
+     */
+    public static bool $autoFixEnabled = true;
+
+    /**
      * Constructor
      */
     public function __construct(
         protected Config $config,
     ) {}
+
+    public static function disableAutoFix(): void
+    {
+        self::$autoFixEnabled = false;
+    }
+
+    public static function enableAutoFix(): void
+    {
+        self::$autoFixEnabled = true;
+    }
 
     /**
      * Validate config
@@ -136,7 +154,9 @@ class MagicConfigValidator
                 if (empty($foreignKey)) {
                     throw new InvalidArgumentException("Foreign key is required for relation {$relationInfo} in entity {$entity->name}");
                 }
-                $relatedEntity->ensureForeignKey($foreignKey, $entity);
+                if (! empty($relatedEntity) && self::$autoFixEnabled) {
+                    $relatedEntity->ensureForeignKey($foreignKey, $entity);
+                }
                 break;
 
             case RelationType::BELONGS_TO_MANY:
@@ -148,8 +168,9 @@ class MagicConfigValidator
 
                 // TODO: Make configurable
                 // Ensure reverse relation exists
-                $relatedEntity->ensureRelationByPivotTable($pivotTable);
-
+                if (! empty($relatedEntity) && self::$autoFixEnabled) {
+                    $relatedEntity->ensureRelationByPivotTable($pivotTable);
+                }
                 break;
 
             case RelationType::MORPH_TO:

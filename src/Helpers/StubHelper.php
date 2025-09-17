@@ -3,7 +3,10 @@
 namespace Glugox\Magic\Helpers;
 
 use Glugox\Magic\Support\Config\Entity;
+use Glugox\Magic\Support\Config\Field;
+use Glugox\Magic\Support\Config\FieldType;
 use Glugox\Magic\Support\Config\RelationType;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 class StubHelper
@@ -147,5 +150,81 @@ class StubHelper
 
         // Use existing applyReplacements() method to inject variables
         return self::applyReplacements($stub, $replacements);
+    }
+
+    /**
+     * Write Pest form filling code for a given Entity.
+     */
+    public static function writePestFormFields(Entity $entity): string
+    {
+        Log::channel('magic')->info("Generating Pest form fields for entity: {$entity->getName()}");
+
+        $fieldsCode = [];
+        foreach ($entity->getFormFields() as $field) {
+            $fieldsCode[] = self::writePestFormField($field, $entity);
+        }
+
+        return implode("\n            ", $fieldsCode);
+    }
+
+    /**
+     * Write Pest form field filling code for a given field.
+     */
+    public static function writePestFormField(Field $field, Entity $entity): string
+    {
+        Log::channel('magic')->info("Generating Pest form field: {$field->name} of type: {$field->type->value} for entity: {$entity->getName()}");
+
+        $fieldName = $field->name;
+        $fieldType = $field->type;
+
+        switch ($fieldType) {
+            case FieldType::STRING:
+            case FieldType::TEXT:
+                return "->type('{$fieldName}', 'Test {$entity->name} {$fieldName}')";
+            case FieldType::EMAIL:
+                return "->type('{$fieldName}', 'example@example.com')";
+            case FieldType::INTEGER:
+            case FieldType::FLOAT:
+            case FieldType::DECIMAL:
+                return "->type('{$fieldName}', 123)";
+            case FieldType::DATE:
+            case FieldType::DATETIME:
+            case FieldType::TIME:
+            case FieldType::TIMESTAMP:
+                return "// ->type('{$fieldName}', '2024-01-01 12:00:00') // Adjust date format as needed";
+            case FieldType::PASSWORD:
+                return "->type('{$fieldName}', 'password')";
+            case FieldType::BOOLEAN:
+                return "->check('{$fieldName}')";
+            case FieldType::FOREIGN_ID:
+            case FieldType::BELONGS_TO:
+                // For foreign keys, select the first related entity
+                Log::channel('magic')->info(" >> Field {$fieldName} is a foreign key, generating select code");
+                if ($field->isForeignKey()) {
+                    $relation = $entity->getRelationByField($field);
+                    $hasRelatedEntity = $relation?->hasRelatedEntity();
+                    if ($hasRelatedEntity) {
+                        $relatedEntity = $entity->getRelationByField($field)?->getRelatedEntity();
+                        if (! empty($relatedEntity)) { // This is done by $hasRelatedEntity, but we need to satisfy phpstan
+                            return "->select('{$fieldName}', {$relatedEntity->getClassName()}::first()->id)";
+                        }
+                    } else {
+                        Log::channel('magic')->warning("Related entity not found for foreign key field {$fieldName}");
+                    }
+                } else {
+                    Log::channel('magic')->warning("Field {$fieldName} is not marked as foreign key but has type FOREIGN_ID or BELONGS_TO");
+                }
+
+                return '// Relation not found for FieldType::FOREIGN_ID';
+
+            case FieldType::ENUM:
+                return "->select('{$fieldName}', '{$field->getFirstEnumOptionValue()}')";
+            case 'file':
+            case 'image':
+                return "->attach('{$fieldName}', base_path('tests/Fixtures/test_file.txt'))";
+            default:
+                return "// Unsupported field type: {$fieldType->value}";
+        }
+
     }
 }

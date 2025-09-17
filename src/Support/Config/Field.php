@@ -2,6 +2,7 @@
 
 namespace Glugox\Magic\Support\Config;
 
+use Exception;
 use Glugox\Magic\Support\TypeHelper;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -476,7 +477,24 @@ class Field
             return true;
         }
 
+        // Check if this field has a BelongsTo relation
+        if ($this->belongsTo() !== null) {
+            return true;
+        }
+
         return false;
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function getFirstEnumOptionValue(): mixed
+    {
+        if ($this->type !== FieldType::ENUM) {
+            throw new Exception('Called getFirstEnumOptionValue() on non enum field type');
+        }
+
+        return $this->values[0] ?? null;
     }
 
     /**
