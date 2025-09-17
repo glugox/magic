@@ -109,7 +109,7 @@ function destroy() {
                 leave-to-class="opacity-0"
             >
                 <p v-show="form.recentlySuccessful" class="text-sm text-neutral-600">
-                    Saved.
+                    {{entity.singularName}} updated successfully.
                 </p>
             </Transition>
         </div>

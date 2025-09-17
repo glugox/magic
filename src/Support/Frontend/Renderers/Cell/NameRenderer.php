@@ -26,7 +26,7 @@ class NameRenderer extends Renderer
             "const nameVal: string = cell.getValue() ? String(cell.getValue()) : '';",
             $avatarDefinition,
             "return h('a', {",
-            $indent2."href: href + '/' + id,",
+            $indent2."href: href + '/' + id + '/edit',",
             $indent2."class: 'flex items-center gap-2 text-blue-600 hover:underline'",
             '}, [',
             $indent2.'#AvatarPlaceholder#',

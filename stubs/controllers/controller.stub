@@ -101,7 +101,7 @@ class {{controllerClass}} extends Controller
         $data = $request->validated();
         ${{modelClassCamel}}->update($data);
 
-        return redirect()->route(strtolower('{{routeName}}') . '.index')
+        return redirect()->back()
             ->with('success', '{{modelClass}} updated successfully.');
     }
 

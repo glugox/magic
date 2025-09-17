@@ -6,14 +6,22 @@ use function Pest\Laravel\{actingAs};
 {{uses}}
 
 /**
-* {{classDescription}}
-*/
-it('can list {{modelClassPlural}}', function () {
-
-    // Set up
+ * Before all, create instances of models with factories
+ * that can be in relations with the model under test
+ */
+beforeEach(function () {
+    // Create a user to authenticate
     $user = User::factory()->create();
     actingAs($user);
 
+    // Create related models if needed
+    {{runFactoriesCode}}
+});
+
+/**
+* {{classDescription}}
+*/
+it('can list {{modelClassPlural}}', function () {
     // Act
     $page = visit('{{modelHref}}');
 
@@ -23,38 +31,39 @@ it('can list {{modelClassPlural}}', function () {
 
 it('can create {{modelClass}}', function () {
 
-    // Set up
-    $user = User::factory()->create();
-    actingAs($user);
+    $page = visit('{{modelHref}}/create');
+
+    // Wait for the customer select to be populated from the fetch api
+    $page->assertDontSee('Loading...');
+
     // Act
-    visit('{{modelHref}}/create')
+    $page
             {{formFieldsCodeCreate}}
             ->press('Create')
             // Assert
-            ->assertPathIs('{{modelHref}}')
-            ->assertSee('Test {{modelClass}}');
+            ->assertPathIs('{{modelHref}}');
+
+    // Assert the ${{modelClassLower}} is created
+    // We need to ensure we always have name or get the main field with which we can identify the created model
+    //$this->assertDatabaseHas('{{modelDbTable}}', ['name' => 'Test {{modelClass}}']);
 });
 
 it('can edit an {{modelClass}}', function () {
 
     // Set up
-    $user = User::factory()->create();
     ${{modelClassLower}} = {{modelClass}}::factory()->create();
-    actingAs($user);
     // Act
     visit("{{modelHref}}/{${{modelClassLower}}->id}/edit")
         {{formFieldsCodeCreate}}
         ->press('Update')
         // Assert
-        ->assertPathIs('{{modelHref}}')
-        ->assertSee('Updated {{modelClass}}');
+        ->assertPathIs("{{modelHref}}/{${{modelClassLower}}->id}/edit")
+        ->assertSee('{{modelClass}} updated');
 });
 
 it('can delete {{modelClass}}', function () {
     // Set up
-    $user = User::factory()->create();
     ${{modelClassLower}} = {{modelClass}}::factory()->create();
-    actingAs($user);
     // Act
     visit("{{modelHref}}/{${{modelClassLower}}->id}")
         ->press("Delete");

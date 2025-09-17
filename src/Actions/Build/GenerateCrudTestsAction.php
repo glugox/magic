@@ -84,7 +84,7 @@ class GenerateCrudTestsAction implements DescribableAction
         $modelHref = $entity->getHref(); // e.g., '/users'
         $modelClassPlural = Str::plural($modelClass);
         $indexPageTitle = $entity->getIndexPageTitle();
-        $testClass = Str::studly(Str::singular($entity->getName())).'Tests';
+        $testClass = Str::studly(Str::singular($entity->getName())).'Test';
         $belongsToRels = $entity->getRelations(RelationType::BELONGS_TO);
 
         $uses = array_map(function (Relation $rel) {
@@ -93,6 +93,7 @@ class GenerateCrudTestsAction implements DescribableAction
 
         // Pest browser test's filling code when creating a record
         $formFieldsCodeCreate = StubHelper::writePestFormFields($entity);
+        $runFactoriesCode = StubHelper::writeFactoriesCallFor($entity);
 
         // Table ( db ) name
         $modelDbTable = $entity->getTableName();
@@ -112,7 +113,8 @@ class GenerateCrudTestsAction implements DescribableAction
             '{{testClass}}' => $testClass,
             '{{modelDbTable}}' => $modelDbTable,
             '{{formFieldsCodeCreate}}' => $formFieldsCodeCreate,
-            '{{uses}}' => $usesStr
+            '{{uses}}' => $usesStr,
+            '{{runFactoriesCode}}' => $runFactoriesCode,
             // '{{folderName}}' => $entity->getFolderName()
         ];
 

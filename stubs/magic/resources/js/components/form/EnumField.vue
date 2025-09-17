@@ -19,6 +19,11 @@
                         </SelectGroup>
                     </SelectContent>
                 </Select>
+                <select :name="field.name" v-model="model" class="hidden">
+                    <option v-for="value in field.values" :key="value" :value="value">
+                        {{ value }}
+                    </option>
+                </select>
             </div>
         </template>
     </BaseField>

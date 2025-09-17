@@ -40,6 +40,7 @@ const lastQuery = ref<string>('')
 // Get relation metadata
 const relationMetadata = props.entity.relations.find(r => r.foreignKey === props.field.name)
 const modelNameSingular = relationMetadata?.relatedEntityName
+const placeholderLoaded = ref("Select "+modelNameSingular+"...")
 
 const normalize = (d: any) => ({ ...d, id: String(d.id) })
 
@@ -117,11 +118,18 @@ const fetchOptions = async (query: string = '') => {
         isLoading.value = false
     }
 }
+const mode = import.meta.env.MODE;
 </script>
 
 <template>
     <BaseField v-bind="props">
         <template #default>
+            <!-- Hidden select for Pest/browser tests -->
+            <select :name="props.field.name" v-model="model" data-test="select-{{props.field.name}}">
+                <option v-for="item in options" :key="item.id" :value="item.id">{{ item.name }}</option>
+            </select>
+
+            <!-- Fancy UI combo box -->
             <Combobox v-model="selectedOption" by="id">
                 <ComboboxAnchor class="w-[300px]" as-child>
                     <ComboboxTrigger as-child>
@@ -145,7 +153,7 @@ const fetchOptions = async (query: string = '') => {
 
                 <ComboboxList class="w-[300px]">
                     <ComboboxInput
-                        :placeholder="'Select ' + modelNameSingular + '...'"
+                        :placeholder="isLoading ? 'Loading...' : placeholderLoaded"
                         v-model="searchQuery"
                     />
 

@@ -168,6 +168,25 @@ class StubHelper
     }
 
     /**
+     * Write factories call code for a given Entity.
+     * This will generate code to create related entities before creating the main entity.
+     */
+    public static function writeFactoriesCallFor(Entity $entity): string
+    {
+        Log::channel('magic')->info("Generating factories call for entity: {$entity->getName()}");
+        $factoryLines = [];
+        foreach ($entity->getRelations(RelationType::BELONGS_TO) as $relation) {
+            if ($relation->hasRelatedEntity()) {
+                $relatedEntity = $relation->getRelatedEntity();
+                $relatedModelClass = $relatedEntity->getClassName();
+                $factoryLines[] = "{$relatedModelClass}::factory()->create();";
+            }
+        }
+
+        return implode("\n    ", $factoryLines);
+    }
+
+    /**
      * Write Pest form field filling code for a given field.
      */
     public static function writePestFormField(Field $field, Entity $entity): string
@@ -186,7 +205,7 @@ class StubHelper
             case FieldType::INTEGER:
             case FieldType::FLOAT:
             case FieldType::DECIMAL:
-                return "->type('{$fieldName}', 123)";
+                return "->type('{$fieldName}', '123')";
             case FieldType::DATE:
             case FieldType::DATETIME:
             case FieldType::TIME:
