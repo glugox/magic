@@ -88,6 +88,9 @@ class GenerateAppAction implements DescribableAction
         // Step 17: Setup Development Environment (optional)
         // $buildContext = app(SetupDevelopmentEnvAction::class)($buildContext);
 
+        // Step 18: Generate CRUD tests for models
+        $buildContext = app(GenerateCrudTestsAction::class)($buildContext);
+
         // Return the final BuildContext
         return $buildContext;
     }

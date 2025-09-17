@@ -1,6 +1,6 @@
 <template>
     <div class="space-y-1">
-        <label :for="field.name" class="block text-sm font-medium">
+        <label :for="field.name" v-if="!field.hidden" class="block text-sm font-medium">
             {{ field.label }}
         </label>
 

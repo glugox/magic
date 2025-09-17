@@ -155,7 +155,7 @@ class Entity
     public function getFullyQualifiedModelClass(): string
     {
         // Convert entity name to StudlyCase for fully qualified class name
-        return '\\App\\Models\\'.$this->getClassName();
+        return 'App\\Models\\'.$this->getClassName();
     }
 
     /**
@@ -336,6 +336,16 @@ class Entity
     }
 
     /**
+     * Get relations that hasRoute
+     *
+     * @return Relation[]
+     */
+    public function getRelationsWithRoute(): array
+    {
+        return array_filter(($this->relations ?? []), fn ($relation) => $relation->hasRoute());
+    }
+
+    /**
      * Check if the entity has a field by name.
      */
     public function hasField(string $name): bool
@@ -495,7 +505,7 @@ class Entity
                 continue;
             }
 
-            if (! in_array($field->name, ['id', 'created_at', 'updated_at', 'password', 'remember_token'])) {
+            if (! in_array($field->name, ['created_at', 'updated_at', 'password', 'remember_token'])) {
                 $visible[] = $field;
             }
         }
@@ -507,6 +517,14 @@ class Entity
         });
 
         return $visible;
+    }
+
+    /**
+     * Get names of fields that should be visible in forms.
+     */
+    public function getFormFieldsNames(): array
+    {
+        return array_map(fn (Field $field) => $field->name, $this->getFormFields());
     }
 
     /**
@@ -941,6 +959,19 @@ class Entity
                 $field->sortable = true;
                 $field->required = true;
             }
+
+            // ID field should be by default hidden in forms
+            if ($field->name === 'id') {
+                $field->hidden = true;
+            }
         }
+    }
+
+    /**
+     * Index page title for this entity.
+     */
+    public function getIndexPageTitle(): string
+    {
+        return $this->getPluralName();
     }
 }

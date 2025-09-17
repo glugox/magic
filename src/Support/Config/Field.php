@@ -50,6 +50,7 @@ class Field
         public bool $main = false,         // is this a main field, that is used for example to open the entity record when clicked on?
         public bool $showInTable = true,     // show in table views
         public bool $showInForm = true,      // show in forms
+        public bool $hidden = false,      // hidden field, not shown in forms or tables
         /** @var string[] Allowed enum/options */
         public array $values = [],
         public ?int $min = null,

@@ -2,7 +2,7 @@
     <BaseField v-bind="props">
         <template #default="{ validate }">
             <div class="space-y-2">
-                <Select v-model="model" @update:modelValue="validate">
+                <Select :name="field.name" v-model="model" @update:modelValue="validate">
                     <SelectTrigger class="w-full">
                         <SelectValue :placeholder="`Select ${field.label ?? field.name}`" />
                     </SelectTrigger>

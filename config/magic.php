@@ -86,6 +86,7 @@ return [
             'extends' => '\Illuminate\Foundation\Auth\User',
             'traits' => [
                 '\Illuminate\Notifications\Notifiable',
+                '\Laravel\Fortify\TwoFactorAuthenticatable'
             ],
             'default_fields' => [
                 ['name' => 'name', 'type' => 'string', 'nullable' => false],

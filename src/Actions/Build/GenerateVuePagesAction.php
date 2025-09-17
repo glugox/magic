@@ -60,7 +60,7 @@ class GenerateVuePagesAction implements DescribableAction
             $this->generateCreateFormPage($entity);
 
             // Create child pages for relations if any
-            foreach ($entity->getRelationsWithValidEntity() as $relation) {
+            foreach ($entity->getRelationsWithRoute() as $relation) {
                 $this->generateRelationPages($entity, $relation);
             }
         }

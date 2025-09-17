@@ -19,6 +19,7 @@ export interface Field {
     sortable: boolean
     searchable: boolean
     values: string[] | null
+    hidden: boolean
 }
 
 export interface Relation {

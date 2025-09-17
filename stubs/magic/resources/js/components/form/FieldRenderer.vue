@@ -17,13 +17,14 @@ import {FormFieldProps} from '@/types/support'
 import TextAreaField from "@/components/form/TextAreaField.vue";
 import EnumField from "@/components/form/EnumField.vue";
 import DateTimeField from "@/components/form/DateTimeField.vue";
+import IdField from '@/components/form/IdField.vue';
 
 const props = defineProps<FormFieldProps>()
 const emit = defineEmits(['update:modelValue'])
 
 const componentsMap: Record<string, any> = {
     // ──────── Core Identifiers ────────
-    id: StringField,         //  need IdField
+    id: IdField,         //  need IdField
     uuid: StringField,       //  need UuidField
     slug: StringField,
     username: StringField,

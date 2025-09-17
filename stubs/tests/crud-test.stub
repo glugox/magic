@@ -1,0 +1,65 @@
+<?php
+
+use {{modelClassFull}};
+use App\Models\User;
+use function Pest\Laravel\{actingAs};
+
+/**
+* {{classDescription}}
+*/
+it('can list {{modelClassPlural}}', function () {
+
+    // Set up
+    $user = User::factory()->create();
+    actingAs($user);
+
+    // Act
+    $page = visit('{{modelHref}}');
+
+    // Assert
+    $page->assertSee('{{indexPageTitle}}');
+});
+
+it('can create {{modelClass}}', function () {
+
+    // Set up
+    $user = User::factory()->create();
+    actingAs($user);
+    // Act
+    visit('{{modelHref}}/create')
+            ->type('name', 'Test {{modelClass}}')
+            //->type('email', 'test@example.com')
+            //->select('status', 'online')
+            ->press('Create')
+            // Assert
+            ->assertPathIs('{{modelHref}}')
+            ->assertSee('Test {{modelClass}}');
+});
+
+it('can edit an {{modelClass}}', function () {
+
+    // Set up
+    $user = User::factory()->create();
+    ${{modelClassLower}} = {{modelClass}}::factory()->create();
+    actingAs($user);
+    // Act
+    visit("{{modelHref}}/{${{modelClassLower}}->id}/edit")
+        ->type('name', 'Updated {{modelClass}}')
+        ->press('Update')
+        // Assert
+        ->assertPathIs('{{modelHref}}')
+        ->assertSee('Updated {{modelClass}}');
+});
+
+it('can delete {{modelClass}}', function () {
+    // Set up
+    $user = User::factory()->create();
+    ${{modelClassLower}} = {{modelClass}}::factory()->create();
+    actingAs($user);
+    // Act
+    visit("{{modelHref}}/{${{modelClassLower}}->id}")
+        ->press("Delete");
+
+    // Assert the ${{modelClassLower}} is deleted
+    $this->assertDatabaseMissing('{{modelDbTable}}', ['id' => ${{modelClassLower}}->id]);
+});

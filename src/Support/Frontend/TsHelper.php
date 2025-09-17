@@ -217,7 +217,8 @@ class TsHelper
             comment: '.($field->comment !== null ? "'{$field->comment}'" : 'null').',
             sortable: '.($field->sortable ? 'true' : 'false').',
             searchable: '.($field->searchable ? 'true' : 'false').',
-            values: '.$this->writeValue($field->values ?? []).'
+            values: '.$this->writeValue($field->values ?? []).',
+            hidden: '.($field->hidden ? 'true' : 'false').',
         }';
     }
 

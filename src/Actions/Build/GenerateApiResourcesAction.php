@@ -73,7 +73,7 @@ class GenerateApiResourcesAction implements DescribableAction
 
         // Determine fields to include in resource
         // Prefer table-visible fields (skip relation columns)
-        $fields = $entity->getTableFieldsNames(skipRelations: true);
+        $fields = $entity->getFormFieldsNames();
         if (empty($fields)) {
             // fallback: use all declared name fields or id
             $fields = $entity->getNameFieldsNames() ?: ['id'];
