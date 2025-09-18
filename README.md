@@ -13,8 +13,7 @@ With Magic, you can build full-featured Laravel applications directly from confi
 
 Watch on YouTube:
 
-[![Watch the video](https://img.youtube.com/vi/4nD5k1bXGmA/hqdefault.jpg)](https://www.youtube.com/watch?v=8DZjpWIrGAE)
-
+[![YouTube Demo](https://img.shields.io/badge/YouTube-Demo-red?logo=youtube&logoColor=white)](https://youtu.be/8DZjpWIrGAE)
 ---
 
 ## 🔧 How it works
