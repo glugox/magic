@@ -10,6 +10,11 @@ It streamlines tasks like database migrations, seeding, and realistic data gener
 
 With Magic, you can build full-featured Laravel applications directly from configuration files, eliminating repetitive boilerplate and speeding up development.
 
+
+Watch on YouTube:
+
+[![Watch the video](https://img.youtube.com/vi/4nD5k1bXGmA/hqdefault.jpg)](https://www.youtube.com/watch?v=8DZjpWIrGAE)
+
 ---
 
 ## 🔧 How it works
