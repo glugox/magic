@@ -24,12 +24,8 @@ class InstallApiCommand implements DescribableAction
         // Log section title
         $this->logInvocation($this->describe()->name);
 
-        // Check if api already installed
-        $file = __DIR__.'/../../../stubs/laravel/bootstrap/app.php';
-        $contents = file_get_contents($file);
-
         // Check if "api:" already exists in withRouting
-        if (preg_match('/->withRouting\s*\([^)]*api:/m', $contents)) {
+        if (self::isApiInstalled()) {
             Log::channel('magic')->info('API routing already registered in bootstrap/app.php. Skipping install:api command.');
 
             return $context;
@@ -50,6 +46,26 @@ class InstallApiCommand implements DescribableAction
         return $context;
     }
 
+
+    public static function isApiInstalled(): bool
+    {
+        $file = base_path('bootstrap/app.php');
+
+        /** @var string $contents */
+        $contents = file_get_contents($file);
+
+        // Capture the withRouting(...) block
+        if (preg_match('/->withRouting\s*\((.*?)\)/s', $contents, $matches)) {
+            $args = $matches[1];
+
+            // Check if api: is already defined
+            if (! str_contains($args, 'api:')) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public static function replaceApiRegistration(string $contents): string
     {
         // Capture the withRouting(...) block
@@ -62,23 +78,26 @@ class InstallApiCommand implements DescribableAction
         api: __DIR__ . '/../routes/api.php',
         apiPrefix: 'api',";
 
-                $contents = str_replace($matches[0], "->withRouting(\n$newArgs\n)", $contents);
-
-                return $contents;
+                return str_replace($matches[0], "->withRouting(\n$newArgs\n)", $contents);
             }
-            Log::channel('magic')->info('API routing already registered in '.$bootstrapPath.', skipping...');
+            Log::channel('magic')->info('API routing already registered in '.base_path('bootstrap/app.php').', skipping...');
 
         } else {
-            Log::channel('magic')->error('Could not locate withRouting() block in '.$bootstrapPath);
+            Log::channel('magic')->error('Could not locate withRouting() block in '.base_path('bootstrap/app.php'));
         }
 
         return $contents;
     }
 
+    /**
+     * Ensure that the API routing is registered in bootstrap/app.php
+     */
     private function registerApiRouting(): void
     {
         Log::channel('magic')->info('Ensuring API routing is registered in bootstrap/app.php');
         $file = base_path('bootstrap/app.php');
+
+        /** @var string $contents */
         $contents = file_get_contents($file);
 
         $contents = self::replaceApiRegistration($contents);
