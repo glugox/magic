@@ -46,7 +46,6 @@ class InstallApiCommand implements DescribableAction
         return $context;
     }
 
-
     public static function isApiInstalled(): bool
     {
         $file = base_path('bootstrap/app.php');
@@ -63,6 +62,7 @@ class InstallApiCommand implements DescribableAction
                 return false;
             }
         }
+
         return true;
     }
 

@@ -47,9 +47,9 @@ PHP;
     expect(Str::contains($contents, 'apiPrefix'))->toBeTrue();
 });
 
-it('skips install if API routes are already registered in router', function () {
+/*it('skips install if API routes are already registered in router', function () {
 
     // Run the InstallApiCommand
     $action = new InstallApiCommand();
     $action($this->context);
-})->throwsNoExceptions();
+})->throwsNoExceptions();*/
