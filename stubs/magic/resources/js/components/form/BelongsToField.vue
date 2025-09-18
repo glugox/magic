@@ -124,8 +124,9 @@ const mode = import.meta.env.MODE;
 <template>
     <BaseField v-bind="props">
         <template #default>
+
             <!-- Hidden select for Pest/browser tests -->
-            <select :name="props.field.name" v-model="model" data-test="select-{{props.field.name}}">
+            <select v-if="mode=='development'" :name="props.field.name" v-model="model" data-test="select-{{props.field.name}}">
                 <option v-for="item in options" :key="item.id" :value="item.id">{{ item.name }}</option>
             </select>
 
