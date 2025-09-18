@@ -6,6 +6,8 @@ use Glugox\Magic\Tests\TestCase;
 
 uses(TestCase::class)->in('Feature', 'Unit');
 
+uses(TestCase::class)->in('Browser');
+
 /**
  * If we pass "fixtures/config.json",
  * then this method will assure we have sample config stored there.

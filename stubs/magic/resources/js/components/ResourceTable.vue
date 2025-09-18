@@ -1,11 +1,16 @@
 <script setup lang="ts" generic="T">
-import {defineProps, ref} from "vue"
+import {defineProps, ref, onMounted} from "vue"
 import { useResourceTable } from "@/composables/useResourceTable"
 import {Entity, DbId, TableFilters, PaginatedResponse, Controller, Column, ResourceData} from "@/types/support"
 import Toolbar from "@/components/resource-table/toolbar/Toolbar.vue";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import {ColumnDef, FlexRender} from "@tanstack/vue-table";
 import Pagination from "@/components/resource-table/Pagination.vue";
+import { usePage } from '@inertiajs/vue3';
+import { Toaster } from '@/components/ui/sonner'
+import { toast } from "vue-sonner"
+import 'vue-sonner/style.css' // vue-sonner v2 requires this impor
+
 
 export interface ResourceTableProps<T> {
     entity: Entity
@@ -15,12 +20,26 @@ export interface ResourceTableProps<T> {
     filters?: TableFilters
     controller: Controller
 }
+
 const props = defineProps<ResourceTableProps<T>>()
 const {
     table, rows, page, perPage, total, search, selectedIds,
     performBulkAction, bulkActionProcessing
 } = useResourceTable(props)
 
+const inertiaPage = usePage()
+
+onMounted(() => {
+    if(inertiaPage.props.flash.success) {
+        toast(inertiaPage.props.flash.success, {
+            description: '',
+            action: {
+                label: 'Undo',
+                onClick: () => console.log('Undo'),
+            },
+        })
+    }
+})
 
 const setColumnsVisibility = (visibleColumns: string[]) => {
     props.columns.forEach(column => {
@@ -30,6 +49,7 @@ const setColumnsVisibility = (visibleColumns: string[]) => {
 </script>
 
 <template>
+    <Toaster /><Toaster />
     <Toolbar
         class="mb-2"
         @update:search="value => search = value"

@@ -43,32 +43,46 @@ class InstallApiCommand implements DescribableAction
             ]
         );
 
+        $this->registerApiRouting();
+
         Log::channel('magic')->info('Finished install:api command.');
 
         return $context;
     }
 
-    /*private function registerApiRouting(): void
+    public static function replaceApiRegistration(string $contents): string
+    {
+        // Capture the withRouting(...) block
+        if (preg_match('/->withRouting\s*\((.*?)\)/s', $contents, $matches)) {
+            $args = $matches[1];
+
+            // Check if api: is already defined
+            if (! str_contains($args, 'api:')) {
+                $newArgs = mb_rtrim($args, ", \n").",
+        api: __DIR__ . '/../routes/api.php',
+        apiPrefix: 'api',";
+
+                $contents = str_replace($matches[0], "->withRouting(\n$newArgs\n)", $contents);
+
+                return $contents;
+            }
+            Log::channel('magic')->info('API routing already registered in '.$bootstrapPath.', skipping...');
+
+        } else {
+            Log::channel('magic')->error('Could not locate withRouting() block in '.$bootstrapPath);
+        }
+
+        return $contents;
+    }
+
+    private function registerApiRouting(): void
     {
         Log::channel('magic')->info('Ensuring API routing is registered in bootstrap/app.php');
         $file = base_path('bootstrap/app.php');
         $contents = file_get_contents($file);
 
-        // Safer check: does "api:" already exist in withRouting?
-        if (! preg_match('/->withRouting\s*\([^)]*api:/m', $contents)) {
-            $contents = preg_replace(
-                '/->withRouting\s*\(([^)]*)\)/s',
-                '->withRouting($1
-            api: __DIR__.\'/../routes/api.php\',
-            apiPrefix: \'api\')',
-                $contents,
-                1
-            );
-
-            file_put_contents($file, $contents);
-            Log::channel('magic')->info('Registered API routing in bootstrap/app.php');
-        } else {
-            Log::channel('magic')->info('API routing already registered, skipping...');
-        }
-    }*/
+        $contents = self::replaceApiRegistration($contents);
+        file_put_contents($file, $contents);
+        Log::channel('magic')->info('Registered API routing in bootstrap/app.php');
+    }
 }

@@ -118,7 +118,7 @@ const fetchOptions = async (query: string = '') => {
         isLoading.value = false
     }
 }
-const mode = import.meta.env.MODE;
+
 </script>
 
 <template>
@@ -126,10 +126,9 @@ const mode = import.meta.env.MODE;
         <template #default>
 
             <!-- Hidden select for Pest/browser tests -->
-            <select v-if="mode=='development'" :name="props.field.name" v-model="model" data-test="select-{{props.field.name}}">
+            <select class="sr-only" :name="props.field.name" v-model="model" data-test="select-{{props.field.name}}">
                 <option v-for="item in options" :key="item.id" :value="item.id">{{ item.name }}</option>
             </select>
-
             <!-- Fancy UI combo box -->
             <Combobox v-model="selectedOption" by="id">
                 <ComboboxAnchor class="w-[300px]" as-child>

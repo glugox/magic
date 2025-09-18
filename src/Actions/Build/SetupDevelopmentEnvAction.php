@@ -31,7 +31,7 @@ import axios from "axios";
 if (import.meta.env.DEV) {
     // Add a global delay to simulate slow server
     axios.interceptors.request.use(async (config) => {
-        await new Promise((resolve) => setTimeout(resolve, 1500)) // 1.5s delay
+        await new Promise((resolve) => setTimeout(resolve, 600)) // delay
         return config
     })
 }
@@ -57,6 +57,56 @@ EOT;
             Log::channel('magic')->info("Slow server simulation snippet already exists in $mainFilePath");
         }
 
+        // Enable Pest RefreshDatabase trait for browser tests
+        $this->enablePestRefreshDatabase();
+
         return $context;
+    }
+
+    /**
+     * Adds
+     *
+     * pest()->extend(Tests\TestCase::class)
+     * ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
+     * ->in('Browser');
+     *
+     * In tests/Pest.php
+     */
+    private function enablePestRefreshDatabase(): void
+    {
+        $pestFilePath = base_path('tests/Pest.php');
+        if (! file_exists($pestFilePath)) {
+            Log::channel('magic')->warning(
+                "Pest.php file not found in tests directory. Please add the following snippet manually to enable RefreshDatabase trait for browser tests:\n\n".
+                "pest()->extend(Tests\\TestCase::class)\n->use(Illuminate\\Foundation\\Testing\\RefreshDatabase::class)\n->in('Browser');"
+            );
+
+            return;
+        }
+
+        $pestFileContent = file_get_contents($pestFilePath);
+        $snippet = <<<'EOT'
+pest()->extend(Tests\TestCase::class)
+    ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
+    ->in('Browser');
+EOT;
+
+        // Check if snippet already exists
+        if (str_contains($pestFileContent, '->in(\'Browser\')')) {
+            Log::channel('magic')->info('RefreshDatabase trait snippet already exists in Pest.php');
+
+            return;
+        }
+
+        // Insert snippet immediately after <?php
+        $newContent = preg_replace(
+            '/^<\?php\s*/',
+            "<?php\n\n".$snippet."\n\n",
+            $pestFileContent,
+            1
+        );
+
+        file_put_contents($pestFilePath, $newContent);
+        Log::channel('magic')->info('Added RefreshDatabase trait snippet to Pest.php');
     }
 }

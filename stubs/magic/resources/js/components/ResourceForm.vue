@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import {computed, ref} from 'vue'
+import {computed, ref, onMounted} from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { Button } from '@/components/ui/button'
 import { Entity } from '@/types/support'
 import FieldRenderer from '@/components/form/FieldRenderer.vue'
 import { DbId } from "../types/support"
 import {Loader} from "lucide-vue-next";
+import { usePage } from '@inertiajs/vue3';
+import { Toaster } from '@/components/ui/sonner'
+import { toast } from "vue-sonner"
+import 'vue-sonner/style.css'
 
 // Props
 const { item, entity, controller, parentEntity, parentId } = defineProps<{
@@ -24,6 +28,14 @@ entity.fields.forEach((field: any) => {
 
 // Inertia form
 const form = useForm(initialData)
+const inertiaPage = usePage()
+
+onMounted(() => {
+    console.log(inertiaPage.props.flash)
+    if(inertiaPage.props.flash.success) {
+
+    }
+})
 
 // Decide CRUD action URL
 const formAction = computed(() => {
@@ -57,9 +69,17 @@ const crudActionType = computed(() => (item ? 'update' : 'create'))
 // Submit handler
 async function submit() {
     if (!item?.id) {
-        form.post(formAction.value)
+        form.post(formAction.value, {
+            onFinish: () => {
+                showToastMessage(entity.singularName + " created successfully");
+            },
+        })
     } else {
-        form.put(formAction.value)
+        form.put(formAction.value, {
+            onFinish: () => {
+                showToastMessage(entity.singularName + " updated successfully");
+            },
+        })
     }
 }
 
@@ -70,9 +90,20 @@ function destroy() {
     form.delete(deleteAction.value)
     //}
 }
+
+function showToastMessage(message: string) {
+    toast(message, {
+        description: '',
+        action: {
+            label: 'Undo',
+            onClick: () => console.log('Undo'),
+        },
+    })
+}
 </script>
 
 <template>
+    <Toaster /><Toaster />
     <form @submit.prevent="submit" class="space-y-6">
         <FieldRenderer
             v-for="field in entity.fields"
@@ -101,17 +132,6 @@ function destroy() {
             </Button>
 
             <Loader v-if="form.processing" class="w-4 h-4 mr-2 animate-spin" />
-
-            <Transition
-                enter-active-class="transition ease-in-out"
-                enter-from-class="opacity-0"
-                leave-active-class="transition ease-in-out"
-                leave-to-class="opacity-0"
-            >
-                <p v-show="form.recentlySuccessful" class="text-sm text-neutral-600">
-                    {{entity.singularName}} updated successfully.
-                </p>
-            </Transition>
         </div>
     </form>
 </template>

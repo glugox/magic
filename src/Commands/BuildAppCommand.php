@@ -38,6 +38,7 @@ class BuildAppCommand extends MagicBaseCommand
         }
 
         // V2 - Actions
+        // @phpstan-ignore-next-line
         $buildContext = app(GenerateAppAction::class)($this->options());
         if ($buildContext->hasErrors()) {
             Log::channel('magic')->error('Build failed: '.$buildContext->error());

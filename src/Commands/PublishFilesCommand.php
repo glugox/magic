@@ -20,7 +20,7 @@ class PublishFilesCommand extends MagicBaseCommand
 
     protected $description = 'Publish Magic files to the Laravel application';
 
-    public function handle()
+    public function handle(): int
     {
         Log::channel('magic')->info('Starting Magic file publishing...');
 

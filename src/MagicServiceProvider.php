@@ -2,6 +2,9 @@
 
 namespace Glugox\Magic;
 
+use Glugox\Magic\Actions\Build\InstallComposerPackagesAction;
+use Glugox\Magic\Actions\Build\InstallNodePackagesAction;
+use Glugox\Magic\Actions\Build\SetupDevelopmentEnvAction;
 use Glugox\Magic\Commands\BuildAppCommand;
 use Glugox\Magic\Commands\BuildControllersCommand;
 use Glugox\Magic\Commands\BuildMigrationsCommand;
@@ -15,9 +18,11 @@ use Glugox\Magic\Commands\PublishFilesCommand;
 use Glugox\Magic\Commands\ResetAppCommand;
 use Glugox\Magic\Commands\ResetByManifestCommand;
 use Glugox\Magic\Commands\ResetLaravelCommand;
+use Glugox\Magic\Commands\RunActionCommand;
 use Glugox\Magic\Commands\SuggestionsCommand;
 use Glugox\Magic\Commands\VueSidebarUpdaterCommand;
 use Glugox\Magic\Helpers\ValidationHelper;
+use Glugox\Magic\Support\ActionRegistry;
 use Glugox\Magic\Support\CodeGenerationHelper;
 use Glugox\Magic\Support\Frontend\TsHelper;
 use Glugox\Magic\Support\Log\LogIndentTap;
@@ -55,6 +60,7 @@ class MagicServiceProvider extends ServiceProvider
                 SuggestionsCommand::class,
                 ListSamplesCommand::class,
                 ResetByManifestCommand::class,
+                RunActionCommand::class,
             ]);
         }
     }
@@ -78,6 +84,20 @@ class MagicServiceProvider extends ServiceProvider
         $this->app->singleton(TypeHelper::class);
         $this->app->singleton(TsHelper::class);
         $this->app->singleton(ValidationHelper::class);
+
+        $this->app->singleton(ActionRegistry::class, function () {
+            $registry = new ActionRegistry();
+
+            // Register built-in actions
+            $registry->register('install_composer_packages', InstallComposerPackagesAction::class);
+            $registry->register('install_node_packages', InstallNodePackagesAction::class);
+            $registry->register('setup_development_env', SetupDevelopmentEnvAction::class);
+
+            // In the future, add more...
+            // $registry->register('sync_models', SyncModelsAction::class);
+
+            return $registry;
+        });
     }
 
     /**

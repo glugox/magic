@@ -20,12 +20,24 @@ class InstallNodePackagesAction implements DescribableAction
 {
     use AsDescribableAction, CanLogSectionTitle;
 
+    /**
+     * List of npm packages to ensure are installed.
+     * Each entry can be a package name or a package with version (e.g., 'playwright@latest').
+     *
+     * @var string[]
+     */
     protected array $npmPackages = [
         'axios',
-        // 'dayjs',
+        'playwright@latest',
         // add more npm packages here...
     ];
 
+    /**
+     * List of shadcn-vue components to ensure are installed.
+     * Each entry is the component name as used in the shadcn-vue CLI.
+     *
+     * @var string[]
+     */
     protected array $shadcnComponents = [
 
         'calendar',
@@ -36,10 +48,21 @@ class InstallNodePackagesAction implements DescribableAction
         'pagination',
         'popover',
         'select',
+        'sonner',
         'switch',
         'table',
         'textarea',
         // add more components here...
+    ];
+
+    /**
+     * Post-install commands to run after packages/components installation.
+     * Each command is a string that will be split into an array for execution.
+     *
+     * @var string[]
+     */
+    protected array $postInstallCommands = [
+        'npx playwright install'
     ];
 
     public function __invoke(BuildContext $context): BuildContext
@@ -93,6 +116,8 @@ class InstallNodePackagesAction implements DescribableAction
 
         Log::channel('magic')->info('All Node.js dependencies are up to date!');
 
+        $this->runPostInstallCommands($context);
+
         return $context;
     }
 
@@ -134,5 +159,32 @@ class InstallNodePackagesAction implements DescribableAction
         if (! $process->isSuccessful()) {
             throw new ProcessFailedException($process);
         }
+    }
+
+    /**
+     * Run any post-install commands if needed.
+     * Run all in $this->postInstallCommands array.
+     */
+    private function runPostInstallCommands(BuildContext $context): void
+    {
+        if (empty($this->postInstallCommands)) {
+            Log::channel('magic')->info('No post-install commands to run.');
+
+            return;
+        }
+
+        foreach ($this->postInstallCommands as $commandString) {
+            Log::channel('magic')->info("Running post-install command: {$commandString}");
+
+            // Convert string into an array of arguments
+            $command = explode(' ', $commandString);
+
+            $this->runProcess(
+                $command,
+                "Executing post-install command: {$commandString}..."
+            );
+        }
+
+        Log::channel('magic')->info('All post-install commands executed successfully.');
     }
 }

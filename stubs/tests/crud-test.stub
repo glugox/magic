@@ -41,7 +41,8 @@ it('can create {{modelClass}}', function () {
             {{formFieldsCodeCreate}}
             ->press('Create')
             // Assert
-            ->assertPathIs('{{modelHref}}');
+            ->assertPathIs('{{modelHref}}')
+            ->assertSee('{{modelClass}} created');
 
     // Assert the ${{modelClassLower}} is created
     // We need to ensure we always have name or get the main field with which we can identify the created model
@@ -66,7 +67,10 @@ it('can delete {{modelClass}}', function () {
     ${{modelClassLower}} = {{modelClass}}::factory()->create();
     // Act
     visit("{{modelHref}}/{${{modelClassLower}}->id}")
-        ->press("Delete");
+        ->press("Delete")
+        // Assert
+        ->assertPathIs("{{modelHref}}")
+        ->assertSee('{{modelClass}} deleted');
 
     // Assert the ${{modelClassLower}} is deleted
     $this->assertDatabaseMissing('{{modelDbTable}}', ['id' => ${{modelClassLower}}->id]);
