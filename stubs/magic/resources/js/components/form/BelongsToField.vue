@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { Check, ChevronsUpDown, PlusCircleIcon } from 'lucide-vue-next'
-import { onMounted, ref, watch } from 'vue'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
+import { Check, ChevronsUpDown, PlusCircleIcon } from 'lucide-vue-next';
+import { onMounted, ref, watch } from 'vue';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
     Combobox,
     ComboboxAnchor,
@@ -13,118 +13,134 @@ import {
     ComboboxItemIndicator,
     ComboboxList,
     ComboboxSeparator,
-    ComboboxTrigger
-} from '@/components/ui/combobox'
-import BaseField from "@/components/form/BaseField.vue"
-import { useApi } from "@/composables/useApi"
-import {FormFieldProps} from "@/types/support";
-import {Link} from "@inertiajs/vue3";
+    ComboboxTrigger,
+} from '@/components/ui/combobox';
+import BaseField from '@/components/form/BaseField.vue';
+import { useApi } from '@/composables/useApi';
+import { FormFieldProps, Relation } from '@/types/support';
+import { Link } from '@inertiajs/vue3';
 
 interface Option extends Record<string, any> {
-    id: string
-    name: string
-    [key: string]: any
+    id: string;
+    name: string;
+    [key: string]: any;
 }
 
-const props = defineProps<FormFieldProps>()
-const emit = defineEmits(['update:modelValue'])
-const { get } = useApi()
+const props = defineProps<FormFieldProps>();
+/*const emit = defineEmits(
+    ['update:modelValue']
+)*/
 
-const model = ref<string | null>(props.modelValue ? String(props.modelValue) : null)
-const selectedOption = ref<Option | null>(null)
-const searchQuery = ref('')
-const isLoading = ref(false)
-const options = ref<Option[]>([])
-const lastQuery = ref<string>('')
+const emit = defineEmits<{
+    (e: 'update:modelValue', value: any): void;
+    (e: 'openRelated', entry: Relation): void;
+}>();
+
+const { get } = useApi();
+
+const model = ref<string | null>(props.modelValue ? String(props.modelValue) : null);
+const selectedOption = ref<Option | null>(null);
+const searchQuery = ref('');
+const isLoading = ref(false);
+const options = ref<Option[]>([]);
+const lastQuery = ref<string>('');
 
 // Get relation metadata
-const relationMetadata = props.entity.relations.find(r => r.foreignKey === props.field.name)
-const modelNameSingular = relationMetadata?.relatedEntityName
-const placeholderLoaded = ref("Select "+modelNameSingular+"...")
+const relationMetadataRaw = props.entity.relations.find((r) => r.foreignKey === props.field.name);
+if (!relationMetadataRaw) {
+    throw new Error(`Relation metadata not found for field: ${props.field.name}`);
+}
+const relationMetadata: Relation = relationMetadataRaw; // now TypeScript knows it's not null
 
-const normalize = (d: any) => ({ ...d, id: String(d.id) })
+const modelNameSingular = relationMetadata.relatedEntityName;
+const placeholderLoaded = ref('Select ' + modelNameSingular + '...');
+
+const normalize = (d: any) => ({ ...d, id: String(d.id) });
 
 onMounted(async () => {
     // Fetch initial record by ID
     if (model.value) {
-        const res = await get(`/${relationMetadata?.apiPath}/${model.value}`)
-        const record = res?.data ?? res
+        const res = await get(`/${relationMetadata.apiPath}/${model.value}`);
+        const record = res?.data ?? res;
         if (record) {
-            const normalized = normalize(record)
-            selectedOption.value = normalized
+            const normalized = normalize(record);
+            selectedOption.value = normalized;
             // ensure it’s in options
-            if (!options.value.find(o => o.id === normalized.id)) {
-                options.value.unshift(normalized)
+            if (!options.value.find((o) => o.id === normalized.id)) {
+                options.value.unshift(normalized);
             }
         }
     }
 
     // Load default options
-    await fetchOptions()
-})
+    await fetchOptions();
+});
 
 // Watch selectedOption to sync modelValue
 watch(selectedOption, (val) => {
     if (val) {
-        model.value = val.id
-        emit('update:modelValue', val.id)
+        model.value = val.id;
+        emit('update:modelValue', val.id);
     } else {
-        model.value = null
-        emit('update:modelValue', null)
+        model.value = null;
+        emit('update:modelValue', null);
     }
-})
+});
 
 // Watch options to re-sync selectedOption reference
 watch(options, (list) => {
     if (selectedOption.value) {
-        const match = list.find(o => o.id === selectedOption.value!.id)
-        if (match) selectedOption.value = match
+        const match = list.find((o) => o.id === selectedOption.value!.id);
+        if (match) selectedOption.value = match;
     }
-})
+});
 
 // Debounced search
-let searchTimeout: any = null
+let searchTimeout: any = null;
 watch(searchQuery, (query) => {
-    clearTimeout(searchTimeout)
+    clearTimeout(searchTimeout);
     if (query && query.length > 1) {
-        searchTimeout = setTimeout(() => fetchOptions(query), 300)
+        searchTimeout = setTimeout(() => fetchOptions(query), 300);
     } else if (!query) {
-        fetchOptions()
+        fetchOptions();
     }
-})
+});
 
 const fetchOptions = async (query: string = '') => {
-    lastQuery.value = query
-    isLoading.value = true
+    lastQuery.value = query;
+    isLoading.value = true;
     try {
-        const res = await get(`/${relationMetadata?.apiPath}`, {
+        const res = await get(`/${relationMetadata.apiPath}`, {
             search: query,
             limit: '5',
-        })
+        });
 
-        if (lastQuery.value !== query) return // ignore stale results
+        if (lastQuery.value !== query) return; // ignore stale results
 
-        const list = ((res?.data ?? res)?.data ?? res?.data ?? []).map(normalize)
-        options.value = list
+        const list = ((res?.data ?? res)?.data ?? res?.data ?? []).map(normalize);
+        options.value = list;
 
         // keep selected visible if not in list
-        if (selectedOption.value && !list.find(o => o.id === selectedOption.value!.id)) {
-            options.value.unshift(selectedOption.value!)
+        if (selectedOption.value && !list.find((o) => o.id === selectedOption.value!.id)) {
+            options.value.unshift(selectedOption.value!);
         }
     } catch (e) {
-        console.error('Error fetching options:', e)
-        options.value = []
+        console.error('Error fetching options:', e);
+        options.value = [];
     } finally {
-        isLoading.value = false
+        isLoading.value = false;
     }
-}
+};
 
+const emitOpenRelatedForm = () => {
+    console.log('BelongsToField :: openRelatedForm', relationMetadata);
+    emit('openRelated', relationMetadata);
+};
 </script>
 
 <template>
     <BaseField v-bind="props">
         <template #default>
-
             <!-- Hidden select for Pest/browser tests -->
             <select class="sr-only" :name="props.field.name" v-model="model" data-test="select-{{props.field.name}}">
                 <option v-for="item in options" :key="item.id" :value="item.id">{{ item.name }}</option>
@@ -143,28 +159,19 @@ const fetchOptions = async (query: string = '') => {
                                     {{ selectedOption.name }}
                                 </div>
                             </template>
-                            <template v-else>
-                                Select {{ modelNameSingular }}...
-                            </template>
+                            <template v-else> Select {{ modelNameSingular }}... </template>
                             <ChevronsUpDown class="ml-2 size-4 shrink-0 opacity-50" />
                         </Button>
                     </ComboboxTrigger>
                 </ComboboxAnchor>
 
                 <ComboboxList class="w-[300px]">
-                    <ComboboxInput
-                        :placeholder="isLoading ? 'Loading...' : placeholderLoaded"
-                        v-model="searchQuery"
-                    />
+                    <ComboboxInput :placeholder="isLoading ? 'Loading...' : placeholderLoaded" v-model="searchQuery" />
 
                     <ComboboxEmpty>No {{ modelNameSingular }} found.</ComboboxEmpty>
 
                     <ComboboxGroup>
-                        <ComboboxItem
-                            v-for="item in options"
-                            :key="item.id"
-                            :value="item"
-                        >
+                        <ComboboxItem v-for="item in options" :key="item.id" :value="item">
                             <Avatar class="size-5">
                                 <AvatarImage :src="`https://github.com/${item.name}.png`" />
                                 <AvatarFallback>{{ item.name[0] }}</AvatarFallback>
@@ -179,7 +186,14 @@ const fetchOptions = async (query: string = '') => {
                     <ComboboxSeparator />
 
                     <ComboboxGroup>
-                        <ComboboxItem :value="null">
+                        <ComboboxItem
+                            :value="null"
+                            @select="
+                                () => {
+                                    emitOpenRelatedForm();
+                                }
+                            "
+                        >
                             <PlusCircleIcon />
                             Create {{ modelNameSingular }}
                         </ComboboxItem>
@@ -189,10 +203,7 @@ const fetchOptions = async (query: string = '') => {
 
             <!-- link to edit related record -->
             <div v-if="selectedOption" class="mt-2">
-                <Link
-                    :href="`/${relationMetadata?.apiPath}/${selectedOption.id}/edit`"
-                    class="text-sm text-blue-600 hover:underline"
-                >
+                <Link :href="`/${relationMetadata.apiPath}/${selectedOption.id}/edit`" class="text-sm text-blue-600 hover:underline">
                     Edit this {{ modelNameSingular }}
                 </Link>
             </div>

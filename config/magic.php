@@ -11,6 +11,7 @@ return [
         // Entity specific types file
         // In which file we should keep entity specific types.
         'entity_types_file' => env('MAGIC_ENTITY_TYPES_FILE', resource_path('js/types/entities.ts')),
+        'entity_meta_file' => env('MAGIC_ENTITY_META_FILE', resource_path('js/types/entityMeta.ts')),
     ],
 
     // Prism default model

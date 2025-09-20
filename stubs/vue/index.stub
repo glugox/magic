@@ -23,7 +23,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const columns: ColumnDef<{{entityName}}>[] = get{{entityName}}Columns();
-const entity = get{{entityName}}EntityMeta();
 </script>
 
 <template>

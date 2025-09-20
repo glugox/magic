@@ -11,6 +11,7 @@
                 :is="fieldComponent"
                 :model-value="modelValue"
                 @update:model-value="emit('update:modelValue', $event)"
+                @open-related="$emit('openRelated', $event)"
                 :id="field.name"
                 :placeholder="field.placeholder"
                 class="w-full"
@@ -27,11 +28,14 @@ import {FormFieldProps} from "@/types/support";
 
 const props = defineProps<FormFieldProps>()
 
-const emit = defineEmits(["update:modelValue"])
+const emit = defineEmits<{
+    (e: 'update:modelValue', value: any): void;
+    (e: 'openRelated', entry: any): void;
+}>()
 
 // dummy validate function for slot
 function validate(value: any) {
-    console.log("validating", value)
+    console.log("validating::", value)
 }
 
 const fieldComponent = computed(() => {

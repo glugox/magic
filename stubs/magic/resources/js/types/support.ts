@@ -3,6 +3,23 @@ export type CrudActionType = 'create' | 'read' | 'update' | 'delete';
 // Define database Id type
 export type DbId = number;
 
+export interface FormEntry {
+    id: string
+    entity: Entity,
+    item: Record<string, any>
+    controller: Controller
+}
+
+/**
+ * A lightweight version of FormEntry used for logging and tracking purposes.
+ */
+export interface FormEntrySignature {
+    id: string
+    entityName: string
+    itemId: DbId | null
+    actionType: CrudActionType
+}
+
 export interface Field {
     name: string
     type: FieldType
@@ -32,6 +49,23 @@ export interface Relation {
     relatedKey?: string | null
     relationName?: string | null
     apiPath?: string | null
+}
+
+export interface RelationFull extends Relation {
+    // Full related entity object
+    relatedEntityObj: Entity;
+
+    // Optionally, the parent/local entity object
+    localEntityObj?: Entity;
+
+    // Actual item record (optional, if you need the instance being edited)
+    item?: Record<string, any>;
+
+    // For dialogs: controller to handle CRUD actions for this relation
+    controller: any;
+
+    // Optional title for dialog
+    title?: string;
 }
 
 export interface ValidationRuleSet {
@@ -65,6 +99,13 @@ export interface FormFieldProps {
     item?: Record<string, any>
     error?: string
 }
+
+/**
+ * Extend FormFieldProps to set relation as required
+ */
+/*export type FormFieldPropsWithRelation = FormFieldProps & {
+    relation: Relation
+}*/
 
 export interface PaginationObject {
     data: ResourceData[]

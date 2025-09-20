@@ -5,7 +5,7 @@ import HeadingSmall from '@/components/HeadingSmall.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import ResourceLayout from '@/layouts/resource/Layout.vue';
 import { type BreadcrumbItem, type NavItem } from '@/types';
-import ResourceForm from '@/components/ResourceForm.vue';
+import ResourceFormNested from '@/components/form/dialog/ResourceFormNested.vue';
 import { SquareMinus, Link, CornerDownRight, FolderTree, GitCompareArrows } from 'lucide-vue-next';
 {{entityImports}}
 {{supportImports}}
@@ -35,7 +35,6 @@ const sidebarNavItems: NavItem[] = [
 ];
 
 const page = usePage();
-const entity = get{{entityName}}EntityMeta();
 </script>
 
 <template>
@@ -44,7 +43,7 @@ const entity = get{{entityName}}EntityMeta();
         <ResourceLayout :title="item.data.name" description="{{entityName}}" :sidebar-nav-items="sidebarNavItems">
             <div class="flex flex-col space-y-6 max-w-2xl">
                 <HeadingSmall title="{{entityName}} information" description="Update {{entityName}} details" />
-                <ResourceForm
+                <ResourceFormNested
                     :entity="entity"
                     :item="item.data"
                     :controller="{{entityName}}Controller"

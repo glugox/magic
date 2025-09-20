@@ -92,24 +92,19 @@ class InstallNodePackagesAction implements DescribableAction
         }
 
         // 2. Install missing shadcn-vue components in one command
-        $missingComponents = array_filter($this->shadcnComponents, fn ($component) => ! $this->isShadcnInstalled($component));
+        $missingComponents = array_filter(
+            $this->shadcnComponents,
+            fn ($component) => ! $this->isShadcnInstalled($component)
+        );
 
         if (! empty($missingComponents)) {
             Log::channel('magic')->info('Installing missing shadcn-vue components: '.implode(', ', $missingComponents));
 
-            foreach ($missingComponents as $component) {
+            $this->runProcess(
+                array_merge(['/usr/local/bin/npx', 'shadcn-vue@latest', 'add'], $missingComponents, ['--yes']),
+                'Installing shadcn-vue components...'
+            );
 
-                if ($this->isShadcnInstalled($component)) {
-                    Log::channel('magic')->info("Component {$component} is already installed, skipping.");
-
-                    continue;
-                }
-
-                $this->runProcess(
-                    ['/usr/local/bin/npx', 'shadcn-vue@latest', 'add', $component],
-                    "Installing shadcn-vue component: {$component}..."
-                );
-            }
         } else {
             Log::channel('magic')->info('All shadcn-vue components are already installed.');
         }
@@ -130,9 +125,22 @@ class InstallNodePackagesAction implements DescribableAction
      */
     public function isShadcnInstalled(string $component): bool
     {
-        $uiPath = resource_path("js/components/ui/{$component}.vue");
+        $singleFile = resource_path("js/components/ui/{$component}.vue");
+        $componentDir = resource_path("js/components/ui/{$component}");
 
-        return file_exists($uiPath) || is_dir(resource_path("js/components/ui/{$component}"));
+        // Case 1: single file component exists
+        if (file_exists($singleFile)) {
+            return true;
+        }
+
+        // Case 2: directory component exists and has at least one .vue file
+        if (is_dir($componentDir)) {
+            $files = glob("{$componentDir}/*.vue");
+
+            return ! empty($files);
+        }
+
+        return false;
     }
 
     /**

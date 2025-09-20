@@ -3,6 +3,7 @@
         :is="fieldComponent"
         v-bind="props"
         @update:modelValue="updateModelValue"
+        @open-related="$emit('openRelated', $event)"
     />
 </template>
 
@@ -20,7 +21,10 @@ import DateTimeField from "@/components/form/DateTimeField.vue";
 import IdField from '@/components/form/IdField.vue';
 
 const props = defineProps<FormFieldProps>()
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits<{
+    (e: 'update:modelValue', value: any): void;
+    (e: 'openRelated', entry: any): void;
+}>()
 
 const componentsMap: Record<string, any> = {
     // ──────── Core Identifiers ────────

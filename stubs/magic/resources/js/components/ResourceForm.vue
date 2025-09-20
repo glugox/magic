@@ -1,109 +1,61 @@
 <script setup lang="ts">
-import {computed, ref, onMounted} from 'vue'
-import { useForm } from '@inertiajs/vue3'
-import { Button } from '@/components/ui/button'
-import { Entity } from '@/types/support'
-import FieldRenderer from '@/components/form/FieldRenderer.vue'
-import { DbId } from "../types/support"
-import {Loader} from "lucide-vue-next";
-import { usePage } from '@inertiajs/vue3';
-import { Toaster } from '@/components/ui/sonner'
-import { toast } from "vue-sonner"
-import 'vue-sonner/style.css'
+import { computed} from 'vue';
+import { useForm } from '@inertiajs/vue3';
+import FieldRenderer from '@/components/form/FieldRenderer.vue';
+import type { Entity, Relation, DbId } from '@/types/support';
+import { toast } from 'vue-sonner';
 
-// Props
-const { item, entity, controller, parentEntity, parentId } = defineProps<{
-    item?: Record<string, any>
-    entity: Entity
-    controller: any
-    parentEntity?: Entity
-    parentId?: DbId
-}>()
+const props = defineProps<{
+    item?: Record<string, any>;
+    entity: Entity;
+    controller: any;
+    parentEntity?: Entity;
+    parentId?: DbId;
+}>();
 
-// Build initial form data
-const initialData: Record<string, any> = {}
-entity.fields.forEach((field: any) => {
-    initialData[field.name] = item ? item[field.name] : field.default ?? ''
-})
+const emit = defineEmits<{
+    (e: 'openRelated', relation: Relation): void;
+}>();
 
-// Inertia form
-const form = useForm(initialData)
-const inertiaPage = usePage()
+const initialData: Record<string, any> = {};
+props.entity.fields.forEach((f) => {
+    initialData[f.name] = props.item?.[f.name] ?? f.default ?? '';
+});
 
-onMounted(() => {
-    console.log(inertiaPage.props.flash)
-    if(inertiaPage.props.flash.success) {
+const form = useForm(initialData);
 
-    }
-})
-
-// Decide CRUD action URL
+// Computed actions
 const formAction = computed(() => {
-    let args = {}
+    if (!props.item?.id) return props.controller.store({});
+    return props.controller.update([props.item.id]);
+});
+const deleteAction = computed(() => (props.item?.id ? props.controller.destroy(props.item.id) : null));
+const crudActionType = computed(() => (props.item ? 'update' : 'create'));
 
-    if (item?.id) {
-        args = [item.id]
-    }
-
-    const parentEntitySingularLower = parentEntity?.singularNameLower
-    if (parentId && parentEntitySingularLower) {
-        args = { [parentEntitySingularLower]: parentId }
-    }
-
-    if (!item?.id) {
-        return controller.store(args)
+// Expose submit & destroy for dialog buttons
+function submit() {
+    if (!props.item?.id) {
+        form.post(formAction.value, { onFinish: () => toast(`${props.entity.singularName} created`) });
     } else {
-        return controller.update(args)
-    }
-})
-
-// Decide delete action URL
-const deleteAction = computed(() => {
-    if (!item?.id) return null
-    return controller.destroy(item.id)
-})
-
-// Decide crud action type
-const crudActionType = computed(() => (item ? 'update' : 'create'))
-
-// Submit handler
-async function submit() {
-    if (!item?.id) {
-        form.post(formAction.value, {
-            onFinish: () => {
-                showToastMessage(entity.singularName + " created successfully");
-            },
-        })
-    } else {
-        form.put(formAction.value, {
-            onFinish: () => {
-                showToastMessage(entity.singularName + " updated successfully");
-            },
-        })
+        form.put(formAction.value, { onFinish: () => toast(`${props.entity.singularName} updated`) });
     }
 }
-
-// Delete handler
 function destroy() {
-    if (!deleteAction.value) return
-    //if (confirm("Are you sure you want to delete this item?")) {
-    form.delete(deleteAction.value)
-    //}
+    if (!deleteAction.value) return;
+    form.delete(deleteAction.value);
 }
 
-function showToastMessage(message: string) {
-    toast(message, {
-        description: '',
-        action: {
-            label: 'Undo',
-            onClick: () => console.log('Undo'),
-        },
-    })
+
+function handleOpenRelated(relation: Relation) {
+    console.log("ResourceForm:: Handle open related", relation);
+    emit('openRelated', relation);
 }
+
+// For v-slot
+defineExpose({ submit, destroy, processing: form.processing });
 </script>
 
 <template>
-    <Toaster /><Toaster />
     <form @submit.prevent="submit" class="space-y-6">
         <FieldRenderer
             v-for="field in entity.fields"
@@ -112,26 +64,20 @@ function showToastMessage(message: string) {
             :entity="entity"
             :error="form.errors[field.name]"
             v-model="form[field.name]"
-            :item="item"
             :crud-action-type="crudActionType"
+            @open-related="handleOpenRelated"
         />
 
-        <div class="flex items-center gap-4">
-            <Button :disabled="form.processing">
-                {{ !item?.id ? 'Create' : 'Update' }}
-            </Button>
+        <!-- Default inline buttons if no dialog footer slot is used -->
+        <div v-if="!$slots.footer" class="flex gap-4">
+            <button @click="submit" :disabled="form.processing" class="btn btn-primary">
+                {{ crudActionType === 'update' ? 'Update' : 'Create' }}
+            </button>
 
-            <Button
-                v-if="item?.id"
-                type="button"
-                variant="destructive"
-                :disabled="form.processing"
-                @click="destroy"
-            >
-                Delete
-            </Button>
-
-            <Loader v-if="form.processing" class="w-4 h-4 mr-2 animate-spin" />
+            <button v-if="props.item?.id" @click="destroy" :disabled="form.processing" class="btn btn-destructive">Delete</button>
         </div>
+
+        <!-- Slot for dialog footer buttons -->
+        <slot name="footer"></slot>
     </form>
 </template>

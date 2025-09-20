@@ -56,7 +56,7 @@ class PublishFilesAction implements DescribableAction
         $this->context = $context;
         Log::channel('magic')->info('Starting Magic file publishing...');
 
-        // Generate support files like types.ts and entity helpers
+        // Generate support files like types.ts and entity metas
         $this->generateSupportFiles();
 
         Log::channel('magic')->info('Magic file publishing complete!');
@@ -64,7 +64,7 @@ class PublishFilesAction implements DescribableAction
         return $context;
     }
 
-    public function getInitialColumnDef($indent = 0): string
+    public function getInitialColumnDef(int $indent = 0): string
     {
         return "{
             id: 'select',
@@ -85,12 +85,145 @@ class PublishFilesAction implements DescribableAction
 
     /**
      * Generate support files like types.ts.
+     *
+     * @throws ReflectionException
      */
-    private function generateSupportFiles()
+    private function generateSupportFiles(): void
     {
         $this->generateEntitiesTsFiles();
+        $this->generateEntitiesMetaTsFiles();
         $this->generateEntityHelperFiles();
         $this->copyMagicFiles();
+    }
+
+    /**
+     * Generate the entity metas file for all entities.
+     * Two-phase generation:
+     *  - Phase 1: declare all entity objects with fields and empty relations
+     *  - Phase 2: after all entities declared, assign relations using lazy references
+     */
+    private function generateEntitiesMetaTsFiles(): void
+    {
+        $path = config('magic.paths.entity_meta_file');
+
+        // Ensure the directory exists
+        File::ensureDirectoryExists(dirname($path));
+
+        $content = '';
+        $content .= "import {Entity} from '@/types/support';\n\n";
+        $content .= "let entities: Entity[] = [];\n\n";
+
+        // Phase 1: declare entity shells (fields present, relations empty)
+        foreach ($this->context->getConfig()->entities as $entity) {
+            $content .= $this->generateEntityMetaShell($entity);
+        }
+
+        // Phase 2: create relations assignments (lazy references)
+        foreach ($this->context->getConfig()->entities as $entity) {
+            $content .= $this->generateEntityMetaRelations($entity);
+        }
+
+        $exportNames = array_map(fn ($e) => Str::camel(Str::singular($e->getName())).'Entity', $this->context->getConfig()->entities);
+        $content .= "\nexport { ".implode(', ', $exportNames)." };\n";
+
+        // Write file
+        app(GenerateFileAction::class)($path, $content);
+        $this->context->registerGeneratedFile($path);
+    }
+
+    /**
+     * Generate the entity declaration with fields and empty relations.
+     */
+    private function generateEntityMetaShell(Entity $entity): string
+    {
+        $entityName = $entity->getName();
+        $entityVar = Str::camel(Str::singular($entityName));
+        $fieldsMeta = $this->getColumnsMeta($entity);
+
+        $content = <<<EOT
+const {$entityVar}Entity: Entity = {
+    name: '{$entityName}',
+    indexRouteName: '{$entity->getIndexRouteName()}',
+    singularName: '{$entity->getSingularName()}',
+    singularNameLower: '{$entityVar}',
+    pluralName: '{$entity->getPluralName()}',
+    fields: [
+        // Define fields for the entity
+        {$fieldsMeta}
+    ],
+    relations: []
+};
+entities.push({$entityVar}Entity);
+
+EOT;
+
+        return $content;
+    }
+
+    /**
+     * Generate relations assignment for an entity.
+     * This runs after all entities are declared so we can safely reference variables.
+     * Related entities are referenced lazily as () => relatedEntityVar to avoid circular init problems.
+     */
+    private function generateEntityMetaRelations(Entity $entity): string
+    {
+        $relations = $entity->getRelations();
+        if (empty($relations)) {
+            return '';
+        }
+
+        $entityVar = Str::camel(Str::singular($entity->getName()));
+        $entries = [];
+
+        foreach ($relations as $relation) {
+            $entries[] = $this->buildRelationEntry($entity, $relation);
+        }
+
+        $relationsBlock = implode(",\n    ", $entries);
+
+        return <<<EOT
+{$entityVar}Entity.relations = [
+    {$relationsBlock}
+];
+
+EOT;
+    }
+
+    /**
+     * Build a single relation entry string with safe (lazy) relatedEntity reference.
+     */
+    private function buildRelationEntry(Entity $entity, $relation): string
+    {
+        // Related entity name and its variable (e.g. teamEntity)
+        $relatedName = $relation->getRelatedEntityName();
+        $relatedVar = $relatedName ? Str::camel(Str::singular($relatedName)).'Entity' : 'null';
+
+        $relatedEntityRef = $relatedName ? "() => {$relatedVar}" : 'null';
+        $relatedEntityNameStr = $relatedName ? "'{$relatedName}'" : 'null';
+        $foreignKeyStr = $relation->getForeignKey() ? "'{$relation->getForeignKey()}'" : 'null';
+        $localKeyStr = $relation->getLocalKey() ? "'{$relation->getLocalKey()}'" : 'null';
+        $relatedKeyStr = $relation->getRelatedKey() ? "'{$relation->getRelatedKey()}'" : 'null';
+        $relationNameStr = $relation->getRelationName() ? "'{$relation->getRelationName()}'" : 'null';
+        $apiPathStr = $relation->getApiPath() ? "'{$relation->getApiPath()}'" : 'null';
+        $typeStr = $relation->getType() ? $relation->getType()->value : '';
+
+        // localEntityName is the owning entity name
+        $localEntityName = $entity->getName();
+
+        // Build JS object literal for relation
+        $entry = "{
+        type: '{$typeStr}',
+        localEntityName: '{$localEntityName}',
+        relatedEntity: {$relatedEntityRef},
+        relatedEntityName: {$relatedEntityNameStr},
+        foreignKey: {$foreignKeyStr},
+        localKey: {$localKeyStr},
+        relatedKey: {$relatedKeyStr},
+        relationName: {$relationNameStr},
+        apiPath: {$apiPathStr}
+    }";
+
+        return $entry;
     }
 
     /**
@@ -106,20 +239,19 @@ class PublishFilesAction implements DescribableAction
     {
         // This would be something like resources/js/types/entities.ts
         $path = config('magic.paths.entity_types_file');
-
         // Ensure the directory exists
         File::ensureDirectoryExists(dirname($path));
         $content = '';
 
         // Add imports
-        $content .= "import {ResourceData} from '@/types/support';\n";
+        $content .= "import {ResourceData} from '@/types/support';\n\n";
 
-        // Generate entity and field interfaces
-        $content .= "\n\n";
-        $fields = '';
+        // Generate entity interfaces
         foreach ($this->context->getConfig()->entities as $entity) {
             $entityName = $entity->getName();
             $content .= "export interface {$entityName} extends ResourceData {\n";
+
+            $fields = '';
             foreach ($entity->getTsFields() as $field) {
                 $tsType = $this->typeHelper->migrationTypeToTsType($field->type);
                 $fields .= "    {$field->name}: {$tsType->value};\n";
@@ -132,12 +264,31 @@ class PublishFilesAction implements DescribableAction
             }
 
             $content .= $fields."}\n\n";
-            $fields = ''; // Reset fields for next entity
         }
 
-        // Action call -- Use the GenerateFileAction to create or overwrite the file
+        // Write file
         app(GenerateFileAction::class)($path, $content);
         $this->context->registerGeneratedFile($path);
+    }
+
+    /**
+     * Generate the metadata for the entity columns (fields).
+     * It differs from the getColumnDef method in that it returns
+     * the metadata for the fields, not the column definitions
+     * that are strictly formatted for the table.
+     *
+     * @return string
+     */
+    private function getColumnsMeta(Entity $entity)
+    {
+        $fields = [];
+        $entityValidationRuleSet = $this->validationHelper->make($entity);
+        foreach ($entity->getFormFields() as $field) {
+            $fieldMeta = $this->tsHelper->writeFieldMeta($field, $entityValidationRuleSet);
+            $fields[] = $fieldMeta;
+        }
+
+        return implode(",\n            ", $fields);
     }
 
     /**
@@ -148,7 +299,7 @@ class PublishFilesAction implements DescribableAction
      *
      * @throws ReflectionException
      */
-    private function generateEntityHelperFiles()
+    private function generateEntityHelperFiles(): void
     {
         foreach ($this->context->getConfig()->entities as $entity) {
             $this->generateEntityHelperFile($entity);
@@ -158,7 +309,7 @@ class PublishFilesAction implements DescribableAction
     /**
      * Generate a helper file for a specific entity.
      */
-    private function generateEntityHelperFile(Entity $entity)
+    private function generateEntityHelperFile(Entity $entity): void
     {
         $entityName = $entity->getName();
         $entitySingularLower = Str::camel(Str::singular($entity->getName()));
@@ -187,70 +338,15 @@ export function get{$entityName}Columns(): ColumnDef<{$entityName}>[] {
         {$this->getColumnDef($entity, 8)}
     ];
 }
-
-export function get{$entityName}EntityMeta(): Entity {
-    return {
-        name: '{$entityName}',
-        indexRouteName: '{$entity->getIndexRouteName()}',
-        singularName: '{$entity->getSingularName()}',
-        singularNameLower: '{$entitySingularLower}',
-        pluralName: '{$entity->getPluralName()}',
-        fields: [
-            // Define fields for the entity
-            {$this->getColumnsMeta($entity)}
-        ],
-        relations: [
-            // Define relations for the entity
-            {$this->getRelationsMeta($entity)}
-        ],
-    };
-}
-
 EOT;
         app(GenerateFileAction::class)($path, $content);
         $this->context->registerGeneratedFile($path);
     }
 
     /**
-     * Generate the metadata for the entity columns.
-     * It differs from the getColumnDef method in that it returns
-     * the metadata for the fields, not the column definitions
-     * that are strict formatted for the table.
-     *
-     * @return string
-     */
-    private function getColumnsMeta(Entity $entity)
-    {
-        $fields = [];
-        $entityValidationRuleSet = $this->validationHelper->make($entity);
-        foreach ($entity->getFormFields() as $field) {
-            $fieldMeta = $this->tsHelper->writeFieldMeta($field, $entityValidationRuleSet);
-            $fields[] = $fieldMeta;
-        }
-
-        return implode(",\n            ", $fields);
-    }
-
-    /**
-     * Generate the metadata for the entity relations.
-     *
-     * @return string
-     */
-    private function getRelationsMeta(Entity $entity)
-    {
-        $relations = [];
-        foreach ($entity->getRelations() as $relation) {
-            $relationMeta = $this->tsHelper->writeRelationMeta($entity, $relation);
-            $relations[] = $relationMeta;
-        }
-
-        return implode(",\n            ", $relations);
-    }
-
-    /**
      * Generate the column definition for the entity.
      */
-    private function getColumnDef(Entity $entity, $indent = 0): string
+    private function getColumnDef(Entity $entity, int $indent = 0): string
     {
         $columns = [];
 
@@ -278,7 +374,6 @@ EOT;
 
     /**
      * Copy Vue files from the package to the resources/js directory.
-     * This is a placeholder for future implementation.
      */
     private function copyMagicFiles(): void
     {
@@ -288,6 +383,5 @@ EOT;
         // Use the CopyDirectoryAction to copy files
         $filesCopied = app(CopyDirectoryAction::class)($source, $destination);
         $this->context->registerGeneratedFile($filesCopied);
-
     }
 }

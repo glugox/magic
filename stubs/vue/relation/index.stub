@@ -42,8 +42,6 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 const columns: ColumnDef<{{relatedEntityName}}>[] = get{{relatedEntityName}}Columns();
-const entity = get{{relatedEntityName}}EntityMeta();
-const parentEntity = get{{mainEntityName}}EntityMeta();
 const sidebarNavItems: NavItem[] = [
     {
         title: 'General Information',
@@ -68,9 +66,9 @@ onMounted(() => {
                <div v-if="showCreateForm" class="flex flex-col space-y-6 max-w-2xl">
                    <HeadingSmall title="Add new {{relatedEntityName}}" description="Fill {{relatedEntityName}} details" />
                    <ResourceForm
-                       :entity="entity"
+                       :entity="relatedEntity"
                        :controller="{{controllerClass}}"
-                       :parent-entity="get{{mainEntityName}}EntityMeta()"
+                       :parent-entity="entity"
                        :parent-id="item.data.id"
                        :item="{{{foreignKey}}: item.data.id}"
                    />
@@ -81,7 +79,7 @@ onMounted(() => {
                        :data="{{relationName}}"
                        :parent-id="item.data.id"
                        :columns="columns as ColumnDef<ResourceData>[]"
-                       :entity="entity"
+                       :entity="relatedEntity"
                        :filters="currentFilters"
                        :controller="{{controllerClass}}"
                    />

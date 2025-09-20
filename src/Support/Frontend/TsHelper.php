@@ -13,6 +13,7 @@ use Glugox\Magic\Support\Frontend\Renderers\Cell\Renderer;
 use Glugox\Magic\Support\TypeHelper;
 use Glugox\Magic\Validation\EntityRuleSet;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class TsHelper
 {
@@ -43,7 +44,13 @@ class TsHelper
         ], $options);
 
         if ($options['model']) {
+
+            // import { type User } from '@/types/entities';
             $imports[] = "import { type {$entity->name} } from '@/types/entities';";
+
+            // import { ticketEntity } from '@/types/entityMeta'
+            $entityMetaVar = Str::camel($entity->getName()).'Entity';
+            $imports[] = "import { {$entityMetaVar} as entity } from '@/types/entityMeta';";
         }
         if ($options['controller']) {
             $controllerClass = $entity->name.'Controller';
@@ -65,7 +72,7 @@ class TsHelper
     {
         $imports = [
             // Eg. import { getUserColumns, getUserEntityMeta } from '@/helpers/users_helper';
-            "import { get{$entity->name}Columns, get{$entity->name}EntityMeta } from '@/helpers/{$entity->getFolderName()}_helper'",
+            "import { get{$entity->name}Columns } from '@/helpers/{$entity->getFolderName()}_helper'",
             "import { type PaginatedResponse, type TableFilters } from '@/types/support';"
         ];
 
@@ -77,9 +84,10 @@ class TsHelper
      */
     public function writeFormPageSupportImports(Entity $entity): string
     {
+        $entityMetaVar = Str::camel($entity->getName()).'Entity';
+
         $imports = [
-            // Eg. import { getUserColumns, getUserEntityMeta } from '@/helpers/users_helper';
-            "import { get{$entity->name}EntityMeta } from '@/helpers/{$entity->getFolderName()}_helper'",
+            // "import { {$entityMetaVar} as entity } from '@/types/entityMeta';"
         ];
 
         return implode("\n", $imports)."\n";
@@ -90,10 +98,12 @@ class TsHelper
      */
     public function writeRelationIndexPageSupportImports(Entity $relatedEntity, Entity $entity): string
     {
+        $entityMetaVar = Str::camel($entity->getName()).'Entity';
+        $relatedEntityMetaVar = Str::camel($relatedEntity->getName()).'Entity';
+
         $imports = [
-            // Eg. import { getUserColumns, getUserEntityMeta } from '@/helpers/users_helper';
-            "import { get{$entity->name}EntityMeta } from '@/helpers/{$entity->getFolderName()}_helper'",
-            "import { get{$relatedEntity->name}Columns, get{$relatedEntity->name}EntityMeta } from '@/helpers/{$relatedEntity->getFolderName()}_helper'",
+            "import { {$entityMetaVar} as entity, {$relatedEntityMetaVar} as relatedEntity } from '@/types/entityMeta';",
+            "import { get{$relatedEntity->name}Columns } from '@/helpers/{$relatedEntity->getFolderName()}_helper'",
             "import { type PaginatedResponse, type TableFilters } from '@/types/support';"
         ];
 
@@ -183,6 +193,35 @@ class TsHelper
             relationName: {$relationNameStr},
             apiPath: {$apiPathStr}
         }";
+    }
+
+    /**
+     * writeRelationMetaWithRefs
+     */
+    public function writeRelationMetaWithRefs(Entity $entity, Relation $relation): string
+    {
+        $relatedEntityName = $relation->getRelatedEntityName();
+        $relatedEntityVar = $relatedEntityName
+            ? Str::camel(Str::singular($relatedEntityName)).'Entity'
+            : 'null';
+
+        $foreignKeyStr = $relation->getForeignKey() ? "'{$relation->getForeignKey()}'" : 'null';
+        $localKeyStr = $relation->getLocalKey() ? "'{$relation->getLocalKey()}'" : 'null';
+        $relatedKeyStr = $relation->getRelatedKey() ? "'{$relation->getRelatedKey()}'" : 'null';
+        $relationNameStr = $relation->getRelationName() ? "'{$relation->getRelationName()}'" : 'null';
+        $apiPathStr = $relation->getApiPath() ? "'{$relation->getApiPath()}'" : 'null';
+
+        return "{
+        type: '{$relation->getType()->value}',
+        localEntityName: '{$entity->name}',
+        relatedEntity: () => {$relatedEntityVar}, // lazy reference (function wrapper)
+        relatedEntityName: '{$relatedEntityName}',
+        foreignKey: {$foreignKeyStr},
+        localKey: {$localKeyStr},
+        relatedKey: {$relatedKeyStr},
+        relationName: {$relationNameStr},
+        apiPath: {$apiPathStr}
+    }";
     }
 
     /**

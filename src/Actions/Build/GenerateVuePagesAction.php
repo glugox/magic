@@ -239,7 +239,6 @@ const breadcrumbItems: BreadcrumbItem[] = [
 
 const sidebarNavItems: NavItem[] = [];
 const page = usePage();
-const entity = get{$entityName}EntityMeta();
 </script>
 
 <template>
