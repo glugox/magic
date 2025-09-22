@@ -23,39 +23,8 @@ class SetupDevelopmentEnvAction implements DescribableAction
         // Log section title
         $this->logInvocation($this->describe()->name);
 
-        /**
-         * Write this in main.js or app.js to simulate slow server in development en
-         */
-        $slowServerSnippet = <<<'EOT'
-import axios from "axios";
-if (import.meta.env.DEV) {
-    // Add a global delay to simulate slow server
-    axios.interceptors.request.use(async (config) => {
-        await new Promise((resolve) => setTimeout(resolve, 600)) // delay
-        return config
-    })
-}
-EOT;
-        $mainJsPath = resource_path('js/main.ts');
-        $mainAppPath = resource_path('js/app.ts');
-        if (file_exists($mainJsPath)) {
-            $mainFilePath = $mainJsPath;
-        } elseif (file_exists($mainAppPath)) {
-            $mainFilePath = $mainAppPath;
-        } else {
-            Log::channel('magic')->warning("Neither main.ts nor app.ts found in resources/js. Please add the following snippet manually to simulate a slow server in development environment:\n$slowServerSnippet");
-
-            return $context;
-        }
-
-        // Check if the snippet already exists to avoid duplication
-        $mainFileContent = file_get_contents($mainFilePath);
-        if (! str_contains($mainFileContent, 'import.meta.env.DEV')) {
-            file_put_contents($mainFilePath, $mainFileContent."\n".$slowServerSnippet);
-            Log::channel('magic')->info("Added slow server simulation snippet to $mainFilePath");
-        } else {
-            Log::channel('magic')->info("Slow server simulation snippet already exists in $mainFilePath");
-        }
+        // Eneble slow server for development purposes
+        //$this->enableSlowServer($context);
 
         // Enable Pest RefreshDatabase trait for browser tests
         $this->enablePestRefreshDatabase();
@@ -108,5 +77,45 @@ EOT;
 
         file_put_contents($pestFilePath, $newContent);
         Log::channel('magic')->info('Added RefreshDatabase trait snippet to Pest.php');
+    }
+
+    /**
+     * Adds a snippet to main.js or app.js to simulate a slow server in development environment.
+     */
+    private function enableSlowServer(BuildContext $context): void
+    {
+        /**
+         * Write this in main.js or app.js to simulate slow server in development en
+         */
+        $slowServerSnippet = <<<'EOT'
+import axios from "axios";
+if (import.meta.env.DEV) {
+    // Add a global delay to simulate slow server
+    axios.interceptors.request.use(async (config) => {
+        await new Promise((resolve) => setTimeout(resolve, 600)) // delay
+        return config
+    })
+}
+EOT;
+        $mainJsPath = resource_path('js/main.ts');
+        $mainAppPath = resource_path('js/app.ts');
+        if (file_exists($mainJsPath)) {
+            $mainFilePath = $mainJsPath;
+        } elseif (file_exists($mainAppPath)) {
+            $mainFilePath = $mainAppPath;
+        } else {
+            Log::channel('magic')->warning("Neither main.ts nor app.ts found in resources/js. Please add the following snippet manually to simulate a slow server in development environment:\n$slowServerSnippet");
+
+            return;
+        }
+
+        // Check if the snippet already exists to avoid duplication
+        $mainFileContent = file_get_contents($mainFilePath);
+        if (! str_contains($mainFileContent, 'import.meta.env.DEV')) {
+            file_put_contents($mainFilePath, $mainFileContent."\n".$slowServerSnippet);
+            Log::channel('magic')->info("Added slow server simulation snippet to $mainFilePath");
+        } else {
+            Log::channel('magic')->info("Slow server simulation snippet already exists in $mainFilePath");
+        };
     }
 }

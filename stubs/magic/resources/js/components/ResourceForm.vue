@@ -49,7 +49,8 @@ const onUpdated = (record: unknown) => {
 function submit() {
     const headers = {
         Accept: props.jsonMode ? 'application/json' : 'text/html',
-        'X-Requested-With': 'XMLHttpRequest'
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-Inertia-Dialog': 'true', // 👈 custom marker
     };
     if (!props.item?.id) {
         form.post(storeUrl.value, {

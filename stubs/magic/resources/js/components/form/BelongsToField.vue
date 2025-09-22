@@ -1,24 +1,14 @@
 <script setup lang="ts">
 import { Check, ChevronsUpDown, PlusCircleIcon } from 'lucide-vue-next';
-import { onMounted, ref, watch } from 'vue';
+import {onMounted, onUnmounted, ref, watch} from 'vue';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import {
-    Combobox,
-    ComboboxAnchor,
-    ComboboxEmpty,
-    ComboboxGroup,
-    ComboboxInput,
-    ComboboxItem,
-    ComboboxItemIndicator,
-    ComboboxList,
-    ComboboxSeparator,
-    ComboboxTrigger,
-} from '@/components/ui/combobox';
+import {Combobox, ComboboxAnchor, ComboboxEmpty, ComboboxGroup, ComboboxInput, ComboboxItem, ComboboxItemIndicator, ComboboxList, ComboboxSeparator, ComboboxTrigger,} from '@/components/ui/combobox';
 import BaseField from '@/components/form/BaseField.vue';
 import { useApi } from '@/composables/useApi';
 import { FormFieldProps, Relation } from '@/types/support';
 import { Link } from '@inertiajs/vue3';
+import { useEntityEvents } from '@/composables/useEntityEvents';
 
 interface Option extends Record<string, any> {
     id: string;
@@ -36,6 +26,7 @@ const emit = defineEmits<{
     (e: 'openRelated', entry: Relation): void;
 }>();
 
+const { on, off } = useEntityEvents();
 const { get } = useApi();
 
 const model = ref<string | null>(props.modelValue ? String(props.modelValue) : null);
@@ -51,7 +42,6 @@ if (!relationMetadataRaw) {
     throw new Error(`Relation metadata not found for field: ${props.field.name}`);
 }
 const relationMetadata: Relation = relationMetadataRaw; // now TypeScript knows it's not null
-
 const modelNameSingular = relationMetadata.relatedEntityName;
 const placeholderLoaded = ref('Select ' + modelNameSingular + '...');
 
@@ -71,6 +61,25 @@ onMounted(async () => {
             }
         }
     }
+
+    const busHandlerCreated = (payload: { entity: string; record: any }) => {
+        if (payload.entity === relationMetadata.relatedEntityName) {
+            fetchOptions().then(() => {
+                // Optionally auto-select the new record
+                selectedOption.value = normalize(payload.record);
+
+                // ensure it’s in options
+                if (!options.value.find((o) => o.id === selectedOption.value!.id)) {
+                    options.value.unshift(selectedOption.value!);
+                }
+            });
+        }
+    };
+
+    on('created', busHandlerCreated);
+    onUnmounted(() => {
+        off('created', busHandlerCreated);
+    });
 
     // Load default options
     await fetchOptions();
@@ -115,7 +124,7 @@ const fetchOptions = async (query: string = '') => {
             limit: '5',
         });
 
-        if (lastQuery.value !== query) return; // ignore stale results
+        //if (lastQuery.value !== query) return; // ignore stale results
 
         const list = ((res?.data ?? res)?.data ?? res?.data ?? []).map(normalize);
         options.value = list;
@@ -188,12 +197,7 @@ const emitOpenRelatedForm = () => {
                     <ComboboxGroup>
                         <ComboboxItem
                             :value="null"
-                            @select="
-                                () => {
-                                    emitOpenRelatedForm();
-                                }
-                            "
-                        >
+                            @select="() => {emitOpenRelatedForm();}">
                             <PlusCircleIcon />
                             Create {{ modelNameSingular }}
                         </ComboboxItem>

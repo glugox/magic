@@ -3,12 +3,14 @@ import { ref, provide } from 'vue';
 import ResourceForm from '@/components/ResourceForm.vue';
 import DialogManager from '@/components/DialogManager.vue';
 import {Entity, DbId, Relation, ResourceFormProps} from '@/types/support';
+import { useEntityEvents } from '@/composables/useEntityEvents';
 
 // Props
 const { entity, item, parentEntity, parentId, inertiaPage } = defineProps<ResourceFormProps>();
 
 // DialogManager ref
 const dialogManager = ref<InstanceType<typeof DialogManager> | null>(null);
+const { emit } = useEntityEvents();
 
 // Provide globally to children ResourceForm
 provide('dialogManager', dialogManager);
@@ -35,7 +37,7 @@ function handleOpenRelated(relation: Relation) {
         title: relatedEntity.singularName,
         parentInertiaPage: inertiaPage,
         onSuccess(record, action) {
-            console.log("Dialog Instance on Success :", action, record);
+            emit('created', { entity: relatedEntity.name, record });
         },
     });
 }
