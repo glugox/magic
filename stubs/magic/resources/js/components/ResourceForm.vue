@@ -2,16 +2,13 @@
 import { computed} from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import FieldRenderer from '@/components/form/FieldRenderer.vue';
-import type { Entity, Relation, DbId } from '@/types/support';
+import {Entity, Relation, DbId, ResourceFormProps} from '@/types/support';
 import { toast } from 'vue-sonner';
+import {Button} from "@/components/ui/button";
+import {useEntityContext} from "@/composables/useEntityContext";
+import DebugBox from "@/components/debug/DebugBox.vue";
 
-const props = defineProps<{
-    item?: Record<string, any>;
-    entity: Entity;
-    controller: any;
-    parentEntity?: Entity;
-    parentId?: DbId;
-}>();
+const props = defineProps<ResourceFormProps>();
 
 const emit = defineEmits<{
     (e: 'openRelated', relation: Relation): void;
@@ -24,25 +21,20 @@ props.entity.fields.forEach((f) => {
 
 const form = useForm(initialData);
 
-// Computed actions
-const formAction = computed(() => {
-    if (!props.item?.id) return props.controller.store({});
-    return props.controller.update([props.item.id]);
-});
-const deleteAction = computed(() => (props.item?.id ? props.controller.destroy(props.item.id) : null));
-const crudActionType = computed(() => (props.item ? 'update' : 'create'));
+// Entity context
+const {relation, controller, crudActionType, formAction, destroyUrl, storeUrl, updateUrl} = useEntityContext(props.entity, props.parentEntity, props.parentId, props.item);
 
 // Expose submit & destroy for dialog buttons
 function submit() {
     if (!props.item?.id) {
-        form.post(formAction.value, { onFinish: () => toast(`${props.entity.singularName} created`) });
+        form.post(storeUrl.value, { onFinish: () => toast(`${props.entity.singularName} created`) });
     } else {
-        form.put(formAction.value, { onFinish: () => toast(`${props.entity.singularName} updated`) });
+        form.put(updateUrl.value, { onFinish: () => toast(`${props.entity.singularName} updated`) });
     }
 }
 function destroy() {
-    if (!deleteAction.value) return;
-    form.delete(deleteAction.value);
+    if (!destroyUrl.value) return;
+    form.delete(destroyUrl.value);
 }
 
 
@@ -56,6 +48,7 @@ defineExpose({ submit, destroy, processing: form.processing });
 </script>
 
 <template>
+    <DebugBox v-bind="props" />
     <form @submit.prevent="submit" class="space-y-6">
         <FieldRenderer
             v-for="field in entity.fields"
@@ -70,11 +63,11 @@ defineExpose({ submit, destroy, processing: form.processing });
 
         <!-- Default inline buttons if no dialog footer slot is used -->
         <div v-if="!$slots.footer" class="flex gap-4">
-            <button @click="submit" :disabled="form.processing" class="btn btn-primary">
+            <Button @click="submit" :disabled="form.processing" class="btn btn-primary">
                 {{ crudActionType === 'update' ? 'Update' : 'Create' }}
-            </button>
+            </Button>
 
-            <button v-if="props.item?.id" @click="destroy" :disabled="form.processing" class="btn btn-destructive">Delete</button>
+            <Button variant="destructive" v-if="props.item?.id" @click="destroy" :disabled="form.processing" class="btn btn-destructive">Delete</Button>
         </div>
 
         <!-- Slot for dialog footer buttons -->

@@ -173,9 +173,8 @@ class GenerateVuePagesAction implements DescribableAction
             'relationType' => $relation->getType()->value,
             'foreignKey' => $relation->getForeignKey(),
             'folderName' => $entity->getFolderName(),
-            'controllerClass' => $entity->name.$relation->getRelatedEntity()->getName().'Controller',
-            'mainEntityImports' => $this->tsHelper->writeEntityImports($entity, options: ['controller' => false]),
-            'relatedEntityImports' => $this->tsHelper->writeEntityImports($relation->getRelatedEntity(), $entity),
+            'mainEntityImports' => $this->tsHelper->writeEntityImports($entity),
+            'relatedEntityImports' => $this->tsHelper->writeEntityImports($relation->getRelatedEntity(), options: ['entityAlias' => 'relatedEntity']),
             'supportImports' => $this->tsHelper->writeRelationIndexPageSupportImports($relation->getRelatedEntity(), $entity),
             'relationSidebarItems' => $this->tsHelper->writeRelationSidebarItems($entity, $this->context->getConfig()),
         ]);
@@ -220,7 +219,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import ResourceLayout from '@/layouts/resource/Layout.vue';
 import { type BreadcrumbItem, type NavItem } from '@/types';
 import { SquareMinus, Link, CornerDownRight, FolderTree, GitCompareArrows } from 'lucide-vue-next';
-import ResourceForm from '@/components/ResourceForm.vue';
+import ResourceFormNested from '@/components/form/dialog/ResourceFormNested.vue';
 $entityImports
 $supportImports
 
@@ -247,9 +246,8 @@ const page = usePage();
         <ResourceLayout title="New {$entityName}" description="$entityName" :sidebar-nav-items="sidebarNavItems">
             <div class="flex flex-col space-y-6 max-w-2xl">
                 <HeadingSmall title="{$entity->name} information" description="Fill {$entity->name} details" />
-                <ResourceForm
+                <ResourceFormNested
                     :entity="entity"
-                    :controller="{$entity->name}Controller"
                     />
             </div>
         </ResourceLayout>

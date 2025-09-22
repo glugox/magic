@@ -46,7 +46,6 @@ const page = usePage();
                 <ResourceFormNested
                     :entity="entity"
                     :item="item.data"
-                    :controller="{{entityName}}Controller"
                 />
             </div>
         </ResourceLayout>

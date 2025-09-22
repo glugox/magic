@@ -295,11 +295,12 @@ class GenerateControllersAction implements DescribableAction
             foreach ($relations as $relation) {
 
                 // Check if relation does not have a route (e.g., belongsTo)
-                if (! $relation->hasRoute()) {
+                if ($relation->isPolymorphic()) {
                     continue;
                 }
 
                 // Convert relation type enum to kebab-case for stub file
+                /** @var string $relationType */
                 $relationType = $relation->type->value ?? null;
                 $relationStubFile = Str::kebab($relationType).'.stub';
                 $relationStubPath = $this->stubsPath."/routes/relation/{$relationStubFile}";

@@ -110,7 +110,38 @@ class PublishFilesAction implements DescribableAction
         File::ensureDirectoryExists(dirname($path));
 
         $content = '';
+
+        // Build import strings for all relevant TS ( Wayfinder ) controllers
+        $controllersImportStr = '';
+        $ctrImportsArr = [];
+        foreach ($this->context->getConfig()->entities as $entity) {
+            $ctrImport = "import {$entity->getName()}Controller from '@/actions/App/Http/Controllers/{$entity->getName()}Controller';";
+            $ctrImportsArr[] = $ctrImport;
+
+            // Add related entity controllers as well
+            foreach ($entity->getRelations() as $relation) {
+
+                if ($relation->isPolymorphic()) {
+                    // Skip polymorphic relations as they can relate to multiple entities
+                    continue;
+                }
+
+                $relatedName = $relation->getRelatedEntityName();
+                if ($relatedName) {
+                    $relatedImport = "import {$entity->getName()}{$relatedName}Controller from '@/actions/App/Http/Controllers/{$entity->getName()}/{$entity->getName()}{$relatedName}Controller';";
+                    if (!in_array($relatedImport, $ctrImportsArr, true)) {
+                        $ctrImportsArr[] = $relatedImport;
+                    }
+                }
+            }
+        }
+        if (!empty($ctrImportsArr)) {
+            $controllersImportStr = implode("\n", $ctrImportsArr)."\n";
+        }
+
         $content .= "import {Entity} from '@/types/support';\n\n";
+        $content .= $controllersImportStr;
+
         $content .= "let entities: Entity[] = [];\n\n";
 
         // Phase 1: declare entity shells (fields present, relations empty)
@@ -147,6 +178,7 @@ const {$entityVar}Entity: Entity = {
     singularName: '{$entity->getSingularName()}',
     singularNameLower: '{$entityVar}',
     pluralName: '{$entity->getPluralName()}',
+    controller: {$entityName}Controller,
     fields: [
         // Define fields for the entity
         {$fieldsMeta}
@@ -210,6 +242,10 @@ EOT;
         // localEntityName is the owning entity name
         $localEntityName = $entity->getName();
 
+        $relationController = $relation->hasRoute() && $relatedName
+            ? "{$entity->getName()}{$relatedName}Controller"
+            : 'null';
+
         // Build JS object literal for relation
         $entry = "{
         type: '{$typeStr}',
@@ -220,7 +256,8 @@ EOT;
         localKey: {$localKeyStr},
         relatedKey: {$relatedKeyStr},
         relationName: {$relationNameStr},
-        apiPath: {$apiPathStr}
+        apiPath: {$apiPathStr},
+        controller: {$relationController}
     }";
 
         return $entry;

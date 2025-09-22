@@ -67,7 +67,6 @@ onMounted(() => {
                    <HeadingSmall title="Add new {{relatedEntityName}}" description="Fill {{relatedEntityName}} details" />
                    <ResourceForm
                        :entity="relatedEntity"
-                       :controller="{{controllerClass}}"
                        :parent-entity="entity"
                        :parent-id="item.data.id"
                        :item="{{{foreignKey}}: item.data.id}"
@@ -81,7 +80,6 @@ onMounted(() => {
                        :columns="columns as ColumnDef<ResourceData>[]"
                        :entity="relatedEntity"
                        :filters="currentFilters"
-                       :controller="{{controllerClass}}"
                    />
                </div>
            </div>

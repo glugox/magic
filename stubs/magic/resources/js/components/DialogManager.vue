@@ -7,7 +7,6 @@ import ResourceForm from '@/components/ResourceForm.vue';
 interface DialogOptions {
     entity: Entity;
     item?: Record<string, any>;
-    controller: any;
     parentEntity?: Entity;
     parentId?: DbId;
     title?: string;
@@ -31,7 +30,6 @@ function openDialogRelation(r: Relation) {
     const currentDialog = dialogs.value[dialogs.value.length - 1];
     openDialog({
         entity: currentDialog.entity,
-        controller: currentDialog.controller, // You might want to adjust this based on your app logic
         parentEntity: currentDialog.entity,
         parentId: currentDialog.item?.id,
     });
@@ -50,7 +48,6 @@ function handleOpenRelated(relation: Relation) {
     const currentDialog = dialogs.value[dialogs.value.length - 1];
     openDialog({
         entity: currentDialog.entity,
-        controller: currentDialog.controller, // You might want to adjust this based on your app logic
         parentEntity: currentDialog.entity,
         parentId: currentDialog.item?.id,
     });*/
@@ -72,7 +69,6 @@ defineExpose({ openDialog, closeDialog, openDialogRelation });
                         <ResourceForm
                             :entity="d.entity"
                             :item="d.item"
-                            :controller="d.controller"
                             :parent-entity="d.parentEntity"
                             :parent-id="d.parentId"
                             @open-related="handleOpenRelated"

@@ -5,10 +5,9 @@ import DialogManager from '@/components/DialogManager.vue';
 import type { Entity, DbId, Relation } from '@/types/support';
 
 // Props
-const { entity, item, controller, parentEntity, parentId } = defineProps<{
+const { entity, item, parentEntity, parentId } = defineProps<{
     entity: Entity;
     item?: Record<string, any>;
-    controller: any;
     parentEntity?: Entity;
     parentId?: DbId;
 }>();
@@ -32,6 +31,9 @@ function handleOpenRelated(relation: Relation) {
         return;
     }
 
+    // Update Entity with relation info
+    relatedEntity.controller = relation.controller;
+
     console.log("Related entity:");
     console.log(relatedEntity);
 
@@ -39,8 +41,7 @@ function handleOpenRelated(relation: Relation) {
 
     dialogManager.value.openDialog({
         entity: relatedEntity,
-        controller: relatedEntity.controller,
-        parentEntity: relation.localEntityName,
+        parentEntity: entity,
         parentId: parentItemId,
         title: relatedEntity.singularName,
     });
@@ -53,7 +54,6 @@ function handleOpenRelated(relation: Relation) {
         <ResourceForm
             :entity="entity"
             :item="item"
-            :controller="controller"
             :parent-entity="parentEntity"
             :parent-id="parentId"
             @open-related="handleOpenRelated"

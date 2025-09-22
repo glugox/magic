@@ -82,7 +82,9 @@ class GenerateSeedersAction implements DescribableAction
 
         foreach ($this->context->getConfig()->entities as $entity) {
             $this->generateFactory($entity);
-            $this->generateSeeder($entity);
+            if ($context->getConfig()->app->seedEnabled) {
+                $this->generateSeeder($entity);
+            }
         }
 
         return $this->context;

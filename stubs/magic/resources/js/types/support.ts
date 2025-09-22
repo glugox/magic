@@ -43,29 +43,25 @@ export interface Relation {
     type: 'belongsTo' | 'hasMany' | 'hasOne' | 'belongsToMany' | 'morphTo' | 'morphMany' | 'morphOne' | 'morphToMany' | 'morphedByMany'
     localEntityName: string | null
     relatedEntityName?: string | null
-    relatedEntity?: string | null
+    // can be function () => ticketEntity
+    relatedEntity?: (() => Entity) | null
     foreignKey?: string | null
     localKey?: string | null
     relatedKey?: string | null
     relationName?: string | null
     apiPath?: string | null
+    controller?: Controller | null
 }
 
-export interface RelationFull extends Relation {
-    // Full related entity object
-    relatedEntityObj: Entity;
-
-    // Optionally, the parent/local entity object
-    localEntityObj?: Entity;
-
-    // Actual item record (optional, if you need the instance being edited)
+export interface ResourceFormProps {
     item?: Record<string, any>;
+    entity: Entity;
+    parentEntity?: Entity;
+    parentId?: DbId;
+}
 
-    // For dialogs: controller to handle CRUD actions for this relation
-    controller: any;
+export interface ResourceQueryOptions {
 
-    // Optional title for dialog
-    title?: string;
 }
 
 export interface ValidationRuleSet {
@@ -79,6 +75,7 @@ export interface Entity {
     singularName: string
     singularNameLower: string
     pluralName: string
+    controller: Controller
     fields: Field[]
     relations: Relation[]
 }
@@ -106,6 +103,17 @@ export interface FormFieldProps {
 /*export type FormFieldPropsWithRelation = FormFieldProps & {
     relation: Relation
 }*/
+
+export interface WayfinderRoute {
+    url: string
+    method: 'get' | 'post' | 'put' | 'patch' | 'delete' | 'head' | 'options'
+    definition: {
+        methods: ('get' | 'post' | 'put' | 'patch' | 'delete' | 'head' | 'options')[]
+        url: string
+        [key: string]: any
+    }
+    [key: string]: any
+}
 
 export interface PaginationObject {
     data: ResourceData[]

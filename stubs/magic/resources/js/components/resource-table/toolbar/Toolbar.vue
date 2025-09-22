@@ -1,17 +1,19 @@
 <script setup lang="ts">
 import { Loader } from "lucide-vue-next"
 import ToolBarActions from "@/components/resource-table/toolbar/ToolBarActions.vue"
-import {Entity, Controller, DbId, TableFilters, Column} from "@/types/support"
+import {Entity, DbId, TableFilters, Column, Controller, WayfinderRoute} from "@/types/support"
 import { useTableFilters } from "@/composables/useTableFilters"
 import ColumnVisibilityMenu from "@/components/resource-table/toolbar/ColumnVisibilityMenu.vue";
 import NewEntityButton from "@/components/resource-table/toolbar/NewEntityButton.vue";
 import TableSearch from "@/components/resource-table/toolbar/TableSearch.vue";
+import {computed} from "vue";
 
 // props
-const { entity, controller, parentId, bulkActionProcessing, initialFilters } =
+const { entity, createUrl, parentId, bulkActionProcessing, initialFilters } =
     defineProps<{
         entity: Entity
-        controller: Controller
+        createUrl: WayfinderRoute
+        addNewUrl?: string
         parentId?: DbId
         bulkActionProcessing?: boolean
         columns?: Column[]
@@ -28,17 +30,25 @@ const emit = defineEmits<{
 // use composable
 const { search, visibleColumns, toggleColumnVisibility } = useTableFilters(emit, initialFilters)
 
+const canAddNew = computed(() => {
+    return createUrl?.url?.length > 0
+})
+
 </script>
 
 <template>
-    <div class="flex gap-2 items-center justify-between">
+    <div v-bind="$attrs" class="flex gap-2 items-center justify-between">
         <div>
             <TableSearch @update:search="value => search = value" placeholder="Search…" />
         </div>
         <div class="flex items-center gap-2">
             <Loader v-if="bulkActionProcessing" class="w-4 h-4 mr-2 animate-spin" />
             <ColumnVisibilityMenu :columns="columns" :visible-columns="visibleColumns " @toggle-column="toggleColumnVisibility" />
-            <NewEntityButton :entity="entity" :controller="controller" :parent-id="parentId" />
+            <NewEntityButton
+                v-if="canAddNew"
+                :label="`New ${entity.singularName}`"
+                :createUrl="createUrl.url"
+            />
             <ToolBarActions @action="(action) => emit('bulk-action', action)" />
         </div>
     </div>

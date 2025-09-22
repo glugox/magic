@@ -36,7 +36,6 @@ const columns: ColumnDef<{{entityName}}>[] = get{{entityName}}Columns();
                     :columns="columns as ColumnDef<ResourceData>[]"
                     :entity="entity"
                     :filters="filters"
-                    :controller="{{entityName}}Controller"
                 />
             </div>
         </div>

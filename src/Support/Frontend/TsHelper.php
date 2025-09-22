@@ -29,19 +29,21 @@ class TsHelper
      * Write import statements for a given entity.
      * import { type User } from '@/types/entities';",
      *
-     * @param  Entity  $entity  The entity for which to write imports.
-     * @param  Entity|null  $parentEntity  The parent entity if this is a nested entity.
-     * @param  array|null  $options  Options to customize the imports. Supported options:
+     * @param Entity $entity The entity for which to write imports.
+     * @param Entity|null $parentEntity The parent entity if this is a nested entity.
+     * @param array<string,mixed>|null $options Options to customize the imports. Supported options:
      *                               - 'model' (bool): Whether to import the model type. Default is true.
      *                               - 'controller' (bool): Whether to import the controller. Default is true.
+     * @return string
      */
     public function writeEntityImports(Entity $entity, ?Entity $parentEntity = null, ?array $options = []): string
     {
         $imports = [];
         $options = array_merge([
             'model' => true,
-            'controller' => true,
-        ], $options);
+            //'controller' => true,
+            'entityAlias' => 'entity',
+        ], $options ?? []);
 
         if ($options['model']) {
 
@@ -50,9 +52,11 @@ class TsHelper
 
             // import { ticketEntity } from '@/types/entityMeta'
             $entityMetaVar = Str::camel($entity->getName()).'Entity';
-            $imports[] = "import { {$entityMetaVar} as entity } from '@/types/entityMeta';";
+            /** @var string $entityAlias */
+            $entityAlias = $options['entityAlias'] ?? 'entity';
+            $imports[] = "import { {$entityMetaVar} as {$entityAlias} } from '@/types/entityMeta';";
         }
-        if ($options['controller']) {
+        /*if ($options['controller']) {
             $controllerClass = $entity->name.'Controller';
             $controllerRelativePath = "{$controllerClass}";
             if ($parentEntity) {
@@ -60,7 +64,7 @@ class TsHelper
                 $controllerRelativePath = $parentEntity->getName()."/{$controllerClass}";
             }
             $imports[] = "import $controllerClass from '@/actions/App/Http/Controllers/{$controllerRelativePath}';";
-        }
+        }*/
 
         return implode("\n", $imports);
     }
@@ -102,7 +106,7 @@ class TsHelper
         $relatedEntityMetaVar = Str::camel($relatedEntity->getName()).'Entity';
 
         $imports = [
-            "import { {$entityMetaVar} as entity, {$relatedEntityMetaVar} as relatedEntity } from '@/types/entityMeta';",
+            //"import { {$relatedEntityMetaVar} as relatedEntity } from '@/types/entityMeta';",
             "import { get{$relatedEntity->name}Columns } from '@/helpers/{$relatedEntity->getFolderName()}_helper'",
             "import { type PaginatedResponse, type TableFilters } from '@/types/support';"
         ];
