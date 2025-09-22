@@ -2,15 +2,10 @@
 import { ref, provide } from 'vue';
 import ResourceForm from '@/components/ResourceForm.vue';
 import DialogManager from '@/components/DialogManager.vue';
-import type { Entity, DbId, Relation } from '@/types/support';
+import {Entity, DbId, Relation, ResourceFormProps} from '@/types/support';
 
 // Props
-const { entity, item, parentEntity, parentId } = defineProps<{
-    entity: Entity;
-    item?: Record<string, any>;
-    parentEntity?: Entity;
-    parentId?: DbId;
-}>();
+const { entity, item, parentEntity, parentId, inertiaPage } = defineProps<ResourceFormProps>();
 
 // DialogManager ref
 const dialogManager = ref<InstanceType<typeof DialogManager> | null>(null);
@@ -25,17 +20,11 @@ function handleOpenRelated(relation: Relation) {
     if (!dialogManager.value) return;
 
     /** @type {Entity | null} */
-    const relatedEntity = relation.relatedEntity();
+    const relatedEntity: Entity | null = relation.relatedEntity ? relation.relatedEntity() : null;
     if (!relatedEntity) {
         console.error("Relation has no entity defined", relation);
         return;
     }
-
-    // Update Entity with relation info
-    relatedEntity.controller = relation.controller;
-
-    console.log("Related entity:");
-    console.log(relatedEntity);
 
     const parentItemId = item?.id;
 
@@ -44,6 +33,10 @@ function handleOpenRelated(relation: Relation) {
         parentEntity: entity,
         parentId: parentItemId,
         title: relatedEntity.singularName,
+        parentInertiaPage: inertiaPage,
+        onSuccess(record, action) {
+            console.log("Dialog Instance on Success :", action, record);
+        },
     });
 }
 </script>
@@ -56,6 +49,7 @@ function handleOpenRelated(relation: Relation) {
             :item="item"
             :parent-entity="parentEntity"
             :parent-id="parentId"
+            :inertia-page="inertiaPage"
             @open-related="handleOpenRelated"
         />
 

@@ -209,6 +209,7 @@ class GenerateVuePagesAction implements DescribableAction
         $entityImports = $this->tsHelper->writeEntityImports($entity);
         $supportImports = $this->tsHelper->writeFormPageSupportImports($entity);
         $relationSidebarItems = $this->tsHelper->writeRelationSidebarItems($entity, $this->context->getConfig(), CrudActionType::CREATE);
+        $inertiaPage = $entity->getFolderName() . '/Create';
 
         return <<<PHP
 <script setup lang="ts">
@@ -248,6 +249,7 @@ const page = usePage();
                 <HeadingSmall title="{$entity->name} information" description="Fill {$entity->name} details" />
                 <ResourceFormNested
                     :entity="entity"
+                    inertia-page="{$inertiaPage}"
                     />
             </div>
         </ResourceLayout>

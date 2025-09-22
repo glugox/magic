@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { Toaster } from '@/components/ui/sonner'
 import 'vue-sonner/style.css'
 
 interface Props {
@@ -51,5 +50,4 @@ const currentPath = typeof window !== undefined ? window.location.pathname : '';
             </div>
         </div>
     </div>
-    <Toaster position="top-right" />
 </template>

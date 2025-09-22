@@ -1024,4 +1024,13 @@ class Entity
             }
         }
     }
+
+    /**
+     * Get the Inertia component name for this entity.
+     * E.g. "Users/Index", "Posts/Index"
+     */
+    public function getInertiaComponent(): string
+    {
+        return $this->getDirectoryName().'/Index';
+    }
 }

@@ -9,7 +9,10 @@ interface DialogOptions {
     item?: Record<string, any>;
     parentEntity?: Entity;
     parentId?: DbId;
+    parentInertiaPage?: string;
     title?: string;
+    // callback for created/updated/deleted
+    onSuccess?: (record: any, action: 'created'|'updated'|'deleted') => void;
 }
 
 interface DialogInstance extends DialogOptions {
@@ -20,40 +23,28 @@ const dialogs = ref<DialogInstance[]>([]);
 
 // Open a new dialog
 function openDialog(options: DialogOptions) {
-    console.log("Op")
     const id = 'dialog-' + Math.random().toString(36).substring(2, 15);
     dialogs.value.push({ ...options, id });
 }
 
-function openDialogRelation(r: Relation) {
-    if (dialogs.value.length === 0) return;
-    const currentDialog = dialogs.value[dialogs.value.length - 1];
-    openDialog({
-        entity: currentDialog.entity,
-        parentEntity: currentDialog.entity,
-        parentId: currentDialog.item?.id,
-    });
-}
-
-// Close a dialog
 function closeDialog(id: string) {
     dialogs.value = dialogs.value.filter(d => d.id !== id);
 }
 
+// Handle open-related inside a form field
 function handleOpenRelated(relation: Relation) {
-
-    console.log("DialogManager:: Handle open related", relation);
-
-    /*if (dialogs.value.length === 0) return;
-    const currentDialog = dialogs.value[dialogs.value.length - 1];
-    openDialog({
-        entity: currentDialog.entity,
-        parentEntity: currentDialog.entity,
-        parentId: currentDialog.item?.id,
-    });*/
+    console.log("DialogManager:: handleOpenRelated", relation);
+    // TODO: you could even open a new dialog chain here
 }
 
-defineExpose({ openDialog, closeDialog, openDialogRelation });
+function handleFormEvent(d: DialogInstance, action: 'created'|'updated'|'deleted', payload: any) {
+    // Call parent callback if provided
+    d.onSuccess?.(payload, action);
+    // Close dialog after success
+    closeDialog(d.id);
+}
+
+defineExpose({ openDialog, closeDialog });
 </script>
 
 <template>
@@ -62,7 +53,7 @@ defineExpose({ openDialog, closeDialog, openDialogRelation });
             <Dialog :open="true" @update:open="() => closeDialog(d.id)">
                 <DialogContent class="flex max-h-[90vh] flex-col">
                     <DialogHeader>
-                        <DialogTitle>{{ d.title ?? d.entity.singularName }}</DialogTitle>
+                        <DialogTitle>{{ d.title ?? d.entity.singularName }} - {{ d.parentInertiaPage }}</DialogTitle>
                     </DialogHeader>
 
                     <div class="flex-1 overflow-y-auto pr-2">
@@ -71,7 +62,12 @@ defineExpose({ openDialog, closeDialog, openDialogRelation });
                             :item="d.item"
                             :parent-entity="d.parentEntity"
                             :parent-id="d.parentId"
+                            :parent-inertia-page="d.parentInertiaPage"
+                            :json-mode="true"
                             @open-related="handleOpenRelated"
+                            @created="(record) => handleFormEvent(d, 'created', record)"
+                            @updated="(record) => handleFormEvent(d, 'updated', record)"
+                            @deleted="(id) => handleFormEvent(d, 'deleted', id)"
                         >
                             <template #default="{ submit, destroy, processing }">
                                 <DialogFooter class="sticky bottom-0 mt-4 border-t bg-background p-4 flex gap-4">

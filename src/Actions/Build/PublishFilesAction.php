@@ -179,6 +179,7 @@ const {$entityVar}Entity: Entity = {
     singularNameLower: '{$entityVar}',
     pluralName: '{$entity->getPluralName()}',
     controller: {$entityName}Controller,
+    inertiaComponent: '{$entity->getInertiaComponent()}', // Unnecessary , written in initial Inertia component call
     fields: [
         // Define fields for the entity
         {$fieldsMeta}

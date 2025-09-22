@@ -11,7 +11,7 @@ export function useEntityContext(
     const currentParent = ref(parentEntity || null);
 
     const relation = computed<Relation | null>(
-        () => parentEntity?.relations.find((r) => r.relatedEntity().name === entity.name) ?? null
+        () => parentEntity?.relations.find((r) => r.relatedEntity && r.relatedEntity().name === entity.name) ?? null
     );
 
     const controller = computed<Controller>(() => relation.value?.controller ?? entity.controller);
@@ -36,7 +36,7 @@ export function useEntityContext(
     // Edit URL is usually the same as update URL
     const editUrl = computed(() => {
         if (controller.value?.edit && item?.id) {
-          return controller.value.edit(controllerUpdateArgs.value);
+            return controller.value.edit(controllerUpdateArgs.value);
         }
         return null;
     });

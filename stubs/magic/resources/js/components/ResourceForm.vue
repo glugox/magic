@@ -1,53 +1,91 @@
 <script setup lang="ts">
-import { computed} from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import FieldRenderer from '@/components/form/FieldRenderer.vue';
-import {Entity, Relation, DbId, ResourceFormProps} from '@/types/support';
+import {Relation, ResourceFormProps} from '@/types/support';
 import { toast } from 'vue-sonner';
-import {Button} from "@/components/ui/button";
-import {useEntityContext} from "@/composables/useEntityContext";
+import { Button } from "@/components/ui/button";
+import { useEntityContext } from "@/composables/useEntityContext";
 import DebugBox from "@/components/debug/DebugBox.vue";
+import { Toaster } from '@/components/ui/sonner';
+import ResourceDebugBox from "@/components/debug/ResourceDebugBox.vue";
 
 const props = defineProps<ResourceFormProps>();
 
 const emit = defineEmits<{
     (e: 'openRelated', relation: Relation): void;
+    (e: 'created', record: any): void;
+    (e: 'updated', record: any): void;
+    (e: 'deleted', id: number|string): void;
 }>();
 
-const initialData: Record<string, any> = {};
+// Initial form data
+const initialData: Record<string, any> = {
+    _parentComponent: props.parentInertiaPage ?? null,
+};
 props.entity.fields.forEach((f) => {
     initialData[f.name] = props.item?.[f.name] ?? f.default ?? '';
 });
-
 const form = useForm(initialData);
 
-// Entity context
-const {relation, controller, crudActionType, formAction, destroyUrl, storeUrl, updateUrl} = useEntityContext(props.entity, props.parentEntity, props.parentId, props.item);
+// Context: URLs, action type
+const { crudActionType, destroyUrl, storeUrl, updateUrl } =
+    useEntityContext(props.entity, props.parentEntity, props.parentId, props.item);
 
-// Expose submit & destroy for dialog buttons
+const onCreated = (record: unknown) => {
+    if (props.jsonMode) {
+        emit('created', record);
+    }
+    toast.success(`${props.entity.singularName} created`);
+}
+
+const onUpdated = (record: unknown) => {
+    if (props.jsonMode) {
+        emit('updated', record);
+    }
+    toast.success(`${props.entity.singularName} updated`);
+}
+
+// Helpers
 function submit() {
+    const headers = {
+        Accept: props.jsonMode ? 'application/json' : 'text/html',
+        'X-Requested-With': 'XMLHttpRequest'
+    };
     if (!props.item?.id) {
-        form.post(storeUrl.value, { onFinish: () => toast(`${props.entity.singularName} created`) });
+        form.post(storeUrl.value, {
+            headers,
+            preserveScroll: true,
+            onSuccess: (page) => onCreated(page.props?.record ?? form.data())
+        });
     } else {
-        form.put(updateUrl.value, { onFinish: () => toast(`${props.entity.singularName} updated`) });
+        form.put(updateUrl.value, {
+            headers,
+            preserveScroll: true,
+            onSuccess: (page) => onUpdated(page.props?.record ?? form.data()),
+        });
     }
 }
+
 function destroy() {
     if (!destroyUrl.value) return;
-    form.delete(destroyUrl.value);
+    form.delete(destroyUrl.value, {
+        onSuccess: () => {
+            toast.success(`${props.entity.singularName} deleted`);
+            emit('deleted', props.item?.id as any);
+        },
+    });
 }
 
-
 function handleOpenRelated(relation: Relation) {
-    console.log("ResourceForm:: Handle open related", relation);
     emit('openRelated', relation);
 }
 
-// For v-slot
+// For dialogs
 defineExpose({ submit, destroy, processing: form.processing });
 </script>
 
 <template>
+    <ResourceDebugBox v-bind="props" class="mb-4" />
     <DebugBox v-bind="props" />
     <form @submit.prevent="submit" class="space-y-6">
         <FieldRenderer
@@ -67,10 +105,19 @@ defineExpose({ submit, destroy, processing: form.processing });
                 {{ crudActionType === 'update' ? 'Update' : 'Create' }}
             </Button>
 
-            <Button variant="destructive" v-if="props.item?.id" @click="destroy" :disabled="form.processing" class="btn btn-destructive">Delete</Button>
+            <Button
+                v-if="props.item?.id"
+                variant="destructive"
+                @click="destroy"
+                :disabled="form.processing"
+                class="btn btn-destructive"
+            >
+                Delete
+            </Button>
         </div>
 
-        <!-- Slot for dialog footer buttons -->
+        <!-- Slot for dialog footer -->
         <slot name="footer"></slot>
     </form>
+    <Toaster position="top-right" />
 </template>

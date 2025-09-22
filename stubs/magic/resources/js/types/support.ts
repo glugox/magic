@@ -58,6 +58,9 @@ export interface ResourceFormProps {
     entity: Entity;
     parentEntity?: Entity;
     parentId?: DbId;
+    jsonMode?: boolean;
+    inertiaPage?: string;
+    parentInertiaPage?: string;
 }
 
 export interface ResourceQueryOptions {
@@ -75,7 +78,8 @@ export interface Entity {
     singularName: string
     singularNameLower: string
     pluralName: string
-    controller: Controller
+    controller: Controller,
+    inertiaComponent: string
     fields: Field[]
     relations: Relation[]
 }

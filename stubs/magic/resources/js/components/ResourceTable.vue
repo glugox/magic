@@ -10,6 +10,7 @@ import { usePage } from '@inertiajs/vue3';
 import { toast } from "vue-sonner"
 import DebugBox from "@/components/debug/DebugBox.vue";
 import {useEntityContext} from "@/composables/useEntityContext";
+import { Toaster } from '@/components/ui/sonner'
 
 
 export interface ResourceTableProps<T> {
@@ -99,4 +100,5 @@ const setColumnsVisibility = (visibleColumns: string[]) => {
         </Table>
     </div>
     <Pagination :disabled="bulkActionProcessing" :total="total" :per-page="perPage" :page="page" @update:page="p => (page = p)" />
+    <Toaster position="top-right" />
 </template>
