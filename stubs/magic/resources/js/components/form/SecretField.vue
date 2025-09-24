@@ -10,8 +10,12 @@ const props = defineProps<FormFieldProps & { modelValue?: string }>()
     <BaseField v-bind="props">
         <InputField
             type="password"
+            :name="props.field.name"
+            :placeholder="`Enter ${props.field.label}...`"
+            :autocomplete="'new-password'"
+            :maxlength="props.field.max || 255"
+            :minlength="props.field.min || 8"
             v-model="props.modelValue"
-            v-bind="props.extraInputProps"
         />
     </BaseField>
 </template>

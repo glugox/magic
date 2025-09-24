@@ -5,6 +5,8 @@
                 <!-- File input -->
                 <input
                     ref="fileInput"
+                    :name="field.name"
+                    :placeholder="`Select ${field.label}...`"
                     type="file"
                     accept="image/*"
                     class="hidden"

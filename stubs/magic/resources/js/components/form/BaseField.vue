@@ -10,7 +10,7 @@ function validate(value: any) {
 
 <template>
     <div class="mb-4">
-        <label v-if="!field.hidden" class="block text-sm font-medium text-white mb-1">
+        <label v-if="!field.hidden" class="block text-sm font-semibold text-gray-900 dark:text-white mb-1" :for="field.name">
             {{ props.field.label }}
         </label>
 

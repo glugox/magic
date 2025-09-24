@@ -27,6 +27,44 @@ export const useApi = () => {
             const url = queryString ? `${endpoint}?${queryString}` : endpoint
             return request(url, { method: 'GET' })
         },
-        // Add post, put, delete methods as needed
+        // post with headers
+        post: (endpoint: string, body: Record<string, any>, headers: Record<string, string>) => {
+            return request(endpoint, {
+                method: 'POST',
+                headers: {
+                    ...headers,
+                },
+                body: JSON.stringify(body),
+            })
+        },
+        // put with headers
+        put: (endpoint: string, body: Record<string, any>, headers: Record<string, string>) => {
+            return request(endpoint, {
+                method: 'PUT',
+                headers: {
+                    ...headers,
+                },
+                body: JSON.stringify(body),
+            })
+        },
+        // patch with headers
+        patch: (endpoint: string, body: Record<string, any>, headers: Record<string, string>) => {
+            return request(endpoint, {
+                method: 'PATCH',
+                headers: {
+                    ...headers,
+                },
+                body: JSON.stringify(body),
+            })
+        },
+        // delete with headers
+        delete: (endpoint: string, headers: Record<string, string>) => {
+            return request(endpoint, {
+                method: 'DELETE',
+                headers: {
+                    ...headers,
+                },
+            })
+        },
     }
 }

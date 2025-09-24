@@ -71,7 +71,7 @@ onMounted(async () => {
     const busHandler = (payload: { entity: string; record: any }) => {
         if (payload.entity === relationMetadata.relatedEntityName) {
             fetchOptions().then(() => {
-                selectedOption.value = normalize(payload.record);
+                selectedOption.value = normalize(payload.record.data);
                 if (!options.value.find(o => o.id === selectedOption.value!.id)) {
                     options.value.unshift(selectedOption.value!);
                 }
@@ -84,6 +84,19 @@ onMounted(async () => {
     onUnmounted(() => off('created', busHandler));
 });
 
+// Sync model with external changes,
+// also needed for reset from parent
+watch(
+    () => props.modelValue,
+    (val) => {
+        if (!val) {
+            model.value = null;
+            selectedOption.value = null;
+        } else {
+            model.value = String(val);
+        }
+    }
+);
 // Sync selectedOption with model
 watch(selectedOption, val => {
     model.value = val?.id ?? null;
@@ -135,6 +148,10 @@ const emitOpenRelatedForm = () => emit('openRelated', relationMetadata);
                     <ComboboxEmpty>No {{ modelNameSingular }} found.</ComboboxEmpty>
 
                     <ComboboxGroup>
+                        <!-- Null option -->
+                        <ComboboxItem :value="null">
+                            <em class="text-muted-foreground">Please select...</em>
+                        </ComboboxItem>
                         <ComboboxItem v-for="item in options" :key="item.id" :value="item">
                             <Avatar class="size-5">
                                 <AvatarImage :src="`https://github.com/${item.name}.png`" />

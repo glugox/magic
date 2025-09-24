@@ -13,7 +13,6 @@ use Glugox\Magic\Support\Config\Relation;
 use Glugox\Magic\Support\Config\RelationType;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
-use Glugox\Magic\Validation\EntityRuleSet;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -199,12 +198,6 @@ class GenerateControllersAction implements DescribableAction
         // Relations for eager loading
         $relationNamesCode = StubHelper::getRelationNamesString($entity, RelationType::BELONGS_TO);
 
-        /** @var EntityRuleSet $validationRules */
-        $validationRules = $this->validationHelper->make($entity);
-        // Prepare rules
-        $rulesArrayStrCreate = exportPhpValue($validationRules->getCreateRules(), 2);
-        $rulesArrayStrUpdate = exportPhpValue($validationRules->getUpdateRules(), 2);
-
         $stubPath = $this->stubsPath.'/controllers/controller.stub';
         $template = File::get($stubPath);
 
@@ -222,8 +215,6 @@ class GenerateControllersAction implements DescribableAction
             '{{folderName}}' => $entity->getFolderName(),
             '{{routeName}}' => $entity->getRouteName(),
             '{{relationNamesCode}}' => $relationNamesCode,
-            '{{rulesArrayStrCreate}}' => $rulesArrayStrCreate,
-            '{{rulesArrayStrUpdate}}' => $rulesArrayStrUpdate,
             '{{resourceClass}}' => $resourceClass,
             '{{searchQueryString}}' => $this->context->getConfig()->getConfigValue('naming.search_query_string', 'search'),
         ];
@@ -387,11 +378,6 @@ class GenerateControllersAction implements DescribableAction
         // Relations for eager loading
         $relationNamesCode = StubHelper::getRelationNamesString($entity, RelationType::BELONGS_TO);
 
-        /** @var EntityRuleSet $validationRules */
-        $validationRules = $this->validationHelper->make($entity);
-        $rulesArrayStrCreate = exportPhpValue($validationRules->getCreateRules(), 2);
-        $rulesArrayStrUpdate = exportPhpValue($validationRules->getUpdateRules(), 2);
-
         // Load stub
         $stubPath = $this->stubsPath.'/controllers/api_controller.stub';
         $template = File::get($stubPath);
@@ -404,8 +390,6 @@ class GenerateControllersAction implements DescribableAction
             '{{modelClassCamel}}' => $modelClassCamel,
             '{{controllerClass}}' => $controllerClass,
             '{{relationNamesCode}}' => $relationNamesCode,
-            '{{rulesArrayStrCreate}}' => $rulesArrayStrCreate,
-            '{{rulesArrayStrUpdate}}' => $rulesArrayStrUpdate,
             '{{resourceClass}}' => $resourceClass,
             '{{resourceClassFull}}' => $resourceClassFull,
             '{{searchQueryString}}' => $this->context->getConfig()->getConfigValue('naming.search_query_string', 'search'),

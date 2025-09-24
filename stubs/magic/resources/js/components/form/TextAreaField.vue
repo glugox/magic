@@ -4,7 +4,7 @@
       <Textarea
           :id="field.name"
           :name="field.name"
-          :placeholder="field.label"
+          :placeholder="`Enter ${field.label}...`"
           :rows="4"
           v-model="model"
           @blur="validate(model)"
@@ -27,4 +27,11 @@ const model = ref(props.modelValue ?? '')
 
 // Emit changes up to parent
 watch(model, (val) => emit('update:modelValue', val))
+
+// Sync with external changes
+watch(() => props.modelValue, (val) => {
+    if (val !== model.value) {
+        model.value = val ?? ''
+    }
+})
 </script>

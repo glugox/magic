@@ -41,6 +41,7 @@ class InstallNodePackagesAction implements DescribableAction
      */
     protected array $shadcnComponents = [
 
+        'accordion',
         'calendar',
         'combobox',
         'command',
@@ -101,10 +102,12 @@ class InstallNodePackagesAction implements DescribableAction
         if (! empty($missingComponents)) {
             Log::channel('magic')->info('Installing missing shadcn-vue components: '.implode(', ', $missingComponents));
 
-            $this->runProcess(
-                array_merge(['/usr/local/bin/npx', 'shadcn-vue@latest', 'add'], $missingComponents, ['--yes']),
-                'Installing shadcn-vue components...'
-            );
+            foreach ($missingComponents as $component) {
+                $this->runProcess(
+                    ['/usr/local/bin/npx', 'shadcn-vue@latest', 'add', $component, '--yes'],
+                    "Installing shadcn-vue component: $component..."
+                );
+            }
 
         } else {
             Log::channel('magic')->info('All shadcn-vue components are already installed.');

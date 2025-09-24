@@ -63,12 +63,6 @@ class {{controllerClass}} extends Controller
         $data = $request->validated();
         $item = {{modelClass}}::create($data);
 
-        $inertiaRedirect = $request->getStoreInertiaComponent();
-        if ($request->header('X-Inertia') && $inertiaRedirect) {
-            // For now, this is for creating BelongsTo relation from another resource
-            return Inertia::render($inertiaRedirect, ['record' => $item]);
-        }
-
         return redirect()->route(strtolower('{{routeName}}') . '.index')
             ->with('success', '{{modelClass}} created successfully.');
     }

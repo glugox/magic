@@ -9,6 +9,7 @@ const props = defineProps<FormFieldProps>()
 <template>
     <BaseField v-bind="props">
         <InputField
+            :name="props.field.name"
             type="text"
             :model-value="props.modelValue"
             readonly

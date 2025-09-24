@@ -38,6 +38,8 @@ export interface Field {
     values: string[] | null
     hidden: boolean
     component: string | null
+    min: number | null
+    max: number | null
 }
 
 export interface Relation {
@@ -60,8 +62,19 @@ export interface ResourceFormProps {
     parentEntity?: Entity;
     parentId?: DbId;
     jsonMode?: boolean;
-    inertiaPage?: string;
-    parentInertiaPage?: string;
+    dialogMode?: boolean;
+}
+
+
+export type ResourceAction = "created" | "updated" | "deleted"
+
+export interface DialogOptions extends ResourceFormProps {
+    title?: string
+    onSuccess?: (record: any, action: ResourceAction) => void
+}
+
+export interface DialogInstance extends DialogOptions {
+    id: string;
 }
 
 export interface ResourceQueryOptions {

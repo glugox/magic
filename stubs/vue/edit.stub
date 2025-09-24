@@ -39,15 +39,19 @@ const page = usePage();
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
-        <Head title="{{entityName}}" />
-        <ResourceLayout :title="item.data.name" description="{{entityName}}" :sidebar-nav-items="sidebarNavItems">
-            <div class="flex flex-col space-y-6 max-w-2xl">
-                <HeadingSmall title="{{entityName}} information" description="Update {{entityName}} details" />
-                <ResourceFormNested
-                    :entity="entity"
-                    :item="item.data"
-                />
+        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
+            <div class="relative p-4 min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
+                <Head title="{{entityName}}" />
+                <ResourceLayout :title="item.data.name" description="{{entityName}}" :sidebar-nav-items="sidebarNavItems">
+                    <div class="flex flex-col space-y-6 max-w-2xl">
+                        <HeadingSmall title="{{entityName}} information" description="Update {{entityName}} details" />
+                        <ResourceFormNested
+                            :entity="entity"
+                            :item="item.data"
+                        />
+                    </div>
+                </ResourceLayout>
             </div>
-        </ResourceLayout>
+        </div>
     </AppLayout>
 </template>

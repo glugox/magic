@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useEntityContext } from "@/composables/useEntityContext";
 import DebugBox from "@/components/debug/DebugBox.vue";
 import { Toaster } from '@/components/ui/sonner';
-import ResourceDebugBox from "@/components/debug/ResourceDebugBox.vue";
+import { useApi } from '@/composables/useApi';
 
 const props = defineProps<ResourceFormProps>();
 
@@ -19,23 +19,25 @@ const emit = defineEmits<{
 }>();
 
 // Initial form data
-const initialData: Record<string, any> = {
-    _parentComponent: props.parentInertiaPage ?? null,
-};
+const initialData: Record<string, any> = {};
 props.entity.fields.forEach((f) => {
     initialData[f.name] = props.item?.[f.name] ?? f.default ?? '';
 });
 const form = useForm(initialData);
+const { post, put } = useApi();
 
 // Context: URLs, action type
 const { crudActionType, destroyUrl, storeUrl, updateUrl } =
     useEntityContext(props.entity, props.parentEntity, props.parentId, props.item);
 
+// If we are in dialog mode, we must be also in jsonMode
+const jsonMode = props.jsonMode || props.dialogMode;
+
 const onCreated = (record: unknown) => {
     console.log("On created", record);
     form.defaults(initialData)
     form.reset()
-    if (props.jsonMode) {
+    if (jsonMode) {
         emit('created', record);
     }
     toast.success(`${props.entity.singularName} created`);
@@ -43,33 +45,57 @@ const onCreated = (record: unknown) => {
 
 const onUpdated = (record: unknown) => {
     console.log("On updated", record);
-    form.defaults(initialData)
-    form.reset()
-    if (props.jsonMode) {
+    if (jsonMode) {
         emit('updated', record);
     }
     toast.success(`${props.entity.singularName} updated`);
 }
+// Submit form
+const submit = async () => {
 
-// Helpers
-function submit() {
+    console.log("Submit", form);
+    const isJsonMode = jsonMode
     const headers = {
-        Accept: props.jsonMode ? 'application/json' : 'text/html',
-        'X-Requested-With': 'XMLHttpRequest',
-        'X-Inertia-Dialog': 'true', // 👈 custom marker
-    };
+        'X-Inertia-Dialog': isJsonMode ? 'true' : '',
+        'Accept': isJsonMode ? 'application/json' : 'text/html',
+        'Content-Type': 'application/json'
+    }
+
     if (!props.item?.id) {
-        form.post(storeUrl.value, {
-            headers,
-            preserveScroll: true,
-            onSuccess: (page) => onCreated(page.props?.record ?? form.data())
-        });
+        if (isJsonMode) {
+            // Use Axios/fetch for modal
+            try {
+                const record = await post(storeUrl.value.url, form.data(), headers)
+                console.log("result", record);
+                onCreated(record)
+            } catch (e) {
+                console.error(e)
+                // handle errors
+            }
+        } else {
+            // Normal Inertia submit
+            form.post(storeUrl.value, {
+                headers,
+                preserveScroll: true,
+                onSuccess: (page) => onCreated(page.props?.record ?? form.data())
+            })
+        }
     } else {
-        form.put(updateUrl.value, {
-            headers,
-            preserveScroll: true,
-            onSuccess: (page) => onUpdated(page.props?.record ?? form.data()),
-        });
+        if (isJsonMode) {
+            try {
+                const record = await put(updateUrl.value.url, form.data(), headers)
+                onUpdated(record)
+            } catch (e) {
+                console.error(e)
+            }
+        } else {
+            // Normal Inertia submit
+            form.put(updateUrl.value, {
+                headers,
+                preserveScroll: true,
+                onSuccess: (page) => onUpdated(page.props?.record ?? form.data()),
+            })
+        }
     }
 }
 
@@ -92,7 +118,6 @@ defineExpose({ submit, destroy, processing: form.processing });
 </script>
 
 <template>
-    <ResourceDebugBox v-bind="props" class="mb-4" />
     <DebugBox v-bind="props" />
     <form @submit.prevent="submit" class="space-y-6">
         <FieldRenderer
@@ -109,7 +134,7 @@ defineExpose({ submit, destroy, processing: form.processing });
 
         <!-- Default inline buttons if no dialog footer slot is used -->
         <div v-if="!$slots.footer" class="flex gap-4">
-            <Button @click="submit" :disabled="form.processing" class="btn btn-primary">
+            <Button type="submit" :disabled="form.processing" class="btn btn-primary">
                 {{ crudActionType === 'update' ? 'Update' : 'Create' }}
             </Button>
 

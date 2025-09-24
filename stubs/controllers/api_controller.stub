@@ -53,7 +53,7 @@ class {{controllerClass}} extends Controller
      */
     public function store(MetaRequest $request)
     {
-        $validated = $request->validate({{rulesArrayStrCreate}});
+        $validated = $request->validated();
 
         $item = {{modelClass}}::create($validated);
 
@@ -73,7 +73,7 @@ class {{controllerClass}} extends Controller
      */
     public function update(MetaRequest $request, {{modelClass}} ${{modelClassCamel}})
     {
-        $validated = $request->validate({{rulesArrayStrUpdate}});
+        $validated = $request->validated();
 
         ${{modelClassCamel}}->update($validated);
 

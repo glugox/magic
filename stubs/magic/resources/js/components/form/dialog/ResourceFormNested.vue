@@ -6,7 +6,7 @@ import {Entity, DbId, Relation, ResourceFormProps} from '@/types/support';
 import { useEntityEvents } from '@/composables/useEntityEvents';
 
 // Props
-const { entity, item, parentEntity, parentId, inertiaPage } = defineProps<ResourceFormProps>();
+const { entity, item, parentEntity, parentId } = defineProps<ResourceFormProps>();
 
 // DialogManager ref
 const dialogManager = ref<InstanceType<typeof DialogManager> | null>(null);
@@ -35,7 +35,6 @@ function handleOpenRelated(relation: Relation) {
         parentEntity: entity,
         parentId: parentItemId,
         title: relatedEntity.singularName,
-        parentInertiaPage: inertiaPage,
         onSuccess(record, action) {
             emit('created', { entity: relatedEntity.name, record });
         },
@@ -51,7 +50,6 @@ function handleOpenRelated(relation: Relation) {
             :item="item"
             :parent-entity="parentEntity"
             :parent-id="parentId"
-            :inertia-page="inertiaPage"
             @open-related="handleOpenRelated"
         />
 

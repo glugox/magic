@@ -19,6 +19,8 @@ watch(() => props.modelValue, val => localValue.value = !!val);
 
 <template>
     <BaseField v-bind="props">
-        <Switch v-model="localValue" />
+        <Switch v-model="localValue" :name="field.name" />
+        <!-- Hidden input for form submission -->
+        <input type="hidden" :name="field.name" :value="localValue ? 1 : 0" />
     </BaseField>
 </template>

@@ -13,6 +13,8 @@ const emit = defineEmits<{
     <BaseField v-bind="props" v-slot="{ validate }">
         <InputField
             type="text"
+            :name="props.field.name"
+            :placeholder="`Enter ${props.field.label}...`"
             :model-value="props.modelValue"
             @update:model-value="(val) => {
                 emit('update:modelValue', val)
