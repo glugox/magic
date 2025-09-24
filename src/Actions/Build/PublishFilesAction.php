@@ -121,7 +121,7 @@ class PublishFilesAction implements DescribableAction
             // Add related entity controllers as well
             foreach ($entity->getRelations() as $relation) {
 
-                if ($relation->isPolymorphic()) {
+                if (! $relation->hasRoute()) {
                     // Skip polymorphic relations as they can relate to multiple entities
                     continue;
                 }
@@ -129,13 +129,13 @@ class PublishFilesAction implements DescribableAction
                 $relatedName = $relation->getRelatedEntityName();
                 if ($relatedName) {
                     $relatedImport = "import {$entity->getName()}{$relatedName}Controller from '@/actions/App/Http/Controllers/{$entity->getName()}/{$entity->getName()}{$relatedName}Controller';";
-                    if (!in_array($relatedImport, $ctrImportsArr, true)) {
+                    if (! in_array($relatedImport, $ctrImportsArr, true)) {
                         $ctrImportsArr[] = $relatedImport;
                     }
                 }
             }
         }
-        if (!empty($ctrImportsArr)) {
+        if (! empty($ctrImportsArr)) {
             $controllersImportStr = implode("\n", $ctrImportsArr)."\n";
         }
 

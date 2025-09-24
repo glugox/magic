@@ -1,32 +1,22 @@
-<template>
-    <component
-        :is="fieldComponent"
-        v-bind="props"
-        @update:modelValue="updateModelValue"
-        @open-related="$emit('openRelated', $event)"
-    />
-</template>
-
 <script setup lang="ts">
+import {computed} from "vue";
+import {FormFieldProps} from "@/types/support";
+
 import StringField from '@/components/form/StringField.vue'
 import NumberField from '@/components/form/NumberField.vue'
 import DecimalField from '@/components/form/DecimalField.vue'
 import DateField from '@/components/form/DateField.vue'
 import BooleanField from "@/components/form/BooleanField.vue";
 import BelongsToField from '@/components/form/BelongsToField.vue'
-import {FormFieldProps} from '@/types/support'
 import TextAreaField from "@/components/form/TextAreaField.vue";
 import EnumField from "@/components/form/EnumField.vue";
 import DateTimeField from "@/components/form/DateTimeField.vue";
 import IdField from '@/components/form/IdField.vue';
 
 const props = defineProps<FormFieldProps>()
-const emit = defineEmits<{
-    (e: 'update:modelValue', value: any): void;
-    (e: 'openRelated', entry: any): void;
-}>()
 
-const componentsMap: Record<string, any> = {
+// Map field.type → component
+const componentMap: Record<string, any> = {
     // ──────── Core Identifiers ────────
     id: IdField,         //  need IdField
     uuid: StringField,       //  need UuidField
@@ -93,9 +83,15 @@ const componentsMap: Record<string, any> = {
     belongsToMany: null,
 }
 
-const fieldComponent = componentsMap[props.field.type] ?? StringField
 
-function updateModelValue(value: any) {
-    emit('update:modelValue', value)
-}
+const componentName = computed(() => {
+    return componentMap[props.field.type] ?? StringField
+})
 </script>
+
+<template>
+    <component
+        :is="componentName"
+        v-bind="props"
+        @update:modelValue ="$emit('update:modelValue', $event)" />
+</template>

@@ -1,7 +1,7 @@
 <script setup lang="ts" generic="T">
-import {computed, defineProps, onMounted} from "vue"
+import {defineProps, onMounted, toRef} from "vue"
 import { useResourceTable } from "@/composables/useResourceTable"
-import {Entity, DbId, TableFilters, PaginatedResponse, ResourceData} from "@/types/support"
+import {Entity, DbId, TableFilters, PaginatedResponse, ResourceData, Controller} from "@/types/support"
 import Toolbar from "@/components/resource-table/toolbar/Toolbar.vue";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import {ColumnDef, FlexRender} from "@tanstack/vue-table";
@@ -25,12 +25,14 @@ export interface ResourceTableProps<T> {
 const props = defineProps<ResourceTableProps<T>>()
 
 
+
+
+const {createUrl} = useEntityContext(props.entity, props.parentEntity, props.parentId);
+
 const {
     table, rows, page, perPage, total, search, selectedIds,
     performBulkAction, bulkActionProcessing
 } = useResourceTable(props)
-
-const {relation, controller, crudActionType, formAction, deleteAction, createUrl} = useEntityContext(props.entity, props.parentEntity, props.parentId);
 
 const inertiaPage = usePage()
 

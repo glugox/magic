@@ -29,6 +29,7 @@ class InstallNodePackagesAction implements DescribableAction
     protected array $npmPackages = [
         'axios',
         'playwright@latest',
+        'date-fns'
         // add more npm packages here...
     ];
 

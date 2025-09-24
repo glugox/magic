@@ -79,6 +79,7 @@ onMounted(() => {
                        :parent-id="item.data.id"
                        :columns="columns as ColumnDef<ResourceData>[]"
                        :entity="relatedEntity"
+                       :parent-entity="entity"
                        :filters="currentFilters"
                    />
                </div>

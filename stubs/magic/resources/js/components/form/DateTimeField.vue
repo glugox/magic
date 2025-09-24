@@ -1,64 +1,59 @@
 <script setup lang="ts">
-import { CalendarDateTime,  getLocalTimeZone, toCalendarDate } from "@internationalized/date"
-import { DateFormatter } from "@internationalized/date"
-import { CalendarIcon } from "lucide-vue-next"
-
 import { ref, watch } from "vue"
-import { Button } from "@/components/ui/button"
+import { CalendarIcon, ClockIcon } from "lucide-vue-next"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
-import BaseField from "./BaseField.vue"
-import { FormFieldProps } from "@/types/support"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import BaseField from "./BaseField.vue"
+import InputField from "./InputField.vue"
+import type { FormFieldProps } from "@/types/support"
 
 const props = defineProps<FormFieldProps>()
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits<{ (e: "update:modelValue", value: string): void }>()
 
-// Formatter for display
-const df = new DateFormatter("en-US", { dateStyle: "long" })
+// Local reactive state
+const dateValue = ref<Date | null>(props.modelValue ? new Date(props.modelValue) : null)
+const popoverOpen = ref(false)
 
-// --- Convert string/Date to CalendarDate ---
-function toCalendarDateSafe(input: string | Date | null): CalendarDateTime | undefined {
-    if (!input) return undefined
-    const d = input instanceof Date ? input : new Date(input.replace(/\.\d+Z$/, 'Z'))
-    if (isNaN(d.getTime())) return undefined
-    return new CalendarDateTime(d.getFullYear(), d.getMonth() + 1, d.getDate())
-}
-
-// --- Local CalendarDate reactive value ---
-const value = ref<CalendarDateTime | undefined>(toCalendarDateSafe(props.modelValue))
-
-// --- Emit ISO string whenever CalendarDate changes ---
-watch(value, (val) => {
-    if (!val) {
-        emit('update:modelValue', null)
+// Emit ISO string whenever date changes
+watch(dateValue, (val) => {
+    if (val) {
+        emit("update:modelValue", val.toISOString())
+        popoverOpen.value = false // close popover on selection
     } else {
-        const jsDate = new Date(val.year, val.month - 1, val.day)
-        const sqlDate = jsDate.toISOString().slice(0, 19).replace('T', ' ')
-        emit('update:modelValue', sqlDate)
+        emit("update:modelValue", null)
     }
 })
+
+// Format display
+function formatDisplay(date: Date | null) {
+    if (!date) return "Pick date & time"
+    return date.toLocaleString("en-US", { dateStyle: "short", timeStyle: "short" })
+}
 </script>
 
 <template>
     <BaseField v-bind="props">
         <template #default>
-            <Popover>
+            <Popover v-model:open="popoverOpen">
                 <PopoverTrigger as-child>
                     <Button
                         variant="outline"
-                        :class="cn(
-              'w-[280px] justify-start text-left font-normal',
-              !value && 'text-muted-foreground'
-            )"
+                        :class="cn('w-[300px] justify-start text-left font-normal', !dateValue && 'text-muted-foreground')"
                     >
                         <CalendarIcon class="mr-2 h-4 w-4" />
-                        {{ value ? df.format(new Date(value.year, value.month - 1, value.day)) : "Pick a date" }}
+                        <ClockIcon class="mr-2 h-4 w-4" />
+                        {{ formatDisplay(dateValue) }}
                     </Button>
                 </PopoverTrigger>
 
                 <PopoverContent class="w-auto p-0">
-                    <Calendar v-model="value" initial-focus />
+                    <Calendar
+                        v-model="dateValue"
+                        showTime
+                        initial-focus
+                    />
                 </PopoverContent>
             </Popover>
         </template>

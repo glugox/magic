@@ -37,6 +37,7 @@ export interface Field {
     searchable: boolean
     values: string[] | null
     hidden: boolean
+    component: string | null
 }
 
 export interface Relation {
@@ -96,7 +97,6 @@ export interface FormFieldProps {
     entity: Entity
     crudActionType: CrudActionType
     modelValue?: any
-    relation?: Relation
     item?: Record<string, any>
     error?: string
 }

@@ -209,7 +209,7 @@ class GenerateVuePagesAction implements DescribableAction
         $entityImports = $this->tsHelper->writeEntityImports($entity);
         $supportImports = $this->tsHelper->writeFormPageSupportImports($entity);
         $relationSidebarItems = $this->tsHelper->writeRelationSidebarItems($entity, $this->context->getConfig(), CrudActionType::CREATE);
-        $inertiaPage = $entity->getFolderName() . '/Create';
+        $inertiaPage = $entity->getFolderName().'/Create';
 
         return <<<PHP
 <script setup lang="ts">

@@ -12,7 +12,7 @@ import {computed} from "vue";
 const { entity, createUrl, parentId, bulkActionProcessing, initialFilters } =
     defineProps<{
         entity: Entity
-        createUrl: WayfinderRoute
+        createUrl?: WayfinderRoute
         addNewUrl?: string
         parentId?: DbId
         bulkActionProcessing?: boolean
@@ -31,7 +31,7 @@ const emit = defineEmits<{
 const { search, visibleColumns, toggleColumnVisibility } = useTableFilters(emit, initialFilters)
 
 const canAddNew = computed(() => {
-    return createUrl?.url?.length > 0
+    return createUrl && createUrl?.url?.length > 0
 })
 
 </script>
@@ -47,7 +47,7 @@ const canAddNew = computed(() => {
             <NewEntityButton
                 v-if="canAddNew"
                 :label="`New ${entity.singularName}`"
-                :createUrl="createUrl.url"
+                :createUrl="createUrl?.url"
             />
             <ToolBarActions @action="(action) => emit('bulk-action', action)" />
         </div>

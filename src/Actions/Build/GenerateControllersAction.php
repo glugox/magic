@@ -295,7 +295,7 @@ class GenerateControllersAction implements DescribableAction
             foreach ($relations as $relation) {
 
                 // Check if relation does not have a route (e.g., belongsTo)
-                if (!$relation->hasRoute()) {
+                if (! $relation->hasRoute()) {
                     continue;
                 }
 

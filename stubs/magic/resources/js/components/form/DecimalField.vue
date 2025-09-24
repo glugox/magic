@@ -1,25 +1,23 @@
+<script setup lang="ts">
+import BaseField from './BaseField.vue'
+import InputField from './InputField.vue'
+import type { FormFieldProps } from '@/types/support'
+
+const props = defineProps<FormFieldProps>()
+const emit = defineEmits<{ (e: 'update:modelValue', value: string): void }>()
+</script>
+
 <template>
-    <BaseField v-bind="props">
-        <Input
+    <BaseField v-bind="props" v-slot="{ validate }">
+        <InputField
             type="number"
             step="0.01"
-            :id="field.name"
-            :name="field.name"
-            :placeholder="field.label"
-            v-model="model"
+            inputmode="decimal"
+            :model-value="props.modelValue"
+            @update:model-value="(val: any) => {
+                emit('update:modelValue', val)
+                validate(val)
+            }"
         />
     </BaseField>
 </template>
-
-<script setup lang="ts">
-import BaseField from './BaseField.vue'
-import { Input } from '@/components/ui/input'
-import {FormFieldProps } from '@/types/support'
-import { ref, watch } from 'vue'
-
-const props = defineProps<FormFieldProps>()
-const emit = defineEmits(['update:modelValue'])
-
-const model = ref(props.modelValue)
-watch(model, (val) => emit('update:modelValue', val))
-</script>

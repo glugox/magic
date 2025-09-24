@@ -5,7 +5,7 @@
           :id="field.name"
           :name="field.name"
           :placeholder="field.label"
-          :rows="field.rows ?? 4"
+          :rows="4"
           v-model="model"
           @blur="validate(model)"
       />

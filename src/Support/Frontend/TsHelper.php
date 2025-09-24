@@ -29,19 +29,18 @@ class TsHelper
      * Write import statements for a given entity.
      * import { type User } from '@/types/entities';",
      *
-     * @param Entity $entity The entity for which to write imports.
-     * @param Entity|null $parentEntity The parent entity if this is a nested entity.
-     * @param array<string,mixed>|null $options Options to customize the imports. Supported options:
-     *                               - 'model' (bool): Whether to import the model type. Default is true.
-     *                               - 'controller' (bool): Whether to import the controller. Default is true.
-     * @return string
+     * @param  Entity  $entity  The entity for which to write imports.
+     * @param  Entity|null  $parentEntity  The parent entity if this is a nested entity.
+     * @param  array<string,mixed>|null  $options  Options to customize the imports. Supported options:
+     *                                             - 'model' (bool): Whether to import the model type. Default is true.
+     *                                             - 'controller' (bool): Whether to import the controller. Default is true.
      */
     public function writeEntityImports(Entity $entity, ?Entity $parentEntity = null, ?array $options = []): string
     {
         $imports = [];
         $options = array_merge([
             'model' => true,
-            //'controller' => true,
+            // 'controller' => true,
             'entityAlias' => 'entity',
         ], $options ?? []);
 
@@ -106,7 +105,7 @@ class TsHelper
         $relatedEntityMetaVar = Str::camel($relatedEntity->getName()).'Entity';
 
         $imports = [
-            //"import { {$relatedEntityMetaVar} as relatedEntity } from '@/types/entityMeta';",
+            // "import { {$relatedEntityMetaVar} as relatedEntity } from '@/types/entityMeta';",
             "import { get{$relatedEntity->name}Columns } from '@/helpers/{$relatedEntity->getFolderName()}_helper'",
             "import { type PaginatedResponse, type TableFilters } from '@/types/support';"
         ];
@@ -247,7 +246,7 @@ class TsHelper
 
         return "{
             name: '{$field->name}',
-            type: '{$field->migrationType()}',
+            type: '{$field->modelMetaType()->value}',
             label: '{$field->label()}',
             nullable: ".($field->nullable ? 'true' : 'false').',
             sometimes: '.($field->sometimes ? 'true' : 'false').',

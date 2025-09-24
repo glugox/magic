@@ -32,6 +32,9 @@ const { crudActionType, destroyUrl, storeUrl, updateUrl } =
     useEntityContext(props.entity, props.parentEntity, props.parentId, props.item);
 
 const onCreated = (record: unknown) => {
+    console.log("On created", record);
+    form.defaults(initialData)
+    form.reset()
     if (props.jsonMode) {
         emit('created', record);
     }
@@ -39,6 +42,9 @@ const onCreated = (record: unknown) => {
 }
 
 const onUpdated = (record: unknown) => {
+    console.log("On updated", record);
+    form.defaults(initialData)
+    form.reset()
     if (props.jsonMode) {
         emit('updated', record);
     }
@@ -97,6 +103,7 @@ defineExpose({ submit, destroy, processing: form.processing });
             :error="form.errors[field.name]"
             v-model="form[field.name]"
             :crud-action-type="crudActionType"
+            @update:model-value="val => form[field.name] = val"
             @open-related="handleOpenRelated"
         />
 

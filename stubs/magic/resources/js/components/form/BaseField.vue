@@ -1,44 +1,23 @@
-<template>
-    <div class="space-y-1">
-        <label :for="field.name" v-if="!field.hidden" class="block text-sm font-medium">
-            {{ field.label }}
-        </label>
-
-        <!-- If consumer provides slot, render it -->
-        <slot :validate="validate">
-            <!-- Fallback if no slot provided -->
-            <component
-                :is="fieldComponent"
-                :model-value="modelValue"
-                @update:model-value="emit('update:modelValue', $event)"
-                @open-related="$emit('openRelated', $event)"
-                :id="field.name"
-                :placeholder="field.placeholder"
-                class="w-full"
-            />
-        </slot>
-
-        <p v-if="error" class="text-sm text-red-500">{{ error }}</p>
-    </div>
-</template>
-
 <script setup lang="ts">
-import {computed} from "vue";
-import {FormFieldProps} from "@/types/support";
+import { FormFieldProps } from "@/types/support";
 
-const props = defineProps<FormFieldProps>()
-
-const emit = defineEmits<{
-    (e: 'update:modelValue', value: any): void;
-    (e: 'openRelated', entry: any): void;
-}>()
-
+const props = defineProps<FormFieldProps>();
 // dummy validate function for slot
 function validate(value: any) {
     console.log("validating::", value)
 }
-
-const fieldComponent = computed(() => {
-    return props.field.component ?? "input"
-})
 </script>
+
+<template>
+    <div class="mb-4">
+        <label v-if="!field.hidden" class="block text-sm font-medium text-white mb-1">
+            {{ props.field.label }}
+        </label>
+
+        <slot :validate="validate" />
+
+        <p v-if="!field.hidden && props.error" class="text-sm text-red-600 mt-1">
+            {{ props.error }}
+        </p>
+    </div>
+</template>

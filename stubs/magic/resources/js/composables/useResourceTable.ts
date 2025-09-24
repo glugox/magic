@@ -9,25 +9,28 @@ import {
 } from "@tanstack/vue-table"
 import type {
     Controller,
-    DbId,
+    DbId, Entity,
     PaginatedResponse, ResourceData,
     TableFilters,
 } from "@/types/support"
 import { arraysEqualIgnoreOrder, debounced } from "@/lib/app"
 import axios from "axios"
+import {useEntityContext} from "@/composables/useEntityContext";
 
 export function useResourceTable<T>(props: {
     data: PaginatedResponse<T>
     filters?: TableFilters
-    controller: Controller
     parentId?: DbId
-    columns: ColumnDef<ResourceData>[]
+    columns: ColumnDef<ResourceData>[],
+    entity: Entity,
+    parentEntity?: Entity,
 }) {
 
     console.log("useResourceTable")
     console.log(props)
 
-    const { data, filters, controller, parentId, columns } = toRefs(props)
+    const { data, filters, parentId, columns } = toRefs(props)
+    const {controller} = useEntityContext(props.entity, props.parentEntity, props.parentId)
 
     const rows = ref<T[]>(data.value.data as T[])
     const page = ref(data.value.meta.current_page)

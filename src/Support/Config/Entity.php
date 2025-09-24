@@ -555,7 +555,7 @@ class Entity
                 continue;
             }
 
-            if (! in_array($field->name, ['created_at', 'updated_at', 'password', 'remember_token'])) {
+            if (! in_array($field->name, ['created_at', 'updated_at', 'remember_token'])) {
                 $visible[] = $field;
             }
         }
@@ -955,6 +955,15 @@ class Entity
     }
 
     /**
+     * Get the Inertia component name for this entity.
+     * E.g. "Users/Index", "Posts/Index"
+     */
+    public function getInertiaComponent(): string
+    {
+        return $this->getDirectoryName().'/Index';
+    }
+
+    /**
      * Assign priority values to fields for ordering.
      */
     protected function fieldPriority(Field $field): int
@@ -1023,14 +1032,5 @@ class Entity
                 $field->hidden = true;
             }
         }
-    }
-
-    /**
-     * Get the Inertia component name for this entity.
-     * E.g. "Users/Index", "Posts/Index"
-     */
-    public function getInertiaComponent(): string
-    {
-        return $this->getDirectoryName().'/Index';
     }
 }

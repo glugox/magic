@@ -1,27 +1,24 @@
+<script setup lang="ts">
+import BaseField from './BaseField.vue';
+import { Switch } from '@/components/ui/switch';
+import type { FormFieldProps } from '@/types/support';
+import { ref, watch } from 'vue';
+
+const props = defineProps<FormFieldProps>();
+const emit = defineEmits<{ (e: 'update:modelValue', value: boolean): void }>();
+
+// Local reactive value
+const localValue = ref(!!props.modelValue);
+
+// Sync localValue -> parent
+watch(localValue, val => emit('update:modelValue', val));
+
+// Sync parent -> localValue
+watch(() => props.modelValue, val => localValue.value = !!val);
+</script>
+
 <template>
     <BaseField v-bind="props">
-        <template #default="{ validate }">
-            <div class="flex items-center gap-2">
-                <Switch
-                    :id="field.name"
-                    :name="field.name"
-                    v-model="model"
-                    @blur="validate(model)"
-                />
-            </div>
-        </template>
+        <Switch v-model="localValue" />
     </BaseField>
 </template>
-
-<script setup lang="ts">
-import BaseField from '@/components/form/BaseField.vue'
-import { Switch } from '@/components/ui/switch'
-import { FormFieldProps } from '@/types/support'
-import { ref, watch } from 'vue'
-
-const props = defineProps<FormFieldProps>()
-const emit = defineEmits(['update:modelValue'])
-
-const model = ref(props.modelValue ?? false)
-watch(model, (val) => emit('update:modelValue', val))
-</script>

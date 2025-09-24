@@ -14,7 +14,18 @@ export function useEntityContext(
         () => parentEntity?.relations.find((r) => r.relatedEntity && r.relatedEntity().name === entity.name) ?? null
     );
 
-    const controller = computed<Controller>(() => relation.value?.controller ?? entity.controller);
+
+
+    const controller = computed<Controller | null>(() => {
+        // first check relation
+        if (relation.value && relation.value.controller) {
+            return relation.value.controller;
+        }
+        if (!entity.controller) {
+            return null;
+        }
+        return entity.controller;
+    });
 
     // Controller class name
     const controllerName = computed(() => {

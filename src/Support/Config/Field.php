@@ -4,6 +4,7 @@ namespace Glugox\Magic\Support\Config;
 
 use Exception;
 use Glugox\Magic\Support\TypeHelper;
+use Glugox\ModelMeta\FieldType as ModelMetaFieldType;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -193,6 +194,59 @@ class Field
 
             // Default: use the enum value as-is
             default => $this->type->value,
+        };
+    }
+
+    /**
+     * Model meta's FieldType is used in real app, while Magic FieldType is used in code generation.
+     * To generate , for example TS types in real app, we need to map Magic FieldType to ModelMeta FieldType.
+     */
+    public function modelMetaType(): ModelMetaFieldType
+    {
+
+        return match ($this->type) {
+            FieldType::ID => ModelMetaFieldType::ID,
+            FieldType::FOREIGN_ID => ModelMetaFieldType::FOREIGN_ID,
+            FieldType::STRING => ModelMetaFieldType::STRING,
+            FieldType::TEXT => ModelMetaFieldType::TEXT,
+            FieldType::INTEGER => ModelMetaFieldType::INTEGER,
+            FieldType::BIG_INTEGER => ModelMetaFieldType::BIG_INTEGER,
+            FieldType::FLOAT => ModelMetaFieldType::FLOAT,
+            FieldType::DOUBLE => ModelMetaFieldType::DOUBLE,
+            FieldType::DECIMAL => ModelMetaFieldType::DECIMAL,
+            FieldType::BOOLEAN => ModelMetaFieldType::BOOLEAN,
+            FieldType::DATE => ModelMetaFieldType::DATE,
+            FieldType::DATETIME => ModelMetaFieldType::DATETIME,
+            FieldType::TIME => ModelMetaFieldType::TIME,
+            FieldType::TIMESTAMP => ModelMetaFieldType::TIMESTAMP,
+            FieldType::JSON => ModelMetaFieldType::JSON,
+            FieldType::JSONB => ModelMetaFieldType::JSONB,
+            FieldType::ENUM => ModelMetaFieldType::ENUM,
+            FieldType::EMAIL => ModelMetaFieldType::EMAIL,
+            FieldType::PASSWORD => ModelMetaFieldType::PASSWORD,
+            FieldType::URL => ModelMetaFieldType::URL,
+            FieldType::PHONE => ModelMetaFieldType::PHONE,
+            FieldType::USERNAME => ModelMetaFieldType::USERNAME,
+            FieldType::SLUG => ModelMetaFieldType::SLUG,
+            FieldType::SECRET => ModelMetaFieldType::SECRET,
+            FieldType::TOKEN => ModelMetaFieldType::TOKEN,
+            FieldType::FILE => ModelMetaFieldType::FILE,
+            FieldType::IMAGE => ModelMetaFieldType::IMAGE,
+            FieldType::LONG_TEXT => ModelMetaFieldType::LONG_TEXT,
+            FieldType::MEDIUM_TEXT => ModelMetaFieldType::MEDIUM_TEXT,
+            FieldType::CHAR => ModelMetaFieldType::CHAR,
+            FieldType::BINARY => ModelMetaFieldType::BINARY,
+            FieldType::SMALL_INTEGER => ModelMetaFieldType::SMALL_INTEGER,
+            FieldType::TINY_INTEGER => ModelMetaFieldType::TINY_INTEGER,
+            FieldType::UNSIGNED_BIG_INTEGER => ModelMetaFieldType::UNSIGNED_BIG_INTEGER,
+            FieldType::UNSIGNED_INTEGER => ModelMetaFieldType::UNSIGNED_INTEGER,
+            FieldType::UNSIGNED_SMALL_INTEGER => ModelMetaFieldType::UNSIGNED_SMALL_INTEGER,
+            FieldType::UNSIGNED_TINY_INTEGER => ModelMetaFieldType::UNSIGNED_TINY_INTEGER,
+            FieldType::UUID => ModelMetaFieldType::UUID,
+            FieldType::YEAR => ModelMetaFieldType::YEAR,
+            // Relations
+
+            default => ModelMetaFieldType::STRING,
         };
     }
 

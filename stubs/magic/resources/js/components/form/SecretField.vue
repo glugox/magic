@@ -3,17 +3,15 @@ import BaseField from './BaseField.vue'
 import InputField from './InputField.vue'
 import type { FormFieldProps } from '@/types/support'
 
-const props = defineProps<FormFieldProps>()
+const props = defineProps<FormFieldProps & { modelValue?: string }>()
 </script>
 
 <template>
     <BaseField v-bind="props">
         <InputField
-            type="text"
-            :model-value="props.modelValue"
-            readonly
-            hidden
-            class="bg-muted cursor-not-allowed"
+            type="password"
+            v-model="props.modelValue"
+            v-bind="props.extraInputProps"
         />
     </BaseField>
 </template>

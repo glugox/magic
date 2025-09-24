@@ -87,9 +87,19 @@ class GenerateCrudTestsAction implements DescribableAction
         $testClass = Str::studly(Str::singular($entity->getName())).'Test';
         $belongsToRels = $entity->getRelations(RelationType::BELONGS_TO);
 
-        $uses = array_map(function (Relation $rel) {
-            return 'use '.$rel->getRelatedEntity()->getFullyQualifiedModelClass().';';
+        $usesFqcns = array_map(function (Relation $rel) {
+            // If entity is User, skip it
+            return $rel->getRelatedEntity()->getFullyQualifiedModelClass();
         }, $belongsToRels);
+
+        // Remove if there is User model
+        $usesFqcns = array_filter($usesFqcns, function ($fqn) {
+            return ! str_ends_with($fqn, '\User');
+        });
+
+        $uses = array_map(function (string $useClass) {
+            return "use {$useClass};";
+        }, array_unique($usesFqcns));
 
         // Pest browser test's filling code when creating a record
         $formFieldsCodeCreate = StubHelper::writePestFormFields($entity);
