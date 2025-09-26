@@ -20,6 +20,7 @@
         "php": "^8.4",
         "glugox/ai": "*",
         "glugox/model-meta": "*",
+        "glugox/table-query": "*",
         "illuminate/contracts": "^10.0||^11.0||^12.0",
         "prism-php/prism": "^0.86.0"
     },

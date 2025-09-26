@@ -3,10 +3,12 @@
 namespace {{namespace}};
 
 use Glugox\ModelMeta\Field;
+use Glugox\ModelMeta\Relation;
 use Glugox\ModelMeta\ModelMeta;
 use Glugox\ModelMeta\Fields\{
     {{importedFields}}
 };
+{{importedRelations}}
 
 class {{className}} extends ModelMeta
 {
@@ -29,4 +31,16 @@ class {{className}} extends ModelMeta
             {{fields}}
         ];
     }
+
+    /**
+     * Define relationships for the {{className}} resource.
+     *
+     * @return array<int, Relation>
+     */
+     public function relations(): array
+     {
+         return [
+             {{relations}}
+         ];
+     }
 }

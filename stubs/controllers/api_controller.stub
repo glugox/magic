@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Services\TableQueryService;
+use Glugox\TableQuery\Services\TableQueryService;
 use {{modelClassFull}};
 use {{resourceClassFull}};
 use Illuminate\Http\Request;
@@ -15,12 +15,6 @@ use Glugox\ModelMeta\Requests\MetaRequest;
  */
 class {{controllerClass}} extends Controller
 {
-    /**
-     * Constructor
-     */
-     public function __construct(
-        protected TableQueryService $tableQueryService
-     ){}
 
     /**
      * Display a listing of the resource.
@@ -28,18 +22,11 @@ class {{controllerClass}} extends Controller
     public function index(MetaRequest $request)
     {
         $query = {{modelClass}}::query();
-
-        // Apply search (if needed)
-        $searchableFields = $request->meta()->searchableFields();
-        $relations = {{relationNamesCode}};
-        $tableFields = $request->meta()->tableFields();
+        $tableQueryService = TableQueryService::forModel({{modelClass}}::class);
 
          // Apply table query (search, sort, filters)
-         $items = $this->tableQueryService->applyAll(
+         $items = $tableQueryService->applyAll(
             $query,
-            $searchableFields,
-            $relations,
-            $tableFields,
             $request->get('{{searchQueryString}}', ''),
             $request->get('sortKey'),
             $request->get('sortDir')

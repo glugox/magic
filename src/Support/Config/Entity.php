@@ -16,6 +16,8 @@ class Entity
         public ?array $fields = [],
         /** @var Relation[] */
         public ?array $relations = [],
+        /** @var Filter[] */
+        public ?array $filters = [],
         /** @var string */
         public ?string $tableName = null,
         // settings for the entity, e.g. timestamps, soft deletes, etc.
@@ -40,6 +42,12 @@ class Entity
      *         localKey?: string,
      *         relatedKey?: string,
      *         relationName?: string
+     *     }>,
+     *     filters?: array<string, array{
+     *         type: string,
+     *         field: string,
+     *         initialValues?: array{string, mixed},
+     *         dynamic?: boolean
      *     }>,
      *     settings?: array{ has_images?: bool, is_searchable?: bool },
      *     icon?: string
@@ -71,11 +79,17 @@ class Entity
          *         relatedKey?: string,
          *         relationName?: string
          *     }>,
+         *     filters?: array<string, array{
+         *         type: string,
+         *         field: string,
+         *         initialValues?: array<string, mixed>,
+         *         dynamic?: boolean
+         *     }>,
          *     settings?: array{ has_images?: bool, is_searchable?: bool },
          *     icon?: string
          * } $data
          */
-        $entity = new self($data['name'], [], [], $data['table'] ?? null);
+        $entity = new self($data['name'], [], [], [], $data['table'] ?? null);
 
         foreach ($data['fields'] ?? [] as $fieldData) {
             $field = Field::fromConfig($fieldData, $entity);
@@ -95,6 +109,19 @@ class Entity
 
             // Add the relation to the entity
             $entity->addRelation($relation);
+        }
+
+        // Filters
+        if (isset($data['filters'])) {
+            foreach ($data['filters'] as $filterData) {
+                $filter = new Filter(
+                    $filterData['type'],
+                    $filterData['field'],
+                    $filterData['initialValues'] ?? [],
+                    $filterData['dynamic'] ?? false
+                );
+                $entity->filters[] = $filter;
+            }
         }
 
         // Set the entity's settings if provided
@@ -386,6 +413,14 @@ class Entity
     }
 
     /**
+     * Add a filter to the entity.
+     */
+    public function addFilter(Filter $filter): void
+    {
+        $this->filters[] = $filter;
+    }
+
+    /**
      * Get relations that hasRoute
      *
      * @return Relation[]
@@ -510,6 +545,16 @@ class Entity
         }
 
         return $this->relations ?? [];
+    }
+
+    /**
+     * Get filters that should be visible in lists.
+     *
+     * @return Filter[]
+     */
+    public function getFilters(): array
+    {
+        return $this->filters ?? [];
     }
 
     /**

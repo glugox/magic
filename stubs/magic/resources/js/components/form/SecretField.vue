@@ -3,11 +3,14 @@ import BaseField from './BaseField.vue'
 import InputField from './InputField.vue'
 import type { FormFieldProps } from '@/types/support'
 
-const props = defineProps<FormFieldProps & { modelValue?: string }>()
+const props = defineProps<FormFieldProps>()
+const emit = defineEmits<{
+    (e: 'update:modelValue', value: any): void
+}>()
 </script>
 
 <template>
-    <BaseField v-bind="props">
+    <BaseField v-bind="props" v-slot="{ validate }">
         <InputField
             type="password"
             :name="props.field.name"
@@ -15,7 +18,11 @@ const props = defineProps<FormFieldProps & { modelValue?: string }>()
             :autocomplete="'new-password'"
             :maxlength="props.field.max || 255"
             :minlength="props.field.min || 8"
-            v-model="props.modelValue"
+            :model-value="props.modelValue"
+            @update:model-value="(val) => {
+                emit('update:modelValue', val)
+                validate(val)
+            }"
         />
     </BaseField>
 </template>

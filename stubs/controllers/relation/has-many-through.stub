@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\{{entitySingularName}};
 
 use App\Http\Controllers\Controller;
-use App\Services\TableQueryService;
+use Glugox\TableQuery\Services\TableQueryService;
 use {{parentModelClassFull}};
 use {{relatedModelClassFull}};
 use App\Http\Resources\{{parentModelResourceClass}};
@@ -26,21 +26,13 @@ class {{controllerClass}} extends Controller
 
     public function index(MetaRequest $request, {{parentModelClass}} ${{parentModelClassLower}})
     {
-        // Load parent relation
-        ${{parentModelClassLower}}->load('{{relationName}}');
-
         // Base query for related model
         $query = ${{parentModelClassLower}}->{{relationName}}()->getQuery();
-        $searchableFields = $request->meta()->searchableFields();
-        $relations = {{relationNamesCode}};
-        $tableFields = $request->meta()->tableFields();
+        $tableQueryService = TableQueryService::forModel({{relatedModelClass}}::class);
 
         // Apply table query (search, sort, filters)
-        $relatedItems = $this->tableQueryService->applyAll(
+        $relatedItems = $tableQueryService->applyAll(
             $query,
-            $searchableFields,
-            $relations,
-            $tableFields,
             $request->get('{{searchQueryString}}', ''),
             $request->get('sortKey'),
             $request->get('sortDir')
@@ -49,7 +41,73 @@ class {{controllerClass}} extends Controller
         return Inertia::render('{{parentModelFolderName}}/{{relationName}}/Index', [
             'item' => new {{parentModelResourceClass}}(${{parentModelClassLower}}),
             '{{relationName}}' => {{relatedModelResourceClass}}::collection($relatedItems)->response()->getData(),
-            'filters' => $this->tableQueryService->prepareFilters($request->all(), $tableFields),
+            'filters' => $tableQueryService->prepareFilters($request->all()),
         ]);
     }
+
+    /**
+     * Show the form for creating a new {{relatedModelClass}}.
+     */
+     public function create(MetaRequest $request, {{parentModelClass}} ${{parentModelClassLower}})
+     {
+        // Base query for related model
+        $query = ${{parentModelClassLower}}->{{relationName}}()->getQuery();
+        $tableQueryService = TableQueryService::forModel({{relatedModelClass}}::class);
+
+        // Apply table query (search, sort, filters)
+        $relatedItems = $tableQueryService->applyAll(
+            $query,
+            $request->get('{{searchQueryString}}', ''),
+            $request->get('sortKey'),
+            $request->get('sortDir')
+        )->paginate();
+
+        return Inertia::render('{{parentModelFolderName}}/{{relationName}}/Index', [
+            'item' => new {{parentModelResourceClass}}(${{parentModelClassLower}}),
+            '{{relationName}}' => {{relatedModelResourceClass}}::collection($relatedItems)->response()->getData(),
+            'filters' => $tableQueryService->prepareFilters($request->all()),
+            'showCreateForm' => true
+        ]);
+     }
+
+     /**
+      * Store a newly created {{relatedModelClass}} in storage.
+      */
+     public function store(MetaRequest $request, {{parentModelClass}} ${{parentModelClassLower}})
+     {
+        $data = $request->validated();
+
+        // Create the related model instance for has-many relationship
+        ${{parentModelClassLower}}->{{relationName}}()->create($data);
+        ${{parentModelClassLower}}->save();
+
+     }
+
+     /**
+      * Remove the specified {{relatedModelClass}} from database.
+      */
+      public function destroy({{parentModelClass}} ${{parentModelClassLower}}, {{relatedModelClass}} ${{relatedModelClassLower}})
+      {
+          // Delete the related model instance
+          ${{relatedModelClassLower}}->delete();
+
+          return back()->with('success', '{{relatedModelClass}} deleted.');
+      }
+
+      /**
+       * Bulk delete the specified {{relatedModelClass}} from database.
+       */
+       public function bulkDestroy(Request $request, {{parentModelClass}} ${{parentModelClassLower}})
+       {
+            $data = $request->validate([
+              'ids' => 'required|array',
+              'ids.*' => 'exists:{{relatedTableName}},id'
+            ]);
+
+            // Bulk delete related model instances
+            ${{parentModelClassLower}}->{{relationName}}()->whereIn('id', $data['ids'])->delete();
+
+            return back()->with('success', '{{relatedModelClass}}s deleted.');
+       }
+
 }

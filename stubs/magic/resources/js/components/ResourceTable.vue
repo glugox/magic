@@ -8,9 +8,9 @@ import {ColumnDef, FlexRender} from "@tanstack/vue-table";
 import Pagination from "@/components/resource-table/Pagination.vue";
 import { usePage } from '@inertiajs/vue3';
 import { toast } from "vue-sonner"
-import DebugBox from "@/components/debug/DebugBox.vue";
 import {useEntityContext} from "@/composables/useEntityContext";
 import { Toaster } from '@/components/ui/sonner'
+import TableFiltersBox from "@/components/filters/TableFiltersBox.vue";
 
 
 export interface ResourceTableProps<T> {
@@ -57,7 +57,7 @@ const setColumnsVisibility = (visibleColumns: string[]) => {
 </script>
 
 <template>
-    <DebugBox v-bind="props" />
+    <TableFiltersBox :entity="entity" />
     <Toolbar
         class="mb-2"
         @update:search="value => search = value"

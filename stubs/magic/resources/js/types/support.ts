@@ -37,9 +37,9 @@ export interface Field {
     searchable: boolean
     values: string[] | null
     hidden: boolean
-    component: string | null
-    min: number | null
-    max: number | null
+    component?: string | null
+    min?: number | null
+    max?: number | null
 }
 
 export interface Relation {
@@ -54,6 +54,20 @@ export interface Relation {
     relationName?: string | null
     apiPath?: string | null
     controller?: Controller | null
+}
+
+export interface FilterBaseProps {
+    label: string; // Human readable label
+    initialValues?: Record<string, any>;  // Default value(s)
+}
+
+export interface FilterConfig extends FilterBaseProps {
+    field: string;              // DB column / key
+    type: string;               // "text" | "enum" | "date" | ...
+    options?: Record<string,string>; // For enum/select filters
+    operators?: string[];       // Optional, e.g. ["equals", "between"]
+    hidden?: boolean;           // UI visibility
+    dynamic?: (entity: Entity) => boolean; // UI conditional
 }
 
 export interface ResourceFormProps {
@@ -95,7 +109,8 @@ export interface Entity {
     controller: Controller,
     inertiaComponent: string
     fields: Field[]
-    relations: Relation[]
+    relations: Relation[],
+    filters?: FilterConfig[]
 }
 
 export interface ResourceData {
@@ -186,6 +201,7 @@ export interface TableFilters {
     visibleColumns?: string[]
     [key: string]: any
 }
+
 
 export type FieldType =
     | 'id'

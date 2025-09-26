@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\{{entitySingularName}};
 
 use App\Http\Controllers\Controller;
-use App\Services\TableQueryService;
+use Glugox\TableQuery\Services\TableQueryService;
 use {{parentModelClassFull}};
 use {{relatedModelClassFull}};
 use App\Http\Resources\{{relatedModelResourceClass}};
@@ -18,31 +18,19 @@ use Glugox\ModelMeta\Requests\MetaRequest;
 class {{controllerClass}} extends Controller
 {
     /**
-     * Constructor
-     */
-     public function __construct(
-        protected TableQueryService $tableQueryService
-     ){}
-
-    /**
      * Show the list of {{relationName}} for the given {{parentModelClassLower}}.
      */
     public function index(MetaRequest $request, {{parentModelClass}} ${{parentModelClassLower}})
     {
+        $tableQueryService = TableQueryService::forModel({{relatedModelClass}}::class);
         ${{parentModelClassLower}}->load('{{relationName}}');
         $selectedIds = ${{parentModelClassLower}}->{{relationName}}->pluck('id')->toArray();
 
         $query = {{relatedModelClass}}::query();
-        $searchableFields = $request->meta()->searchableFields();
-        $relations = {{relationNamesCode}};
-        $tableFields = $request->meta()->tableFields();
 
         // Apply table query (search, sort, filters)
-        $relatedItems = $this->tableQueryService->applyAll(
+        $relatedItems = $tableQueryService->applyAll(
             $query,
-            $searchableFields,
-            $relations,
-            $tableFields,
             $request->get('{{searchQueryString}}', ''),
             $request->get('sortKey'),
             $request->get('sortDir')
@@ -52,7 +40,7 @@ class {{controllerClass}} extends Controller
             'item' => new {{parentModelResourceClass}}(${{parentModelClassLower}}),
             '{{relationName}}' => {{relatedModelResourceClass}}::collection($relatedItems)->response()->getData(),
             'item_{{relationName}}_ids' => $selectedIds,
-            'filters' => $this->tableQueryService->prepareFilters($request->all(), $tableFields),
+            'filters' => $tableQueryService->prepareFilters($request->all()),
         ]);
     }
 

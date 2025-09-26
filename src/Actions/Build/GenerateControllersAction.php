@@ -5,7 +5,6 @@ namespace Glugox\Magic\Actions\Build;
 use Glugox\Magic\Actions\Files\GenerateFileAction;
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
-use Glugox\Magic\Helpers\StubHelper;
 use Glugox\Magic\Helpers\ValidationHelper;
 use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\Config\Entity;
@@ -135,9 +134,6 @@ class GenerateControllersAction implements DescribableAction
         $relatedModelResourceClass = Str::studly($relatedModelClass).'Resource';
         $parentModelResourceClass = Str::studly($parentModelClass).'Resource';
 
-        // Relations for eager loading
-        $relationNamesCode = StubHelper::getRelationNamesString($relatedEntity, RelationType::BELONGS_TO);
-
         // Add selected IDs for belongsToMany / morphToMany
         $selectedIdsCode = in_array($relation->getType(), [RelationType::BELONGS_TO_MANY, RelationType::MORPH_MANY])
             ? '$'.$parentModelClassLower.'->'.$relationName.'->pluck(\'id\')'
@@ -167,7 +163,6 @@ class GenerateControllersAction implements DescribableAction
             '{{parentModelClassLower}}' => $parentModelClassLower,
             '{{relationName}}' => $relationName,
             '{{parentModelFolderName}}' => $parentModelFolderName,
-            '{{relationNamesCode}}' => $relationNamesCode,
             '{{relatedModelClass}}' => $relatedModelClass,
             '{{relatedModelClassLower}}' => $relatedModelClassLower,
             '{{relatedTableName}}' => $relatedTableName,
@@ -195,9 +190,6 @@ class GenerateControllersAction implements DescribableAction
         // Table ( db ) name
         $tableName = $entity->getTableName();
 
-        // Relations for eager loading
-        $relationNamesCode = StubHelper::getRelationNamesString($entity, RelationType::BELONGS_TO);
-
         $stubPath = $this->stubsPath.'/controllers/controller.stub';
         $template = File::get($stubPath);
 
@@ -214,7 +206,6 @@ class GenerateControllersAction implements DescribableAction
             '{{tableName}}' => $tableName,
             '{{folderName}}' => $entity->getFolderName(),
             '{{routeName}}' => $entity->getRouteName(),
-            '{{relationNamesCode}}' => $relationNamesCode,
             '{{resourceClass}}' => $resourceClass,
             '{{searchQueryString}}' => $this->context->getConfig()->getConfigValue('naming.search_query_string', 'search'),
         ];
@@ -375,9 +366,6 @@ class GenerateControllersAction implements DescribableAction
         $resourceClass = $modelClass.'Resource';               // 'UserResource'
         $resourceClassFull = 'App\Http\Resources\\'.$resourceClass; // 'App\Http\Resources\UserResource'
 
-        // Relations for eager loading
-        $relationNamesCode = StubHelper::getRelationNamesString($entity, RelationType::BELONGS_TO);
-
         // Load stub
         $stubPath = $this->stubsPath.'/controllers/api_controller.stub';
         $template = File::get($stubPath);
@@ -389,7 +377,6 @@ class GenerateControllersAction implements DescribableAction
             '{{modelClassFull}}' => $modelClassFull,
             '{{modelClassCamel}}' => $modelClassCamel,
             '{{controllerClass}}' => $controllerClass,
-            '{{relationNamesCode}}' => $relationNamesCode,
             '{{resourceClass}}' => $resourceClass,
             '{{resourceClassFull}}' => $resourceClassFull,
             '{{searchQueryString}}' => $this->context->getConfig()->getConfigValue('naming.search_query_string', 'search'),

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use {{modelClassFull}};
-use App\Services\TableQueryService;
+use Glugox\TableQuery\Services\TableQueryService;
 use App\Http\Resources\{{modelClass}}Resource;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -14,12 +14,6 @@ use Glugox\ModelMeta\Requests\MetaRequest;
  */
 class {{controllerClass}} extends Controller
 {
-    /**
-     * Constructor
-     */
-    public function __construct(
-        protected TableQueryService $tableQueryService
-    ){}
 
     /**
      * Show the {{modelClass}} index page.
@@ -27,22 +21,18 @@ class {{controllerClass}} extends Controller
     public function index(MetaRequest $request)
     {
         $query = {{modelClass}}::query();
-        $relations = {{relationNamesCode}};
-        $tableFields = $request->meta()->tableFields();
+        $tableQueryService = TableQueryService::forModel({{modelClass}}::class);
 
          // Apply table query (search, sort, filters)
-         $items = $this->tableQueryService->applyAll(
+         $items = $tableQueryService->applyAll(
              $query,
-             $request->meta()->searchableFields(),
-             $relations,
-             $tableFields,
              $request->get('{{searchQueryString}}', ''),
              $request->get('sortKey'),
              $request->get('sortDir')
          )->paginate();
 
         return Inertia::render('{{folderName}}/Index', [
-            'filters' => $this->tableQueryService->prepareFilters($request->all(), $tableFields),
+            'filters' => $tableQueryService->prepareFilters($request->all()),
             'data' => {{resourceClass}}::collection($items)->response()->getData(),
         ]);
     }
@@ -72,8 +62,8 @@ class {{controllerClass}} extends Controller
      */
     public function show(MetaRequest $request, {{modelClass}} ${{modelClassCamel}})
     {
-        $relations = {{relationNamesCode}};
-        ${{modelClassCamel}}->load($relations);
+
+        ${{modelClassCamel}}->load($request->meta()->relationsNames());
 
         return Inertia::render('{{folderName}}/Edit', [
             'item' => new {{modelClass}}Resource(${{modelClassCamel}}),
@@ -85,8 +75,7 @@ class {{controllerClass}} extends Controller
      */
     public function edit(MetaRequest $request, {{modelClass}} ${{modelClassCamel}})
     {
-        $relations = {{relationNamesCode}};
-        ${{modelClassCamel}}->load($relations);
+        ${{modelClassCamel}}->load($request->meta()->relationsNames());
 
         return Inertia::render('{{folderName}}/Edit', [
             'item' => new {{modelClass}}Resource(${{modelClassCamel}}),

@@ -314,6 +314,11 @@ class Relation
      */
     public function getEagerFieldsStr(): string
     {
+
+        if ($this->isPolymorphic()) {
+            return ''; // for polymorphic relations, we do not know the related entity at this point
+        }
+
         // If the entity does not have a 'name' field, we will try to find first field that can be used as name
         // so we can load them in index listing
         $eagerFieldNames = ['id'];

@@ -1,0 +1,109 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "AppConfig",
+    "type": "object",
+    "required": ["app", "entities"],
+    "properties": {
+        "app": {
+            "type": "object",
+            "required": ["name", "seedEnabled", "seedCount"],
+            "properties": {
+                "name": { "type": "string" },
+                "seedEnabled": { "type": "boolean" },
+                "seedCount": { "type": "integer", "minimum": 0 },
+                "fakerMappings": {
+                    "type": "object",
+                    "additionalProperties": { "type": "string" }
+                }
+            }
+        },
+        "entities": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["name", "fields"],
+                "properties": {
+                    "name": { "type": "string" },
+                    "fields": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": ["name", "type"],
+                            "properties": {
+                                "name": { "type": "string" },
+                                "type": {
+                                    "type": "string",
+                                    "enum": [
+                                        "id", "string", "text", "password", "boolean", "integer", "float",
+                                        "decimal", "date", "dateTime", "enum", "json", "unsignedBigInteger"
+                                    ]
+                                },
+                                "unique": { "type": "boolean" },
+                                "sortable": { "type": "boolean" },
+                                "searchable": { "type": "boolean" },
+                                "hidden": { "type": "boolean" },
+                                "nullable": { "type": "boolean" },
+                                "default": {},
+                                "min": { "type": "number" },
+                                "max": { "type": "number" },
+                                "values": {
+                                    "type": "array",
+                                    "items": { "type": "string" }
+                                }
+                            }
+                        }
+                    },
+                    "relations": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": ["type", "relatedEntityName"],
+                            "properties": {
+                                "type": {
+                                    "type": "string",
+                                    "enum": ["hasMany", "hasOne", "belongsTo", "belongsToMany"]
+                                },
+                                "relatedEntityName": { "type": "string" },
+                                "as": { "type": "string" },
+                                "foreignKey": { "type": "string" },
+                                "pivot": { "type": "string" }
+                            }
+                        }
+                    },
+                    "settings": { "type": "object", "additionalProperties": true },
+                    "filters": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": ["field", "type"],
+                            "properties": {
+                                "field": { "type": "string" },
+                                "type": {
+                                    "type": "string",
+                                    "enum": [
+                                        "text",
+                                        "boolean",
+                                        "enum",
+                                        "multi_select",
+                                        "range",
+                                        "date",
+                                        "date_range",
+                                        "dateTime",
+                                        "dateTime_range"
+                                    ]
+                                },
+                                "options": {
+                                    "type": "array",
+                                    "items": { "type": "string" }
+                                },
+                                "default": {},
+                                "min": { "type": "number" },
+                                "max": { "type": "number" }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

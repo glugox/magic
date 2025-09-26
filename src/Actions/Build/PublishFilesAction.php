@@ -9,6 +9,8 @@ use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Helpers\ValidationHelper;
 use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\Config\Entity;
+use Glugox\Magic\Support\Config\Filter;
+use Glugox\Magic\Support\Config\Relation;
 use Glugox\Magic\Support\Frontend\TsHelper;
 use Glugox\Magic\Support\TypeHelper;
 use Glugox\Magic\Traits\AsDescribableAction;
@@ -152,6 +154,7 @@ class PublishFilesAction implements DescribableAction
         // Phase 2: create relations assignments (lazy references)
         foreach ($this->context->getConfig()->entities as $entity) {
             $content .= $this->generateEntityMetaRelations($entity);
+            $content .= $this->generateEntityMetaFilters($entity);
         }
 
         $exportNames = array_map(fn ($e) => Str::camel(Str::singular($e->getName())).'Entity', $this->context->getConfig()->entities);
@@ -184,7 +187,8 @@ const {$entityVar}Entity: Entity = {
         // Define fields for the entity
         {$fieldsMeta}
     ],
-    relations: []
+    relations: [],
+    filters: []
 };
 entities.push({$entityVar}Entity);
 
@@ -225,7 +229,7 @@ EOT;
     /**
      * Build a single relation entry string with safe (lazy) relatedEntity reference.
      */
-    private function buildRelationEntry(Entity $entity, $relation): string
+    private function buildRelationEntry(Entity $entity, Relation $relation): string
     {
         // Related entity name and its variable (e.g. teamEntity)
         $relatedName = $relation->getRelatedEntityName();
@@ -264,6 +268,59 @@ EOT;
         return $entry;
     }
 
+    private function generateEntityMetaFilters(Entity $entity): string
+    {
+        $filters = $entity->getFilters();
+        if (empty($filters)) {
+            return '';
+        }
+
+        $entityVar = Str::camel(Str::singular($entity->getName()));
+        $entries = [];
+
+        foreach ($filters as $filter) {
+            $entries[] = $this->buildFilterEntry($entity, $filter);
+        }
+
+        $filtersBlock = implode(",\n    ", $entries);
+
+        return <<<EOT
+{$entityVar}Entity.filters = [
+    {$filtersBlock}
+];
+
+EOT;
+    }
+
+    /**
+     * Generate entity meta filters file for all entities.
+     */
+    private function buildFilterEntry(Entity $entity, Filter $filter): string
+    {
+        $label = Str::title($filter->field);
+
+        $filterEntry = "{
+        field: '{$filter->field}',
+        label: '{$label}',
+        type: '{$filter->type->value}'";
+
+        if (! empty($filter->initialValues)) {
+            $initialValuesStr = json_encode($filter->initialValues, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+            $filterEntry .= ",
+        initialValues: {$initialValuesStr}";
+        }
+
+        if ($filter->dynamic) {
+            // For simplicity, we assume dynamic is a boolean indicating if the filter is dynamic
+            $filterEntry .= ',
+        dynamic: (entity: Entity) => true // Customize this function as needed';
+        }
+
+        $filterEntry .= "\n    }";
+
+        return $filterEntry;
+    }
+
     /**
      * Generate the types file for all entities.
      * Example:
@@ -273,9 +330,10 @@ EOT;
      *     ...
      * }
      */
-    private function generateEntitiesTsFiles()
+    private function generateEntitiesTsFiles(): void
     {
         // This would be something like resources/js/types/entities.ts
+        /** @var string $path */
         $path = config('magic.paths.entity_types_file');
         // Ensure the directory exists
         File::ensureDirectoryExists(dirname($path));

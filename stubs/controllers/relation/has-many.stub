@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\{{entitySingularName}};
 
 use App\Http\Controllers\Controller;
-use App\Services\TableQueryService;
+use Glugox\TableQuery\Services\TableQueryService;
 use {{parentModelClassFull}};
 use {{relatedModelClassFull}};
 use App\Http\Resources\{{parentModelResourceClass}};
@@ -28,16 +28,11 @@ class {{controllerClass}} extends Controller
     {
         // Base query for related model
         $query = ${{parentModelClassLower}}->{{relationName}}()->getQuery();
-        $searchableFields = $request->meta()->searchableFields();
-        $relations = {{relationNamesCode}};
-        $tableFields = $request->meta()->tableFields();
+        $tableQueryService = TableQueryService::forModel({{relatedModelClass}}::class);
 
         // Apply table query (search, sort, filters)
-        $relatedItems = $this->tableQueryService->applyAll(
+        $relatedItems = $tableQueryService->applyAll(
             $query,
-            $searchableFields,
-            $relations,
-            $tableFields,
             $request->get('{{searchQueryString}}', ''),
             $request->get('sortKey'),
             $request->get('sortDir')
@@ -46,27 +41,22 @@ class {{controllerClass}} extends Controller
         return Inertia::render('{{parentModelFolderName}}/{{relationName}}/Index', [
             'item' => new {{parentModelResourceClass}}(${{parentModelClassLower}}),
             '{{relationName}}' => {{relatedModelResourceClass}}::collection($relatedItems)->response()->getData(),
-            'filters' => $this->tableQueryService->prepareFilters($request->all(), $tableFields),
+            'filters' => $tableQueryService->prepareFilters($request->all()),
         ]);
     }
 
     /**
-     * Show the form for creating a new {{modelClass}}.
+     * Show the form for creating a new {{relatedModelClass}}.
      */
      public function create(MetaRequest $request, {{parentModelClass}} ${{parentModelClassLower}})
      {
         // Base query for related model
         $query = ${{parentModelClassLower}}->{{relationName}}()->getQuery();
-        $searchableFields = $request->meta()->searchableFields();
-        $relations = {{relationNamesCode}};
-        $tableFields = $request->meta()->tableFields();
+        $tableQueryService = TableQueryService::forModel({{relatedModelClass}}::class);
 
         // Apply table query (search, sort, filters)
-        $relatedItems = $this->tableQueryService->applyAll(
+        $relatedItems = $tableQueryService->applyAll(
             $query,
-            $searchableFields,
-            $relations,
-            $tableFields,
             $request->get('{{searchQueryString}}', ''),
             $request->get('sortKey'),
             $request->get('sortDir')
@@ -75,13 +65,13 @@ class {{controllerClass}} extends Controller
         return Inertia::render('{{parentModelFolderName}}/{{relationName}}/Index', [
             'item' => new {{parentModelResourceClass}}(${{parentModelClassLower}}),
             '{{relationName}}' => {{relatedModelResourceClass}}::collection($relatedItems)->response()->getData(),
-            'filters' => $this->tableQueryService->prepareFilters($request->all(), $tableFields),
+            'filters' => $tableQueryService->prepareFilters($request->all()),
             'showCreateForm' => true
         ]);
      }
 
      /**
-      * Store a newly created {{modelClass}} in storage.
+      * Store a newly created {{relatedModelClass}} in storage.
       */
      public function store(MetaRequest $request, {{parentModelClass}} ${{parentModelClassLower}})
      {
@@ -94,7 +84,7 @@ class {{controllerClass}} extends Controller
      }
 
      /**
-      * Remove the specified {{modelClass}} from database.
+      * Remove the specified {{relatedModelClass}} from database.
       */
       public function destroy({{parentModelClass}} ${{parentModelClassLower}}, {{relatedModelClass}} ${{relatedModelClassLower}})
       {
@@ -105,7 +95,7 @@ class {{controllerClass}} extends Controller
       }
 
       /**
-       * Bulk delete the specified {{modelClass}} from database.
+       * Bulk delete the specified {{relatedModelClass}} from database.
        */
        public function bulkDestroy(Request $request, {{parentModelClass}} ${{parentModelClassLower}})
        {

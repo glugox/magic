@@ -11,8 +11,8 @@
             "fields": [
                 { "name": "id", "type": "id" },
                 { "name": "name", "type": "string", "sortable": true, "searchable": true },
-                { "name": "email", "type": "string", "unique": true, "sortable": true, "searchable": true },
-                { "name": "password", "type": "password", "hidden": true }
+                { "name": "email", "type": "string", "required": true, "unique": true, "sortable": true, "searchable": true },
+                { "name": "password", "type": "password", "required": true, "hidden": true }
             ],
             "relations": [
                 { "type": "hasMany", "relatedEntityName": "Address" },

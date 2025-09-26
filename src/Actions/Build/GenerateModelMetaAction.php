@@ -9,6 +9,8 @@ use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Config\FieldType;
+use Glugox\Magic\Support\Config\Relation;
+use Glugox\Magic\Support\Config\RelationType;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
 use Glugox\ModelMeta\Fields\Boolean;
@@ -23,7 +25,17 @@ use Glugox\ModelMeta\Fields\Number;
 use Glugox\ModelMeta\Fields\Password;
 use Glugox\ModelMeta\Fields\Slug;
 use Glugox\ModelMeta\Fields\Text;
+use Glugox\ModelMeta\Relations\BelongsTo;
+use Glugox\ModelMeta\Relations\BelongsToMany;
+use Glugox\ModelMeta\Relations\HasMany;
+use Glugox\ModelMeta\Relations\HasOne;
+use Glugox\ModelMeta\Relations\MorphedByMany;
+use Glugox\ModelMeta\Relations\MorphMany;
+use Glugox\ModelMeta\Relations\MorphOne;
+use Glugox\ModelMeta\Relations\MorphTo;
+use Glugox\ModelMeta\Relations\MorphToMany;
 use Illuminate\Support\Facades\File as FileFacade;
+use InvalidArgumentException;
 
 #[ActionDescription(
 )]
@@ -52,7 +64,12 @@ class GenerateModelMetaAction implements DescribableAction
      * @var array <string, int> Map of class basename to indicate which field classes need to be imported.
      */
     // Store uses
-    protected array $uses = [];
+    protected array $usesFields = [];
+
+    /**
+     * @var array <string, int> Map of class basename to indicate which relation classes need to be imported.
+     */
+    protected array $usesRelations = [];
 
     /**
      * Build all models based on the configuration.
@@ -69,15 +86,27 @@ class GenerateModelMetaAction implements DescribableAction
 
     protected function generateForEntity(Entity $entity): void
     {
-        $this->uses = [];
+        $this->usesFields = [];
         $fieldLines = array_map(fn ($field) => $this->buildFieldLine($field), $entity->getFields());
+        $relationsLines = array_map(fn ($relation) => $this->buildRelationLine($relation), $entity->getRelations());
+
+        // Prepare relation names
+        $relations = $entity->getRelations(null, [
+            RelationType::MORPH_TO,
+            RelationType::MORPH_MANY,
+            RelationType::MORPH_ONE,
+            RelationType::MORPH_TO_MANY,
+            RelationType::MORPHED_BY_MANY,
+        ]);
 
         $replacements = [
             'namespace' => 'App\\Meta\\Models',
             'className' => $entity->getName().'Meta',
             'tableName' => $entity->getTableName(),
             'fields' => implode("\n            ", $fieldLines),
-            'importedFields' => implode(",\n    ", array_keys($this->uses)),
+            'relations' => implode("\n            ", $relationsLines),
+            'importedFields' => implode(",\n    ", array_keys($this->usesFields)),
+            'importedRelations' => implode("\n", array_map(fn ($relationClass) => 'use ' . $relationClass . ';', array_keys($this->usesRelations))),
         ];
 
         // Load stub & apply replacements
@@ -113,7 +142,7 @@ class GenerateModelMetaAction implements DescribableAction
 
         // Base field creation
         $code = $this->buildFieldCode($field, class_basename($class));
-        $this->uses[class_basename($class)] = 1;
+        $this->usesFields[class_basename($class)] = 1;
 
         $settersProcessed = [];
         // Process default required fields
@@ -141,6 +170,38 @@ class GenerateModelMetaAction implements DescribableAction
                     $code .= "->{$setterMethod}()";
                 }
             }
+        }
+
+        return $code.',';
+    }
+
+    /**
+     * Build a single relation line for the relations() array.
+     */
+    protected function buildRelationLine(Relation $relation): string
+    {
+        $type = $relation->type;
+        $class = match ($type) {
+            RelationType::BELONGS_TO => BelongsTo::class,
+            RelationType::HAS_MANY => HasMany::class,
+            RelationType::HAS_ONE => HasOne::class,
+            RelationType::BELONGS_TO_MANY => BelongsToMany::class,
+            RelationType::MORPH_TO => MorphTo::class,
+            RelationType::MORPH_MANY => MorphMany::class,
+            RelationType::MORPH_ONE => MorphOne::class,
+            RelationType::MORPH_TO_MANY => MorphToMany::class,
+            RelationType::MORPHED_BY_MANY => MorphedByMany::class,
+            default => throw new InvalidArgumentException("Unsupported relation type: {$type->value}"),
+        };
+
+        $class_basename = class_basename($class);
+        // Base relation creation
+        $code = "{$class_basename}::make('{$relation->getRelationName()}')";
+        $this->usesRelations[$class] = 1;
+        // Apply eager fields if any
+        if (! empty($relation->getEagerFieldsStr())) {
+            $strEagerFields = exportPhpValue($relation->getEagerFieldsStr());
+            $code .= "->eagerFields({$strEagerFields})";
         }
 
         return $code.',';

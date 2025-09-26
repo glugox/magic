@@ -12,6 +12,7 @@ import TextAreaField from "@/components/form/TextAreaField.vue";
 import EnumField from "@/components/form/EnumField.vue";
 import DateTimeField from "@/components/form/DateTimeField.vue";
 import IdField from '@/components/form/IdField.vue';
+import SecretField from "@/components/form/SecretField.vue";
 
 const props = defineProps<FormFieldProps>()
 
@@ -58,9 +59,9 @@ const componentMap: Record<string, any> = {
 
     // ──────── Auth / Security ────────
     email: StringField,
-    password: StringField,    // ✅ need SecretField
-    secret: StringField,      // ✅ need SecretField
-    token: StringField,       // ✅ need SecretField
+    password: SecretField,    // ✅ need SecretField
+    secret: SecretField,      // ✅ need SecretField
+    token: SecretField,       // ✅ need SecretField
 
     // ──────── Networking ────────
     ipAddress: StringField,      // ✅ need IpAddressField
