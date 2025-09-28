@@ -2,13 +2,16 @@
 
 namespace Glugox\Magic\Support\Config;
 
+use Glugox\Magic\Helpers\EnumFieldOptionsParser;
+use Glugox\Magic\Support\Config\Field\EnumFieldOption;
+
 class Enum
 {
     public function __construct(
         // Entity name, e.g. "User", "Post"
         public string $name,
-        /** @var string[] */
-        public ?array $values = [],
+        /** @var EnumFieldOption[] */
+        public ?array $options = [],
     ) {}
 
     /**
@@ -22,7 +25,7 @@ class Enum
 
         return new self(
             name: $data['name'] ?? '',
-            values: $data['values'] ?? [],
+            options: EnumFieldOptionsParser::parse($data['options'] ?? []),
         );
     }
 
@@ -42,7 +45,7 @@ class Enum
     {
         $data = [
             'name' => $this->name,
-            'values' => $this->values,
+            'options' => $this->options,
         ];
 
         return json_encode($data, JSON_PRETTY_PRINT);

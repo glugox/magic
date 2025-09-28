@@ -253,7 +253,7 @@ class GraphQlHelper
                     default: $this->extractDefault($fieldType, $directives),
                     sortable: in_array('@sort', $directives),
                     searchable: in_array('@search', $directives),
-                    values: $this->getEnumValue($typeName)?->values,
+                    options: $this->getEnumValue($typeName)->options ?? [],
                 );
             }
 

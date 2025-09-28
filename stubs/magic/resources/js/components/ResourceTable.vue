@@ -59,7 +59,7 @@ const setColumnsVisibility = (visibleColumns: string[]) => {
 <template>
     <TableFiltersBox :entity="entity" />
     <Toolbar
-        class="mb-2"
+        class="mb-4"
         @update:search="value => search = value"
         :parent-id="props.parentId"
         :initial-filters="props.filters"

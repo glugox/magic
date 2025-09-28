@@ -3,6 +3,8 @@
 namespace Glugox\Magic\Support\Config;
 
 use Exception;
+use Glugox\Magic\Helpers\EnumFieldOptionsParser;
+use Glugox\Magic\Support\Config\Field\EnumFieldOption;
 use Glugox\Magic\Support\TypeHelper;
 use Glugox\ModelMeta\FieldType as ModelMetaFieldType;
 use Illuminate\Support\Facades\Log;
@@ -31,7 +33,7 @@ class Field
      * @param  string|null  $comment  Optional database comment
      * @param  bool  $sortable  Whether sortable in UI
      * @param  bool  $searchable  Whether searchable in UI
-     * @param  string[]  $values  Enum or option values
+     * @param  string[]  $options  Enum or option values
      * @param  int|null  $min  Minimum allowed numeric value
      * @param  int|null  $max  Maximum allowed numeric value
      */
@@ -53,8 +55,8 @@ class Field
         public bool $showInTable = true,     // show in table views
         public bool $showInForm = true,      // show in forms
         public bool $hidden = false,      // hidden field, not shown in forms or tables
-        /** @var string[] Allowed enum/options */
-        public array $values = [],
+        /** @var EnumFieldOption[] Allowed enum/options */
+        public array $options = [],
         public ?int $min = null,
         public ?int $max = null,
         public ?Relation $relation = null,
@@ -83,7 +85,9 @@ class Field
      *     main?: bool,
      *     showInTable?: bool,
      *     showInForm?: bool,
-     *     values?: string[],
+     *     options?: array{
+     *       string|array<string, string>
+     *     },
      *     min?: int,
      *     max?: int
      * } $data
@@ -109,7 +113,7 @@ class Field
             main: $data['main'] ?? false,
             showInTable: $data['showInTable'] ?? true,
             showInForm: $data['showInForm'] ?? true,
-            values: $data['values'] ?? [],
+            options: EnumFieldOptionsParser::parse($data['options'] ?? []),
             min: $data['min'] ?? null,
             max: $data['max'] ?? null,
             relation: null,
@@ -139,7 +143,7 @@ class Field
             sortable: true,
             searchable: false,
             main: false,
-            values: [],
+            options: [],
             min: null,
             max: null,
             relation: $relation,
@@ -283,7 +287,7 @@ class Field
      *
      * @return array<string|int> Returns an array of arguments for the migration method.
      *                           For example, for a string field with length 255, it would return ['name', 255].
-     *                           For an enum field with values, it would return ['name', ["pending", "processing", "shipped", "delivered"], ...].
+     *                           For an enum field with options, it would return ['name', ["pending", "processing", "shipped", "delivered"], ...].
      */
     public function migrationArgs(): array
     {
@@ -298,15 +302,23 @@ class Field
             $args[] = $this->scale;
         }
 
-        // Add enum values if applicable
-        if ($this->isEnum() && ! empty($this->values)) {
+        // Add enum options if applicable
+        if ($this->isEnum() && ! empty($this->options)) {
             $args[] = '['.implode(', ', array_map(
-                fn ($v) => "'".str_replace("'", "\\'", $v)."'",
-                array_values($this->values)
+                fn ($v) => "'".str_replace("'", "\\'", $v->name)."'",
+                array_values($this->options)
             )).']';
         }
 
         return $args;
+    }
+
+    /**
+     * @return string[] List of enum option names (keys/values).
+     */
+    public function getOptionsNames(): array
+    {
+        return array_map(fn (EnumFieldOption $opt) => $opt->name, $this->options);
     }
 
     /**
@@ -506,9 +518,9 @@ class Field
         if (! empty($this->comment)) {
             $parts[] = "comment: {$this->comment}";
         }
-        if (! empty($this->values)) {
-            $vals = implode(', ', array_map(fn ($v) => json_encode($v), $this->values));
-            $parts[] = "values: [{$vals}]";
+        if (! empty($this->options)) {
+            $vals = implode(', ', array_map(fn ($v) => json_encode($v), $this->options));
+            $parts[] = "options: [{$vals}]";
         }
         if ($this->min !== null) {
             $parts[] = "min: {$this->min}";
@@ -548,7 +560,7 @@ class Field
             throw new Exception('Called getFirstEnumOptionValue() on non enum field type');
         }
 
-        return $this->values[0] ?? null;
+        return $this->options[0]->name ?? null;
     }
 
     /**
@@ -570,7 +582,7 @@ class Field
             'searchable' => $this->searchable,
             'showInTable' => $this->showInTable,
             'showInForm' => $this->showInForm,
-            'values' => $this->values,
+            'options' => $this->options,
             'min' => $this->min,
             'max' => $this->max,
         ], JSON_PRETTY_PRINT);

@@ -290,7 +290,7 @@ function getFixtureConfigInventory(): Config
                 { "name": "available_from", "type": "date", "nullable": true, "sortable": true },
                 { "name": "expires_at", "type": "dateTime", "nullable": true, "sortable": true },
                 { "name": "image", "type": "image", "nullable": true },
-                { "name": "status", "type": "enum", "nullable": false, "values": ["active", "inactive", "discontinued"], "sortable": true }
+                { "name": "status", "type": "enum", "nullable": false, "options": ["active", "inactive", "discontinued"], "sortable": true }
             ],
             "relations": [
                 { "type": "belongsTo", "relatedEntityName": "Warehouse", "foreignKey": "warehouse_id" },
@@ -305,7 +305,7 @@ function getFixtureConfigInventory(): Config
                 { "name": "id", "type": "id", "nullable": false },
                 { "name": "user_id", "type": "foreignId", "nullable": false },
                 { "name": "order_number", "type": "string", "nullable": false, "unique": true },
-                { "name": "status", "type": "enum", "nullable": false, "values": ["pending", "processing", "shipped", "delivered"] },
+                { "name": "status", "type": "enum", "nullable": false, "options": ["pending", "processing", "shipped", "delivered"] },
                 { "name": "total", "type": "decimal", "nullable": false, "min": 0, "max": 10000 },
                 { "name": "placed_at", "type": "dateTime", "nullable": false }
             ],

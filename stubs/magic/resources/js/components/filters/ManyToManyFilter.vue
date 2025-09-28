@@ -1,5 +1,5 @@
 <template>
-    <BaseFilter :label="filter.label" :initialValues="{ [filter.field]: [] }">
+    <BaseFilter :label="filter.label">
         <template #default="{ values }">
             <Popover>
                 <PopoverTrigger as-child>

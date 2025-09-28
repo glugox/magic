@@ -100,7 +100,7 @@ class RuleSetHelper
             // ---------------------------
             // Enum / JSON
             // ---------------------------
-            FieldType::ENUM => ['in:'.implode(',', $field->values ?? [])],
+            FieldType::ENUM => ['in:'.implode(',', $field->getOptionsNames())],
             FieldType::JSON => ['array'],
             FieldType::JSONB => ['array'],
 

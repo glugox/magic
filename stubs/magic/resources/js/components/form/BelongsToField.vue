@@ -173,8 +173,8 @@ const emitOpenRelatedForm = () => emit('openRelated', relationMetadata);
                 </ComboboxList>
             </Combobox>
 
-            <div v-if="selectedOption" class="mt-2">
-                <Link :href="`/${relationMetadata.apiPath}/${selectedOption.id}/edit`" class="text-sm text-blue-600 hover:underline">
+            <div v-if="selectedOption">
+                <Link :href="`/${relationMetadata.apiPath}/${selectedOption.id}/edit`" class="text-xs text-muted-foreground underline">
                     Edit this {{ modelNameSingular }}
                 </Link>
             </div>

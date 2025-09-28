@@ -196,7 +196,7 @@ class GenerateModelsAction implements DescribableAction
         $type = $field->type;
 
         // If enum → reference generated enum class
-        if ($type === FieldType::ENUM && ! empty($field->values)) {
+        if ($type === FieldType::ENUM && ! empty($field->options)) {
             return '\\App\\Enums\\'.Str::studly($field->getEntity()->getName()).Str::studly($field->name).'Enum::class';
         }
 

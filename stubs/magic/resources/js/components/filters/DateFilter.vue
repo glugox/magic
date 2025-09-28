@@ -1,7 +1,6 @@
 <template>
     <BaseFilter
         :label="label"
-        :initialValues="{ from: '', to: '' }"
     >
         <template #default="{ values }">
             <div class="flex gap-2">

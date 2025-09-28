@@ -74,9 +74,9 @@ class GenerateEnumsAction implements DescribableAction
 
         $cases = '';
         $labels = '';
-        foreach ($field->values as $value) {
-            $caseName = Str::studly($value);
-            $cases .= "    case {$caseName} = '{$value}';\n";
+        foreach ($field->options as $value) {
+            $caseName = $value->label;
+            $cases .= "    case {$caseName} = '{$value->name}';\n";
             $labels .= "        self::{$caseName}->value => '{$caseName}',\n";
         }
 
@@ -96,9 +96,9 @@ class GenerateEnumsAction implements DescribableAction
 
         $tsCases = '';
         $tsLabels = '';
-        foreach ($field->values as $value) {
-            $caseName = Str::studly($value);
-            $tsCases .= "    {$caseName}: '{$value}',\n";
+        foreach ($field->options as $value) {
+            $caseName = $value->label;
+            $tsCases .= "    {$caseName}: '{$value->name}',\n";
             $tsLabels .= "    [{$enumName}.{$caseName}]: '{$caseName}',\n";
         }
 

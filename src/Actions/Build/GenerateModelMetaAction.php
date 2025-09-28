@@ -106,7 +106,7 @@ class GenerateModelMetaAction implements DescribableAction
             'fields' => implode("\n            ", $fieldLines),
             'relations' => implode("\n            ", $relationsLines),
             'importedFields' => implode(",\n    ", array_keys($this->usesFields)),
-            'importedRelations' => implode("\n", array_map(fn ($relationClass) => 'use ' . $relationClass . ';', array_keys($this->usesRelations))),
+            'importedRelations' => implode("\n", array_map(fn ($relationClass) => 'use '.$relationClass.';', array_keys($this->usesRelations))),
         ];
 
         // Load stub & apply replacements
@@ -213,8 +213,8 @@ class GenerateModelMetaAction implements DescribableAction
     private function buildFieldCode(Field $field, string $class_basename): string
     {
         $code = "{$class_basename}::make('{$field->name}')";
-        if ($field->type === FieldType::SLUG && ! empty($field->values)) {
-            $strValues = exportPhpValue($field->values);
+        if ($field->type === FieldType::SLUG && ! empty($field->options)) {
+            $strValues = exportPhpValue($field->options);
             $code .= "->sourceField('{$strValues}')";
         }
 

@@ -29,7 +29,7 @@ watch(
 )
 
 // Enum options
-const options = props.field?.values ?? []
+const options = props.field?.options ?? []
 </script>
 
 <template>
@@ -47,8 +47,8 @@ const options = props.field?.values ?? []
                         </SelectItem>
 
                         <!-- Enum options -->
-                        <SelectItem v-for="opt in options" :key="opt" :value="opt">
-                            {{ opt }}
+                        <SelectItem v-for="opt in options" :key="opt.name" :value="opt.name">
+                            {{ opt.label }}
                         </SelectItem>
                     </SelectGroup>
                 </SelectContent>
@@ -57,8 +57,8 @@ const options = props.field?.values ?? []
             <!-- Hidden real select for form post -->
             <select  :name="field.name" class="sr-only" v-model="selected">
                 <option :value="null">Please select {{ props.field.label }}...</option>
-                <option v-for="value in field.values" :key="value" :value="value">
-                    {{ value }}
+                <option v-for="value in field.options" :key="value.name" :value="value.name">
+                    {{ value.label }}
                 </option>
             </select>
         </template>

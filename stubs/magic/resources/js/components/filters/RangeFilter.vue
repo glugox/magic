@@ -1,18 +1,20 @@
 <template>
-    <BaseFilter :label="label" :initialValues="{ min: undefined, max: undefined }">
+    <BaseFilter :label="label">
         <template #default="{ values }">
             <div class="flex gap-2">
                 <Input
                     v-model="values.min"
+                    name="range-min"
                     type="number"
                     placeholder="Min"
-                    class="flex-1 bg-background border border-input text-foreground placeholder:text-muted-foreground"
+                    class="w-24 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none bg-background border border-input text-foreground placeholder:text-muted-foreground"
                 />
                 <Input
                     v-model="values.max"
+                    name="range-max"
                     type="number"
                     placeholder="Max"
-                    class="flex-1 bg-background border border-input text-foreground placeholder:text-muted-foreground"
+                    class="w-24 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none bg-background border border-input text-foreground placeholder:text-muted-foreground"
                 />
             </div>
         </template>

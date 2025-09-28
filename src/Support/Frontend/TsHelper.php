@@ -233,35 +233,74 @@ class TsHelper
      */
     public function writeFieldMeta(Field $field, EntityRuleSet $entityValidationRuleSet): string
     {
-        $tsType = $this->typeHelper->migrationTypeToTsType($field->type);
+        // Opinionated defaults
+        $defaults = [
+            'nullable' => false,
+            'sometimes' => false,
+            'required' => false,
+            'length' => null,
+            'precision' => null,
+            'scale' => null,
+            'default' => null,
+            'comment' => null,
+            'sortable' => false,
+            'searchable' => false,
+            'options' => [],
+            'hidden' => false,
+        ];
 
-        $rulesCreateRuleSet = $entityValidationRuleSet->getCreateRuleSetForField($field->name);
-        $rulesUpdateRuleSet = $entityValidationRuleSet->getUpdateRuleSetForField($field->name);
+        // Get rules as strings
+        $rulesCreate = $entityValidationRuleSet
+            ->getCreateRuleSetForField($field->name)?->getRules() ?? [];
+
+        $rulesUpdate = $entityValidationRuleSet
+            ->getUpdateRuleSetForField($field->name)?->getRules() ?? [];
 
         $rulesStr =
             'rules: {
-                create : ['.implode(', ', array_map(fn ($r) => "'$r'", $rulesCreateRuleSet ? $rulesCreateRuleSet->getRules() : [])).'],
-                update : ['.implode(', ', array_map(fn ($r) => "'$r'", $rulesUpdateRuleSet ? $rulesUpdateRuleSet->getRules() : [])).']
-            }';
-
-        return "{
-            name: '{$field->name}',
-            type: '{$field->modelMetaType()->value}',
-            label: '{$field->label()}',
-            nullable: ".($field->nullable ? 'true' : 'false').',
-            sometimes: '.($field->sometimes ? 'true' : 'false').',
-            required: '.($field->required ? 'true' : 'false').',
-            length: '.($field->length !== null ? $field->length : 'null').',
-            precision: '.($field->precision !== null ? $field->precision : 'null').',
-            scale: '.($field->scale !== null ? $field->scale : 'null').',
-            '.$rulesStr.',
-            default: '.($field->default !== null ? "'{$field->default}'" : 'null').',
-            comment: '.($field->comment !== null ? "'{$field->comment}'" : 'null').',
-            sortable: '.($field->sortable ? 'true' : 'false').',
-            searchable: '.($field->searchable ? 'true' : 'false').',
-            values: '.$this->writeValue($field->values ?? []).',
-            hidden: '.($field->hidden ? 'true' : 'false').',
+            create: ['.implode(', ', array_map(fn ($r) => "'$r'", $rulesCreate)).'],
+            update: ['.implode(', ', array_map(fn ($r) => "'$r'", $rulesUpdate)).']
         }';
+
+        // Always required
+        $lines = [
+            "name: '{$field->name}'",
+            "type: '{$field->modelMetaType()->value}'",
+            "label: '{$field->label()}'",
+        ];
+
+        // Only add if different from defaults
+        $props = [
+            'nullable' => $field->nullable ? 'true' : 'false',
+            'sometimes' => $field->sometimes ? 'true' : 'false',
+            'required' => $field->required ? 'true' : 'false',
+            'length' => $field->length !== null ? $field->length : 'null',
+            'precision' => $field->precision !== null ? $field->precision : 'null',
+            'scale' => $field->scale !== null ? $field->scale : 'null',
+            'default' => $field->default !== null ? "'{$field->default}'" : 'null',
+            'comment' => $field->comment !== null ? "'{$field->comment}'" : 'null',
+            'sortable' => $field->sortable ? 'true' : 'false',
+            'searchable' => $field->searchable ? 'true' : 'false',
+            'options' => $this->writeValue($field->options ?? []),
+            'hidden' => $field->hidden ? 'true' : 'false',
+        ];
+
+        foreach ($props as $key => $value) {
+            if ($value !== ($defaults[$key] === true ? 'true' : ($defaults[$key] === false ? 'false' : 'null'))) {
+                // skip empty arrays for options
+                if ($key === 'options' && $value === '[]') {
+                    continue;
+                }
+                $lines[] = "$key: $value";
+            }
+        }
+
+        // Add rules only if not empty
+        if ($rulesCreate || $rulesUpdate) {
+            $lines[] = $rulesStr;
+        }
+
+        return "{\n    ".implode(",\n    ", $lines)."\n}";
     }
 
     /**

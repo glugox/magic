@@ -49,7 +49,7 @@ if (! function_exists('makeDummyProductEntityConfig')) {
                 { "name": "sku", "type": "uuid", "nullable": false, "unique": true },
                 { "name": "is_active", "type": "boolean", "nullable": false, "default": true },
                 { "name": "tags", "type": "json", "nullable": true },
-                { "name": "category", "type": "enum", "values": ["electronics", "books", "clothing", "home"], "nullable": false },
+                { "name": "category", "type": "enum", "options": ["electronics", "books", "clothing", "home"], "nullable": false },
                 { "name": "released_at", "type": "dateTime", "nullable": true },
                 { "name": "image", "type": "string", "nullable": true }
             ],

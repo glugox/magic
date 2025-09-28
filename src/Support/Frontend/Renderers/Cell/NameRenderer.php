@@ -27,7 +27,7 @@ class NameRenderer extends Renderer
             $avatarDefinition,
             "return h('a', {",
             $indent2."href: href + '/' + id + '/edit',",
-            $indent2."class: 'flex items-center gap-2 text-blue-600 hover:underline'",
+            $indent2."class: 'flex text-primary font-bold items-center gap-2 hover:underline'",
             '}, [',
             $indent2.'#AvatarPlaceholder#',
             $indent2."h('span', null, nameVal)",

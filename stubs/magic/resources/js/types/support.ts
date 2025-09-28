@@ -20,23 +20,28 @@ export interface FormEntrySignature {
     actionType: CrudActionType
 }
 
+export interface EnumFieldOption {
+    name: string
+    label: string
+}
+
 export interface Field {
     name: string
     type: FieldType
     label: string
-    required: boolean
-    nullable: boolean
-    sometimes: boolean
-    length: number | null
-    precision: number | null
-    scale: number | null
+    required?: boolean
+    nullable?: boolean
+    sometimes?: boolean
+    length?: number | null
+    precision?: number | null
+    scale?: number | null
     rules: ValidationRuleSet
-    default: any
-    comment: string | null
-    sortable: boolean
-    searchable: boolean
-    values: string[] | null
-    hidden: boolean
+    default?: any
+    comment?: string | null
+    sortable?: boolean
+    searchable?: boolean
+    options?: EnumFieldOption[] | null
+    hidden?: boolean
     component?: string | null
     min?: number | null
     max?: number | null
@@ -64,7 +69,7 @@ export interface FilterBaseProps {
 export interface FilterConfig extends FilterBaseProps {
     field: string;              // DB column / key
     type: string;               // "text" | "enum" | "date" | ...
-    options?: Record<string,string>; // For enum/select filters
+    options?: EnumFieldOption[];
     operators?: string[];       // Optional, e.g. ["equals", "between"]
     hidden?: boolean;           // UI visibility
     dynamic?: (entity: Entity) => boolean; // UI conditional

@@ -1,11 +1,10 @@
 <template>
     <BaseFilter
         :label="label"
-        :initialValues="{ active: false }"
+        :initialValues="null"
+        v-slot="{ values }"
     >
-        <template #default="{ values }">
-            <Switch v-model="values.active" class="mt-3 mx-auto" />
-        </template>
+        <Switch v-model="values.active" class="mt-3 mx-auto" />
     </BaseFilter>
 </template>
 
@@ -14,5 +13,5 @@ import { Switch } from "@/components/ui/switch"
 import BaseFilter from "@/components/filters/BaseFilter.vue"
 import type { FilterBaseProps } from "@/types/support"
 
-const props = defineProps<FilterBaseProps>()
+defineProps<FilterBaseProps>()
 </script>

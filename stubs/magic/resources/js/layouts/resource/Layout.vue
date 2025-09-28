@@ -17,7 +17,7 @@ const currentPath = typeof window !== undefined ? window.location.pathname : '';
 </script>
 
 <template>
-    <div class="px-4 py-6">
+    <div>
         <Heading :title="title" :description="description" />
 
         <div class="flex flex-col lg:flex-row lg:space-x-12">
@@ -27,13 +27,14 @@ const currentPath = typeof window !== undefined ? window.location.pathname : '';
                         v-for="item in sidebarNavItems"
                         :key="typeof item.href === 'string' ? item.href : item.href?.url"
                         variant="ghost"
-                        :class="[
-                            'w-full justify-start',
-                            { 'bg-muted': currentPath === (typeof item.href === 'string' ? item.href : item.href?.url) },
+                        :class="['w-full justify-start relative rounded-none',
+                            currentPath === (typeof item.href === 'string' ? item.href : item.href?.url)
+                                ? 'bg-muted border-l-2 border-l-emerald-500 font-medium'
+                                : 'pl-[calc(theme(spacing.3)+2px)]' // keep text aligned when no border
                         ]"
                         as-child
                     >
-                        <Link :href="item.href">
+                        <Link :href="item.href" class="flex items-center gap-2">
                             <component :is="item.icon" />
                             {{ item.title }}
                         </Link>

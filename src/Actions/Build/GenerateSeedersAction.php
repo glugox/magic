@@ -140,7 +140,7 @@ class GenerateSeedersAction implements DescribableAction
         // 2. For enum types, use the enum values directly because they are always set in json config
         // Check if the field is enum
         if ($field->isEnum()) {
-            return 'randomElement('.json_encode($field->values).')';
+            return 'randomElement('.json_encode($field->getOptionsNames()).')';
         }
 
         // 3. Check if the field name has type string inside , for example: "order_number"

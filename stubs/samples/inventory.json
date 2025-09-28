@@ -24,6 +24,11 @@
                 { "type": "hasMany", "relatedEntityName": "Warehouse", "as": "warehouses" },
                 { "type": "belongsToMany", "relatedEntityName": "Role", "pivot": "role_user" }
             ],
+            "filters": [
+                { "field": "name", "type": "text" },
+                { "field": "email", "type": "text" },
+                { "field": "active", "type": "boolean" }
+            ],
             "settings": {
                 "has_images": true
             }
@@ -72,10 +77,16 @@
                 { "name": "weight", "type": "float", "nullable": true, "min": 0, "max": 100, "sortable": true },
                 { "name": "available_from", "type": "date", "nullable": true, "sortable": true },
                 { "name": "expires_at", "type": "dateTime", "nullable": true, "sortable": true },
-                { "name": "status", "type": "enum", "values": ["active", "inactive", "discontinued"], "sortable": true }
+                { "name": "status", "type": "enum", "options": ["active", "inactive", "discontinued"], "sortable": true }
             ],
             "relations": [
                 { "type": "belongsToMany", "relatedEntityName": "Category", "pivot": "category_product" }
+            ],
+            "filters": [
+                { "field": "name", "type": "text" },
+                { "field": "status", "type": "enum" },
+                { "field": "price", "type": "range" },
+                { "field": "available_from", "type": "date_range" }
             ],
             "settings": {
                 "has_images": true
@@ -86,7 +97,7 @@
             "fields": [
                 { "name": "id", "type": "id" },
                 { "name": "order_number", "type": "string", "unique": true },
-                { "name": "status", "type": "enum", "values": ["pending", "processing", "shipped", "delivered"] },
+                { "name": "status", "type": "enum", "options": ["pending", "processing", "shipped", "delivered"] },
                 { "name": "total", "type": "decimal", "min": 0, "max": 10000 },
                 { "name": "placed_at", "type": "dateTime" }
             ],
