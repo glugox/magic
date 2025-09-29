@@ -76,7 +76,7 @@ class TsHelper
         $imports = [
             // Eg. import { getUserColumns, getUserEntityMeta } from '@/helpers/users_helper';
             "import { get{$entity->name}Columns } from '@/helpers/{$entity->getFolderName()}_helper'",
-            "import { type PaginatedResponse, type TableFilters } from '@/types/support';"
+            "import { type PaginatedResponse, type DataTableFilters } from '@/types/support';"
         ];
 
         return implode("\n", $imports)."\n";
@@ -107,7 +107,7 @@ class TsHelper
         $imports = [
             // "import { {$relatedEntityMetaVar} as relatedEntity } from '@/types/entityMeta';",
             "import { get{$relatedEntity->name}Columns } from '@/helpers/{$relatedEntity->getFolderName()}_helper'",
-            "import { type PaginatedResponse, type TableFilters } from '@/types/support';"
+            "import { type PaginatedResponse, type DataTableFilters } from '@/types/support';"
         ];
 
         return implode("\n", $imports)."\n";

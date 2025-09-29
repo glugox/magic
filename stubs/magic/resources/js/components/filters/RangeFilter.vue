@@ -2,19 +2,19 @@
     <BaseFilter :label="label">
         <template #default="{ values }">
             <div class="flex gap-2">
-                <Input
+                <InputField
                     v-model="values.min"
                     name="range-min"
                     type="number"
                     placeholder="Min"
-                    class="w-24 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none bg-background border border-input text-foreground placeholder:text-muted-foreground"
+                    class="w-24"
                 />
-                <Input
+                <InputField
                     v-model="values.max"
                     name="range-max"
                     type="number"
                     placeholder="Max"
-                    class="w-24 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none bg-background border border-input text-foreground placeholder:text-muted-foreground"
+                    class="w-24"
                 />
             </div>
         </template>
@@ -25,6 +25,7 @@
 import { Input } from "@/components/ui/input"
 import type { FilterBaseProps } from "@/types/support"
 import BaseFilter from "@/components/filters/BaseFilter.vue";
+import InputField from "@/components/form/InputField.vue";
 
 const props = defineProps<FilterBaseProps>()
 </script>

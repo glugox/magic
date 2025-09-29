@@ -903,9 +903,9 @@ class Entity
         }
 
         // If no string field, set the first field as main
-        if (! empty($this->fields)) {
-            $this->fields[0]->asMain();
-        }
+        /*        if (! empty($this->fields)) {
+                    $this->fields[0]->asMain();
+                }*/
     }
 
     /**

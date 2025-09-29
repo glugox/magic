@@ -7,11 +7,11 @@ import BaseField from "./BaseField.vue"
 import { Calendar } from "@/components/ui/calendar"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
-import type { FormFieldProps } from "@/types/support"
+import {FormFieldEmits, FormFieldProps} from "@/types/support"
 import { cn } from "@/lib/utils"
 
 const props = defineProps<FormFieldProps>()
-const emit = defineEmits<{ (e: "update:modelValue", value: string | null): void }>()
+const emit = defineEmits<FormFieldEmits>()
 
 const df = new DateFormatter("en-US", { dateStyle: "long" })
 
@@ -28,7 +28,7 @@ watch(value, (val) => {
     if (!val) {
         emit("update:modelValue", null)
     } else {
-        const jsDate = new Date(val.year, val.month - 1, val.day)
+        const jsDate = new Date(Date.UTC(val.year, val.month - 1, val.day))
         const sqlDate = jsDate.toISOString().slice(0, 19).replace("T", " ")
         emit("update:modelValue", sqlDate)
         popoverOpen.value = false // auto-close popover when a date is selected

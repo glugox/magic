@@ -27,13 +27,13 @@ interface Props {
     item: {{mainEntityName}}ApiResponse;
     {{relationName}}: PaginatedResponse<{{relatedEntityName}}>;
     item_{{relationName}}_ids?: DbId[];
-    filters?: TableFilters;
+    filters?: DataTableFilters;
     showCreateForm?: boolean;
 }
 const { item, {{relationName}}, item_{{relationName}}_ids, filters }: Props = defineProps<Props>();
 
 const selectedIds = ref<DbId[]>(item_{{relationName}}_ids ?? []);
-const currentFilters = ref<TableFilters>(filters ?? {});
+const currentFilters = ref<DataTableFilters>(filters ?? {});
 
 const breadcrumbs: BreadcrumbItem[] = [
     {

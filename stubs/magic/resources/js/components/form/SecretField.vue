@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import BaseField from './BaseField.vue'
 import InputField from './InputField.vue'
-import type { FormFieldProps } from '@/types/support'
+import type {FormFieldEmits, FormFieldProps} from '@/types/support'
 
 const props = defineProps<FormFieldProps>()
-const emit = defineEmits<{
-    (e: 'update:modelValue', value: any): void
-}>()
+const emit = defineEmits<FormFieldEmits>()
 </script>
 
 <template>

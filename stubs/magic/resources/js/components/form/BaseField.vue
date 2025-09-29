@@ -16,7 +16,7 @@ function validate(value: any) {
 
         <slot :validate="validate" />
 
-        <p v-if="!field.hidden && props.error" class="text-sm text-red-600 mt-1">
+        <p v-if="!field.hidden && props.error" class="text-sm text-red-300 mt-1">
             {{ props.error }}
         </p>
     </div>

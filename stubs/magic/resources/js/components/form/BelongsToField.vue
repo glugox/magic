@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Combobox, ComboboxAnchor, ComboboxEmpty, ComboboxGroup, ComboboxInput, ComboboxItem, ComboboxItemIndicator, ComboboxList, ComboboxSeparator, ComboboxTrigger } from '@/components/ui/combobox';
 import BaseField from './BaseField.vue';
 import { useApi } from '@/composables/useApi';
-import { FormFieldProps, Relation } from '@/types/support';
+import {FormFieldEmits, FormFieldProps, Relation} from '@/types/support';
 import { Link } from '@inertiajs/vue3';
 import { useEntityEvents } from '@/composables/useEntityEvents';
 import { Check, ChevronsUpDown, PlusCircleIcon } from 'lucide-vue-next';
@@ -13,10 +13,7 @@ import { Check, ChevronsUpDown, PlusCircleIcon } from 'lucide-vue-next';
 interface Option { id: string; name: string; [key: string]: any }
 
 const props = defineProps<FormFieldProps>();
-const emit = defineEmits<{
-    (e: 'update:modelValue', value: any): void;
-    (e: 'openRelated', entry: Relation): void;
-}>();
+const emit = defineEmits<FormFieldEmits>();
 
 const { get } = useApi();
 const { on, off } = useEntityEvents();
@@ -54,34 +51,34 @@ const fetchOptions = async (query = '') => {
     }
 };
 
-// Load initial record
+// Define once
+const busHandler = (payload: { entity: string; record: any }) => {
+    if (payload.entity === relationMetadata.relatedEntityName) {
+        fetchOptions().then(() => {
+            selectedOption.value = normalize(payload.record.data);
+            if (selectedOption.value && !options.value.find(o => o.id === selectedOption.value!.id)) {
+                options.value.unshift(selectedOption.value!);
+            }
+        });
+    }
+};
+
 onMounted(async () => {
     if (model.value) {
         const res = await get(`/${relationMetadata.apiPath}/${model.value}`);
         const record = res?.data ?? res;
         if (record) {
             selectedOption.value = normalize(record);
-            if(selectedOption.value) {
-                options.value.unshift(selectedOption.value);
-            }
+            options.value.unshift(selectedOption.value);
         }
     }
 
-    // Listen for created events to refresh options
-    const busHandler = (payload: { entity: string; record: any }) => {
-        if (payload.entity === relationMetadata.relatedEntityName) {
-            fetchOptions().then(() => {
-                selectedOption.value = normalize(payload.record.data);
-                if (!options.value.find(o => o.id === selectedOption.value!.id)) {
-                    options.value.unshift(selectedOption.value!);
-                }
-            });
-        }
-    };
-    on('created', busHandler);
+    on('created', busHandler); // ✅ register
     fetchOptions();
+});
 
-    onUnmounted(() => off('created', busHandler));
+onUnmounted(() => {
+    off('created', busHandler); // ✅ unregister
 });
 
 // Sync model with external changes,

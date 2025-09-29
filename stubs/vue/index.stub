@@ -10,7 +10,7 @@ import {ResourceData} from '@/types/support';
 
 interface Props {
     data: PaginatedResponse<{{entityName}}>;
-    filters?: TableFilters;
+    filters?: DataTableFilters;
 }
 
 const { data }: Props = defineProps<Props>();

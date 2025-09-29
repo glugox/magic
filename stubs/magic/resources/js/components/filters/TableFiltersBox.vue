@@ -1,6 +1,4 @@
 <template>
-
-
     <div class="mb-4">
         <!-- Active Filters Section -->
         <div v-if="Object.keys(activeFilters).length" class="mb-3">
@@ -64,7 +62,7 @@
 
 
 <script setup lang="ts">
-import {ref, onMounted, nextTick, reactive} from "vue";
+import {ref, onMounted, nextTick, reactive, watch} from "vue";
 import { Filter } from "lucide-vue-next";
 import {Label} from "@/components/ui/label";
 
@@ -76,10 +74,14 @@ import DateFilter from "@/components/filters/DateFilter.vue";
 import BooleanFilter from "@/components/filters/BooleanFilter.vue";
 import QuickPills from "@/components/filters/QuickPills.vue";
 
-import type { Entity } from "@/types/support";
+import {DataTableFilters, Entity} from "@/types/support";
 
 const props = defineProps<{
     entity: Entity;
+}>();
+// Emit filter changes
+const emit = defineEmits<{
+    (e: "filtersUpdated", filters:DataTableFilters): void
 }>();
 
 const showFilters = ref(false);
@@ -119,7 +121,7 @@ const filterComponents: Record<string, any> = {
     boolean: BooleanFilter,
 };
 
-const activeFilters = reactive<Record<string, any>>({})
+const activeFilters = reactive<DataTableFilters>({})
 
 const updateFilter = (field: string, values: any) => {
     console.log("Update filter:", field, values)
@@ -150,6 +152,7 @@ const getFilterLabel = (field: string) => {
 }
 
 const formatFilterValue = (field: string, values: any) => {
+
     if (!values) return ""
 
     // Range filters (price, etc.)
@@ -175,5 +178,13 @@ const formatFilterValue = (field: string, values: any) => {
     // Fallback: JSON
     return JSON.stringify(values)
 }
+
+watch(
+    activeFilters,
+    (newFilters) => {
+        emit("filtersUpdated", { ...newFilters }) // emit a shallow copy
+    },
+    { deep: true } // deep watch because activeFilters is reactive object
+)
 
 </script>

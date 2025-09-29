@@ -17,10 +17,10 @@
 import BaseField from './BaseField.vue'
 import { Textarea } from '@/components/ui/textarea'
 import { ref, watch } from 'vue'
-import { FormFieldProps } from '@/types/support'
+import {FormFieldEmits, FormFieldProps} from '@/types/support'
 
 const props = defineProps<FormFieldProps>()
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits<FormFieldEmits>()
 
 // Local model for v-model binding
 const model = ref(props.modelValue ?? '')

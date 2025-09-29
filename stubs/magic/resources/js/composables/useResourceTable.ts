@@ -8,10 +8,9 @@ import {
     useVueTable,
 } from "@tanstack/vue-table"
 import type {
-    Controller,
+    DataTableFilters,
     DbId, Entity,
     PaginatedResponse, ResourceData,
-    TableFilters,
 } from "@/types/support"
 import { arraysEqualIgnoreOrder, debounced } from "@/lib/app"
 import axios from "axios"
@@ -19,7 +18,7 @@ import {useEntityContext} from "@/composables/useEntityContext";
 
 export function useResourceTable<T>(props: {
     data: PaginatedResponse<T>
-    filters?: TableFilters
+    filters?: DataTableFilters
     parentId?: DbId
     columns: ColumnDef<ResourceData>[],
     entity: Entity,
@@ -29,7 +28,9 @@ export function useResourceTable<T>(props: {
     console.log("useResourceTable")
     console.log(props)
 
-    const { data, filters, parentId, columns } = toRefs(props)
+    const { data, parentId, columns } = toRefs(props)
+    // wrap filters safely
+    const filters = ref<DataTableFilters>(props.filters ?? {})
     const {controller} = useEntityContext(props.entity, props.parentEntity, props.parentId)
 
     const rows = ref<T[]>(data.value.data as T[])
@@ -39,29 +40,29 @@ export function useResourceTable<T>(props: {
     const lastPage = ref(data.value.meta.last_page)
 
     const sorting = ref<SortingState>(
-        filters?.value?.sortKey
+        filters.value.sortKey
             ? [
                 {
-                    id: filters?.value.sortKey,
-                    desc: filters?.value.sortDir === "desc",
+                    id: filters.value.sortKey,
+                    desc: filters.value.sortDir === "desc",
                 },
             ]
             : []
     )
-    const sortKey = ref(filters?.value?.sortKey ?? null)
-    const sortDir = ref(filters?.value?.sortDir ?? null)
-    const search = ref(filters?.value?.search ?? "")
+    const sortKey = ref(filters.value.sortKey ?? null)
+    const sortDir = ref(filters.value.sortDir ?? null)
+    const search = ref(filters.value.search ?? "")
 
     // --- global truth ---
-    const selectedIds = ref<DbId[]>(filters?.value?.selectedIds ?? [])
-    const lastSavedIds = ref<DbId[]>(filters?.value?.selectedIds ?? [])
+    const selectedIds = ref<DbId[]>(filters.value.selectedIds ?? [])
+    const lastSavedIds = ref<DbId[]>(filters.value.selectedIds ?? [])
 
     // Processing state for displaying spinner during network requests
     const bulkActionProcessing = ref(false)
 
     // 🔑 Keep local state in sync with Inertia-provided filters
     watch(
-        () => filters?.value?.selectedIds,
+        () => filters.value.selectedIds,
         (ids) => {
             if (ids) {
                 selectedIds.value = [...ids]
@@ -87,12 +88,15 @@ export function useResourceTable<T>(props: {
             page: page.value,
             perPage: perPage.value,
             search: search.value,
+            filters: filters.value
         }
         if (sortKey.value) params.sortKey = sortKey.value
         if (sortDir.value) params.sortDir = sortDir.value
 
         // Show loading state in UI
         bulkActionProcessing.value = true
+
+        console.log("Sending request with params", params)
 
         router.get(controller.value.index(parentId?.value), params, {
             preserveState: true,
@@ -103,6 +107,11 @@ export function useResourceTable<T>(props: {
             },
         })
     }
+
+    /**
+     * Send debounced request to server with current filters
+     */
+    const debouncedSend = debounced(send, 3000)
 
     /**
      * Map array of IDs to RowSelectionState
@@ -310,6 +319,28 @@ export function useResourceTable<T>(props: {
         }
     }
 
+    const applyFilters = (newFilters: DataTableFilters) => {
+        console.log("Applying new filters", newFilters)
+        if (newFilters.search !== undefined) {
+            search.value = newFilters.search
+        }
+        if (newFilters.sortKey !== undefined) {
+            sortKey.value = newFilters.sortKey
+        }
+        if (newFilters.sortDir !== undefined) {
+            sortDir.value = newFilters.sortDir
+        }
+        if (newFilters.perPage !== undefined) {
+            perPage.value = newFilters.perPage
+        }
+        if (newFilters.page !== undefined) {
+            page.value = newFilters.page
+        }
+
+        filters.value = { ...filters.value, ...newFilters }
+        debouncedSend()
+    }
+
     // sync inertia updates
     watch(data, (newData) => {
         rows.value = newData.data
@@ -333,6 +364,7 @@ export function useResourceTable<T>(props: {
         search,
         sorting,
         selectedIds,
+        applyFilters,
         performBulkAction,
         bulkActionProcessing,
         send,

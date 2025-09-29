@@ -1,7 +1,7 @@
 import {ref, watch} from "vue";
-import {TableFilters} from "@/types/support";
+import {DataTableFilters} from "@/types/support";
 
-export function useTableFilters(emit: any, initialFilters?: TableFilters) {
+export function useTableFilters(emit: any, initialFilters?: DataTableFilters) {
     const search = ref(initialFilters?.search ?? "")
     const visibleColumns = ref(initialFilters?.visibleColumns ?? [])
     watch(search, () => emit('update:search', search.value))

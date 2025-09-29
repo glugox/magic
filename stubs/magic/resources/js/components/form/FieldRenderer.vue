@@ -15,6 +15,7 @@ import IdField from '@/components/form/IdField.vue';
 import SecretField from "@/components/form/SecretField.vue";
 
 const props = defineProps<FormFieldProps>()
+// forward listeners
 
 // Map field.type → component
 const componentMap: Record<string, any> = {
@@ -94,5 +95,6 @@ const componentName = computed(() => {
     <component
         :is="componentName"
         v-bind="props"
-        @update:modelValue ="$emit('update:modelValue', $event)" />
+        @update:modelValue="$emit('update:modelValue', $event)"
+    />
 </template>

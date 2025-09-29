@@ -9,10 +9,10 @@ import {
     SelectValue
 } from "@/components/ui/select"
 import BaseField from "./BaseField.vue"
-import type { FormFieldProps } from "@/types/support"
+import {FormFieldEmits, FormFieldProps} from "@/types/support"
 
 const props = defineProps<FormFieldProps>()
-const emit = defineEmits<{ (e: "update:modelValue", value: any): void }>()
+const emit = defineEmits<FormFieldEmits>()
 
 // Local reactive value
 const selected = ref(props.modelValue ?? null)

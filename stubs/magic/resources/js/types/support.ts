@@ -134,6 +134,11 @@ export interface FormFieldProps {
     error?: string
 }
 
+export type FormFieldEmits = {
+    (e: 'update:modelValue', value: string|number|boolean|null): void,
+    (e: 'openRelated', relation: Relation): void;
+}
+
 /**
  * Extend FormFieldProps to set relation as required
  */
@@ -207,6 +212,32 @@ export interface TableFilters {
     [key: string]: any
 }
 
+interface RangeFilter {
+    min: number;
+    max: number;
+}
+
+interface SingleSelectFilter {
+    selected: string;
+}
+
+interface DateRangeFilter {
+    from: string; // could also be Date if you parse it
+    to: string;
+}
+
+interface BooleanFilter {
+    active: boolean;
+}
+
+// Generic filter type covering known filter shapes
+type FilterValue = RangeFilter | SingleSelectFilter | DateRangeFilter | BooleanFilter | string | number | string[] | number[];
+
+
+// Full table filters with dynamic keys
+export interface DataTableFilters extends TableFilters {
+    [key: string]: FilterValue | any; // dynamic filters
+}
 
 export type FieldType =
     | 'id'

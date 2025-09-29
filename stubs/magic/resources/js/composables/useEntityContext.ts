@@ -34,7 +34,7 @@ export function useEntityContext(
 
     const controllerStoreArgs = computed(() => (!parentId ? [] : [parentId]));
     const controllerUpdateArgs = computed(() =>
-        parentId ? [parentId, item?.id] : {id: item?.id}
+        parentId ? [parentId, item?.id] : item?.id
     );
     // Compute store URL if possible
     const storeUrl = computed(() => {

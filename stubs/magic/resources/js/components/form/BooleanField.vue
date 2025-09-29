@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import BaseField from './BaseField.vue';
 import { Switch } from '@/components/ui/switch';
-import type { FormFieldProps } from '@/types/support';
+import {FormFieldEmits, FormFieldProps} from '@/types/support';
 import { ref, watch } from 'vue';
 
 const props = defineProps<FormFieldProps>();
-const emit = defineEmits<{ (e: 'update:modelValue', value: boolean): void }>();
+const emit = defineEmits<FormFieldEmits>();
 
 // Local reactive value
 const localValue = ref(!!props.modelValue);

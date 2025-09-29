@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Loader } from "lucide-vue-next"
 import ToolBarActions from "@/components/resource-table/toolbar/ToolBarActions.vue"
-import {Entity, DbId, TableFilters, Column, Controller, WayfinderRoute} from "@/types/support"
+import {Entity, DbId, Column, Controller, WayfinderRoute, DataTableFilters} from "@/types/support"
 import { useTableFilters } from "@/composables/useTableFilters"
 import ColumnVisibilityMenu from "@/components/resource-table/toolbar/ColumnVisibilityMenu.vue";
 import NewEntityButton from "@/components/resource-table/toolbar/NewEntityButton.vue";
@@ -17,7 +17,7 @@ const { entity, createUrl, parentId, bulkActionProcessing, initialFilters } =
         parentId?: DbId
         bulkActionProcessing?: boolean
         columns?: Column[]
-        initialFilters?: TableFilters
+        initialFilters?: DataTableFilters
     }>()
 
 // emits

@@ -8,6 +8,7 @@ import { useEntityContext } from "@/composables/useEntityContext";
 import DebugBox from "@/components/debug/DebugBox.vue";
 import { Toaster } from '@/components/ui/sonner';
 import { useApi } from '@/composables/useApi';
+import {ref} from "vue";
 
 const props = defineProps<ResourceFormProps>();
 
@@ -25,6 +26,7 @@ props.entity.fields.forEach((f) => {
 });
 const form = useForm(initialData);
 const { post, put } = useApi();
+const globalErrors = ref<string[]>([]);
 
 // Context: URLs, action type
 const { crudActionType, destroyUrl, storeUrl, updateUrl } =
@@ -34,6 +36,7 @@ const { crudActionType, destroyUrl, storeUrl, updateUrl } =
 const jsonMode = props.jsonMode || props.dialogMode;
 
 const onCreated = (record: unknown) => {
+    globalErrors.value = []
     console.log("On created", record);
     form.defaults(initialData)
     form.reset()
@@ -45,6 +48,7 @@ const onCreated = (record: unknown) => {
 
 const onUpdated = (record: unknown) => {
     console.log("On updated", record);
+    globalErrors.value = []
     if (jsonMode) {
         emit('updated', record);
     }
@@ -77,7 +81,11 @@ const submit = async () => {
             form.post(storeUrl.value, {
                 headers,
                 preserveScroll: true,
-                onSuccess: (page) => onCreated(page.props?.record ?? form.data())
+                onSuccess: (page) => onCreated(page.props?.record ?? form.data()),
+                onError: (errors) => {
+                    console.log("Errors", errors);
+                    globalErrors.value = Object.values(errors).flat(); // flatten messages into array
+                }
             })
         }
     } else {
@@ -94,6 +102,10 @@ const submit = async () => {
                 headers,
                 preserveScroll: true,
                 onSuccess: (page) => onUpdated(page.props?.record ?? form.data()),
+                onError: (errors) => {
+                    console.log("Errors", errors);
+                    globalErrors.value = Object.values(errors).flat(); // flatten messages into array
+                }
             })
         }
     }
@@ -118,7 +130,12 @@ defineExpose({ submit, destroy, processing: form.processing });
 </script>
 
 <template>
-    <DebugBox v-bind="props" />
+    <div v-if="globalErrors.length" class="py-2 px-3 mb-2 rounded-lg border border-red-300 text-red-300">
+        <ul class="list-disc list-inside">
+            <li v-for="(err, idx) in globalErrors" :key="idx">{{ err }}</li>
+        </ul>
+    </div>
+    <DebugBox v-if="false" v-bind="props" />
     <form @submit.prevent="submit" class="space-y-6">
         <FieldRenderer
             v-for="field in entity.fields"

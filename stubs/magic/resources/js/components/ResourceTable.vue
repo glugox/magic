@@ -1,7 +1,14 @@
 <script setup lang="ts" generic="T">
 import {defineProps, onMounted, toRef} from "vue"
 import { useResourceTable } from "@/composables/useResourceTable"
-import {Entity, DbId, TableFilters, PaginatedResponse, ResourceData, Controller} from "@/types/support"
+import {
+    Entity,
+    DbId,
+    PaginatedResponse,
+    ResourceData,
+    Controller,
+    DataTableFilters
+} from "@/types/support"
 import Toolbar from "@/components/resource-table/toolbar/Toolbar.vue";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import {ColumnDef, FlexRender} from "@tanstack/vue-table";
@@ -19,18 +26,16 @@ export interface ResourceTableProps<T> {
     columns: ColumnDef<ResourceData>[]
     data: PaginatedResponse<T>
     parentId?: DbId
-    filters?: TableFilters
+    filters?: DataTableFilters
 }
 
 const props = defineProps<ResourceTableProps<T>>()
-
-
-
 
 const {createUrl} = useEntityContext(props.entity, props.parentEntity, props.parentId);
 
 const {
     table, rows, page, perPage, total, search, selectedIds,
+    applyFilters,
     performBulkAction, bulkActionProcessing
 } = useResourceTable(props)
 
@@ -57,7 +62,10 @@ const setColumnsVisibility = (visibleColumns: string[]) => {
 </script>
 
 <template>
-    <TableFiltersBox :entity="entity" />
+    <TableFiltersBox
+        :entity="entity"
+        @filters-updated="applyFilters"
+    />
     <Toolbar
         class="mb-4"
         @update:search="value => search = value"
