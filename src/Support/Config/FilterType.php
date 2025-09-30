@@ -11,6 +11,7 @@ enum FilterType: string
     case DATE = 'date';            // Single date picker
     case DATE_RANGE = 'date_range'; // Date range picker
     case DATETIME = 'datetime';    // Single datetime picker
+    case TIMESTAMP = 'timestamp'; // Timestamp picker
     case DATETIME_RANGE = 'datetime_range'; // Datetime range picker
     case ENUM = 'enum';            // Enum dropdown
 }

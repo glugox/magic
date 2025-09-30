@@ -2,11 +2,15 @@
 
 namespace {{namespace}};
 
+use Glugox\ModelMeta\Contracts\Filter;
 use Glugox\ModelMeta\Field;
 use Glugox\ModelMeta\Relation;
 use Glugox\ModelMeta\ModelMeta;
 use Glugox\ModelMeta\Fields\{
     {{importedFields}}
+};
+use Glugox\ModelMeta\Filters\{
+    {{importedFilters}}
 };
 {{importedRelations}}
 
@@ -43,4 +47,16 @@ class {{className}} extends ModelMeta
              {{relations}}
          ];
      }
+
+     /**
+      * Define filters for the {{className}} resource.
+      *
+      * @return array<int, Filter>
+      */
+      public function filters(): array
+      {
+          return [
+              {{filters}}
+          ];
+      }
 }

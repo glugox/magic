@@ -111,7 +111,7 @@ export function useResourceTable<T>(props: {
     /**
      * Send debounced request to server with current filters
      */
-    const debouncedSend = debounced(send, 3000)
+    const debouncedSend = debounced(send, 300)
 
     /**
      * Map array of IDs to RowSelectionState

@@ -22,7 +22,6 @@
 </template>
 
 <script setup lang="ts">
-import { Input } from "@/components/ui/input"
 import type { FilterBaseProps } from "@/types/support"
 import BaseFilter from "@/components/filters/BaseFilter.vue";
 import InputField from "@/components/form/InputField.vue";

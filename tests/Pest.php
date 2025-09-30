@@ -297,6 +297,12 @@ function getFixtureConfigInventory(): Config
                 { "type": "belongsToMany", "relatedEntityName": "Category", "pivot": "category_product", "foreignKey": "product_id", "relatedKey": "category_id" },
                 { "type": "morphMany", "relatedEntityName": "Attachment", "relationName": "attachments" },
                 { "type": "morphMany", "relatedEntityName": "Review", "relationName": "reviews" }
+            ],
+            "filters": [
+                { "field": "name", "type": "text" },
+                { "field": "status", "type": "enum" },
+                { "field": "price", "type": "range" },
+                { "field": "available_from", "type": "date_range" }
             ]
         },
         {

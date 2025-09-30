@@ -4,13 +4,13 @@
     >
         <template #default="{ values }">
             <div class="flex gap-2">
-                <Input
-                    v-model="values.from"
+                <InputField
+                    v-model="values.min"
                     type="date"
                     class="flex-1 bg-background border border-input text-foreground placeholder:text-muted-foreground"
                 />
-                <Input
-                    v-model="values.to"
+                <InputField
+                    v-model="values.max"
                     type="date"
                     class="flex-1 bg-background border border-input text-foreground placeholder:text-muted-foreground"
                 />
@@ -23,6 +23,7 @@
 import { Input } from "@/components/ui/input"
 import BaseFilter from "@/components/filters/BaseFilter.vue"
 import type { FilterBaseProps } from "@/types/support"
+import InputField from "@/components/form/InputField.vue";
 
 const props = defineProps<FilterBaseProps>()
 </script>

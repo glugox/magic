@@ -9,6 +9,7 @@ use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Config\FieldType;
+use Glugox\Magic\Support\Config\Filter;
 use Glugox\Magic\Support\Config\Relation;
 use Glugox\Magic\Support\Config\RelationType;
 use Glugox\Magic\Traits\AsDescribableAction;
@@ -25,6 +26,12 @@ use Glugox\ModelMeta\Fields\Number;
 use Glugox\ModelMeta\Fields\Password;
 use Glugox\ModelMeta\Fields\Slug;
 use Glugox\ModelMeta\Fields\Text;
+use Glugox\ModelMeta\Filters\BooleanFilter;
+use Glugox\ModelMeta\Filters\DateFilter;
+use Glugox\ModelMeta\Filters\EnumFilter;
+use Glugox\ModelMeta\Filters\NumberFilter;
+use Glugox\ModelMeta\Filters\TextFilter;
+use Glugox\ModelMeta\Filters\TimestampFilter;
 use Glugox\ModelMeta\Relations\BelongsTo;
 use Glugox\ModelMeta\Relations\BelongsToMany;
 use Glugox\ModelMeta\Relations\HasMany;
@@ -72,6 +79,11 @@ class GenerateModelMetaAction implements DescribableAction
     protected array $usesRelations = [];
 
     /**
+     * @var array <string, int> Map of class basename to indicate which filter classes need to be imported.
+     */
+    protected array $usesFilters = [];
+
+    /**
      * Build all models based on the configuration.
      */
     public function __invoke(BuildContext $context): BuildContext
@@ -87,17 +99,21 @@ class GenerateModelMetaAction implements DescribableAction
     protected function generateForEntity(Entity $entity): void
     {
         $this->usesFields = [];
+        $this->usesRelations = [];
+        $this->usesFilters = [];
+
         $fieldLines = array_map(fn ($field) => $this->buildFieldLine($field), $entity->getFields());
         $relationsLines = array_map(fn ($relation) => $this->buildRelationLine($relation), $entity->getRelations());
+        $filtersLines = array_map(fn ($filter) => $this->buildFilterLine($filter), $entity->getFilters());
 
         // Prepare relation names
-        $relations = $entity->getRelations(null, [
+        /*$relations = $entity->getRelations(null, [
             RelationType::MORPH_TO,
             RelationType::MORPH_MANY,
             RelationType::MORPH_ONE,
             RelationType::MORPH_TO_MANY,
             RelationType::MORPHED_BY_MANY,
-        ]);
+        ]);*/
 
         $replacements = [
             'namespace' => 'App\\Meta\\Models',
@@ -105,8 +121,10 @@ class GenerateModelMetaAction implements DescribableAction
             'tableName' => $entity->getTableName(),
             'fields' => implode("\n            ", $fieldLines),
             'relations' => implode("\n            ", $relationsLines),
+            'filters' => implode("\n            ", $filtersLines),
             'importedFields' => implode(",\n    ", array_keys($this->usesFields)),
             'importedRelations' => implode("\n", array_map(fn ($relationClass) => 'use '.$relationClass.';', array_keys($this->usesRelations))),
+            'importedFilters' =>  implode(",\n    ", array_keys($this->usesFilters)),
         ];
 
         // Load stub & apply replacements
@@ -205,6 +223,33 @@ class GenerateModelMetaAction implements DescribableAction
         }
 
         return $code.',';
+    }
+
+    /**
+     * Build a single filter line for the filters() array.
+     */
+    protected function buildFilterLine(Filter $filter): string
+    {
+
+        $class = match ($filter->type->value) {
+            'text' => TextFilter::class,
+            'enum' => EnumFilter::class,
+            'date', 'datetime', 'date_range' => DateFilter::class,
+            'range' => RangeFilter::class,
+            'number' => NumberFilter::class,
+            'boolean' => BooleanFilter::class,
+            default => null,
+        };
+
+        $class_basename = class_basename($class);
+        if ($class) {
+            $code = "{$class_basename}::make('{$filter->field}')";
+            $this->usesFilters[$class_basename] = 1;
+
+            return $code.',';
+        }
+
+        return '//TODO : ' . $filter->toString();
     }
 
     /**
