@@ -54,19 +54,13 @@ Watch on YouTube:
    php artisan vendor:publish --provider="Glugox\Magic\MagicServiceProvider"
    ```
 
-5. **Explore demo samples** (JSON config files in `stubs/samples`):
-
-   ```bash
-   php artisan magic:list-samples
-   ```
-
-6. **Build your app** using a starter:
+5. **Build your app** using a starter:
 
    ```bash
    php artisan magic:build --starter=inventory
    ```
 
-7. **Or use your own config file**:
+6. **Or use your own config file**:
 
    ```bash
    php artisan magic:build --config=path/to/your/config.json
@@ -74,7 +68,7 @@ Watch on YouTube:
 
    👉 See the [sample configurations](./stubs/samples) directory for examples.
 
-8. **Run the app**:
+7. **Run the app**:
 
    ```bash
    npm run dev
