@@ -1,7 +1,7 @@
 <template>
-    <div class="mb-4">
+    <div class="mb-2 items-center">
 
-        <div v-if="Object.keys(currentFilters).length" class="mb-3">
+        <div v-if="Object.keys(currentFilters).length" class="mb-2">
             <Label class="block mb-2 text-sm text-muted-foreground">Active Filters:</Label>
 
             <div class="flex flex-wrap gap-2">
@@ -23,23 +23,15 @@
             </div>
         </div>
 
-        <!-- Filters Toggle -->
-        <div v-if="hasFilters" class="flex justify-end">
-            <div
-                class="flex items-center gap-2 cursor-pointer select-none mb-2"
-                @click="showFilters = !showFilters"
-            >
-                <Filter class="w-5 h-5 text-muted-foreground" />
-                <span class="ml-1 text-xs text-muted-foreground"></span>
-            </div>
-        </div>
-
         <!-- Filters Content -->
         <div
             class="overflow-clip transition-[max-height] duration-300 ease-in-out"
-            :style="{ maxHeight: showFilters ? maxHeight + 'px' : '0' }"
+            :style="{ maxHeight: filtersVisible ? maxHeight + 'px' : '0' }"
             ref="container"
         >
+
+            <Label class="block mb-2 text-sm text-muted-foreground">Filters:</Label>
+
             <!-- Filters Grid -->
             <div class="flex flex-wrap gap-4 pb-3">
                 <component
@@ -60,7 +52,7 @@
 </template>
 
 <script setup lang="ts">
-import {ref, onMounted, nextTick, computed} from "vue"
+import {ref, onMounted, nextTick, computed, watch} from "vue"
 import { Filter } from "lucide-vue-next"
 import { Label } from "@/components/ui/label"
 
@@ -78,11 +70,13 @@ import {
 
 import {setFilterValue, useFilters} from "@/store/tableFiltersStore";
 import {formatDate} from "@/lib/app";
+import TextFilter from "@/components/filters/TextFilter.vue";
 
 const props = defineProps<{
     tableId: TableId
     entity: Entity
-    initialFilters?: DataTableFilters
+    initialFilters?: DataTableFilters,
+    filtersVisible?: boolean
 }>()
 
 const emit = defineEmits<TableFiltersEmits>()
@@ -93,7 +87,7 @@ onMounted(() => {
     })
 })
 
-const showFilters = ref(false)
+//const showFilters = ref(props.filtersVisible ?? false)
 const container = ref<HTMLElement | null>(null)
 const maxHeight = ref(0)
 
@@ -114,6 +108,16 @@ const filtersMetaFull = ref(
     })
 )
 
+// Watch props.filtersVisible to show/hide filters
+/*watch(() => props.filtersVisible, (newVal) => {
+    showFilters.value = newVal ?? false
+    if (newVal && container.value) {
+        nextTick(() => {
+            if (container.value) maxHeight.value = container.value.scrollHeight
+        })
+    }
+})*/
+
 // Check if entity has any filters. This is not same as has active filters.
 // Active filters are in currentFilters , when user has applied some
 // filters. Here we check if entity has any filters defined at all.
@@ -128,6 +132,7 @@ const filterComponents: Record<string, any> = {
     range: RangeFilter,
     date_range: DateFilter,
     boolean: BooleanFilter,
+    text: TextFilter
 }
 
 function removeFilter(field: string) {

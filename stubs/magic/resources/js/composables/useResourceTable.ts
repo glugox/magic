@@ -18,11 +18,15 @@ export function useResourceTable<T>(props: ResourceTableProps<T>, tableId: Table
 
     const { data, parentId, columns } = toRefs(props)
 
-    // wrap filters and settings safely
-    //const filters = ref<DataTableFilters>(props.state?.filters ?? {})
     const settings = ref<DataTableSettings>(props.state?.settings ?? {})
 
     const filters = useFilters(tableId)
+
+    // For toggling filters box visibility
+    const filtersVisible = ref(false)
+    function toggleFilters() {
+        filtersVisible.value = !filtersVisible.value
+    }
 
     // Entity context gives us Laravel style entity setup
     const {controller} = useEntityContext(props.entity, props.parentEntity, props.parentId)
@@ -365,6 +369,8 @@ export function useResourceTable<T>(props: ResourceTableProps<T>, tableId: Table
         sorting,
         selectedIds,
         performBulkAction,
-        bulkActionProcessing
+        bulkActionProcessing,
+        filtersVisible,
+        toggleFilters,
     }
 }

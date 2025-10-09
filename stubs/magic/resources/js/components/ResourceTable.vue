@@ -21,7 +21,7 @@ const {createUrl} = useEntityContext(props.entity, props.parentEntity, props.par
 const tableId = props.state?.settings?.tableId || `table-${Math.random().toString(36).substring(2, 9)}`
 
 // Composable for handling tanstack table state and data
-const {table, rows, page, perPage, total, performBulkAction, bulkActionProcessing} = useResourceTable(props, tableId)
+const {table, rows, page, perPage, total, performBulkAction, bulkActionProcessing, filtersVisible, toggleFilters} = useResourceTable(props, tableId)
 
 // Inertia page for flash messages
 const inertiaPage = usePage()
@@ -47,11 +47,7 @@ const setColumnsVisibility = (visibleColumns: string[]) => {
 </script>
 
 <template>
-    <TableFiltersBox
-        :table-id="tableId"
-        :entity="entity"
-        :initial-filters="props.state?.filters"
-    />
+
     <Toolbar
         class="mb-4"
         :table-id="tableId"
@@ -63,7 +59,19 @@ const setColumnsVisibility = (visibleColumns: string[]) => {
         :createUrl="createUrl"
         @bulk-action="performBulkAction"
         @update:visible-columns="setColumnsVisibility"
+        @action="action => {
+            if (action === 'toggle-filters') {
+                toggleFilters()
+            }
+        }"
     />
+    <TableFiltersBox
+        :table-id="tableId"
+        :entity="entity"
+        :initial-filters="props.state?.filters"
+        :filters-visible="filtersVisible"
+    />
+
     <div class="rounded-md border">
         <Table>
             <TableHeader>

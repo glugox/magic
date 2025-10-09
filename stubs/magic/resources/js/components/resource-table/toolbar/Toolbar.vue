@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {Loader} from "lucide-vue-next"
+import {Filter, Loader} from "lucide-vue-next"
 import ToolBarActions from "@/components/resource-table/toolbar/ToolBarActions.vue"
 import {Entity, DbId, WayfinderRoute, DataTableState} from "@/types/support"
 import {useTableProps} from "@/composables/useTableProps"
@@ -24,6 +24,7 @@ const {tableId, entity, createUrl, bulkActionProcessing, initialState} =
 const emit = defineEmits<{
     (e: "update:visibleColumns", value: string[]): void
     (e: "bulk-action", action: "edit" | "delete" | "archive"): void
+    (e: "action", value: string): void
 }>()
 
 // use composable
@@ -33,17 +34,29 @@ const canAddNew = computed(() => {
     return createUrl && createUrl?.url?.length > 0
 })
 
+const hasFilters = computed(() => {
+    return entity.filters && entity.filters.length > 0
+})
+
 </script>
 
 <template>
     <div v-bind="$attrs" class="flex gap-2 items-center justify-between">
-        <div>
-            <TableSearch :table-id="tableId" placeholder="Search…"/>
-        </div>
+        <TableSearch :table-id="tableId" placeholder="Search all columns…"/>
         <div class="flex items-center gap-2">
             <Loader v-if="bulkActionProcessing" class="w-4 h-4 mr-2 animate-spin"/>
-            <ColumnVisibilityMenu :columns="initialState?.settings?.allColumns" :visible-columns="visibleColumns "
-                                  @toggle-column="toggleColumnVisibility"/>
+            <!-- Filters Toggle -->
+            <div v-if="hasFilters" >
+                <div class="flex items-center cursor-pointer select-none"
+                     @click="emit('action', 'toggle-filters')"
+                >
+                    <Filter class="w-5 h-5 text-muted-foreground" />
+                </div>
+            </div>
+            <ColumnVisibilityMenu
+                :columns="initialState?.settings?.allColumns"
+                :visible-columns="visibleColumns "
+                @toggle-column="toggleColumnVisibility"/>
             <NewEntityButton
                 v-if="canAddNew"
                 :label="`New ${entity.singularName}`"

@@ -55,6 +55,6 @@ onUnmounted(() => filtersListener())
         v-model="search"
         type="search"
         :placeholder="placeholder || 'Search…'"
-        class="w-52"
+        class="w-48"
     />
 </template>
