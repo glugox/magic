@@ -1,3 +1,5 @@
+import {ColumnDef} from "@tanstack/vue-table";
+
 export type CrudActionType = 'create' | 'read' | 'update' | 'delete';
 
 // Define database Id type
@@ -63,7 +65,7 @@ export interface Relation {
 
 export interface FilterBaseProps {
     label: string; // Human readable label
-    initialValues?: Record<string, any>;  // Default value(s)
+    filterValue?: FilterValue;
 }
 
 export interface FilterConfig extends FilterBaseProps {
@@ -134,10 +136,42 @@ export interface FormFieldProps {
     error?: string
 }
 
+export type TableId = string
+
+export interface ResourceTableProps<T> {
+    entity: Entity
+    parentEntity?: Entity
+    columns: ColumnDef<ResourceData>[]
+    data: PaginatedResponse<T>
+    parentId?: DbId
+    state?: DataTableState
+}
+
 export type FormFieldEmits = {
     (e: 'update:modelValue', value: string|number|boolean|null): void,
     (e: 'openRelated', relation: Relation): void;
 }
+
+export type TablePropsEmits = {
+    (e: "update:search", value: string): void
+    (e: "update:visibleColumns", value: string[]): void
+}
+
+export type TableBulkEmits = {
+    (e: "bulk-action", action: "edit" | "delete" | "archive"): void
+}
+
+export type TableFilterEmits = {
+    (e: "change", payload: FilterValue): void
+    (e: "reset"): void
+}
+
+export type TableFiltersEmits = {
+    (e: "update:filters", payload: DataTableFilters): void
+};
+
+export type TableEmits = TablePropsEmits & TableBulkEmits
+
 
 /**
  * Extend FormFieldProps to set relation as required
@@ -200,43 +234,38 @@ export interface Column {
     label: string
 }
 
-export interface TableFilters {
-    search?: string
-    sortKey?: string
-    sortDir?: 'asc' | 'desc'
-    page?: number
-    per_page?: number
-    selectedIds?: number[],
-    allColumns?: Column[]
-    visibleColumns?: string[]
-    [key: string]: any
+export type PrimitiveFilter =
+    | null | string | number | boolean | [number | null, number | null] | [string | null, string | null];
+
+export interface AdvancedFilter {
+    field: string;
+    type: "range" | "date_range" | "enum" | "boolean" | "custom";
+    value: PrimitiveFilter | object;
 }
 
-interface RangeFilter {
-    min: number;
-    max: number;
-}
-
-interface SingleSelectFilter {
-    selected: string;
-}
-
-interface DateRangeFilter {
-    from: string; // could also be Date if you parse it
-    to: string;
-}
-
-interface BooleanFilter {
-    active: boolean;
-}
-
-// Generic filter type covering known filter shapes
-type FilterValue = RangeFilter | SingleSelectFilter | DateRangeFilter | BooleanFilter | string | number | string[] | number[];
+export type FilterValue = PrimitiveFilter | AdvancedFilter;
 
 
 // Full table filters with dynamic keys
-export interface DataTableFilters extends TableFilters {
-    [key: string]: FilterValue | any; // dynamic filters
+export interface DataTableFilters {
+    [key: string]: FilterValue; // dynamic filters
+}
+
+// Data table state
+export interface DataTableSettings {
+    tableId?: TableId
+    loading?: boolean
+    error?: string
+    selectedIds?: number[]
+    allColumns?: Column[]
+    visibleColumns?: string[]
+    sortKey?: string | null
+    sortDir?: 'asc' | 'desc' | null
+}
+
+export interface DataTableState {
+    settings: DataTableSettings
+    filters: DataTableFilters
 }
 
 export type FieldType =

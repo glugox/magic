@@ -1,49 +1,35 @@
 <script setup lang="ts" generic="T">
-import {defineProps, onMounted, toRef} from "vue"
-import { useResourceTable } from "@/composables/useResourceTable"
-import {
-    Entity,
-    DbId,
-    PaginatedResponse,
-    ResourceData,
-    Controller,
-    DataTableFilters
-} from "@/types/support"
+import {defineProps, onMounted} from "vue"
+import {useResourceTable} from "@/composables/useResourceTable"
+import {ResourceTableProps} from "@/types/support"
 import Toolbar from "@/components/resource-table/toolbar/Toolbar.vue";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
-import {ColumnDef, FlexRender} from "@tanstack/vue-table";
+import {FlexRender} from "@tanstack/vue-table";
 import Pagination from "@/components/resource-table/Pagination.vue";
-import { usePage } from '@inertiajs/vue3';
-import { toast } from "vue-sonner"
+import {usePage} from '@inertiajs/vue3';
+import {toast} from "vue-sonner"
 import {useEntityContext} from "@/composables/useEntityContext";
-import { Toaster } from '@/components/ui/sonner'
+import {Toaster} from '@/components/ui/sonner'
 import TableFiltersBox from "@/components/filters/TableFiltersBox.vue";
-
-
-export interface ResourceTableProps<T> {
-    entity: Entity
-    parentEntity?: Entity
-    columns: ColumnDef<ResourceData>[]
-    data: PaginatedResponse<T>
-    parentId?: DbId
-    filters?: DataTableFilters
-}
 
 const props = defineProps<ResourceTableProps<T>>()
 
+// Entity context for Laravel logic mapping
 const {createUrl} = useEntityContext(props.entity, props.parentEntity, props.parentId);
 
-const {
-    table, rows, page, perPage, total, search, selectedIds,
-    applyFilters,
-    performBulkAction, bulkActionProcessing
-} = useResourceTable(props)
+// generate random id if not set in props.state.settings.tableId
+const tableId = props.state?.settings?.tableId || `table-${Math.random().toString(36).substring(2, 9)}`
 
+// Composable for handling tanstack table state and data
+const {table, rows, page, perPage, total, performBulkAction, bulkActionProcessing} = useResourceTable(props, tableId)
+
+// Inertia page for flash messages
 const inertiaPage = usePage()
 
+
 onMounted(() => {
-    if(inertiaPage.props.flash.success) {
-        toast(inertiaPage.props.flash.success, {
+    if ((inertiaPage.props.flash as Record<string, any>)?.success) {
+        toast((inertiaPage.props.flash as Record<string, any>)?.success, {
             description: '',
             action: {
                 label: 'Undo',
@@ -58,29 +44,28 @@ const setColumnsVisibility = (visibleColumns: string[]) => {
         table.getColumn(<string>column.id)?.toggleVisibility(visibleColumns.includes(<string>column.id))
     })
 }
-
 </script>
 
 <template>
     <TableFiltersBox
+        :table-id="tableId"
         :entity="entity"
-        @filters-updated="applyFilters"
+        :initial-filters="props.state?.filters"
     />
     <Toolbar
         class="mb-4"
-        @update:search="value => search = value"
+        :table-id="tableId"
         :parent-id="props.parentId"
-        :initial-filters="props.filters"
-        :columns="props.filters?.allColumns"
-        @bulk-action="performBulkAction"
-        @update:visible-columns="setColumnsVisibility"
+        :initial-state="props.state"
+        :columns="props.state?.settings?.allColumns"
         :bulk-action-processing="bulkActionProcessing"
         :entity="props.entity"
         :createUrl="createUrl"
+        @bulk-action="performBulkAction"
+        @update:visible-columns="setColumnsVisibility"
     />
     <div class="rounded-md border">
         <Table>
-            <!-- headers -->
             <TableHeader>
                 <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
                     <TableHead v-for="header in headerGroup.headers" :key="header.id">
@@ -92,12 +77,11 @@ const setColumnsVisibility = (visibleColumns: string[]) => {
                     </TableHead>
                 </TableRow>
             </TableHeader>
-            <!-- rows -->
             <TableBody>
                 <template v-if="rows.length">
                     <TableRow v-for="row in table.getRowModel().rows" :key="row.id">
                         <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id">
-                            <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
+                            <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()"/>
                         </TableCell>
                     </TableRow>
                 </template>
@@ -109,6 +93,7 @@ const setColumnsVisibility = (visibleColumns: string[]) => {
             </TableBody>
         </Table>
     </div>
-    <Pagination :disabled="bulkActionProcessing" :total="total" :per-page="perPage" :page="page" @update:page="p => (page = p)" />
-    <Toaster position="top-right" />
+    <Pagination :disabled="bulkActionProcessing" :total="total" :per-page="perPage" :page="page"
+                @update:page="p => (page = p)"/>
+    <Toaster position="top-right"/>
 </template>

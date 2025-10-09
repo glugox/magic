@@ -1,3 +1,5 @@
+import {FilterValue} from "@/types/support";
+
 export const debounced = (fn: Function, ms = 400) => {
     let t: number | undefined
     return (...args: any[]) => {
@@ -24,3 +26,45 @@ export function arraysEqualIgnoreOrder(a: any[], b: any[]) {
 
     return sortedA.every((v, i) => v === sortedB[i])
 }
+
+export function deepCopy(value: unknown) {
+    if (typeof value !== 'object') {
+        return value;
+    }
+    return JSON.parse(JSON.stringify(value));
+}
+
+export function formatDate(date: string | Date): string {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${day}.${month}.${year}`;
+}
+
+export function isEqual(a: any, b: any): boolean {
+    if (a === b) return true
+    if (typeof a !== typeof b) return false
+    if (a == null || b == null) return a === b
+    if (typeof a === "object") {
+        const aKeys = Object.keys(a)
+        const bKeys = Object.keys(b)
+        if (aKeys.length !== bKeys.length) return false
+        return aKeys.every((k) => isEqual(a[k], b[k]))
+    }
+    return a === b
+}
+/**
+ *  Check if a filter value is considered "empty"
+ */
+export function isEmptyFilterValue(value: FilterValue) {
+    if (value === null || value === '') return true
+
+    if (typeof value === 'object') {
+        // Check if all keys are null/undefined
+        return Object.values(value).every(v => v == null || (Array.isArray(v) && v.length === 0))
+    }
+
+    return false
+}
+

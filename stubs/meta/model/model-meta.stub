@@ -6,12 +6,13 @@ use Glugox\ModelMeta\Contracts\Filter;
 use Glugox\ModelMeta\Field;
 use Glugox\ModelMeta\Relation;
 use Glugox\ModelMeta\ModelMeta;
+// Fields
 use Glugox\ModelMeta\Fields\{
     {{importedFields}}
 };
-use Glugox\ModelMeta\Filters\{
-    {{importedFilters}}
-};
+// Filters
+{{importedFilters}}
+// Relations
 {{importedRelations}}
 
 class {{className}} extends ModelMeta

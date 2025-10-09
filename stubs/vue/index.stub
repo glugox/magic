@@ -4,13 +4,14 @@ import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
 import ResourceTable from '@/components/ResourceTable.vue';
 import { ColumnDef } from "@tanstack/vue-table";
-import {ResourceData} from '@/types/support';
+import {ResourceData, DataTableState} from '@/types/support';
+import { type PaginatedResponse, type DataTableFilters } from '@/types/support';
 {{entityImports}}
 {{supportImports}}
 
 interface Props {
     data: PaginatedResponse<{{entityName}}>;
-    filters?: DataTableFilters;
+    state?: DataTableState;
 }
 
 const { data }: Props = defineProps<Props>();
@@ -33,7 +34,7 @@ const columns: ColumnDef<{{entityName}}>[] = get{{entityName}}Columns();
           :data="data"
           :columns="columns as ColumnDef<ResourceData>[]"
           :entity="entity"
-          :filters="filters"
+          :state="state"
           />
     </AppLayout>
 </template>

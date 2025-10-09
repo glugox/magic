@@ -25,6 +25,7 @@ class {{controllerClass}} extends Controller
         $tableQueryService = TableQueryService::forModel({{relatedModelClass}}::class);
         ${{parentModelClassLower}}->load('{{relationName}}');
         $selectedIds = ${{parentModelClassLower}}->{{relationName}}->pluck('id')->toArray();
+        $tableQueryService->setSelectedIds($selectedIds);
 
         $query = {{relatedModelClass}}::query();
 
@@ -39,8 +40,7 @@ class {{controllerClass}} extends Controller
         return Inertia::render('{{parentModelFolderName}}/{{relationName}}/Index', [
             'item' => new {{parentModelResourceClass}}(${{parentModelClassLower}}),
             '{{relationName}}' => {{relatedModelResourceClass}}::collection($relatedItems)->response()->getData(),
-            'item_{{relationName}}_ids' => $selectedIds,
-            'filters' => $tableQueryService->prepareFilters($request->all()),
+            'state' => $tableQueryService->prepareState(),
         ]);
     }
 

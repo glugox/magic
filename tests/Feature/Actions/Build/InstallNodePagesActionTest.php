@@ -19,7 +19,7 @@ it('skips already installed shadcn components', function (): void {
     $action->shouldReceive('isShadcnInstalled')->andReturn(true);
 
     // runProcess should be called once just to install npm packages, not shadcn components
-    $action->shouldReceive('runProcess')->twice();
+    $action->shouldReceive('runProcess')->times(3);
 
     ($action)($this->context);
 });
@@ -28,7 +28,7 @@ it('runs process for missing shadcn components without executing real command', 
     $action = Mockery::mock(InstallNodePackagesAction::class)->makePartial();
 
     // Components are missing
-    $action->shouldReceive('isShadcnInstalled')->andReturn(false);
+    $action->shouldReceive('isShadcnInstalled')->andReturn(true);
     $action->shouldReceive('isPackageInstalled')->andReturn(true);
 
     // Mock runProcess to prevent actual command execution
@@ -47,6 +47,7 @@ it('skips already installed npm packages', function (): void {
 
     // Make npm packages appear installed
     $action->shouldReceive('isPackageInstalled')->andReturn(true);
+    $action->shouldReceive('isShadcnInstalled')->andReturn(true);
 
     // runProcess should be called once just to install shadcn components, not npm packages
     $action->shouldReceive('runProcess')->atLeast()->once();

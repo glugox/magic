@@ -30,8 +30,8 @@ use Glugox\ModelMeta\Filters\BooleanFilter;
 use Glugox\ModelMeta\Filters\DateFilter;
 use Glugox\ModelMeta\Filters\EnumFilter;
 use Glugox\ModelMeta\Filters\NumberFilter;
+use Glugox\ModelMeta\Filters\RangeFilter;
 use Glugox\ModelMeta\Filters\TextFilter;
-use Glugox\ModelMeta\Filters\TimestampFilter;
 use Glugox\ModelMeta\Relations\BelongsTo;
 use Glugox\ModelMeta\Relations\BelongsToMany;
 use Glugox\ModelMeta\Relations\HasMany;
@@ -124,7 +124,7 @@ class GenerateModelMetaAction implements DescribableAction
             'filters' => implode("\n            ", $filtersLines),
             'importedFields' => implode(",\n    ", array_keys($this->usesFields)),
             'importedRelations' => implode("\n", array_map(fn ($relationClass) => 'use '.$relationClass.';', array_keys($this->usesRelations))),
-            'importedFilters' =>  implode(",\n    ", array_keys($this->usesFilters)),
+            'importedFilters' => implode("\n", array_map(fn ($filterClass) => 'use '.$filterClass.';', array_keys($this->usesFilters))),
         ];
 
         // Load stub & apply replacements
@@ -244,12 +244,12 @@ class GenerateModelMetaAction implements DescribableAction
         $class_basename = class_basename($class);
         if ($class) {
             $code = "{$class_basename}::make('{$filter->field}')";
-            $this->usesFilters[$class_basename] = 1;
+            $this->usesFilters[$class] = 1;
 
             return $code.',';
         }
 
-        return '//TODO : ' . $filter->toString();
+        return '//TODO : '.$filter->toString();
     }
 
     /**

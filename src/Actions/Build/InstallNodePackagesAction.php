@@ -29,7 +29,8 @@ class InstallNodePackagesAction implements DescribableAction
     protected array $npmPackages = [
         'axios',
         'playwright@latest',
-        'date-fns'
+        'date-fns',
+        '@tanstack/vue-table'
         // add more npm packages here...
     ];
 
@@ -64,13 +65,15 @@ class InstallNodePackagesAction implements DescribableAction
      * @var string[]
      */
     protected array $postInstallCommands = [
-        'npx playwright install'
+        'npx playwright install',
+        'node ./scripts/generate-ui-index.mjs',
     ];
 
     public function __invoke(BuildContext $context): BuildContext
     {
         // Log section title
         $this->logInvocation($this->describe()->name);
+        $shadcnVueVersion = 'v2.2.0'; // or specify a version like '1.2.3'
 
         Log::channel('magic')->info('Checking Node.js dependencies...');
 
@@ -103,10 +106,19 @@ class InstallNodePackagesAction implements DescribableAction
             Log::channel('magic')->info('Installing missing shadcn-vue components: '.implode(', ', $missingComponents));
 
             foreach ($missingComponents as $component) {
+
+                Log::channel('magic')->info('Installing shadcn-vue component: '.$component);
                 $this->runProcess(
-                    ['/usr/local/bin/npx', 'shadcn-vue@latest', 'add', $component, '--yes'],
+                    ['bash', '-c', "yes | /usr/local/bin/npx shadcn-vue@{$shadcnVueVersion} add {$component} --yes"],
                     "Installing shadcn-vue component: $component..."
                 );
+
+                // Verify installation
+                if (! $this->isShadcnInstalled($component)) {
+                    Log::channel('magic')->error("Failed to install shadcn-vue component: $component");
+                } else {
+                    Log::channel('magic')->info("Successfully installed shadcn-vue component: $component");
+                }
             }
 
         } else {

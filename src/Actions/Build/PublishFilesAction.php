@@ -423,9 +423,9 @@ import {ColumnDef} from "@tanstack/vue-table";
 import { Checkbox } from "@/components/ui/checkbox"
 import {h} from "vue";
 import {Button} from "@/components/ui/button";
-import {ArrowUpDown} from "lucide-vue-next";
+import {ArrowUp,ArrowDown,ArrowUpDown} from "lucide-vue-next";
 import Avatar from "@/components/Avatar.vue";
-import {parseBool} from "@/lib/app";
+import {parseBool, formatDate} from "@/lib/app";
 $entityImports
 $supportImports
 

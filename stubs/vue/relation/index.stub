@@ -1,5 +1,5 @@
 <script setup lang="ts" generic="T">
-import { ref, onMounted } from "vue";
+import { ref } from "vue";
 import AppLayout from '@/layouts/AppLayout.vue';
 import ResourceLayout from '@/layouts/resource/Layout.vue';
 import { type BreadcrumbItem, type NavItem } from '@/types';
@@ -11,7 +11,8 @@ import { ColumnDef } from "@tanstack/vue-table";
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import { type DbId } from '@/types/support';
 import { SquareMinus, Link, CornerDownRight, FolderTree, GitCompareArrows } from 'lucide-vue-next';
-import {ResourceData} from '@/types/support';
+import {ResourceData, DataTableState} from '@/types/support';
+import { type PaginatedResponse } from '@/types/support';
 
 {{mainEntityImports}}
 {{relatedEntityImports}}
@@ -26,14 +27,10 @@ interface {{mainEntityName}}ApiResponse {
 interface Props {
     item: {{mainEntityName}}ApiResponse;
     {{relationName}}: PaginatedResponse<{{relatedEntityName}}>;
-    item_{{relationName}}_ids?: DbId[];
-    filters?: DataTableFilters;
+    state?: DataTableState;
     showCreateForm?: boolean;
 }
-const { item, {{relationName}}, item_{{relationName}}_ids, filters }: Props = defineProps<Props>();
-
-const selectedIds = ref<DbId[]>(item_{{relationName}}_ids ?? []);
-const currentFilters = ref<DataTableFilters>(filters ?? {});
+const { item, {{relationName}}, state }: Props = defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -50,12 +47,6 @@ const sidebarNavItems: NavItem[] = [
     },
     {{relationSidebarItems}}
 ];
-
-onMounted(() => {
-    if (!currentFilters.value.selectedIds || currentFilters.value.selectedIds.length === 0) {
-        currentFilters.value.selectedIds = item_{{relationName}}_ids ?? [];
-    }
-})
 </script>
 
 <template>
@@ -80,7 +71,7 @@ onMounted(() => {
                                :columns="columns as ColumnDef<ResourceData>[]"
                                :entity="relatedEntity"
                                :parent-entity="entity"
-                               :filters="currentFilters"
+                               :state="state"
                            />
                        </div>
                    </div>

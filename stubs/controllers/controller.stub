@@ -32,7 +32,7 @@ class {{controllerClass}} extends Controller
          )->paginate();
 
         return Inertia::render('{{folderName}}/Index', [
-            'filters' => $tableQueryService->prepareFilters($request->all()),
+            'state' => $tableQueryService->prepareState(),
             'data' => {{resourceClass}}::collection($items)->response()->getData(),
         ]);
     }

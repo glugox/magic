@@ -1,46 +1,42 @@
 <template>
-    <BaseFilter
-        :label="label"
-        @change="onChange"
-        @reset="onReset"
-    >
-        <template #default="{ values }">
-            <Select v-model="values.selected">
-                <SelectTrigger class="w-full">
-                    <SelectValue>
-                        {{ options?.find(opt => opt.name === values.selected)?.label ?? 'Select ' + label }}
-                    </SelectValue>
-                </SelectTrigger>
+    <div class="filter relative">
+        <ResetButton v-if="isDirty" @click="reset" />
+        <Label class="mb-2">{{ label }}</Label>
+        <Select v-model="localValue">
+            <SelectTrigger>
+                <SelectValue>{{ selectedLabel }}</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem v-for="opt in options" :key="opt.name" :value="opt.name">
+                    {{ opt.label }}
+                </SelectItem>
+            </SelectContent>
+        </Select>
 
-                <SelectContent>
-                    <SelectItem
-                        v-for="opt in options"
-                        :key="opt.name"
-                        :value="opt.name"
-                        class="cursor-pointer rounded px-2 py-1.5 hover:bg-muted/50"
-                    >
-                        {{ opt.label }}
-                    </SelectItem>
-                </SelectContent>
-            </Select>
-        </template>
-    </BaseFilter>
+    </div>
 </template>
 
 <script setup lang="ts">
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
-import BaseFilter from "@/components/filters/BaseFilter.vue";
-import type { FilterConfig } from "@/types/support"
+import { computed, toRef } from "vue";
+import { useFilter } from "@/composables/useFilter";
+import { Label, Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui";
+import ResetButton from "@/components/ResetButton.vue";
+import type { FilterConfig, TableFilterEmits } from "@/types/support";
 
-const props = defineProps<FilterConfig>()
+const props = defineProps<FilterConfig>();
+const emit = defineEmits<TableFilterEmits>();
 
-const emit = defineEmits<{
-    (e: "change", values: { selected: string | null }): void
-    (e: "reset"): void
-}>()
+// UseFilter composable to manage local value, dirty state, and reset
+const { localValue, isDirty, reset } = useFilter(
+    toRef(props, "filterValue"), // pass reactive ref
+    (val) => emit("change", val)
+);
 
-const onChange = (values: { selected: string | null }) => emit("change", values)
-const onReset = () => emit("reset")
+// Compute the label of the selected option, e.g. "Active" instead of "active"
+const selectedLabel = computed(() => {
+    const selectedOption = props.options?.find(opt => opt.name === localValue.value);
+    return selectedOption ? selectedOption.label : "Select...";
+});
 
-const { label, options } = props
+const { label, options } = props;
 </script>

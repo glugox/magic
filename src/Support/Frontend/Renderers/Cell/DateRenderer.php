@@ -17,7 +17,7 @@ class DateRenderer extends Renderer
     {
         $tableCellLines = [
             "const strVal: string = cell.getValue() ? String(cell.getValue()) : '';",
-            'return new Date(strVal).toLocaleDateString()'
+            'return formatDate(strVal)',
         ];
 
         $indent = str_repeat(' ', 15);

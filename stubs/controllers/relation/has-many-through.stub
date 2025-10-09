@@ -41,7 +41,7 @@ class {{controllerClass}} extends Controller
         return Inertia::render('{{parentModelFolderName}}/{{relationName}}/Index', [
             'item' => new {{parentModelResourceClass}}(${{parentModelClassLower}}),
             '{{relationName}}' => {{relatedModelResourceClass}}::collection($relatedItems)->response()->getData(),
-            'filters' => $tableQueryService->prepareFilters($request->all()),
+            'state' => $tableQueryService->prepareState(),
         ]);
     }
 
@@ -65,7 +65,7 @@ class {{controllerClass}} extends Controller
         return Inertia::render('{{parentModelFolderName}}/{{relationName}}/Index', [
             'item' => new {{parentModelResourceClass}}(${{parentModelClassLower}}),
             '{{relationName}}' => {{relatedModelResourceClass}}::collection($relatedItems)->response()->getData(),
-            'filters' => $tableQueryService->prepareFilters($request->all()),
+            'state' => $tableQueryService->prepareState(),
             'showCreateForm' => true
         ]);
      }

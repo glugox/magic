@@ -1,38 +1,33 @@
-import {computed, ref, toRefs, watch} from "vue"
+import {computed, ref, toRefs, watch, onUnmounted, unref, toRaw} from "vue"
 import {router, useForm} from "@inertiajs/vue3"
-import {
-    ColumnDef,
-    getCoreRowModel,
-    RowSelectionState,
-    SortingState,
-    useVueTable,
-} from "@tanstack/vue-table"
+import {getCoreRowModel, RowSelectionState, SortingState, useVueTable,} from "@tanstack/vue-table"
 import type {
     DataTableFilters,
-    DbId, Entity,
-    PaginatedResponse, ResourceData,
+    DataTableSettings,
+    DbId,
+    ResourceData,
+    ResourceTableProps,
+    TableId,
 } from "@/types/support"
-import { arraysEqualIgnoreOrder, debounced } from "@/lib/app"
+import {arraysEqualIgnoreOrder, debounced, isEqual} from "@/lib/app"
 import axios from "axios"
 import {useEntityContext} from "@/composables/useEntityContext";
+import {useFilters, subscribeToFilters} from "@/store/tableFiltersStore";
 
-export function useResourceTable<T>(props: {
-    data: PaginatedResponse<T>
-    filters?: DataTableFilters
-    parentId?: DbId
-    columns: ColumnDef<ResourceData>[],
-    entity: Entity,
-    parentEntity?: Entity,
-}) {
-
-    console.log("useResourceTable")
-    console.log(props)
+export function useResourceTable<T>(props: ResourceTableProps<T>, tableId: TableId) {
 
     const { data, parentId, columns } = toRefs(props)
-    // wrap filters safely
-    const filters = ref<DataTableFilters>(props.filters ?? {})
+
+    // wrap filters and settings safely
+    //const filters = ref<DataTableFilters>(props.state?.filters ?? {})
+    const settings = ref<DataTableSettings>(props.state?.settings ?? {})
+
+    const filters = useFilters(tableId)
+
+    // Entity context gives us Laravel style entity setup
     const {controller} = useEntityContext(props.entity, props.parentEntity, props.parentId)
 
+    // Data table coming from Laravel pagination (PaginationObject)
     const rows = ref<T[]>(data.value.data as T[])
     const page = ref(data.value.meta.current_page)
     const perPage = ref(data.value.meta.per_page)
@@ -40,29 +35,26 @@ export function useResourceTable<T>(props: {
     const lastPage = ref(data.value.meta.last_page)
 
     const sorting = ref<SortingState>(
-        filters.value.sortKey
-            ? [
-                {
-                    id: filters.value.sortKey,
-                    desc: filters.value.sortDir === "desc",
-                },
-            ]
+        settings.value.sortKey
+            ? [{id: settings.value.sortKey as string, desc: settings.value.sortDir === "desc"}]
             : []
     )
-    const sortKey = ref(filters.value.sortKey ?? null)
-    const sortDir = ref(filters.value.sortDir ?? null)
-    const search = ref(filters.value.search ?? "")
+    const sortKey = ref(settings.value.sortKey ?? null)
+    const sortDir = ref(settings.value.sortDir ?? null)
 
     // --- global truth ---
-    const selectedIds = ref<DbId[]>(filters.value.selectedIds ?? [])
-    const lastSavedIds = ref<DbId[]>(filters.value.selectedIds ?? [])
+    const selectedIds = ref<DbId[]>(settings.value.selectedIds as DbId[] ?? [])
+    const lastSavedIds = ref<DbId[]>(settings.value.selectedIds as DbId[] ?? [])
 
     // Processing state for displaying spinner during network requests
     const bulkActionProcessing = ref(false)
 
+    // Remember last sent params to avoid duplicate requests
+    const lastSentParams = ref<Record<string, any> | null>(null)
+
     // 🔑 Keep local state in sync with Inertia-provided filters
     watch(
-        () => filters.value.selectedIds,
+        () => settings.value.selectedIds,
         (ids) => {
             if (ids) {
                 selectedIds.value = [...ids]
@@ -72,8 +64,7 @@ export function useResourceTable<T>(props: {
         { immediate: true }
     )
 
-
-    // --- current page selection (mutable for table) ---
+    // Current page selection (mutable for table)
     const rowSelection = ref<RowSelectionState>(mapIdsToRowSelection(selectedIds.value, rows.value as T[]))
 
     watch([rows, selectedIds], () => {
@@ -84,20 +75,40 @@ export function useResourceTable<T>(props: {
      * Send request to server with current filters
      */
     const send = () => {
+        const cleaned = Object.fromEntries(
+            Object.entries(toRaw(filters))
+                .filter(([_, v]) => v !== null && v !== "")
+                .map(([k, v]) => [k, toRaw(v)])
+        )
+
         const params: any = {
             page: page.value,
             perPage: perPage.value,
-            search: search.value,
-            filters: filters.value
+            ...cleaned
         }
         if (sortKey.value) params.sortKey = sortKey.value
         if (sortDir.value) params.sortDir = sortDir.value
+
+        // Skip sending if params didn’t change
+        if (lastSentParams.value && isEqual(lastSentParams.value, params)) {
+            console.log("Skipped send — params unchanged", params)
+            return
+        }
+
+        // If we have search term, and it is different from one in last sent params, reset to page 1
+        if (cleaned.search && lastSentParams.value && cleaned.search !== lastSentParams.value.search) {
+            console.log("Resetting to page 1 due to search change")
+            page.value = 1
+            params.page = 1
+        }
+
+        // Remember last params
+        lastSentParams.value = JSON.parse(JSON.stringify(params))
 
         // Show loading state in UI
         bulkActionProcessing.value = true
 
         console.log("Sending request with params", params)
-
         router.get(controller.value.index(parentId?.value), params, {
             preserveState: true,
             preserveScroll: true,
@@ -108,10 +119,21 @@ export function useResourceTable<T>(props: {
         })
     }
 
+    const sendLater = () => {
+        debouncedSend()
+    }
+
+    const resetPageAndSend = () => {
+        page.value = 1
+        sendLater()
+    }
+
     /**
      * Send debounced request to server with current filters
      */
-    const debouncedSend = debounced(send, 300)
+    const debouncedSend = debounced(function (){
+        send()
+    }, 300)
 
     /**
      * Map array of IDs to RowSelectionState
@@ -151,7 +173,7 @@ export function useResourceTable<T>(props: {
             (r) => (r as any).id as DbId
         )
 
-        // 🔑 preserve previously selected items from *other pages*
+        // preserve previously selected items from *other pages*
         selectedIds.value = [
             // keep global selections not on this page
             ...selectedIds.value.filter(
@@ -175,7 +197,7 @@ export function useResourceTable<T>(props: {
     }
 
     /**
-     * Save only changes (diff) to server
+     * Save only changes (diff) of related items to server
      */
     const saveSelection = async () => {
         try {
@@ -191,20 +213,18 @@ export function useResourceTable<T>(props: {
             }
 
             const url = controller.value.updateSelection(parentId?.value).url
-            console.log("Saving selection diff:", { added, removed })
 
             // Show loader in UI
             bulkActionProcessing.value = true
 
+            // Send changes to server
             const response = await axios.post(url, { added, removed })
-            console.log("Selection saved:", response.data)
 
             // Hide loader in UI
             bulkActionProcessing.value = false
 
             // Update lastSavedIds with confirmed server state
             lastSavedIds.value = [...response.data.selectedIds]
-            //filters.value.selectedIds = [...response.data.selectedIds]
         } catch (err) {
             console.error("Failed to save selection", err)
         }
@@ -216,17 +236,14 @@ export function useResourceTable<T>(props: {
      * Initialize TanStack Table instance
      */
     const table = useVueTable({
-        data: rows.value,
+        data: rows.value as unknown as ResourceData[],
         columns: columns.value,
         state: {
             get sorting() {
                 return sorting.value
             },
             set sorting(updater) {
-                sorting.value =
-                    typeof updater === "function"
-                        ? updater(sorting.value)
-                        : updater
+                sorting.value = updater
             },
             get rowSelection() {
                 return rowSelection.value
@@ -291,7 +308,6 @@ export function useResourceTable<T>(props: {
                     // clear selection after success
                     selectedIds.value = []
                     lastSavedIds.value = []
-                    filters.value.selectedIds = []
 
                     break
                 }
@@ -319,27 +335,12 @@ export function useResourceTable<T>(props: {
         }
     }
 
-    const applyFilters = (newFilters: DataTableFilters) => {
-        console.log("Applying new filters", newFilters)
-        if (newFilters.search !== undefined) {
-            search.value = newFilters.search
-        }
-        if (newFilters.sortKey !== undefined) {
-            sortKey.value = newFilters.sortKey
-        }
-        if (newFilters.sortDir !== undefined) {
-            sortDir.value = newFilters.sortDir
-        }
-        if (newFilters.perPage !== undefined) {
-            perPage.value = newFilters.perPage
-        }
-        if (newFilters.page !== undefined) {
-            page.value = newFilters.page
-        }
+    // Subscribe to external filter changes
+    const filtersListener = subscribeToFilters(tableId, (f) => {
+        sendLater()
+    })
 
-        filters.value = { ...filters.value, ...newFilters }
-        debouncedSend()
-    }
+    onUnmounted(() => filtersListener())
 
     // sync inertia updates
     watch(data, (newData) => {
@@ -348,11 +349,11 @@ export function useResourceTable<T>(props: {
         perPage.value = newData.meta.per_page
         total.value = newData.meta.total
         lastPage.value = newData.meta.last_page
-        table.setOptions((prev) => ({ ...prev, data: rows.value }))
+        table.setOptions((prev) => ({ ...prev, data: rows.value } as typeof prev))
     })
 
-    // auto-send when page/perPage/search change
-    watch([page, perPage, search, sortKey, sortDir], send)
+    // auto-send when page/perPage/sort change
+    watch([page, perPage, sortKey, sortDir], () => sendLater())
 
     return {
         table,
@@ -361,12 +362,9 @@ export function useResourceTable<T>(props: {
         perPage,
         total,
         lastPage,
-        search,
         sorting,
         selectedIds,
-        applyFilters,
         performBulkAction,
-        bulkActionProcessing,
-        send,
+        bulkActionProcessing
     }
 }

@@ -1,6 +1,19 @@
 import { ref, computed } from "vue";
 import type { Controller, DbId, Entity, Relation } from "@/types/support";
 
+/**
+ * Composable to manage entity context as defined in Laravel. And provide
+ * useful computed properties such as controller URLs for CRUD actions.
+ *
+ * @param entity Entity This is the current entity , for example if we are on /users page, this is the User entity
+ * @param parentEntity Entity | undefined This is the parent entity if any, for example if we are on /users/1/posts page,
+ *                     this is the User entity and in that case main entity is Post
+ * @param parentId DbId | undefined This is the parent entity ID if any, for example if we are on /users/1/posts page,
+ *                     this is 1
+ * @param item Record<string, any> | undefined This is the current item if any, for example if we are on /users/1/edit page,
+ *                     this is the user record with ID 1
+ * @returns Object with useful computed properties such as controller URLs for CRUD actions
+ */
 export function useEntityContext(
     entity: Entity,
     parentEntity?: Entity,
@@ -14,8 +27,7 @@ export function useEntityContext(
         () => parentEntity?.relations.find((r) => r.relatedEntity && r.relatedEntity().name === entity.name) ?? null
     );
 
-
-
+    // Determine the controller to use
     const controller = computed<Controller | null>(() => {
         // first check relation
         if (relation.value && relation.value.controller) {

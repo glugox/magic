@@ -46,14 +46,14 @@ class GenerateAppAction implements DescribableAction
         // Step 4: Install Composer Packages
         $buildContext = app(InstallComposerPackagesAction::class)($buildContext);
 
-        // Step 5: Enable Attachable (copy traits, resources, stubs conditionally)
-        $buildContext = app(EnableAttachableAction::class)($buildContext);
-
-        // Step 6: Generate Enums
+        // Step 5: Generate Enums
         $buildContext = app(GenerateEnumsAction::class)($buildContext);
 
-        // Step 7: Run Install API Command
+        // Step 6: Run Install API Command
         $buildContext = app(InstallApiCommand::class)($buildContext);
+
+        // Step 7: Enable Attachable (copy traits, resources, stubs conditionally)
+        $buildContext = app(EnableAttachableAction::class)($buildContext);
 
         // Step 8: Generate Migrations
         $buildContext = app(GenerateMigrationsAction::class)($buildContext);

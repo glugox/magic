@@ -1,20 +1,20 @@
 <template>
     <div class="mb-4">
-        <!-- Active Filters Section -->
-        <div v-if="Object.keys(activeFilters).length" class="mb-3">
+
+        <div v-if="Object.keys(currentFilters).length" class="mb-3">
             <Label class="block mb-2 text-sm text-muted-foreground">Active Filters:</Label>
 
             <div class="flex flex-wrap gap-2">
-                <template v-for="(values, field) in activeFilters" :key="field">
+                <template v-for="(filterValue, field) in currentFilters" :key="field">
                     <!-- Render a pill for each filter -->
                     <div
                         class="flex items-center gap-1 rounded-full bg-emerald-50 text-emerald-800 px-3 py-1 text-xs font-medium border border-emerald-200"
                     >
-                        <span class="font-semibold">{{ getFilterLabel(field) }}:</span>
-                        <span>{{ formatFilterValue(field, values) }}</span>
+                        <span class="font-semibold">{{ formatFilterLabel(field as string) }}:</span>
+                        <span>{{ formatFilterValue(field as string, filterValue) }}</span>
                         <button
                             class="ml-1 hover:text-emerald-900"
-                            @click="clearFilter(field)"
+                            @click="removeFilter(field as string)"
                         >
                             ✕
                         </button>
@@ -24,14 +24,13 @@
         </div>
 
         <!-- Filters Toggle -->
-        <div class="flex justify-end">
+        <div v-if="hasFilters" class="flex justify-end">
             <div
                 class="flex items-center gap-2 cursor-pointer select-none mb-2"
                 @click="showFilters = !showFilters"
             >
                 <Filter class="w-5 h-5 text-muted-foreground" />
-                <span class="ml-1 text-xs text-muted-foreground">
-        </span>
+                <span class="ml-1 text-xs text-muted-foreground"></span>
             </div>
         </div>
 
@@ -44,73 +43,83 @@
             <!-- Filters Grid -->
             <div class="flex flex-wrap gap-4 pb-3">
                 <component
-                    v-for="(filter, index) in filtersFull"
+                    v-for="(filter, index) in filtersMetaFull"
                     :is="filterComponents[filter.type]"
-                    :key="filter.field + '-' + filterKey[filter.field]"
+                    :key="filter.field + index"
                     :field="filter.field"
                     :type="filter.type"
-                    :initial-values="filter.initialValues"
+                    :filter-value="currentFilters[filter.field]"
                     :options="filter.options"
                     :label="filter.label"
-                    @change="updateFilter(filter.field, $event)"
-                    @reset="clearFilter(filter.field)"
+                    @change="setFilterValue(tableId, filter.field, $event)"
+                    @reset="removeFilter(filter.field)"
                 />
             </div>
         </div>
     </div>
 </template>
 
-
 <script setup lang="ts">
-import {ref, onMounted, nextTick, reactive, watch} from "vue";
-import { Filter } from "lucide-vue-next";
-import {Label} from "@/components/ui/label";
+import {ref, onMounted, nextTick, computed} from "vue"
+import { Filter } from "lucide-vue-next"
+import { Label } from "@/components/ui/label"
 
-// Your filter components
-import EnumFilter from "./EnumFilter.vue";
-import ManyToManyFilter from "@/components/filters/ManyToManyFilter.vue";
-import RangeFilter from "@/components/filters/RangeFilter.vue";
-import DateFilter from "@/components/filters/DateFilter.vue";
-import BooleanFilter from "@/components/filters/BooleanFilter.vue";
-import QuickPills from "@/components/filters/QuickPills.vue";
+import EnumFilter from "./EnumFilter.vue"
+import ManyToManyFilter from "@/components/filters/ManyToManyFilter.vue"
+import RangeFilter from "@/components/filters/RangeFilter.vue"
+import DateFilter from "@/components/filters/DateFilter.vue"
+import BooleanFilter from "@/components/filters/BooleanFilter.vue"
 
-import {DataTableFilters, Entity} from "@/types/support";
+import {
+    DataTableFilters,
+    Entity, type FilterValue,
+    TableFiltersEmits, TableId,
+} from "@/types/support"
+
+import {setFilterValue, useFilters} from "@/store/tableFiltersStore";
+import {formatDate} from "@/lib/app";
 
 const props = defineProps<{
-    entity: Entity;
-}>();
-// Emit filter changes
-const emit = defineEmits<{
-    (e: "filtersUpdated", filters:DataTableFilters): void
-}>();
+    tableId: TableId
+    entity: Entity
+    initialFilters?: DataTableFilters
+}>()
 
-const showFilters = ref(false);
-const container = ref<HTMLElement | null>(null);
-const maxHeight = ref(0);
-
-// Raw filters defined in entityMeta
-const filters = ref(props.entity.filters || []);
-const filterKey = reactive<Record<string, number>>({})
-
-// Filters with extra data got from entity fields
-const filtersFull = ref(
-    filters.value.map((filter) => {
-        const fieldMeta = props.entity.fields.find((f) => f.name === filter.field);
-        return {
-            ...filter,
-            label: fieldMeta?.label || filter.field,
-            type: filter.type || fieldMeta?.type || "enum",
-            options: fieldMeta?.options || [],
-            //initialValues: filter.initialValues || null,
-        };
-    })
-);
+const emit = defineEmits<TableFiltersEmits>()
 
 onMounted(() => {
     nextTick(() => {
-        if (container.value) maxHeight.value = container.value.scrollHeight;
-    });
-});
+        if (container.value) maxHeight.value = container.value.scrollHeight
+    })
+})
+
+const showFilters = ref(false)
+const container = ref<HTMLElement | null>(null)
+const maxHeight = ref(0)
+
+// Raw filters defined in entityMeta
+const filtersMeta = ref(props.entity.filters || [])
+const currentFilters = useFilters(props.tableId)
+
+// Filters with extra data got from entity fields
+const filtersMetaFull = ref(
+    filtersMeta.value.map((filter) => {
+        const fieldMeta = props.entity.fields.find((f) => f.name === filter.field)
+        return {
+            ...filter,
+            label: fieldMeta?.label || filter.field,
+            type: filter.type,
+            options: fieldMeta?.options || [],
+        }
+    })
+)
+
+// Check if entity has any filters. This is not same as has active filters.
+// Active filters are in currentFilters , when user has applied some
+// filters. Here we check if entity has any filters defined at all.
+const hasFilters = computed(() => {
+    return (props.entity.filters ?? []).length > 0
+})
 
 // Map filter types to components
 const filterComponents: Record<string, any> = {
@@ -119,72 +128,64 @@ const filterComponents: Record<string, any> = {
     range: RangeFilter,
     date_range: DateFilter,
     boolean: BooleanFilter,
-};
-
-const activeFilters = reactive<DataTableFilters>({})
-
-const updateFilter = (field: string, values: any) => {
-    console.log("Update filter:", field, values)
-
-    if (
-        values == null ||                         // null or undefined
-        (typeof values === "object" && !Object.keys(values).length) || // {}
-        (typeof values === "object" && Object.values(values).every(v => v == null)) // all nulls
-    ) {
-        delete activeFilters[field]
-    } else {
-        activeFilters[field] = values
-    }
-
-    console.log("Filters updated:", activeFilters)
 }
 
-const clearFilter = (field: string) => {
-    console.log("Clear filter:", field)
-    delete activeFilters[field]
-    filterKey[field] = (filterKey[field] || 0) + 1 // force reset of component
-    console.log("Filter cleared:", activeFilters)
+function removeFilter(field: string) {
+    console.log("Removing filter", field)
+    setFilterValue(props.tableId, field, null)
 }
 
-const getFilterLabel = (field: string) => {
-    const meta = props.entity.fields.find(f => f.name === field)
-    return meta?.label || field
+function formatFilterValue(field: string, filter: FilterValue): string {
+    if (filter == null) return "–";
+
+    // Simple scalars
+    if (typeof filter === "string" || typeof filter === "number") {
+        return String(filter);
+    }
+
+    if (typeof filter === "boolean") {
+        return filter ? "Yes" : "No";
+    }
+
+    // Get filter type from metadata
+    const filterMeta = filtersMetaFull.value.find(f => f.field === field);
+    if (!filterMeta) return "–";
+
+    // Array values
+    if (Array.isArray(filter)) {
+        // Range: [min, max]
+        if (filter.length === 2) {
+            const [a, b] = filter;
+            // If both undefined/null → empty
+            if (a == null && b == null) return "–";
+            return `${field} : ${a ?? "–"} → ${b ?? "–"}`;
+        }
+
+        return (filter as unknown[]).length ? (filter as unknown[]).join(", ") : "–";
+    }
+
+    if (typeof filter === "object") {
+        const entries = Object.entries(filter as Record<string, any>);
+        if (!entries.length) return "–";
+
+        //For date range we need to format the min max dates
+        if (filterMeta.type === "date_range" && entries.length === 2) {
+            const [a, b] = entries.map(([, val]) => val ? formatDate(val) : null);
+            return `${a ?? "–"} → ${b ?? "–"}`;
+        }
+
+        return entries
+            .map(([, val]) => `${val ?? "–"}`)
+            .join(" → ");
+    }
+
+    // Fallback for unexpected objects
+    return JSON.stringify(filter);
 }
 
-const formatFilterValue = (field: string, values: any) => {
-
-    if (!values) return ""
-
-    // Range filters (price, etc.)
-    if ("min" in values || "max" in values) {
-        return `${values.min ?? "–"} → ${values.max ?? "–"}`
-    }
-
-    // Date range
-    if ("from" in values || "to" in values) {
-        return `${values.from ?? "–"} → ${values.to ?? "–"}`
-    }
-
-    // Single selection
-    if ("selected" in values) {
-        return values.selected
-    }
-
-    // Boolean filter
-    if (values && "active" in values) {
-        return values.active ? "Yes" : "No"
-    }
-
-    // Fallback: JSON
-    return JSON.stringify(values)
+function formatFilterLabel(field: string): string {
+    const filterMeta = filtersMetaFull.value.find(f => f.field === field);
+    return filterMeta ? filterMeta.label : field;
 }
-
-watch(
-    activeFilters,
-    (newFilters) => {
-        emit("filtersUpdated", { ...newFilters }) // emit a shallow copy
-    },
-    { deep: true } // deep watch because activeFilters is reactive object
-)
 
 </script>

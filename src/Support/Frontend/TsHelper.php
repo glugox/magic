@@ -75,8 +75,7 @@ class TsHelper
     {
         $imports = [
             // Eg. import { getUserColumns, getUserEntityMeta } from '@/helpers/users_helper';
-            "import { get{$entity->name}Columns } from '@/helpers/{$entity->getFolderName()}_helper'",
-            "import { type PaginatedResponse, type DataTableFilters } from '@/types/support';"
+            "import { get{$entity->name}Columns } from '@/helpers/{$entity->getFolderName()}_helper'"
         ];
 
         return implode("\n", $imports)."\n";
@@ -106,8 +105,7 @@ class TsHelper
 
         $imports = [
             // "import { {$relatedEntityMetaVar} as relatedEntity } from '@/types/entityMeta';",
-            "import { get{$relatedEntity->name}Columns } from '@/helpers/{$relatedEntity->getFolderName()}_helper'",
-            "import { type PaginatedResponse, type DataTableFilters } from '@/types/support';"
+            "import { get{$relatedEntity->name}Columns } from '@/helpers/{$relatedEntity->getFolderName()}_helper'"
         ];
 
         return implode("\n", $imports)."\n";
@@ -163,12 +161,20 @@ class TsHelper
         $fieldTitle = $field->label();
 
         return "
-            ({ column }) => {
-                return h(Button, {
-                    variant: 'ghost',
-                    onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-                }, () => ['{$fieldTitle}', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })])
-            }";
+        ({ column }) => {
+            const sortState = column.getIsSorted();
+            return h(Button, {
+                variant: 'ghost',
+                onClick: () => column.toggleSorting(sortState === 'asc'),
+            }, () => [
+                '{$fieldTitle}',
+                sortState === 'asc'
+                    ? h(ArrowUp, { class: 'ml-2 h-4 w-4' })
+                    : sortState === 'desc'
+                        ? h(ArrowDown, { class: 'ml-2 h-4 w-4' })
+                        : h(ArrowUpDown, { class: 'ml-2 h-4 w-4 opacity-50' })
+            ])
+        }";
     }
 
     /**
