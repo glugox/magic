@@ -297,7 +297,7 @@ EOT;
      */
     private function buildFilterEntry(Entity $entity, Filter $filter): string
     {
-        $label = Str::title($filter->field);
+        $label = $filter->label ?? Str::title(str_replace('_', ' ', $filter->field));
 
         $filterEntry = "{
         field: '{$filter->field}',

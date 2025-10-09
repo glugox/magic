@@ -26,9 +26,12 @@ use Glugox\ModelMeta\Fields\Number;
 use Glugox\ModelMeta\Fields\Password;
 use Glugox\ModelMeta\Fields\Slug;
 use Glugox\ModelMeta\Fields\Text;
+use Glugox\ModelMeta\Filters\BelongsToManyFilter;
 use Glugox\ModelMeta\Filters\BooleanFilter;
 use Glugox\ModelMeta\Filters\DateFilter;
 use Glugox\ModelMeta\Filters\EnumFilter;
+use Glugox\ModelMeta\Filters\HasManyFilter;
+use Glugox\ModelMeta\Filters\HasOneFilter;
 use Glugox\ModelMeta\Filters\NumberFilter;
 use Glugox\ModelMeta\Filters\RangeFilter;
 use Glugox\ModelMeta\Filters\TextFilter;
@@ -42,9 +45,12 @@ use Glugox\ModelMeta\Relations\MorphOne;
 use Glugox\ModelMeta\Relations\MorphTo;
 use Glugox\ModelMeta\Relations\MorphToMany;
 use Illuminate\Support\Facades\File as FileFacade;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 
 #[ActionDescription(
+    name: 'Generate Model Meta Classes',
+    description: 'Generate model meta classes based on configuration'
 )]
 class GenerateModelMetaAction implements DescribableAction
 {
@@ -238,6 +244,9 @@ class GenerateModelMetaAction implements DescribableAction
             'range' => RangeFilter::class,
             'number' => NumberFilter::class,
             'boolean' => BooleanFilter::class,
+            'belongs_to_many' => BelongsToManyFilter::class,
+            'has_one' => HasOneFilter::class,
+            'has_many' => HasManyFilter::class,
             default => null,
         };
 
@@ -246,8 +255,15 @@ class GenerateModelMetaAction implements DescribableAction
             $code = "{$class_basename}::make('{$filter->field}')";
             $this->usesFilters[$class] = 1;
 
+            // Label
+            $strLabel = $filter->label ?? Str::title($filter->field);
+            $code .= "->label('{$strLabel}')";
+
             return $code.',';
         }
+
+
+
 
         return '//TODO : '.$filter->toString();
     }

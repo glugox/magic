@@ -21,8 +21,10 @@ class Filter
         public string $field,
         public array $initialValues,
         public bool $dynamic,
+        public ?string $label = null,
     ) {
         $this->type = $type instanceof FilterType ? $type : FilterType::from($type);
+        $this->label = $label ?? Str::title(str_replace(['_', '-'], ' ', $field));
     }
 
     /**

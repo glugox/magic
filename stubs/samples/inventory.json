@@ -27,7 +27,9 @@
             "filters": [
                 { "field": "name", "type": "text" },
                 { "field": "email", "type": "text" },
-                { "field": "active", "type": "boolean" }
+                { "field": "active", "type": "boolean" },
+                { "field": "roles", "type": "belongs_to_many", "relatedEntityName": "Role" },
+                { "field": "orders", "type": "has_many", "relatedEntityName": "Order"}
             ],
             "settings": {
                 "has_images": true
@@ -54,6 +56,11 @@
             ],
             "relations": [
                 { "type": "hasMany", "relatedEntityName": "Product", "as": "products" }
+            ],
+            "filters": [
+                { "field": "name", "type": "text" },
+                { "field": "location", "type": "text" },
+                { "field": "capacity", "type": "range" }
             ]
         },
         {
@@ -84,9 +91,13 @@
             ],
             "filters": [
                 { "field": "name", "type": "text" },
+                { "field": "sku", "type": "text" },
                 { "field": "status", "type": "enum" },
                 { "field": "price", "type": "range" },
-                { "field": "available_from", "type": "date_range" }
+                { "field": "weight", "type": "range" },
+                { "field": "available_from", "type": "date_range" },
+                { "field": "expires_at", "type": "date_range" },
+                { "field": "categories", "type": "belongs_to_many", "relatedEntityName": "Category" }
             ],
             "settings": {
                 "has_images": true
@@ -104,6 +115,13 @@
             "relations": [
                 { "type": "hasMany", "relatedEntityName": "OrderItem", "as": "items" },
                 { "type": "hasOne", "relatedEntityName": "Shipment", "as": "shipment" }
+            ],
+            "filters": [
+                { "field": "order_number", "type": "text" },
+                { "field": "status", "type": "enum" },
+                { "field": "total", "type": "range" },
+                { "field": "placed_at", "type": "date_range" },
+                { "field": "carrier", "type": "has_one", "relatedEntityName": "Shipment" }
             ]
         },
         {
@@ -124,6 +142,11 @@
             ],
             "relations": [
                 { "type": "hasOne", "relatedEntityName": "CarrierDetail", "as": "carrierDetail" }
+            ],
+            "filters": [
+                { "field": "shipped_at", "type": "date_range" },
+                { "field": "delivered_at", "type": "date_range" },
+                { "field": "service_level", "type": "has_one", "relatedEntityName": "CarrierDetail", "label": "Test Own Label" }
             ]
         },
         {

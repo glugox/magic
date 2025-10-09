@@ -118,7 +118,8 @@ class Entity
                     $filterData['type'],
                     $filterData['field'],
                     $filterData['initialValues'] ?? [],
-                    $filterData['dynamic'] ?? false
+                    $filterData['dynamic'] ?? false,
+                    $filterData['label'] ?? null,
                 );
                 $entity->filters[] = $filter;
             }

@@ -2,7 +2,7 @@
     <div class="filter relative">
         <ResetButton v-if="isDirty" @click="reset" />
 
-        <Label>{{ props.filter.label }}</Label>
+        <Label>{{ label }}</Label>
 
         <Popover>
             <PopoverTrigger as-child>
@@ -16,7 +16,7 @@
             {{ localValue.join(", ") }}
           </span>
                     <span v-else class="text-muted-foreground">
-            Select {{ props.filter.label }}
+            Select {{ label }}
           </span>
                 </Button>
             </PopoverTrigger>
@@ -38,11 +38,11 @@
                 <!-- Options -->
                 <div class="mt-2 border-t pt-2 text-sm space-y-1">
                     <div
-                        v-for="(label, val) in props.filter.options"
+                        v-for="(label, val) in options"
                         :key="val"
                         class="cursor-pointer hover:bg-muted/50 px-2 py-1 rounded transition-colors"
                         :data-selected="localValue?.includes(val)"
-                        @click="toggleItem(val)"
+                        @click="toggleItem(val as unknown as string)"
                     >
                         {{ label }}
                     </div>
@@ -61,12 +61,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Badge } from "@/components/ui/badge";
 import type { FilterConfig, TableFilterEmits } from "@/types/support";
 
-const props = defineProps<{ filter: FilterConfig }>();
+const props = defineProps<FilterConfig>();
 const emit = defineEmits<TableFilterEmits>();
 
 // Hook into composable
 const { localValue, isDirty, reset } = useFilter(
-    toRef(props.filter, "filterValue"),
+    toRef(props, "filterValue"), // pass reactive ref
     (val) => emit("change", val),
     { defaultValue: [] } // default is empty array
 );
@@ -90,6 +90,6 @@ function removeItem(val: string) {
 }
 
 function optionLabel(val: string) {
-    return props.filter.options?.[val] ?? val;
+    return props.options?.[val] ?? val;
 }
 </script>

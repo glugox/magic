@@ -57,7 +57,7 @@ import { Filter } from "lucide-vue-next"
 import { Label } from "@/components/ui/label"
 
 import EnumFilter from "./EnumFilter.vue"
-import ManyToManyFilter from "@/components/filters/ManyToManyFilter.vue"
+import BelongsToManyFilter from "@/components/filters/BelongsToManyFilter.vue"
 import RangeFilter from "@/components/filters/RangeFilter.vue"
 import DateFilter from "@/components/filters/DateFilter.vue"
 import BooleanFilter from "@/components/filters/BooleanFilter.vue"
@@ -71,6 +71,8 @@ import {
 import {setFilterValue, useFilters} from "@/store/tableFiltersStore";
 import {formatDate} from "@/lib/app";
 import TextFilter from "@/components/filters/TextFilter.vue";
+import HasManyFilter from "@/components/filters/HasManyFilter.vue";
+import HasOneFilter from "@/components/filters/HasOneFilter.vue";
 
 const props = defineProps<{
     tableId: TableId
@@ -101,7 +103,7 @@ const filtersMetaFull = ref(
         const fieldMeta = props.entity.fields.find((f) => f.name === filter.field)
         return {
             ...filter,
-            label: fieldMeta?.label || filter.field,
+            label: filter.label || fieldMeta?.label || filter.field,
             type: filter.type,
             options: fieldMeta?.options || [],
         }
@@ -128,11 +130,13 @@ const hasFilters = computed(() => {
 // Map filter types to components
 const filterComponents: Record<string, any> = {
     enum: EnumFilter,
-    many: ManyToManyFilter,
     range: RangeFilter,
     date_range: DateFilter,
     boolean: BooleanFilter,
-    text: TextFilter
+    text: TextFilter,
+    belongs_to_many: BelongsToManyFilter,
+    has_many: HasManyFilter,
+    has_one: HasOneFilter,
 }
 
 function removeFilter(field: string) {

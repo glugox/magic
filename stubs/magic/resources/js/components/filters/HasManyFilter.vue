@@ -1,20 +1,14 @@
 <template>
     <div class="filter relative">
         <ResetButton v-if="isDirty" @click="reset" />
-        <Label>{{ label }}</Label>
+        <Label >{{ label }}</Label>
 
         <div class="flex gap-2 mt-2">
             <InputField
-                v-model="localValue.min"
-                type="number"
-                placeholder="Min"
-                class="flex-1 w-44 bg-background border border-input text-foreground placeholder:text-muted-foreground"
-            />
-            <InputField
-                v-model="localValue.max"
-                type="number"
-                placeholder="Max"
-                class="flex-1 w-44 bg-background border border-input text-foreground placeholder:text-muted-foreground"
+                v-model="localValue"
+                type="text"
+                :placeholder="`Search by ${label.toLowerCase()}...`"
+                class="flex-1 w-48 bg-background border border-input text-foreground placeholder:text-muted-foreground"
             />
         </div>
     </div>
@@ -33,10 +27,7 @@ const emit = defineEmits<TableFilterEmits>();
 
 const { localValue, isDirty, reset } = useFilter(
     toRef(props, "filterValue"), // pass reactive ref
-    val => emit("change", val),
-    {
-        defaultValue: { min: null, max: null } // or nulls if you prefer
-    }
+    val => emit("change", val)
 );
 
 const { label } = props;

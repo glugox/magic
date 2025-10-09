@@ -6,7 +6,7 @@
         <div class="flex gap-2 mt-2">
             <!-- From Date -->
             <Popover v-model:open="openMin">
-                <PopoverTrigger as-child>
+                <PopoverTrigger as-child class="w-44">
                     <Button
                         variant="outline"
                         :class="cn(
@@ -26,7 +26,7 @@
 
             <!-- To Date -->
             <Popover v-model:open="openMax">
-                <PopoverTrigger as-child>
+                <PopoverTrigger as-child class="w-44">
                     <Button
                         variant="outline"
                         :class="cn(

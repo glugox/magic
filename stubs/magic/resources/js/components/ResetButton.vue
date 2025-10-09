@@ -3,6 +3,7 @@
         type="button"
         class="absolute -top-1 right-0 text-muted-foreground hover:text-foreground"
         @click="$emit('click')"
+        v-bind="$attrs"
     >
         ✕
     </button>

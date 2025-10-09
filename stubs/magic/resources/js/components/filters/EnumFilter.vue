@@ -3,7 +3,7 @@
         <ResetButton v-if="isDirty" @click="reset" />
         <Label class="mb-2">{{ label }}</Label>
         <Select v-model="localValue">
-            <SelectTrigger>
+            <SelectTrigger class="w-44">
                 <SelectValue>{{ selectedLabel }}</SelectValue>
             </SelectTrigger>
             <SelectContent>

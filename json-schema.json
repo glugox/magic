@@ -89,9 +89,13 @@
                                         "date",
                                         "date_range",
                                         "dateTime",
-                                        "dateTime_range"
+                                        "dateTime_range",
+                                        "has_one",
+                                        "has_many",
+                                        "belongs_to_many"
                                     ]
                                 },
+                                "label": { "type": "string" },
                                 "options": {
                                     "type": "array",
                                     "items": { "type": "string" }
