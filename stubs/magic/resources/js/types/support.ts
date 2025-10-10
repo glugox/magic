@@ -167,7 +167,8 @@ export type TableFilterEmits = {
 }
 
 export type TableFiltersEmits = {
-    (e: "update:filters", payload: DataTableFilters): void
+    (e: "update:filters", payload: DataTableFilters): void,
+    (e: "reset"): void
 };
 
 export type TableEmits = TablePropsEmits & TableBulkEmits

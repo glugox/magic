@@ -1,6 +1,6 @@
 <template>
     <div class="filter relative">
-        <ResetButton v-if="isDirty" @click="reset" />
+        <ResetButton v-if="isDirty" @click="reset" class="absolute -top-1 right-0" />
         <Label class="mb-2">{{ label }}</Label>
         <Select v-model="localValue">
             <SelectTrigger class="w-44">

@@ -153,7 +153,7 @@
 .dark {
     --background: hsl(216, 28%, 7%);
     --foreground: hsl(210, 67%, 96%);
-    --card: hsl(0 0% 3.9%);
+    --card: hsl(214, 25%, 11%);
     --card-foreground: hsl(0 0% 98%);
     --popover: hsl(0 0% 3.9%);
     --popover-foreground: hsl(0 0% 98%);
@@ -193,4 +193,38 @@
     body {
         @apply bg-background text-foreground;
     }
+}
+
+
+/** Transitions */
+
+/* Collapse/Expand keyframes */
+@keyframes expand {
+    from {
+        max-height: 0;
+        opacity: 0;
+    }
+    to {
+        max-height: 1000px; /* or large enough to fit content */
+        opacity: 1;
+    }
+}
+
+@keyframes collapse {
+    from {
+        max-height: 1000px;
+        opacity: 1;
+    }
+    to {
+        max-height: 0;
+        opacity: 0;
+    }
+}
+
+/* Vue transition classes for built-in <Transition name="expand"> */
+.expand-enter-active {
+    animation: expand 0.3s ease forwards;
+}
+.expand-leave-active {
+    animation: collapse 0.3s ease forwards;
 }

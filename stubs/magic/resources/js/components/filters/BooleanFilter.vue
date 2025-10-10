@@ -1,6 +1,6 @@
 <template>
-    <div class="filter relative">
-        <ResetButton v-if="isDirty" @click="reset" class="-mr-5" />
+    <div class="filter relative pr-4">
+        <ResetButton v-if="isDirty" @click="reset" class="absolute top-0 right-0 -mt-1 -mr-1" />
         <Label>{{ label }}</Label>
         <Switch v-model="localValue" class="mt-3 mx-auto" />
     </div>

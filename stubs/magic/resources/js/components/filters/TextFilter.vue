@@ -1,6 +1,6 @@
 <template>
     <div class="filter relative">
-        <ResetButton v-if="isDirty" @click="reset" />
+        <ResetButton v-if="isDirty" @click="reset" class="absolute -top-1 right-0" />
         <Label >{{ label }}</Label>
 
         <div class="flex gap-2 mt-2">
