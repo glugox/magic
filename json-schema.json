@@ -46,7 +46,7 @@
                                 "default": {},
                                 "min": { "type": "number" },
                                 "max": { "type": "number" },
-                                "values": {
+                                "options": {
                                     "type": "array",
                                     "items": { "type": "string" }
                                 }
@@ -86,7 +86,6 @@
                                         "enum",
                                         "multi_select",
                                         "range",
-                                        "date",
                                         "date_range",
                                         "dateTime",
                                         "dateTime_range",
@@ -102,7 +101,8 @@
                                 },
                                 "default": {},
                                 "min": { "type": "number" },
-                                "max": { "type": "number" }
+                                "max": { "type": "number" },
+                                "relatedEntityName": { "type": "string" }
                             }
                         }
                     }

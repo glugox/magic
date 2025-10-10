@@ -301,12 +301,12 @@ EOT;
     {
         $nullStr = 'null';
         $label = $filter->label ?? Str::title(str_replace('_', ' ', $filter->field));
-        $relatedEntityName = $filter->relatedEntityName ?? $nullStr;
+        $relatedEntityName = $filter->relatedEntityName ? "'{$filter->relatedEntityName}'" : $nullStr;
 
         $filterEntry = "{
         field: '{$filter->field}',
         label: '{$label}',
-        relatedEntityName: '{$relatedEntityName}',
+        relatedEntityName: {$relatedEntityName},
         type: '{$filter->type->value}'";
 
         if (! empty($filter->initialValues)) {
