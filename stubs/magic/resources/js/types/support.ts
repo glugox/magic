@@ -64,17 +64,23 @@ export interface Relation {
 }
 
 export interface FilterBaseProps {
-    label: string; // Human readable label
     filterValue?: FilterValue;
 }
 
-export interface FilterConfig extends FilterBaseProps {
+export interface FilterProps extends FilterBaseProps {
+    filter: Filter;
+}
+
+export interface Filter {
     field: string;              // DB column / key
     type: string;               // "text" | "enum" | "date" | ...
+    label?: string;              // Human readable label
     options?: EnumFieldOption[];
     operators?: string[];       // Optional, e.g. ["equals", "between"]
     hidden?: boolean;           // UI visibility
     dynamic?: (entity: Entity) => boolean; // UI conditional
+    entityRef?: (() => Entity) | null;
+    relatedEntityName?: string | null // For relation filters
 }
 
 export interface ResourceFormProps {
@@ -117,7 +123,7 @@ export interface Entity {
     inertiaComponent: string
     fields: Field[]
     relations: Relation[],
-    filters?: FilterConfig[]
+    filters?: Filter[]
 }
 
 export interface ResourceData {

@@ -1,13 +1,13 @@
 <template>
     <div class="filter relative">
-        <ResetButton v-if="isDirty" @click="reset" />
+        <ResetButton v-if="isDirty" @click="reset" class="absolute top-0 right-0 -mt-1 -mr-1" />
         <Label >{{ label }}</Label>
 
         <div class="flex gap-2 mt-2">
             <InputField
                 v-model="localValue"
                 type="text"
-                :placeholder="`Search by ${label.toLowerCase()}...`"
+                :placeholder="`Search by ${label?.toLowerCase()}...`"
                 class="flex-1 w-48 bg-background border border-input text-foreground placeholder:text-muted-foreground"
             />
         </div>
@@ -20,9 +20,9 @@ import { useFilter } from "@/composables/useFilter";
 import { Label } from "@/components/ui";
 import ResetButton from "@/components/ResetButton.vue";
 import InputField from "@/components/form/InputField.vue";
-import type { FilterBaseProps, TableFilterEmits } from "@/types/support";
+import type {FilterProps, TableFilterEmits} from "@/types/support";
 
-const props = defineProps<FilterBaseProps>();
+const props = defineProps<FilterProps>();
 const emit = defineEmits<TableFilterEmits>();
 
 const { localValue, isDirty, reset } = useFilter(
@@ -30,5 +30,6 @@ const { localValue, isDirty, reset } = useFilter(
     val => emit("change", val)
 );
 
-const { label } = props;
+const { filter } = props;
+const { label } = filter;
 </script>

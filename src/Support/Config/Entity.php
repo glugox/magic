@@ -120,6 +120,7 @@ class Entity
                     $filterData['initialValues'] ?? [],
                     $filterData['dynamic'] ?? false,
                     $filterData['label'] ?? null,
+                    $filterData['relatedEntityName'] ?? null
                 );
                 $entity->filters[] = $filter;
             }

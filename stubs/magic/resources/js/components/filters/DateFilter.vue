@@ -59,12 +59,14 @@ import { Label } from "@/components/ui"
 import ResetButton from "@/components/ResetButton.vue"
 import { cn } from "@/lib/utils"
 import { useFilter } from "@/composables/useFilter"
-import type { FilterBaseProps, TableFilterEmits } from "@/types/support"
+import type {FilterProps, TableFilterEmits} from "@/types/support"
 import { toRef } from "vue"
 
 // props / emits
-const props = defineProps<FilterBaseProps>()
+const props = defineProps<FilterProps>()
 const emit = defineEmits<TableFilterEmits>()
+
+const { label } = props.filter
 
 // filter logic
 const { localValue, isDirty, reset } = useFilter(

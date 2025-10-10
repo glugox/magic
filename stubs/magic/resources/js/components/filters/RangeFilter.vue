@@ -26,9 +26,9 @@ import { useFilter } from "@/composables/useFilter";
 import { Label } from "@/components/ui";
 import ResetButton from "@/components/ResetButton.vue";
 import InputField from "@/components/form/InputField.vue";
-import type { FilterBaseProps, TableFilterEmits } from "@/types/support";
+import type {FilterProps, TableFilterEmits} from "@/types/support";
 
-const props = defineProps<FilterBaseProps>();
+const props = defineProps<FilterProps>();
 const emit = defineEmits<TableFilterEmits>();
 
 const { localValue, isDirty, reset } = useFilter(
@@ -39,5 +39,6 @@ const { localValue, isDirty, reset } = useFilter(
     }
 );
 
-const { label } = props;
+const { filter } = props;
+const { label } = filter;
 </script>

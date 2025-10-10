@@ -11,9 +11,9 @@ import { toRef } from "vue";
 import { useFilter } from "@/composables/useFilter";
 import { Label, Switch } from "@/components/ui";
 import ResetButton from "@/components/ResetButton.vue";
-import type { FilterBaseProps, TableFilterEmits } from "@/types/support";
+import type {FilterBaseProps, FilterProps, TableFilterEmits} from "@/types/support";
 
-const props = defineProps<FilterBaseProps>();
+const props = defineProps<FilterProps>();
 const emit = defineEmits<TableFilterEmits>();
 
 // localValue, isDirty, and reset come from the composable
@@ -22,5 +22,6 @@ const { localValue, isDirty, reset } = useFilter(
     (val) => emit("change", val)
 );
 
-const { label } = props;
+const { filter } = props;
+const { label } = filter;
 </script>

@@ -1,115 +1,60 @@
 <script setup lang="ts">
-import {ref, watch, onMounted, onUnmounted} from 'vue';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Combobox, ComboboxAnchor, ComboboxEmpty, ComboboxGroup, ComboboxInput, ComboboxItem, ComboboxItemIndicator, ComboboxList, ComboboxSeparator, ComboboxTrigger } from '@/components/ui/combobox';
-import BaseField from './BaseField.vue';
-import { useApi } from '@/composables/useApi';
-import {FormFieldEmits, FormFieldProps, Relation} from '@/types/support';
-import { Link } from '@inertiajs/vue3';
-import { useEntityEvents } from '@/composables/useEntityEvents';
-import { Check, ChevronsUpDown, PlusCircleIcon } from 'lucide-vue-next';
+import { ref, watch } from 'vue'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
+import { Combobox, ComboboxAnchor, ComboboxEmpty, ComboboxGroup, ComboboxInput, ComboboxItem, ComboboxItemIndicator, ComboboxList, ComboboxSeparator, ComboboxTrigger } from '@/components/ui/combobox'
+import BaseField from './BaseField.vue'
+import { FormFieldEmits, FormFieldProps } from '@/types/support'
+import { Link } from '@inertiajs/vue3'
+import { Check, ChevronsUpDown, PlusCircleIcon } from 'lucide-vue-next'
+import { useBelongsToOptions } from '@/composables/useBelongsToOptions'
 
-interface Option { id: string; name: string; [key: string]: any }
-
-const props = defineProps<FormFieldProps>();
-const emit = defineEmits<FormFieldEmits>();
-
-const { get } = useApi();
-const { on, off } = useEntityEvents();
-
-const model = ref<string | null>(props.modelValue ? String(props.modelValue) : null);
-const selectedOption = ref<Option | null>(null);
-const options = ref<Option[]>([]);
-const searchQuery = ref('');
-const isLoading = ref(false);
+const props = defineProps<FormFieldProps>()
+const emit = defineEmits<FormFieldEmits>()
 
 // Get relation metadata
-const relationMetadata = props.entity.relations.find(r => r.foreignKey === props.field.name)!;
-const modelNameSingular = relationMetadata.relatedEntityName;
+const relationMetadata = props.entity.relations.find(r => r.foreignKey === props.field.name)!
+const modelNameSingular = relationMetadata.relatedEntityName
+const relationApiPath = relationMetadata.apiPath
+const relationEntityName = relationMetadata.relatedEntityName
 
-// Normalize option
-const normalize = (d: any) => ({ ...d, id: String(d.id) });
+if(!relationApiPath) {
+    throw new Error(`Relation metadata apiPath not found for field ${props.field.name}`)
+}
+if(!relationEntityName) {
+    throw new Error(`Relation metadata relatedEntityName not found for field ${props.field.name}`)
+}
 
-// Fetch options
-const fetchOptions = async (query = '') => {
-    isLoading.value = true;
-    try {
-        const res = await get(`/${relationMetadata.apiPath}`, { search: query, limit: '5' });
-        const list = ((res?.data ?? res)?.data ?? res?.data ?? []).map(normalize);
-        options.value = list;
+// Use composable for options and selected
+const { options, selectedOption, searchQuery, isLoading } = useBelongsToOptions({
+    relationMetadata: {
+        apiPath: relationApiPath,
+        relatedEntityName: relationEntityName,
+        foreignKey: relationApiPath
+    },
+    initialId: props.modelValue ? String(props.modelValue) : null,
+    autoRefreshOnCreate: true,
+})
 
-        // Keep selected visible
-        if (selectedOption.value && !list.find(o => o.id === selectedOption.value!.id)) {
-            options.value.unshift(selectedOption.value!);
-        }
-    } catch (e) {
-        console.error(e);
-        options.value = [];
-    } finally {
-        isLoading.value = false;
-    }
-};
+// Local model for v-model binding
+const model = ref<string | null>(props.modelValue ? String(props.modelValue) : null)
 
-// Define once
-const busHandler = (payload: { entity: string; record: any }) => {
-    if (payload.entity === relationMetadata.relatedEntityName) {
-        fetchOptions().then(() => {
-            selectedOption.value = normalize(payload.record.data);
-            if (selectedOption.value && !options.value.find(o => o.id === selectedOption.value!.id)) {
-                options.value.unshift(selectedOption.value!);
-            }
-        });
-    }
-};
-
-onMounted(async () => {
-    if (model.value) {
-        const res = await get(`/${relationMetadata.apiPath}/${model.value}`);
-        const record = res?.data ?? res;
-        if (record) {
-            selectedOption.value = normalize(record);
-            options.value.unshift(selectedOption.value);
-        }
-    }
-
-    on('created', busHandler); // ✅ register
-    fetchOptions();
-});
-
-onUnmounted(() => {
-    off('created', busHandler); // ✅ unregister
-});
-
-// Sync model with external changes,
-// also needed for reset from parent
+// Sync modelValue prop with local model
 watch(
     () => props.modelValue,
-    (val) => {
-        if (!val) {
-            model.value = null;
-            selectedOption.value = null;
-        } else {
-            model.value = String(val);
-        }
+    val => {
+        model.value = val ? String(val) : null
     }
-);
-// Sync selectedOption with model
+)
+
+// Sync selectedOption with model and emit changes
 watch(selectedOption, val => {
-    model.value = val?.id ?? null;
-    emit('update:modelValue', model.value);
-});
+    model.value = val?.id ?? null
+    emit('update:modelValue', model.value)
+})
 
-// Debounced search
-let searchTimeout: any;
-watch(searchQuery, query => {
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => fetchOptions(query), 300);
-});
-
-// Emit open related
-const emitOpenRelatedForm = () => emit('openRelated', relationMetadata);
-
+// Emit open related form event
+const emitOpenRelatedForm = () => emit('openRelated', relationMetadata)
 </script>
 
 <template>

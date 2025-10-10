@@ -233,6 +233,8 @@ EOT;
     {
         // Related entity name and its variable (e.g. teamEntity)
         $relatedName = $relation->getRelatedEntityName();
+
+        // Example: teamEntity, defined above in the generated ts file
         $relatedVar = $relatedName ? Str::camel(Str::singular($relatedName)).'Entity' : 'null';
 
         $relatedEntityRef = $relatedName ? "() => {$relatedVar}" : 'null';
@@ -297,11 +299,14 @@ EOT;
      */
     private function buildFilterEntry(Entity $entity, Filter $filter): string
     {
+        $nullStr = 'null';
         $label = $filter->label ?? Str::title(str_replace('_', ' ', $filter->field));
+        $relatedEntityName = $filter->relatedEntityName ?? $nullStr;
 
         $filterEntry = "{
         field: '{$filter->field}',
         label: '{$label}',
+        relatedEntityName: '{$relatedEntityName}',
         type: '{$filter->type->value}'";
 
         if (! empty($filter->initialValues)) {
@@ -315,6 +320,13 @@ EOT;
             $filterEntry .= ',
         dynamic: (entity: Entity) => true // Customize this function as needed';
         }
+
+        // Entity reference (lazy)
+        // Example: teamEntity, defined above in the generated ts file
+        $entityRef = Str::camel(Str::singular($entity->getName())).'Entity';
+        $filterEntry .= ",
+        entityRef: () => {$entityRef}
+        ";
 
         $filterEntry .= "\n    }";
 

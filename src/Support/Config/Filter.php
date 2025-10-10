@@ -22,6 +22,7 @@ class Filter
         public array $initialValues,
         public bool $dynamic,
         public ?string $label = null,
+        public ?string $relatedEntityName = null, // For relation filters
     ) {
         $this->type = $type instanceof FilterType ? $type : FilterType::from($type);
         $this->label = $label ?? Str::title(str_replace(['_', '-'], ' ', $field));
@@ -44,6 +45,11 @@ class Filter
     {
         $data = [
             'type' => $this->type->value,
+            'field' => $this->field,
+            'initialValues' => $this->initialValues,
+            'dynamic' => $this->dynamic,
+            'label' => $this->label,
+            'relatedEntityName' => $this->relatedEntityName,
         ];
         $json = json_encode($data, JSON_PRETTY_PRINT);
 

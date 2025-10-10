@@ -39,11 +39,8 @@
                     >
                         <component
                             :is="filterComponents[filter.type]"
-                            :field="filter.field"
-                            :type="filter.type"
                             :filter-value="currentFilters[filter.field]"
-                            :options="filter.options"
-                            :label="filter.label"
+                            :filter="filter"
                             @change="setFilterValue(tableId, filter.field, $event)"
                             @reset="removeFilter(filter.field)"
                         />
@@ -55,7 +52,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick, computed } from "vue"
+import { ref } from "vue"
 import { Label } from "@/components/ui/label"
 
 import EnumFilter from "./EnumFilter.vue"
@@ -69,9 +66,9 @@ import HasOneFilter from "@/components/filters/HasOneFilter.vue"
 
 import { setFilterValue, useFilters } from "@/store/tableFiltersStore"
 import { formatDate } from "@/lib/app"
-import type {
+import {
     DataTableFilters,
-    Entity,
+    Entity, Filter,
     FilterValue,
     TableFiltersEmits,
     TableId,
@@ -88,24 +85,15 @@ const props = defineProps<{
 const emit = defineEmits<TableFiltersEmits>()
 
 const container = ref<HTMLElement | null>(null)
-const maxHeight = ref(0)
-
-onMounted(() => {
-    nextTick(() => {
-        if (container.value) maxHeight.value = container.value.scrollHeight
-    })
-})
 
 const filtersMeta = ref(props.entity.filters || [])
 const currentFilters = useFilters(props.tableId)
 
-const filtersMetaFull = ref(
+const filtersMetaFull = ref<Filter[]>(
     filtersMeta.value.map((filter) => {
         const fieldMeta = props.entity.fields.find((f) => f.name === filter.field)
         return {
             ...filter,
-            label: filter.label || fieldMeta?.label || filter.field,
-            type: filter.type,
             options: fieldMeta?.options || [],
         }
     })
@@ -167,6 +155,6 @@ function formatFilterValue(field: string, filter: FilterValue): string {
 
 function formatFilterLabel(field: string): string {
     const filterMeta = filtersMetaFull.value.find((f) => f.field === field)
-    return filterMeta ? filterMeta.label : field
+    return filterMeta?.label ?? field
 }
 </script>
