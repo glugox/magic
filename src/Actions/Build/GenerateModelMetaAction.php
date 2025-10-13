@@ -26,6 +26,7 @@ use Glugox\ModelMeta\Fields\Number;
 use Glugox\ModelMeta\Fields\Password;
 use Glugox\ModelMeta\Fields\Slug;
 use Glugox\ModelMeta\Fields\Text;
+use Glugox\ModelMeta\Filters\BelongsToFilter;
 use Glugox\ModelMeta\Filters\BelongsToManyFilter;
 use Glugox\ModelMeta\Filters\BooleanFilter;
 use Glugox\ModelMeta\Filters\DateFilter;
@@ -244,6 +245,7 @@ class GenerateModelMetaAction implements DescribableAction
             'range' => RangeFilter::class,
             'number' => NumberFilter::class,
             'boolean' => BooleanFilter::class,
+            'belongs_to' => BelongsToFilter::class,
             'belongs_to_many' => BelongsToManyFilter::class,
             'has_one' => HasOneFilter::class,
             'has_many' => HasManyFilter::class,
@@ -261,9 +263,6 @@ class GenerateModelMetaAction implements DescribableAction
 
             return $code.',';
         }
-
-
-
 
         return '//TODO : '.$filter->toString();
     }

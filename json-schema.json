@@ -91,6 +91,7 @@
                                         "dateTime_range",
                                         "has_one",
                                         "has_many",
+                                        "belongs_to",
                                         "belongs_to_many"
                                     ]
                                 },

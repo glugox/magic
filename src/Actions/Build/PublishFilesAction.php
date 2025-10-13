@@ -9,8 +9,10 @@ use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Helpers\ValidationHelper;
 use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\Config\Entity;
+use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Config\Filter;
 use Glugox\Magic\Support\Config\Relation;
+use Glugox\Magic\Support\Config\RelationType;
 use Glugox\Magic\Support\Frontend\TsHelper;
 use Glugox\Magic\Support\TypeHelper;
 use Glugox\Magic\Traits\AsDescribableAction;
@@ -475,6 +477,20 @@ EOT;
             $column = $this->tsHelper->writeTableColumn($field, $entity);
             $columns[] = $column;
         }
+
+        // Commented as getTableFields will add BelongsTo fields as regular fields, For now i don't see the reason when we dont want to include them,
+        // so they are directly added as fields. Even in Eloquent they are used as select fields ( nested )
+        //
+        // Add relations as columns
+        /*foreach ($entity->getRelations() as $relation) {
+            if ($relation->getType() === RelationType::BELONGS_TO) {
+                Log::channel('magic')->info("Processing belongsTo relation: {$relation->getRelationName()}");
+                $column = $this->tsHelper->writeTableColumn(Field::fromRelation($relation), $entity);
+                $columns[] = $column;
+            } else {
+                Log::channel('magic')->info("Skipping non-belongsTo relation: {$relation->getRelationName()}");
+            }
+        }*/
 
         // $indentStr = str_repeat("\t", $indent);
         return implode(",\n", $columns);

@@ -83,6 +83,9 @@ export function useBelongsToOptions(cfg: BelongsToOptionsConfig) {
         await fetchOptions(searchQuery.value, true)
     }
 
+    /**
+     * Fetch and set the initially selected option based on initialId.
+     */
     const fetchSelected = async () => {
         if (!cfg.initialId) return
         try {

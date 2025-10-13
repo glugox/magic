@@ -2,7 +2,7 @@
     "app": {
         "name": "InventoryHub",
         "seedEnabled": true,
-        "seedCount": 50,
+        "seedCount": 8,
         "fakerMappings": {
             "carrier": "randomElement([\"FedEx\", \"UPS\", \"DHL\", \"USPS\"])"
         }
@@ -19,9 +19,9 @@
                 { "name": "active", "type": "boolean", "default": true }
             ],
             "relations": [
-                { "type": "hasMany", "relatedEntityName": "Order", "as": "orders" },
-                { "type": "hasMany", "relatedEntityName": "Shipment", "as": "shipments" },
-                { "type": "hasMany", "relatedEntityName": "Warehouse", "as": "warehouses" },
+                { "type": "hasMany", "relatedEntityName": "Order"},
+                { "type": "hasMany", "relatedEntityName": "Shipment" },
+                { "type": "hasMany", "relatedEntityName": "Warehouse" },
                 { "type": "belongsToMany", "relatedEntityName": "Role", "pivot": "role_user" }
             ],
             "filters": [
@@ -55,7 +55,7 @@
                 { "name": "metadata", "type": "json", "nullable": true }
             ],
             "relations": [
-                { "type": "hasMany", "relatedEntityName": "Product", "as": "products" }
+                { "type": "hasMany", "relatedEntityName": "Product" }
             ],
             "filters": [
                 { "field": "name", "type": "text" },
@@ -87,7 +87,8 @@
                 { "name": "status", "type": "enum", "options": ["active", "inactive", "discontinued"], "sortable": true }
             ],
             "relations": [
-                { "type": "belongsToMany", "relatedEntityName": "Category", "pivot": "category_product" }
+                { "type": "belongsToMany", "relatedEntityName": "Category", "pivot": "category_product" },
+                { "type": "hasMany", "relatedEntityName": "OrderItem" }
             ],
             "filters": [
                 { "field": "name", "type": "text" },
@@ -113,11 +114,13 @@
                 { "name": "placed_at", "type": "dateTime" }
             ],
             "relations": [
-                { "type": "hasMany", "relatedEntityName": "OrderItem", "as": "items" },
-                { "type": "hasOne", "relatedEntityName": "Shipment", "as": "shipment" }
+                { "type": "hasMany", "relatedEntityName": "OrderItem" },
+                { "type": "hasOne", "relatedEntityName": "Shipment" }
             ],
             "filters": [
+                { "field": "user_id", "type": "belongs_to", "relatedEntityName": "User", "label": "Customer" },
                 { "field": "order_number", "type": "text" },
+                { "field": "order_items", "type": "has_many", "relatedEntityName": "OrderItem" },
                 { "field": "status", "type": "enum" },
                 { "field": "total", "type": "range" },
                 { "field": "placed_at", "type": "date_range" },
@@ -130,6 +133,14 @@
                 { "name": "id", "type": "id" },
                 { "name": "quantity", "type": "integer", "min": 1, "max": 10 },
                 { "name": "unit_price", "type": "decimal", "min": 0, "max": 10000 }
+            ],
+            "relations": [
+                { "type": "belongsTo", "relatedEntityName": "Order"},
+                { "type": "belongsTo", "relatedEntityName": "Product" }
+            ],
+            "filters": [
+                { "field": "product_id", "type": "belongs_to", "relatedEntityName": "Product" },
+                { "field": "order_id", "type": "belongs_to", "relatedEntityName": "Order" }
             ]
         },
         {
@@ -141,7 +152,7 @@
                 { "name": "carrier", "type": "string", "nullable": true }
             ],
             "relations": [
-                { "type": "hasOne", "relatedEntityName": "CarrierDetail", "as": "carrierDetail" }
+                { "type": "hasOne", "relatedEntityName": "CarrierDetail" }
             ],
             "filters": [
                 { "field": "shipped_at", "type": "date_range" },

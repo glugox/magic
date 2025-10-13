@@ -74,6 +74,7 @@ import {
     TableId,
 } from "@/types/support"
 import ResetButton from "@/components/ResetButton.vue";
+import BelongsToFilter from "@/components/filters/BelongsToFilter.vue";
 
 const props = defineProps<{
     tableId: TableId
@@ -105,6 +106,7 @@ const filterComponents: Record<string, any> = {
     date_range: DateFilter,
     boolean: BooleanFilter,
     text: TextFilter,
+    belongs_to: BelongsToFilter,
     belongs_to_many: BelongsToManyFilter,
     has_many: HasManyFilter,
     has_one: HasOneFilter,

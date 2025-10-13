@@ -79,10 +79,7 @@ const componentMap: Record<string, any> = {
     foreignId: BelongsToField,
 
     // ──────── Relations ────────
-    belongsTo: BelongsToField,
-    hasOne: null,
-    hasMany: null,
-    belongsToMany: null,
+    belongsTo: BelongsToField, // We wil treat it as form field instead of relation
 }
 
 

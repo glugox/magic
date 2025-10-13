@@ -58,7 +58,7 @@ export interface Relation {
     foreignKey?: string | null
     localKey?: string | null
     relatedKey?: string | null
-    relationName?: string | null
+    relationName: string
     apiPath?: string | null
     controller?: Controller | null
 }
@@ -83,13 +83,17 @@ export interface Filter {
     relatedEntityName?: string | null // For relation filters
 }
 
-export interface ResourceFormProps {
-    item?: Record<string, any>;
-    entity: Entity;
-    parentEntity?: Entity;
-    parentId?: DbId;
-    jsonMode?: boolean;
-    dialogMode?: boolean;
+export interface ResourceBaseProps {
+    id?: DbId | null
+    item?: ResourceData
+    entity: Entity
+}
+
+export interface ResourceFormProps extends ResourceBaseProps {
+    parentEntity?: Entity
+    parentId?: DbId | null
+    jsonMode?: boolean
+    dialogMode?: boolean
 }
 
 
@@ -101,7 +105,7 @@ export interface DialogOptions extends ResourceFormProps {
 }
 
 export interface DialogInstance extends DialogOptions {
-    id: string;
+    id: DbId;
 }
 
 export interface ResourceQueryOptions {
@@ -131,15 +135,27 @@ export interface ResourceData {
     [key: string]: any
 }
 
+export interface ApiResourceData {
+    data: ResourceData
+}
+
 export type Controller = any
 
-export interface FormFieldProps {
-    field: Field
+export interface BaseFormFieldProps {
     entity: Entity
     crudActionType: CrudActionType
     modelValue?: any
     item?: Record<string, any>
+    parentId?: DbId | null
     error?: string
+}
+
+export interface FormFieldProps extends BaseFormFieldProps {
+    field: Field
+}
+
+export interface FormRelationProps extends BaseFormFieldProps {
+    relation: Relation
 }
 
 export type TableId = string
@@ -149,8 +165,15 @@ export interface ResourceTableProps<T> {
     parentEntity?: Entity
     columns: ColumnDef<ResourceData>[]
     data: PaginatedResponse<T>
-    parentId?: DbId
+    parentId?: DbId | null
     state?: DataTableState
+}
+
+export type ResourceFormEmits = {
+    (e: 'openRelated', relation: Relation): void,
+    (e: 'created', record: any): void,
+    (e: 'updated', record: any): void,
+    (e: 'deleted', id: number|string): void
 }
 
 export type FormFieldEmits = {

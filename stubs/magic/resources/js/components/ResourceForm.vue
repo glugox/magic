@@ -1,26 +1,23 @@
 <script setup lang="ts">
 import { useForm } from '@inertiajs/vue3';
 import FieldRenderer from '@/components/form/FieldRenderer.vue';
-import {Relation, ResourceFormProps} from '@/types/support';
+import {DbId, Relation, ResourceData, ResourceFormEmits, ResourceFormProps} from '@/types/support';
 import { toast } from 'vue-sonner';
 import { Button } from "@/components/ui/button";
 import { useEntityContext } from "@/composables/useEntityContext";
 import DebugBox from "@/components/debug/DebugBox.vue";
 import { Toaster } from '@/components/ui/sonner';
 import { useApi } from '@/composables/useApi';
-import {ref} from "vue";
+import {ref, watch} from "vue";
+import RelationRenderer from "@/components/form/RelationRenderer.vue";
+import {useEntityLoader} from "@/composables/useEntityLoader";
+
 
 const props = defineProps<ResourceFormProps>();
-
-const emit = defineEmits<{
-    (e: 'openRelated', relation: Relation): void;
-    (e: 'created', record: any): void;
-    (e: 'updated', record: any): void;
-    (e: 'deleted', id: number|string): void;
-}>();
+const emit = defineEmits<ResourceFormEmits>();
 
 // Initial form data
-const initialData: Record<string, any> = {};
+const initialData: ResourceData = {} as ResourceData;
 props.entity.fields.forEach((f) => {
     initialData[f.name] = props.item?.[f.name] ?? f.default ?? '';
 });
@@ -54,6 +51,16 @@ const onUpdated = (record: unknown) => {
     }
     toast.success(`${props.entity.singularName} updated`);
 }
+
+
+// 🧩 Load item automatically if not fully passed in
+const { record, loading, error, load } = useEntityLoader({
+    entity: props.entity,
+    id: props.id,
+    item: props.item,
+}, form);
+
+
 // Submit form
 const submit = async () => {
 
@@ -130,6 +137,7 @@ defineExpose({ submit, destroy, processing: form.processing });
 </script>
 
 <template>
+
     <div v-if="globalErrors.length" class="py-2 px-3 mb-2 rounded-lg border border-red-300 text-red-300">
         <ul class="list-disc list-inside">
             <li v-for="(err, idx) in globalErrors" :key="idx">{{ err }}</li>
@@ -137,36 +145,53 @@ defineExpose({ submit, destroy, processing: form.processing });
     </div>
     <DebugBox v-if="false" v-bind="props" />
     <form @submit.prevent="submit" class="space-y-6">
-        <FieldRenderer
-            v-for="field in entity.fields"
-            :key="field.name"
-            :field="field"
-            :entity="entity"
-            :error="form.errors[field.name]"
-            v-model="form[field.name]"
-            :crud-action-type="crudActionType"
-            @update:model-value="val => form[field.name] = val"
-            @open-related="handleOpenRelated"
-        />
-
-        <!-- Default inline buttons if no dialog footer slot is used -->
-        <div v-if="!$slots.footer" class="flex gap-4">
-            <Button type="submit" :disabled="form.processing" class="btn btn-primary">
-                {{ crudActionType === 'update' ? 'Update' : 'Create' }}
-            </Button>
-
-            <Button
-                v-if="props.item?.id"
-                variant="destructive"
-                @click="destroy"
-                :disabled="form.processing"
-                class="btn btn-destructive"
-            >
-                Delete
-            </Button>
+        <!-- Global errors -->
+        <div v-if="globalErrors.length" class="py-2 px-3 mb-2 rounded-lg border border-red-300 text-red-300">
+            <ul class="list-disc list-inside">
+                <li v-for="(err, idx) in globalErrors" :key="idx">{{ err }}</li>
+            </ul>
         </div>
 
-        <!-- Slot for dialog footer -->
+        <div class="max-w-2xl">
+            <FieldRenderer
+                v-for="field in entity.fields"
+                :key="field.name"
+                :field="field"
+                :entity="entity"
+                :error="form.errors[field.name]"
+                v-model="form[field.name]"
+                :crud-action-type="crudActionType"
+                @update:model-value="val => form[field.name] = val"
+                @open-related="handleOpenRelated"
+            />
+            <!-- Right: HasOne relations -->
+            <div class="space-y-4 mt-12">
+                <RelationRenderer
+                    v-for="relation in entity.relations.filter(r => r.type === 'hasOne')"
+                    :key="relation.relationName"
+                    :relation="relation"
+                    :entity="entity"
+                    :parent-id="form.id as DbId"
+                    :crud-action-type="crudActionType"
+                />
+            </div>
+            <!-- Action buttons -->
+            <div v-if="!$slots.footer" class="flex justify-end gap-4 mt-8">
+                <Button size="sm" type="submit" :disabled="form.processing" class="btn btn-outline-info">
+                    {{ crudActionType === 'update' ? 'Update' : 'Create' }} {{ entity.singularName }}
+                </Button>
+                <Button
+                    v-if="props.item?.id"
+                    variant="destructive"
+                    @click="destroy"
+                    :disabled="form.processing"
+                    class="btn btn-destructive"
+                >
+                    Delete
+                </Button>
+            </div>
+        </div>
+        <!-- Footer slot -->
         <slot name="footer"></slot>
     </form>
     <Toaster position="top-right" />

@@ -36,7 +36,7 @@ const options = props.field?.options ?? []
     <BaseField v-bind="props">
         <template #default>
             <Select v-model="selected">
-                <SelectTrigger class="w-[280px]">
+                <SelectTrigger class="w-full">
                     <SelectValue :placeholder="`Please select ${props.field.label}...`" />
                 </SelectTrigger>
                 <SelectContent>

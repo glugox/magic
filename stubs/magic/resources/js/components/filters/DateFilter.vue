@@ -6,16 +6,16 @@
         <div class="flex gap-2 mt-2">
             <!-- From Date -->
             <Popover v-model:open="openMin">
-                <PopoverTrigger as-child class="w-44">
+                <PopoverTrigger as-child class="max-w-1/2 overflow-clip text-xs">
                     <Button
                         variant="outline"
                         :class="cn(
-              'flex-1 justify-start text-left font-normal',
+              'flex-1 justify-start text-left font-small',
               !localValue.min && 'text-muted-foreground'
             )"
                     >
-                        <CalendarIcon class="mr-2 h-4 w-4" />
-                        {{ localValue.min ? df.format(toJsDate(localValue.min)) : "From" }}
+                        <CalendarIcon class="h-4 w-4" />
+                        {{ localValue.min ? formatDate(toJsDate(localValue.min)) : "From" }}
                     </Button>
                 </PopoverTrigger>
 
@@ -26,7 +26,7 @@
 
             <!-- To Date -->
             <Popover v-model:open="openMax">
-                <PopoverTrigger as-child class="w-44">
+                <PopoverTrigger as-child class="max-w-1/2 overflow-clip text-xs">
                     <Button
                         variant="outline"
                         :class="cn(
@@ -34,8 +34,8 @@
               !localValue.max && 'text-muted-foreground'
             )"
                     >
-                        <CalendarIcon class="mr-2 h-4 w-4" />
-                        {{ localValue.max ? df.format(toJsDate(localValue.max)) : "To" }}
+                        <CalendarIcon class="h-4 w-4" />
+                        {{ localValue.max ? formatDate(toJsDate(localValue.max)) : "To" }}
                     </Button>
                 </PopoverTrigger>
 
@@ -61,6 +61,7 @@ import { cn } from "@/lib/utils"
 import { useFilter } from "@/composables/useFilter"
 import type {FilterProps, TableFilterEmits} from "@/types/support"
 import { toRef } from "vue"
+import {formatDate} from "@/lib/app";
 
 // props / emits
 const props = defineProps<FilterProps>()

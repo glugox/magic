@@ -461,10 +461,10 @@ class Entity
      *
      * @return string[]
      */
-    public function getTableFieldsNames(?bool $skipRelations = false): array
+    public function getTableFieldsNames(): array
     {
         $visible = [];
-        foreach ($this->getTableFields($skipRelations) as $field) {
+        foreach ($this->getTableFields() as $field) {
             $visible[] = $field->name;
         }
 
@@ -476,7 +476,7 @@ class Entity
      *
      * @return Field[]
      */
-    public function getTableFields(?bool $skipRelations = false): array
+    public function getTableFields(): array
     {
         $visible = [];
         foreach (($this->fields ?? []) as $field) {
@@ -497,7 +497,7 @@ class Entity
         }
 
         // Relations
-        if (! $skipRelations) {
+        //if (! $skipRelations) {
             foreach ($this->getRelations() as $relation) {
 
                 // Only BELONGS_TO relations are shown in tables
@@ -508,7 +508,7 @@ class Entity
                 $relationField = Field::fromRelation($relation);
                 $visible[] = $relationField;
             }
-        }
+        //}
 
         // Reorder: id first, name second, BELONGS_TO fields next
         usort($visible, function ($a, $b) {

@@ -544,9 +544,9 @@ class Field
         }
 
         // Check if this field has a BelongsTo relation
-        if ($this->belongsTo() !== null) {
+        /*if ($this->belongsTo() !== null) {
             return true;
-        }
+        }*/
 
         return false;
     }

@@ -83,7 +83,7 @@ watch(
                 <PopoverTrigger as-child>
                     <Button
                         variant="outline"
-                        :class="cn('w-[280px] justify-start text-left font-normal', !jsDate && 'text-muted-foreground')"
+                        :class="cn('w-full justify-start text-left font-normal', !jsDate && 'text-muted-foreground')"
                     >
                         <CalendarIcon class="mr-2 h-4 w-4" />
                         <ClockIcon class="mr-2 h-4 w-4" />

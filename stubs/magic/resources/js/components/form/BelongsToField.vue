@@ -65,7 +65,7 @@ const emitOpenRelatedForm = () => emit('openRelated', relationMetadata)
             </select>
 
             <Combobox v-model="selectedOption" by="id">
-                <ComboboxAnchor class="w-[300px]" as-child>
+                <ComboboxAnchor class="w-full" as-child>
                     <ComboboxTrigger as-child>
                         <Button variant="outline" class="justify-between">
                             <template v-if="selectedOption">
@@ -85,7 +85,7 @@ const emitOpenRelatedForm = () => emit('openRelated', relationMetadata)
                     </ComboboxTrigger>
                 </ComboboxAnchor>
 
-                <ComboboxList class="w-[300px]">
+                <ComboboxList class="w-full">
                     <ComboboxInput :placeholder="isLoading ? 'Loading...' : 'Select ' + modelNameSingular + '...'" v-model="searchQuery" />
                     <ComboboxEmpty>No {{ modelNameSingular }} found.</ComboboxEmpty>
 

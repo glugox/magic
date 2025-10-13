@@ -14,6 +14,7 @@ enum FilterType: string
     case TIMESTAMP = 'timestamp'; // Timestamp picker
     case DATETIME_RANGE = 'datetime_range'; // Datetime range picker
     case ENUM = 'enum';            // Enum dropdown
+    case BELONGS_TO = 'belongs_to';      // Relation filter
     case BELONGS_TO_MANY = 'belongs_to_many';    // Relation filter
     case HAS_ONE = 'has_one';        // Relation filter
     case HAS_MANY = 'has_many';      // Relation filter
