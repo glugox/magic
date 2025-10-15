@@ -4,6 +4,7 @@ namespace Glugox\Magic\Support\Config;
 
 use Glugox\Magic\Support\Config\Builder\RelationBuilder;
 use Illuminate\Support\Str;
+use phpDocumentor\Reflection\Types\Boolean;
 use RuntimeException;
 
 class Relation
@@ -32,7 +33,8 @@ class Relation
         private ?string $relatedKey = null, // // points to related entity in pivot table, e.g. role_id
         ?string $relationName = null,
         ?string $morphName = null, // for polymorphic relations, e.g. 'imageable'
-        ?string $pivotTable = null // for many-to-many relations, e.g. 'role_user'
+        ?string $pivotTable = null, // for many-to-many relations, e.g. 'role_user'
+        public ?bool $cascade = false
     ) {
         $this->type = $type instanceof RelationType ? $type : RelationType::from($type);
         $this->relatedEntityName = $relatedEntityName ?? $relatedEntity->name ?? null;
@@ -198,6 +200,29 @@ class Relation
     {
         return $this->relatedEntity !== null;
     }
+
+    /**
+     * Finds the inverse relation in the related entity, if it exists.
+     * E.g. if this is a hasMany relation from User to Post,
+     * it will look for a belongsTo relation from Post to User.
+     * If no inverse relation is found, it returns null.
+     */
+    public function getInverseRelation(): ?Relation
+    {
+        if (! $this->hasRelatedEntity()) {
+            return null;
+        }
+
+        $relatedEntity = $this->getRelatedEntity();
+        foreach ($relatedEntity->getRelations() as $relation) {
+            if ($relation->getRelatedEntityName() === $this->getLocalEntityName()) {
+                return $relation;
+            }
+        }
+
+        return null;
+    }
+
 
     /**
      * Has route

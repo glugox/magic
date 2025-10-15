@@ -39,6 +39,7 @@
                                     ]
                                 },
                                 "unique": { "type": "boolean" },
+                                "indexed": { "type": "boolean" },
                                 "sortable": { "type": "boolean" },
                                 "searchable": { "type": "boolean" },
                                 "hidden": { "type": "boolean" },

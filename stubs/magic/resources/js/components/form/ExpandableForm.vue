@@ -1,6 +1,7 @@
 <template>
 
     <div class="flex flex-col gap-3 border rounded-xl p-4 bg-muted/30">
+
         <!-- Relation picker (BelongsTo field) -->
         <div class="flex flex-col items-center gap-3">
 
@@ -40,6 +41,7 @@
 
                 <ResourceForm
                     :entity="entity"
+                    :id="id"
                     :json-mode="true"
                 />
             </div>

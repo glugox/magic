@@ -1,0 +1,17 @@
+<?php
+
+namespace {{namespace}};
+
+use Illuminate\Database\Seeder;
+use App\Models\{{entity}};
+{{useStatements}}
+
+class {{class}} extends Seeder
+{
+    public function run(): void
+    {
+{{factoryCode}}
+
+{{relationsCode}}
+    }
+}

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {computed} from "vue";
-import {DbId, Entity, FormRelationProps, ResourceFormProps} from "@/types/support";
+import {DbId, Entity, FormRelationProps, ResourceData, ResourceFormProps} from "@/types/support";
 
 import ExpandableForm from "@/components/form/ExpandableForm.vue";
 import HeadingSmall from "@/components/HeadingSmall.vue";
@@ -23,7 +23,19 @@ const entity = computed<Entity>(() => {
 });
 
 const parentEntity = computed(() =>
-   props.entity
+    props.entity
+)
+
+const foreignId = computed(() =>
+    props.relation.foreignKey
+)
+
+const relatedData = computed(() =>
+    props.item as ResourceData
+)
+
+const relatedId = computed<DbId | null>(() =>
+    relatedData.value ? relatedData.value.id as DbId : null
 )
 
 </script>
@@ -39,14 +51,12 @@ const parentEntity = computed(() =>
     <ExpandableForm
         :entity="entity"
         :parent-entity="parentEntity"
-        :parent-id="parentId as DbId"
+        :item="relatedData"
+        :id="relatedId"
         :jsonMode="true"
-        @created="$emit('created', $event)"
-        @updated="$emit('updated', $event)"
-        @deleted="$emit('deleted', $event)"
     >
         <template #field  >
-            <ResourceCard :entity="entity" :id="parentId" />
+            <ResourceCard :entity="entity" :id="relatedId" />
         </template>
     </ExpandableForm>
 </template>

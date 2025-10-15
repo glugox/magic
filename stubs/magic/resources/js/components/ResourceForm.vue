@@ -8,7 +8,7 @@ import { useEntityContext } from "@/composables/useEntityContext";
 import DebugBox from "@/components/debug/DebugBox.vue";
 import { Toaster } from '@/components/ui/sonner';
 import { useApi } from '@/composables/useApi';
-import {ref, watch} from "vue";
+import {onMounted, ref, watch} from "vue";
 import RelationRenderer from "@/components/form/RelationRenderer.vue";
 import {useEntityLoader} from "@/composables/useEntityLoader";
 
@@ -76,9 +76,9 @@ const submit = async () => {
         if (isJsonMode) {
             // Use Axios/fetch for modal
             try {
-                const record = await post(storeUrl.value.url, form.data(), headers)
-                console.log("result", record);
-                onCreated(record)
+                const newRecord = await post(storeUrl.value.url, form.data(), headers)
+                console.log("result", newRecord);
+                onCreated(newRecord)
             } catch (e) {
                 console.error(e)
                 // handle errors
@@ -88,7 +88,7 @@ const submit = async () => {
             form.post(storeUrl.value, {
                 headers,
                 preserveScroll: true,
-                onSuccess: (page) => onCreated(page.props?.record ?? form.data()),
+                onSuccess: (page) => onCreated(form.data()),
                 onError: (errors) => {
                     console.log("Errors", errors);
                     globalErrors.value = Object.values(errors).flat(); // flatten messages into array
@@ -98,8 +98,8 @@ const submit = async () => {
     } else {
         if (isJsonMode) {
             try {
-                const record = await put(updateUrl.value.url, form.data(), headers)
-                onUpdated(record)
+                const newRecord = await put(updateUrl.value.url, form.data(), headers)
+                onUpdated(newRecord)
             } catch (e) {
                 console.error(e)
             }
@@ -108,7 +108,7 @@ const submit = async () => {
             form.put(updateUrl.value, {
                 headers,
                 preserveScroll: true,
-                onSuccess: (page) => onUpdated(page.props?.record ?? form.data()),
+                onSuccess: (page) => onUpdated(form.data()),
                 onError: (errors) => {
                     console.log("Errors", errors);
                     globalErrors.value = Object.values(errors).flat(); // flatten messages into array
@@ -171,7 +171,8 @@ defineExpose({ submit, destroy, processing: form.processing });
                     :key="relation.relationName"
                     :relation="relation"
                     :entity="entity"
-                    :parent-id="form.id as DbId"
+                    :item="item?.[relation.relationName]"
+                    :parent-id="(form.id || null) as DbId"
                     :crud-action-type="crudActionType"
                 />
             </div>

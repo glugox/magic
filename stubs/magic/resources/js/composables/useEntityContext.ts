@@ -17,7 +17,7 @@ import type { Controller, DbId, Entity, Relation } from "@/types/support";
 export function useEntityContext(
     entity: Entity,
     parentEntity?: Entity,
-    parentId?: DbId,
+    parentId?: DbId | null,
     item?: Record<string, any>
 ) {
     const currentEntity = ref(entity);

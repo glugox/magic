@@ -113,15 +113,6 @@ class GenerateModelMetaAction implements DescribableAction
         $relationsLines = array_map(fn ($relation) => $this->buildRelationLine($relation), $entity->getRelations());
         $filtersLines = array_map(fn ($filter) => $this->buildFilterLine($filter), $entity->getFilters());
 
-        // Prepare relation names
-        /*$relations = $entity->getRelations(null, [
-            RelationType::MORPH_TO,
-            RelationType::MORPH_MANY,
-            RelationType::MORPH_ONE,
-            RelationType::MORPH_TO_MANY,
-            RelationType::MORPHED_BY_MANY,
-        ]);*/
-
         $replacements = [
             'namespace' => 'App\\Meta\\Models',
             'className' => $entity->getName().'Meta',

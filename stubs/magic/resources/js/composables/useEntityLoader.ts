@@ -46,7 +46,7 @@ export function useEntityLoader(props: ResourceBaseProps, form?: InertiaForm<Res
         const targetId = forceId ?? id.value;
         const url = buildUrl();
 
-        console.log("useEntityLoader loading", { url, targetId });
+        console.log("useEntityLoader loading...", { url, targetId });
 
         if (!url || !targetId) return;
 
@@ -54,7 +54,7 @@ export function useEntityLoader(props: ResourceBaseProps, form?: InertiaForm<Res
         error.value = null;
 
         try {
-            record.value = await get(url);
+            record.value = await get(url) as ApiResourceData;
         } catch (e: any) {
             error.value = e?.message ?? "Failed to load data";
             console.error("useEntityLoader", e);

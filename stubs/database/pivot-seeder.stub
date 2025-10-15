@@ -1,0 +1,22 @@
+<?php
+
+namespace {{namespace}};
+
+use Illuminate\Database\Seeder;
+use App\Models\{{entity}};
+use App\Models\{{relatedEntity}};
+
+class {{class}} extends Seeder
+{
+    public function run(): void
+    {
+        $items = {{entity}}::all();
+        $relatedItems = {{relatedEntity}}::all();
+
+        foreach ($items as $item) {
+            $item->{{relationMethod}}()->attach(
+                $relatedItems->random(rand(1, {{seedCount}}))->pluck('id')->toArray()
+            );
+        }
+    }
+}

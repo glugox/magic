@@ -6,6 +6,7 @@ use Faker\Factory;
 use Glugox\Magic\Actions\Files\GenerateFileAction;
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
+use Glugox\Magic\Helpers\StubHelper;
 use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\CodeGenerationHelper;
 use Glugox\Magic\Support\Config\Entity;
@@ -17,7 +18,7 @@ use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
-use Str;
+use Illuminate\Support\Str;
 
 #[ActionDescription(
     name: 'generate_seeders',
@@ -91,11 +92,292 @@ class GenerateSeedersAction implements DescribableAction
     }
 
     /**
+     * Generate Factory using stub file.
+     */
+    protected function generateFactory(Entity $entity): void
+    {
+        $entityName = $entity->getName();
+        $className = "{$entityName}Factory";
+        $namespace = 'Database\Factories';
+        $fakerFields = $this->buildFakerFields($entity);
+
+        $content = StubHelper::loadStub('database/factory.stub', [
+            'namespace' => $namespace,
+            'entity' => $entityName,
+            'class' => $className,
+            'fakerFields' => $fakerFields,
+        ]);
+
+        $path = database_path("factories/{$className}.php");
+        app(GenerateFileAction::class)($path, $content);
+        $this->context->registerGeneratedFile($path);
+    }
+
+    /**
+     * Generate Seeder using stub file.
+     */
+    protected function generateSeeder(Entity $entity): void
+    {
+        $entityName = $entity->getName();
+        $className = "{$entityName}Seeder";
+        $namespace = 'Database\\Seeders';
+        $seedCount = $this->context->getConfig()->app->seedCount;
+
+        $hasManyLines = [];
+        $pivotLines = [];
+        $useStatements = [];
+
+
+        foreach ($entity->getRelations() as $relation) {
+
+            if ($relation->isBelongsTo()) {
+                $relatedEntity = $relation->getRelatedEntityName(); // e.g., Order
+                $foreignKey = $relation->getForeignKey();          // e.g., order_id
+
+                // Now you know this field must be unique
+            }
+
+            if ($relation->isHasMany()) {
+                // Add custom logic here later if needed
+            }
+
+            if ($relation->isBelongsToMany()) {
+                // Add custom logic here later if needed
+            }
+        }
+
+        $relationsCode = implode("\n\n", array_merge($hasManyLines, $pivotLines));
+
+
+        // Unique or regular factory code
+        $uniqueRelations = collect($entity->getRelations())
+            ->map(fn(Relation $relation) => $relation->getInverseRelation())
+            ->filter(fn($rel) => $rel && $rel->isHasOne())
+            ->values();
+        $factoryCode = '';
+        if ($uniqueRelations->isNotEmpty()) {
+            $lines = [];
+            foreach ($uniqueRelations as $rel) {
+
+                // We will use getLocalEntityName down below just because the relations are inversed
+                $parentVar = '$' . Str::camel($rel->getLocalEntityName()) . 's';
+                $foreignKey = $rel->getForeignKey();
+
+                $useStatements[] = "use App\\Models\\{$rel->getLocalEntityName()};";
+                //$useStatements[] = "use App\\Models\\{$entity->getClassName()};";
+
+                // Fetch all parent entities
+                $lines[] = "{$parentVar} = {$rel->getLocalEntityName()}::all();";
+                $lines[] = "foreach ({$parentVar} as \$parent) {";
+                $lines[] = "    {$entity->getClassName()}::factory()->create([";
+                $lines[] = "        '{$foreignKey}' => \$parent->id,";
+                $lines[] = "    ]);";
+                $lines[] = "}";
+            }
+
+            $factoryCode = implode("\n", $lines);
+        } else {
+            // Standard seeding
+            $factoryCode = "\${$entity->getClassName()}Items = {$entity->getClassName()}::factory()->count({$seedCount})->create();";
+        }
+
+
+        $content = StubHelper::loadStub('database/seeder.stub', [
+            'namespace' => $namespace,
+            'class' => $className,
+            'entity' => $entityName,
+            'seedCount' => $seedCount,
+            'factoryCode' => $factoryCode,
+            'relationsCode' => '',
+            'useStatements' => implode("\n\n", array_unique($useStatements)),
+        ]);
+
+        $path = $this->seedersPath . "/{$className}.php";
+        app(GenerateFileAction::class)($path, $content);
+        $this->context->registerGeneratedFile($path);
+
+        Log::channel('magic')->info("Seeder created: {$className}.php");
+
+        $this->insertSeederCall($className);
+
+        foreach ($entity->getRelations() as $relation) {
+            if ($relation->requiresPivotTable()) {
+                $this->generatePivotSeeder($entity, $relation);
+            }
+        }
+    }
+
+    /**
+     * Generate Pivot Seeder using stub file.
+     */
+    protected function generatePivotSeeder(Entity $entity, Relation $relation): void
+    {
+        $pivotTable = $relation->getPivotName();
+        if (in_array($pivotTable, $this->generatedPivotSeeders)) {
+            return;
+        }
+
+        $this->generatedPivotSeeders[] = $pivotTable;
+
+        $entityName = $entity->getName();
+        $relatedEntity = $relation->getRelatedEntityName();
+        $relationMethod = $relation->getRelationName();
+        $seederClass = Str::studly($pivotTable) . 'PivotSeeder';
+        $namespace = 'Database\\Seeders';
+        $seedCount = $this->context->getConfig()->app->seedCount;
+
+        $content = StubHelper::loadStub('database/pivot-seeder.stub', [
+            'namespace' => $namespace,
+            'entity' => $entityName,
+            'relatedEntity' => $relatedEntity,
+            'class' => $seederClass,
+            'relationMethod' => $relationMethod,
+            'seedCount' => $seedCount,
+        ]);
+
+        $path = $this->seedersPath . "/{$seederClass}.php";
+        app(GenerateFileAction::class)($path, $content);
+        $this->context->registerGeneratedFile($path);
+
+        Log::channel('magic')->info("Pivot seeder created: {$seederClass}.php");
+
+        $filePath = $this->seedersPath . '/DatabaseSeeder.php';
+        $this->codeHelper->appendCodeBlock(
+            $filePath,
+            'run',
+            [
+                "// Pivot seeder for {$entityName} <-> {$relatedEntity}",
+                "\$this->call({$seederClass}::class);",
+            ],
+            'pivot_seeders'
+        );
+    }
+
+    /**
+     * Build Faker fields for factory stub.
+     */
+    protected function buildFakerFields(Entity $entity): string
+    {
+        $lines = [];
+        $typesNotForFaker = [FieldType::JSON, FieldType::JSONB, FieldType::FILE];
+        $modelPresets = config('magic.model_presets', []);
+
+        Log::channel('magic')->info("Building Faker fields for entity: {$entity->getName()}");
+
+        if (isset($modelPresets[$entity->getName()])) {
+            Log::channel('magic')->info("Using model preset for entity: {$entity->getName()}");
+            $preset = $modelPresets[$entity->getName()]['default_fields'];
+            if (is_array($preset)) {
+                foreach ($preset as $fieldName => $presetValue) {
+                    $entity->addFieldIfNotExists($presetValue);
+                }
+            }
+        }
+
+        foreach ($entity->getFields() as $field) {
+            if (in_array($field->name, ['id', 'created_at', 'updated_at', 'deleted_at'])) {
+                continue;
+            }
+
+            Log::channel('magic')->info("Processing field: {$field->name} of type {$field->type->value}");
+
+            /** @var Relation $belongsTo */
+            $belongsTo = collect($entity->getRelations())
+                ->first(fn($rel) => $rel->isBelongsTo() && $rel->getForeignKey() === $field->name);
+
+            if ($belongsTo) {
+                $relatedEntity = $belongsTo->getRelatedEntityName();
+                $lines[] = "            '{$field->name}' => \\App\\Models\\{$relatedEntity}::inRandomOrder()->first()?->id ?? \\App\\Models\\{$relatedEntity}::factory(),";
+                continue;
+            }
+
+            $fakerExtension = FakerExtension::getExtensionByField($field);
+            if ($fakerExtension) {
+                $lines[] = "            '{$field->name}' => {$fakerExtension->handle(Factory::create())},";
+                continue;
+            }
+
+            if (in_array($field->type, $typesNotForFaker)) {
+                $lines[] = "            '{$field->name}' => null, // Not suitable for Faker";
+                continue;
+            }
+
+            $uniqueSuffix = $field->unique ? '->unique()' : '';
+
+            $fakerType = $this->guessFakerType($field);
+            $finalMethodCode = $this->ensureChecksInFakerType($fakerType, $field);
+            $lines[] = "            '{$field->name}' => \$this->faker{$uniqueSuffix}->{$finalMethodCode},";
+        }
+
+        return implode("\n", $lines);
+    }
+
+    protected function guessFakerType(Field $field): string
+    {
+        return $this->guessFakerMethod(Factory::create(), $field);
+    }
+
+    private function insertSeederCall($seederClass): void
+    {
+        $filePath = $this->seedersPath . '/DatabaseSeeder.php';
+        $this->codeHelper->appendCodeBlock(
+            $filePath,
+            'run',
+            [
+                "// Call the {$seederClass} seeder",
+                "\$this->call({$seederClass}::class);",
+            ],
+            'seeders'
+        );
+    }
+
+    private function generateAdminUserSeeder(): void
+    {
+        $this->codeHelper->appendCodeBlock(
+            $this->seedersPath . '/DatabaseSeeder.php',
+            'run',
+            [
+                '// Create admin user',
+                "User::factory()->create(['name' => 'Admin User', 'email' => 'admin@example.com', 'password' => bcrypt('password')]);",
+            ],
+            'seeders'
+        );
+    }
+
+    private function ensureChecksInFakerType(string $fakerType, Field $field): string
+    {
+        if ($field->isNumeric()) {
+            $min = $field->min ?? 0;
+            $max = $field->max ?? ($min + 1000);
+            $fakerType = str_replace('randomNumber()', "numberBetween({$min}, {$max})", $fakerType);
+        }
+
+        if (in_array($field->type, [FieldType::FLOAT, FieldType::DOUBLE, FieldType::DECIMAL])) {
+            $min = $field->min ?? 0;
+            $max = $field->max ?? $min + 1000;
+            $fakerType = str_replace('randomFloat()', "randomFloat(2, {$min}, {$max})", $fakerType);
+        }
+
+        if ($field->type === FieldType::DATE) {
+            $min = $field->min ?? 'now';
+            $max = $field->max ?? '+1 year';
+            $fakerType = str_replace('date()', "dateTimeBetween('{$min}', '{$max}')", $fakerType);
+        }
+
+        if ($field->type === FieldType::DATETIME) {
+            $min = $field->min ?? 'now';
+            $max = $field->max ?? '+1 year';
+            $fakerType = str_replace('dateTime()', "dateTimeBetween('{$min}', '{$max}')", $fakerType);
+        }
+
+        return $fakerType;
+    }
+
+    /**
      * If no FakerExtension is found, we can try to guess the best method based on field name and type.
      */
     public function guessFakerMethod(\Faker\Generator $faker, Field $field): string
     {
-
         $name = mb_strtolower($field->name);
         $mapFromConfig = config('magic.faker_mappings', []);
         $mapFromJsonConfig = $this->context->getConfig()->app->fakerMappings ?? [];
@@ -180,333 +462,4 @@ class GenerateSeedersAction implements DescribableAction
         return $fallbackValue;
     }
 
-    /**
-     * Generate a model class for the given entity.
-     */
-    protected function generateFactory(Entity $entity): void
-    {
-        $entityName = $entity->getName();
-
-        $className = $entityName.'Factory';
-        $namespace = 'Database\Factories';
-
-        $fakerFields = $this->buildFakerFields($entity);
-
-        $stub = <<<PHP
-        <?php
-
-        namespace $namespace;
-
-        use App\Models\\$entityName;
-        use Illuminate\Database\Eloquent\Factories\Factory;
-
-        class $className extends Factory
-        {
-            protected \$model = $entityName::class;
-
-            public function definition(): array
-            {
-                return [
-        $fakerFields
-                ];
-            }
-
-            /**
-             * Indicate that the model's email address should be unverified.
-             */
-            public function unverified(): static
-            {
-                return \$this->state(fn (array \$attributes) => [
-                    'email_verified_at' => null,
-                ]);
-            }
-        }
-        PHP;
-
-        $path = database_path("factories/{$className}.php");
-        app(GenerateFileAction::class)($path, $stub);
-        $this->context->registerGeneratedFile($path);
-    }
-
-    /**
-     * Generate a seeder class for the given entity.
-     */
-    protected function generateSeeder(Entity $entity): void
-    {
-        $entityName = $entity->getName();
-        $seedCount = $this->context->getConfig()->app->seedCount;
-        $className = $entityName.'Seeder';
-        $namespace = 'Database\Seeders';
-
-        $hasManyLines = [];
-        $pivotLines = [];
-
-        foreach ($entity->getRelations() as $relation) {
-            if ($relation->isHasMany()) {
-                // Generate hasMany relation seeder code
-            }
-
-            if ($relation->isBelongsToMany()) {
-                // Generate belongsToMany relation seeder code
-            }
-        }
-
-        $relationsCode = implode("\n\n", array_merge($hasManyLines, $pivotLines));
-
-        $stub = <<<PHP
-<?php
-
-namespace $namespace;
-
-use Illuminate\Database\Seeder;
-use App\Models\\$entityName;
-
-class $className extends Seeder
-{
-    public function run(): void
-    {
-        \$items = $entityName::factory()->count({$seedCount})->create();
-
-$relationsCode
-    }
-}
-PHP;
-
-        $path = $this->seedersPath."/{$className}.php";
-        app(GenerateFileAction::class)($path, $stub);
-        $this->context->registerGeneratedFile($path);
-
-        // Log the seeder creation
-        $pathRelative = str_replace($this->seedersPath.'/', '', $path);
-        Log::channel('magic')->info("Seeder created: {$pathRelative}");
-
-        // Insert call to DatabaseSeeder
-        $this->insertSeederCall($className);
-
-        // Generate pivot seeders for belongsToMany
-        foreach ($entity->getRelations() as $relation) {
-            if ($relation->requiresPivotTable()) {
-                $this->generatePivotSeeder($entity, $relation);
-            }
-        }
-    }
-
-    /**
-     * Generate a seeder for belongsToMany pivot tables
-     */
-    protected function generatePivotSeeder(Entity $entity, Relation $relation): void
-    {
-
-        $pivotTable = $relation->getPivotName();
-        $seedCount = $this->context->getConfig()->app->seedCount;
-
-        // Skip if we already generated this pivot table seeder
-        if (in_array($pivotTable, $this->generatedPivotSeeders)) {
-            return;
-        }
-
-        $this->generatedPivotSeeders[] = $pivotTable;
-
-        $entityName = $entity->getName();
-        $relatedEntity = $relation->getRelatedEntityName();
-        $relationMethod = $relation->getRelationName();
-
-        $seederClass = Str::studly($pivotTable).'PivotSeeder';
-        $namespace = 'Database\Seeders';
-
-        $stub = <<<PHP
-<?php
-
-namespace $namespace;
-
-use Illuminate\Database\Seeder;
-use App\Models\\$entityName;
-use App\Models\\$relatedEntity;
-
-class $seederClass extends Seeder
-{
-    public function run(): void
-    {
-        \$items = $entityName::all();
-        \$relatedItems = $relatedEntity::all();
-
-        foreach (\$items as \$item) {
-            \$item->{$relationMethod}()->attach(
-                \$relatedItems->random(rand(1, {$seedCount}))->pluck('id')->toArray()
-            );
-        }
-    }
-}
-PHP;
-
-        $path = $this->seedersPath."/{$seederClass}.php";
-        app(GenerateFileAction::class)($path, $stub);
-        $this->context->registerGeneratedFile($path);
-
-        // Log the pivot seeder creation
-        $pathRelative = str_replace($this->seedersPath.'/', '', $path);
-        Log::channel('magic')->info("Pivot seeder created: {$pathRelative}");
-
-        // Append pivot seeder call at the **end** of DatabaseSeeder
-        $filePath = $this->seedersPath.'/DatabaseSeeder.php';
-        $this->codeHelper->appendCodeBlock(
-            $filePath,
-            'run',
-            [
-                "// Pivot seeder for {$entityName} <-> {$relatedEntity}",
-                "\$this->call({$seederClass}::class);",
-            ],
-            'pivot_seeders'
-        );
-    }
-
-    /**
-     * Guess the Faker type based on the field type.
-     */
-    protected function buildFakerFields(Entity $entity): string
-    {
-        $lines = [];
-        $typesNotForFaker = [FieldType::JSON, FieldType::JSONB, FieldType::FILE];
-        $modelPresets = config('magic.model_presets', []);
-
-        Log::channel('magic')->info("Building Faker fields for entity: {$entity->getName()}");
-        if (isset($modelPresets[$entity->getName()])) {
-            Log::channel('magic')->info("Using model preset for entity: {$entity->getName()}");
-            $preset = $modelPresets[$entity->getName()]['default_fields'];
-            if (is_array($preset)) {
-                foreach ($preset as $fieldName => $presetValue) {
-                    $entity->addFieldIfNotExists($presetValue);
-                }
-            }
-        }
-
-        foreach ($entity->getFields() as $field) {
-
-            if (in_array($field->name, ['id', 'created_at', 'updated_at', 'deleted_at'])) {
-                continue;
-            }
-
-            Log::channel('magic')->info("Processing field: {$field->name} of type {$field->type->value}");
-
-            // Check if field is a belongsTo relation
-            /** @var Relation|null $belongsTo */
-            $belongsTo = collect($entity->getRelations())
-                ->first(fn ($rel) => $rel->isBelongsTo() && $rel->getForeignKey() === $field->name);
-
-            if ($belongsTo) {
-                $relatedEntity = $belongsTo->getRelatedEntityName();
-                $lines[] = "            '{$field->name}' => \\App\\Models\\{$relatedEntity}::inRandomOrder()->first()?->id ?? \\App\\Models\\{$relatedEntity}::factory(),";
-
-                continue;
-            }
-
-            // Check for available Faker extensions
-            $fakerExtension = FakerExtension::getExtensionByField($field);
-            if ($fakerExtension) {
-                Log::channel('magic')->info("Using Faker extension for field '{$field->name}' in entity '{$entity->getName()}'");
-                $lines[] = "            '{$field->name}' => {$fakerExtension->handle(Factory::create())},";
-
-                continue;
-            }
-
-            // Skip fields that are not suitable for Faker
-            if (in_array($field->type, $typesNotForFaker)) {
-                Log::channel('magic')->warning("Field '{$field->name}' of type '{$field->type->value}' is not suitable for Faker. Skipping.");
-                $lines[] = "            '{$field->name}' => null, // Not suitable for Faker";
-
-                continue;
-            }
-
-            $fakerType = $this->guessFakerType($field);
-            $finalMethodCode = $this->ensureChecksInFakerType($fakerType, $field);
-
-            $lines[] = "            '{$field->name}' => \$this->faker->{$finalMethodCode},";
-        }
-
-        return implode("\n", $lines);
-    }
-
-    /**
-     * Guess the Faker type based on the field type and name.
-     */
-    protected function guessFakerType(Field $field): string
-    {
-        return $this->guessFakerMethod(Factory::create(), $field);
-    }
-
-    /**
-     * Insert a call to the seeder in the DatabaseSeeder class.
-     */
-    private function insertSeederCall($seederClass): void
-    {
-
-        $filePath = $this->seedersPath.'/DatabaseSeeder.php';
-
-        $this->codeHelper->appendCodeBlock(
-            $filePath,
-            'run',
-            [
-                "// Call the {$seederClass} seeder",
-                "\$this->call({$seederClass}::class);",
-            ],
-            'seeders',
-        );
-    }
-
-    /**
-     * Generate the seeder for creating an admin user.
-     */
-    private function generateAdminUserSeeder(): void
-    {
-        // Generate creating of admin user
-        $this->codeHelper->appendCodeBlock(
-            $this->seedersPath.'/DatabaseSeeder.php',
-            'run',
-            [
-                '// Create admin user',
-                "User::factory()->create(['name' => 'Admin User', 'email' => 'admin@example.com', 'password' => bcrypt('password')]);",
-            ],
-            'seeders'
-        );
-    }
-
-    /**
-     * Ensure the Faker type is valid and add any necessary checks.
-     */
-    private function ensureChecksInFakerType(string $fakerType, Field $field): string
-    {
-        // Numeric integer types
-        if ($field->isNumeric()) {
-            $min = $field->min ?? 0;
-            $max = $field->max ?? ($min + 1000); // fallback if max not defined
-
-            Log::channel('magic')->info("Ensuring numeric range for field '{$field->name}': min={$min}, max={$max}");
-            $field->debugLog();
-
-            $fakerType = str_replace('randomNumber()', "numberBetween({$min}, {$max})", $fakerType);
-        }
-
-        // Float / decimal types
-        if (in_array($field->type, [FieldType::FLOAT, FieldType::DOUBLE, FieldType::DECIMAL])) {
-            $min = $field->min ?? 0;
-            $max = $field->max ?? $min + 1000;
-            $fakerType = str_replace('randomFloat()', "randomFloat(2, {$min}, {$max})", $fakerType);
-        }
-
-        // Date types
-        if ($field->type === FieldType::DATE) {
-            $min = $field->min ?? 0;
-            $max = $field->max ?? '+1 year';
-            $fakerType = str_replace('date()', "dateTimeBetween('{$min}', '{$max}')", $fakerType);
-        }
-
-        // Datetime types
-        if ($field->type === FieldType::DATETIME) {
-            $min = $field->min ?? 'now';
-            $max = $field->max ?? '+1 year';
-            $fakerType = str_replace('dateTime()', "dateTimeBetween('{$min}', '{$max}')", $fakerType);
-        }
-
-        return $fakerType;
-    }
 }

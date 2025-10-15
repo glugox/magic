@@ -100,7 +100,13 @@ class GenerateApiResourcesAction implements DescribableAction
 
         // Build lines for relations
         $relationsLines = [];
-        foreach ($entity->getRelations(RelationType::BELONGS_TO) as $relation) {
+        foreach ($entity->getRelations() as $relation) {
+
+            // Only include HAS_ONE and HAS_MANY relations for now
+            if (! in_array($relation->getType(), [RelationType::BELONGS_TO, RelationType::HAS_ONE])) {
+                continue;
+            }
+
             $relatedEntity = $relation->getRelatedEntity();
             $relatedResourceClass = Str::studly(Str::singular($relatedEntity->getName())).'Resource';
             $relationsLines[] = "            '{$relation->getRelationName()}' => new {$relatedResourceClass}(\$this->whenLoaded('{$relation->getRelationName()}')),";

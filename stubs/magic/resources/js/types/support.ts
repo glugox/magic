@@ -27,6 +27,16 @@ export interface EnumFieldOption {
     label: string
 }
 
+export interface FieldContexts {
+    table?: boolean
+    form?: boolean
+    view?: boolean
+    card?: boolean
+    export?: boolean
+    //filter?: boolean // Filters are handled separately
+}
+
+
 export interface Field {
     name: string
     type: FieldType
@@ -43,10 +53,12 @@ export interface Field {
     sortable?: boolean
     searchable?: boolean
     options?: EnumFieldOption[] | null
+    table?: boolean
     hidden?: boolean
     component?: string | null
     min?: number | null
     max?: number | null
+    contexts?: FieldContexts
 }
 
 export interface Relation {
@@ -127,7 +139,8 @@ export interface Entity {
     inertiaComponent: string
     fields: Field[]
     relations: Relation[],
-    filters?: Filter[]
+    filters?: Filter[],
+    nameValueGetter?: (item: ResourceData) => string
 }
 
 export interface ResourceData {

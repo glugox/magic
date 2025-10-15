@@ -143,7 +143,7 @@ class PublishFilesAction implements DescribableAction
             $controllersImportStr = implode("\n", $ctrImportsArr)."\n";
         }
 
-        $content .= "import {Entity} from '@/types/support';\n\n";
+        $content .= "import {Entity, ResourceData} from '@/types/support';\n\n";
         $content .= $controllersImportStr;
 
         $content .= "let entities: Entity[] = [];\n\n";
@@ -190,7 +190,8 @@ const {$entityVar}Entity: Entity = {
         {$fieldsMeta}
     ],
     relations: [],
-    filters: []
+    filters: [],
+    nameValueGetter: (entity: ResourceData) => entity.{$entity->getMainFieldName()},
 };
 entities.push({$entityVar}Entity);
 

@@ -19,8 +19,8 @@
                 { "name": "active", "type": "boolean", "default": true }
             ],
             "relations": [
-                { "type": "hasMany", "relatedEntityName": "Order"},
-                { "type": "hasMany", "relatedEntityName": "Shipment" },
+                { "type": "hasMany", "relatedEntityName": "Order", "cascade": true },
+                { "type": "hasMany", "relatedEntityName": "Shipment", "cascade": true },
                 { "type": "hasMany", "relatedEntityName": "Warehouse" },
                 { "type": "belongsToMany", "relatedEntityName": "Role", "pivot": "role_user" }
             ],
@@ -88,11 +88,11 @@
             ],
             "relations": [
                 { "type": "belongsToMany", "relatedEntityName": "Category", "pivot": "category_product" },
-                { "type": "hasMany", "relatedEntityName": "OrderItem" }
+                { "type": "hasMany", "relatedEntityName": "OrderItem", "cascade": true }
             ],
             "filters": [
                 { "field": "name", "type": "text" },
-                { "field": "sku", "type": "text" },
+                { "field": "sku", "type": "text", "indexed": true },
                 { "field": "status", "type": "enum" },
                 { "field": "price", "type": "range" },
                 { "field": "weight", "type": "range" },
@@ -114,8 +114,8 @@
                 { "name": "placed_at", "type": "dateTime" }
             ],
             "relations": [
-                { "type": "hasMany", "relatedEntityName": "OrderItem" },
-                { "type": "hasOne", "relatedEntityName": "Shipment" }
+                { "type": "hasMany", "relatedEntityName": "OrderItem", "cascade": true },
+                { "type": "hasOne", "relatedEntityName": "Shipment", "cascade": true }
             ],
             "filters": [
                 { "field": "user_id", "type": "belongs_to", "relatedEntityName": "User", "label": "Customer" },
@@ -152,7 +152,7 @@
                 { "name": "carrier", "type": "string", "nullable": true }
             ],
             "relations": [
-                { "type": "hasOne", "relatedEntityName": "CarrierDetail" }
+                { "type": "hasOne", "relatedEntityName": "CarrierDetail", "cascade": true }
             ],
             "filters": [
                 { "field": "shipped_at", "type": "date_range" },

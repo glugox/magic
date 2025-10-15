@@ -9,6 +9,7 @@ use Glugox\Magic\Helpers\StubHelper;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Config\FieldType;
+use Glugox\Magic\Support\Config\RelationType;
 use Glugox\Magic\Support\File\FilesGenerationUpdate;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Illuminate\Support\Facades\File;
@@ -62,10 +63,12 @@ class GenerateMigrationForEntityAction implements DescribableAction
             ]);
         } else {
             $columnsCode = $this->buildColumnsCode($entity);
+            $indexesCode = $this->buildIndexesCode($entity);
             $dbStatements = $this->buildDbStatements($entity);
             $template = StubHelper::loadStub('migration/create.stub', [
                 'tableName' => $tableName,
                 'columnsCode' => $columnsCode,
+                'indexesCode' => $indexesCode,  // this is the new unique/index code
                 'dbStatements' => $dbStatements,
             ]);
         }
@@ -162,6 +165,74 @@ PHP;
             $codeLines[] = '            $table->timestamps();';
         }
 
+        // Unique constraints for fields marked as unique
+
+        // Add comment about unique constraints for belongsTo fields with HasOne inverse
+        /*$codeLines[] = '            // Unique constraints for belongsTo fields with HasOne inverse';
+
+        foreach ($entity->getFields() as $field) {
+            if ($field->belongsTo()) {
+                $relation = $field->belongsTo();
+
+                // Inverse check
+                $inverseRelation = $relation->getInverseRelation();
+                // if inverse is HasOne, we want unique constraint
+                if ($inverseRelation && $inverseRelation->getType() === RelationType::HAS_ONE) {
+                    $codeLines[] = "            \$table->unique('{$field->name}');";
+                }
+            }
+        }*/
+
+        return implode("\n", $codeLines);
+    }
+
+    /**
+     * @param Entity $entity
+     * @return string Code for indexes and unique constraints
+     *
+     * Example output:
+     *             // Unique constraints for fields marked as unique
+     *             $table->unique('email');
+     *             // Unique constraints for belongsTo fields with HasOne inverse
+     *             $table->unique('profile_id');
+     *             // Indexes for fields marked as indexed
+     *             $table->index('last_name');
+     *             $table->index('created_at');
+     */
+    protected function buildIndexesCode(Entity $entity): string
+    {
+        $codeLines = [];
+        // Unique constraints for fields marked as unique
+        $codeLines[] = '            // Unique constraints for fields marked as unique';
+        foreach ($entity->getFields() as $field) {
+            if ($field->unique) {
+                $codeLines[] = "            \$table->unique('{$field->name}');";
+            }
+        }
+
+        // Unique constraints for belongsTo fields with HasOne inverse
+        $codeLines[] = '            // Unique constraints for belongsTo fields with HasOne inverse';
+        foreach ($entity->getFields() as $field) {
+            if ($field->belongsTo()) {
+                $relation = $field->belongsTo();
+
+                // Inverse check
+                $inverseRelation = $relation->getInverseRelation();
+                // if inverse is HasOne, we want unique constraint
+                if ($inverseRelation && $inverseRelation->getType() === RelationType::HAS_ONE) {
+                    $codeLines[] = "            \$table->unique('{$field->name}');";
+                }
+            }
+        }
+
+        // Indexes for fields marked as indexed
+        $codeLines[] = '            // Indexes for fields marked as indexed';
+        foreach ($entity->getFields() as $field) {
+            if ($field->indexed) {
+                $codeLines[] = "            \$table->index('{$field->name}');";
+            }
+        }
+
         return implode("\n", $codeLines);
     }
 
@@ -173,6 +244,7 @@ PHP;
         $line = '';
         $migrationType = $field->migrationType();
         $name = $field->name;
+        $makeUnique = false;
 
         // Start building the line
         $args = $field->migrationArgs();
@@ -198,8 +270,22 @@ PHP;
 
         // If the field is a foreign key, add the foreign key constraint
         if ($field->belongsTo()) {
-            $relatedTable = $field->belongsTo()->getRelatedEntity()->getTableName();
-            $line .= "->constrained('{$relatedTable}')->cascadeOnDelete()";
+            $relation = $field->belongsTo();
+            $relatedTable = $relation->getRelatedEntity()->getTableName();
+
+            $line .= "->constrained('{$relatedTable}')";
+
+            // Inverse check
+            $inverseRelation = $relation->getInverseRelation();
+            // if inverse is HasOne, we want unique constraint
+            if ($inverseRelation && $inverseRelation->getType() === RelationType::HAS_ONE) {
+                //$line .= '->unique()';
+                $makeUnique = true;
+            }
+            // If inverse is hasOne or hasMany, we add cascade on delete
+            if ($inverseRelation && $inverseRelation->cascade) {
+                $line .= '->cascadeOnDelete()';
+            }
         }
 
         // Return main line

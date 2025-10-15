@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import {computed, ref, watch} from 'vue'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Combobox, ComboboxAnchor, ComboboxEmpty, ComboboxGroup, ComboboxInput, ComboboxItem, ComboboxItemIndicator, ComboboxList, ComboboxSeparator, ComboboxTrigger } from '@/components/ui/combobox'
@@ -32,9 +32,10 @@ const { options, selectedOption, searchQuery, isLoading } = useBelongsToOptions(
         relatedEntityName: relationEntityName,
         foreignKey: relationApiPath
     },
-    initialId: props.modelValue ? String(props.modelValue) : null,
+    initialId: computed(() => props.modelValue ? String(props.modelValue) : null),
     autoRefreshOnCreate: true,
 })
+
 
 // Local model for v-model binding
 const model = ref<string | null>(props.modelValue ? String(props.modelValue) : null)

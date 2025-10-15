@@ -54,12 +54,17 @@ class Field
         public bool $main = false,         // is this a main field, that is used for example to open the entity record when clicked on?
         public bool $showInTable = true,     // show in table views
         public bool $showInForm = true,      // show in forms
+        public bool $showInView = true, // show in detailed view
+        public bool $showInCard = true,
+
         public bool $hidden = false,      // hidden field, not shown in forms or tables
         /** @var EnumFieldOption[] Allowed enum/options */
         public array $options = [],
         public ?int $min = null,
         public ?int $max = null,
         public ?Relation $relation = null,
+        public ?bool $unique = false,
+        public ?bool $indexed = false,
     ) {
         // Validate min/max values
         // $this->min = max(0.0, $this->min);
@@ -89,7 +94,9 @@ class Field
      *       string|array<string, string>
      *     },
      *     min?: int,
-     *     max?: int
+     *     max?: int,
+     *     unique?: bool,
+     *     indexed?: bool,
      * } $data
      */
     public static function fromConfig(array $data, ?Entity $entity = null): self
@@ -113,10 +120,14 @@ class Field
             main: $data['main'] ?? false,
             showInTable: $data['showInTable'] ?? true,
             showInForm: $data['showInForm'] ?? true,
+            showInView: $data['showInView'] ?? true,
+            showInCard: $data['showInCard'] ?? true,
             options: EnumFieldOptionsParser::parse($data['options'] ?? []),
             min: $data['min'] ?? null,
             max: $data['max'] ?? null,
             relation: null,
+            unique: $data['unique'] ?? false,
+            indexed: $data['indexed'] ?? false,
         );
     }
 

@@ -41,7 +41,8 @@ class Entity
      *         foreignKey?: string,
      *         localKey?: string,
      *         relatedKey?: string,
-     *         relationName?: string
+     *         relationName?: string,
+     *         cascade?: bool
      *     }>,
      *     filters?: array<string, array{
      *         type: string,
@@ -77,7 +78,8 @@ class Entity
          *         foreignKey?: string,
          *         localKey?: string,
          *         relatedKey?: string,
-         *         relationName?: string
+         *         relationName?: string,
+         *         cascade?: bool
          *     }>,
          *     filters?: array<string, array{
          *         type: string,
@@ -104,7 +106,8 @@ class Entity
                 foreignKey: $relationData['foreignKey'] ?? null,
                 localKey: $relationData['localKey'] ?? null,
                 relatedKey: $relationData['relatedKey'] ?? null,
-                relationName: $relationData['relationName'] ?? null
+                relationName: $relationData['relationName'] ?? null,
+                cascade: $relationData['cascade'] ?? false
             );
 
             // Add the relation to the entity
@@ -175,6 +178,12 @@ class Entity
     public function getName(): string
     {
         return $this->name;
+    }
+
+    public function getMainFieldName()
+    {
+        $mainField = $this->getPrimaryNameField();
+        return $mainField ? $mainField->name : 'name';
     }
 
     /**
@@ -659,10 +668,37 @@ class Entity
 
     /**
      * Get the primary name field of the entity.
+     * Tries: main field, then "name", then "title", then first string field, else null.
      */
     public function getPrimaryNameField(): ?Field
     {
-        return array_find(($this->fields ?? []), fn ($field) => $field->isMain());
+        // 1. Main field
+        $main = array_find(($this->fields ?? []), fn ($field) => $field->isMain());
+        if ($main) {
+            return $main;
+        }
+
+        // 2. Field named "name"
+        $nameField = $this->getFieldByName('name');
+        if ($nameField) {
+            return $nameField;
+        }
+
+        // 3. Field named "title"
+        $titleField = $this->getFieldByName('title');
+        if ($titleField) {
+            return $titleField;
+        }
+
+        // 4. First string-like field
+        foreach (($this->fields ?? []) as $field) {
+            if (in_array($field->type, [FieldType::STRING, FieldType::TEXT, FieldType::CHAR, FieldType::EMAIL], true)) {
+                return $field;
+            }
+        }
+
+        // 5. No suitable field found
+        return null;
     }
 
     /**
@@ -1077,6 +1113,7 @@ class Entity
             // ID field should be by default hidden in forms
             if ($field->name === 'id') {
                 $field->hidden = true;
+                //$field->showInCard = false;
             }
         }
     }

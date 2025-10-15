@@ -253,6 +253,9 @@ class TsHelper
             'searchable' => false,
             'options' => [],
             'hidden' => false,
+            /** Visibility control for various UIs (fallbacks to all if omitted) */
+            //visibleIn?: ('table' | 'form' | 'card')[];
+            "contexts" => [ "table" => true, "form" => true, "view" => true, "card" => true ]
         ];
 
         // Get rules as strings
@@ -289,6 +292,12 @@ class TsHelper
             'searchable' => $field->searchable ? 'true' : 'false',
             'options' => $this->writeValue($field->options ?? []),
             'hidden' => $field->hidden ? 'true' : 'false',
+            'contexts' => [
+                'table' => $field->showInTable ? 'true' : 'false',
+                'form' => $field->showInForm ? 'true' : 'false',
+                'view' => $field->showInView ? 'true' : 'false',
+                'card' => $field->showInCard ? 'true' : 'false',
+            ]
         ];
 
         foreach ($props as $key => $value) {
@@ -297,6 +306,16 @@ class TsHelper
                 if ($key === 'options' && $value === '[]') {
                     continue;
                 }
+
+                // Check if value is array
+                if (is_array($value)) {
+                    $arrayItems = [];
+                    foreach ($value as $k => $v) {
+                        $arrayItems[] = "$k: $v";
+                    }
+                    $value = "{ ".implode(', ', $arrayItems)." }";
+                }
+
                 $lines[] = "$key: $value";
             }
         }

@@ -1,7 +1,7 @@
-import { onMounted, onUnmounted, ref } from "vue"
+import {onMounted, onUnmounted, ref, watch, unref, Ref} from "vue"
 import { useApi } from "@/composables/useApi"
 import { useEntityEvents } from "@/composables/useEntityEvents"
-import {PaginatedResponse} from "@/types/support";
+import { PaginatedResponse } from "@/types/support"
 
 export interface BelongsToOptionsConfig {
     relationMetadata: {
@@ -9,18 +9,12 @@ export interface BelongsToOptionsConfig {
         relatedEntityName: string
         foreignKey?: string
     }
-    initialId?: string | null
+    initialId?: string | null | Ref<string | null>
     normalize?: (data: any) => any
     autoRefreshOnCreate?: boolean
     searchLimit?: number
 }
 
-/**
- * Composable to manage options for a belongs-to relationship with search and pagination.
- *
- * @param cfg Configuration for the belongs-to options.
- * @returns Reactive references and methods to manage the options.
- */
 export function useBelongsToOptions(cfg: BelongsToOptionsConfig) {
     const { get } = useApi()
     const { on, off } = useEntityEvents()
@@ -35,13 +29,12 @@ export function useBelongsToOptions(cfg: BelongsToOptionsConfig) {
     const normalize = cfg.normalize ?? ((d: any) => ({ ...d, id: String(d.id) }))
     const limit = cfg.searchLimit ?? 15
 
-    /** Fetch page (append or replace) */
+    const initialId = ref(unref(cfg.initialId) ?? null)
+
     const fetchOptions = async (query = "", append = false) => {
         if (isLoading.value || (!hasMore.value && append)) return
         isLoading.value = true
-
         try {
-
             const res = await get(`/${cfg.relationMetadata.apiPath}`, {
                 search: query,
                 limit: String(limit),
@@ -50,18 +43,10 @@ export function useBelongsToOptions(cfg: BelongsToOptionsConfig) {
 
             const totalItems = res?.meta?.total ?? 0
             const data = ((res?.data ?? []) ?? []).map(normalize)
-
-            // Append or replace options
             options.value = append ? [...options.value, ...data] : data
-
-            // Determine if more pages are available
             hasMore.value = totalItems > options.value.length
 
-            // Keep selected visible
-            if (
-                selectedOption.value &&
-                !options.value.find(o => o.id === selectedOption.value.id)
-            ) {
+            if (selectedOption.value && !options.value.find(o => o.id === selectedOption.value.id)) {
                 options.value.unshift(selectedOption.value)
             }
         } finally {
@@ -69,27 +54,23 @@ export function useBelongsToOptions(cfg: BelongsToOptionsConfig) {
         }
     }
 
-    /** Reload from page 1 */
     const reloadOptions = async (query = "") => {
         page.value = 1
         hasMore.value = true
         await fetchOptions(query, false)
     }
 
-    /** Load next page */
     const loadMore = async () => {
         if (isLoading.value || !hasMore.value) return
         page.value++
         await fetchOptions(searchQuery.value, true)
     }
 
-    /**
-     * Fetch and set the initially selected option based on initialId.
-     */
-    const fetchSelected = async () => {
-        if (!cfg.initialId) return
+    const fetchSelected = async (id?: string | null) => {
+        const currentId = id ?? initialId.value
+        if (!currentId) return
         try {
-            const res = await get(`/${cfg.relationMetadata.apiPath}/${cfg.initialId}`)
+            const res = await get(`/${cfg.relationMetadata.apiPath}/${currentId}`)
             const record = res?.data ?? res
             if (record) {
                 selectedOption.value = normalize(record)
@@ -98,15 +79,12 @@ export function useBelongsToOptions(cfg: BelongsToOptionsConfig) {
                 }
             }
         } catch (e) {
-            console.error(e)
+            console.error("Failed to fetch selected record", e)
         }
     }
 
-    // Entity bus refresh
     const busHandler = (payload: { entity: string; record: any }) => {
-        if (payload.entity === cfg.relationMetadata.relatedEntityName) {
-            reloadOptions()
-        }
+        if (payload.entity === cfg.relationMetadata.relatedEntityName) reloadOptions()
     }
 
     onMounted(async () => {
@@ -118,6 +96,20 @@ export function useBelongsToOptions(cfg: BelongsToOptionsConfig) {
     onUnmounted(() => {
         if (cfg.autoRefreshOnCreate) off("created", busHandler)
     })
+
+    // 👇 Watch initialId (reactive support)
+    watch(
+        () => unref(cfg.initialId),
+        async (newId, oldId) => {
+            if (newId && newId !== oldId) {
+                initialId.value = newId
+                await fetchSelected(newId)
+            } else if (!newId) {
+                selectedOption.value = null
+            }
+        },
+        { immediate: false }
+    )
 
     const searchOptions = async (term: string) => {
         searchQuery.value = term

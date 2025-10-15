@@ -2,6 +2,7 @@
 import {DbId, Entity, ResourceData} from "@/types/support";
 import {useEntityLoader} from "@/composables/useEntityLoader";
 import {computed} from "vue";
+import ViewFieldRenderer from "@/components/resource/ViewFieldRenderer.vue";
 
 const props = defineProps<{
     entity: Entity,
@@ -22,12 +23,15 @@ const exists = computed(() => !!record.value && Object.keys(recordData.value).le
 <template>
     <div v-if="exists" class="p-4 border rounded-lg shadow-sm">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div v-for="field in entity.fields" :key="field.name" class="space-y-1">
-                <div class="text-sm text-muted-foreground font-medium">{{ field.label || field.name }}</div>
-                <div class="text-sm font-bold">
-                    {{ recordData[field.name] !== undefined ? recordData[field.name] : 'N/A' }}
+
+            <template v-for="field in entity.fields" :key="field.name">
+                <div v-if="field.contexts?.card" class="space-y-1">
+                    <div class="text-sm text-muted-foreground font-medium">{{ field.label || field.name }}</div>
+                    <div class="text-sm font-bold">
+                        <ViewFieldRenderer :field="field" :entity="entity" :item="recordData" />
+                    </div>
                 </div>
-            </div>
+            </template>
         </div>
     </div>
     <div v-else>
