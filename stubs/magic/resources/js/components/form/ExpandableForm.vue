@@ -49,6 +49,7 @@
                     :item="item"
                     :json-mode="true"
                     :close-on-submit="false"
+                    :force-load="forceLoad"
                 />
             </div>
         </Transition>

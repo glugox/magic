@@ -54,7 +54,9 @@ const relatedId = computed<DbId | null>(() =>
         :entity="entity"
         :parent-entity="parentEntity"
         :id="relatedId"
+        :item="relatedData"
         :allow-expand="!!parentId"
+        :force-load="true"
         :jsonMode="true"
     >
         <template #field  >

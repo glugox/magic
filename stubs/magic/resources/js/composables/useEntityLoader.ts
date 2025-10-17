@@ -29,6 +29,7 @@ export function useEntityLoader(props: ResourceBaseProps, form?: InertiaForm<Res
 
     const shouldLoadById = computed(() => {
         if (!id.value) return false;
+        if (props.forceLoad) return true; // Must come after id check
         if (!props.item) return true;
         const keys = Object.keys(props.item);
         return keys.length === 1 && keys[0] === "id";

@@ -46,6 +46,7 @@ const { record, loading, error, load, localId } = useEntityLoader({
     entity: props.entity,
     id: props.id,
     item: props.item,
+    forceLoad: props.forceLoad,
 }, form);
 
 // Context: URLs, action type

@@ -100,6 +100,7 @@ export interface ResourceBaseProps {
     id?: DbId | Ref<DbId> | null
     item?: ResourceData
     entity: Entity
+    forceLoad?: boolean
 }
 
 export interface ResourceFormProps extends ResourceBaseProps {
