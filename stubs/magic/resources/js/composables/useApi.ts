@@ -1,70 +1,92 @@
-import { ref } from 'vue'
+import {ApiResponse} from '@/types/support'
 
 export const useApi = () => {
     const baseURL = import.meta.env.VITE_API_BASE_URL || '/api'
 
-    const request = async (endpoint: string, options: RequestInit = {}) => {
-        const url = `${baseURL}${endpoint}`
+    const request = async <T = any>(
+        endpoint: string,
+        options: RequestInit = {}
+    ): Promise<ApiResponse<T>> => {
 
-        const response = await fetch(url, {
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers,
-            },
-            ...options,
-        })
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`)
+        // Development only, delay for 1s to simulate network latency
+        if (import.meta.env.DEV) {
+            await new Promise((resolve) => setTimeout(resolve, 250))
         }
 
-        return response.json()
+        const url = `${baseURL}${endpoint}`
+
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    ...options.headers,
+                },
+                ...options,
+            })
+
+            const contentType = response.headers.get('content-type')
+            const json = contentType?.includes('application/json')
+                ? await response.json().catch(() => null)
+                : null
+
+            return json as ApiResponse<T>
+        } catch (error: any) {
+            return {
+                success: false,
+                status: 0,
+                message: error.message || 'Network error.',
+            }
+        }
     }
 
+    const getQueryString = (params?: Record<string, string>) =>
+        params ? `?${new URLSearchParams(params).toString()}` : ''
+
     return {
-        get: (endpoint: string, params?: Record<string, string>) => {
-            const queryString = params ? new URLSearchParams(params).toString() : ''
-            const url = queryString ? `${endpoint}?${queryString}` : endpoint
-            return request(url, { method: 'GET' })
-        },
-        // post with headers
-        post: (endpoint: string, body: Record<string, any>, headers: Record<string, string>) => {
-            return request(endpoint, {
+        get: <T = any>(endpoint: string, params?: Record<string, string>) =>
+            request<T>(`${endpoint}${getQueryString(params)}`, { method: 'GET' }),
+
+        post: <T = any>(
+            endpoint: string,
+            body?: Record<string, any>,
+            headers: Record<string, string> = {}
+        ) =>
+            request<T>(endpoint, {
                 method: 'POST',
-                headers: {
-                    ...headers,
-                },
-                body: JSON.stringify(body),
-            })
-        },
-        // put with headers
-        put: (endpoint: string, body: Record<string, any>, headers: Record<string, string>) => {
-            return request(endpoint, {
+                headers,
+                body: body ? JSON.stringify(body) : undefined,
+            }),
+
+        put: <T = any>(
+            endpoint: string,
+            body?: Record<string, any>,
+            headers: Record<string, string> = {}
+        ) =>
+            request<T>(endpoint, {
                 method: 'PUT',
-                headers: {
-                    ...headers,
-                },
-                body: JSON.stringify(body),
-            })
-        },
-        // patch with headers
-        patch: (endpoint: string, body: Record<string, any>, headers: Record<string, string>) => {
-            return request(endpoint, {
+                headers,
+                body: body ? JSON.stringify(body) : undefined,
+            }),
+
+        patch: <T = any>(
+            endpoint: string,
+            body?: Record<string, any>,
+            headers: Record<string, string> = {}
+        ) =>
+            request<T>(endpoint, {
                 method: 'PATCH',
-                headers: {
-                    ...headers,
-                },
-                body: JSON.stringify(body),
-            })
-        },
-        // delete with headers
-        delete: (endpoint: string, headers: Record<string, string>) => {
-            return request(endpoint, {
+                headers,
+                body: body ? JSON.stringify(body) : undefined,
+            }),
+
+        delete: <T = any>(
+            endpoint: string,
+            headers: Record<string, string> = {}
+        ) =>
+            request<T>(endpoint, {
                 method: 'DELETE',
-                headers: {
-                    ...headers,
-                },
-            })
-        },
+                headers,
+            }),
     }
 }

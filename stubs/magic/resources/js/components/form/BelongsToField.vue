@@ -59,6 +59,7 @@ const emitOpenRelatedForm = () => emit('openRelated', relationMetadata)
 </script>
 
 <template>
+
     <BaseField v-bind="props">
         <template #default>
             <select class="sr-only" :name="props.field.name" v-model="model" data-test="select-{{props.field.name}}">

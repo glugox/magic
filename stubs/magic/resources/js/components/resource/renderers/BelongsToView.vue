@@ -3,7 +3,7 @@ import type {DbId, Entity, Field, ResourceData} from '@/types/support'
 import {computed} from "vue";
 import {useEntityLoader} from "@/composables/useEntityLoader";
 
-const props = defineProps<{ field: Field; entity: Entity, value: DbId }>()
+const props = defineProps<{ field: Field; entity: Entity, value?: DbId | null }>()
 
 const relationMetadata = props.entity.relations.find(r => r.foreignKey === props.field.name)!
 

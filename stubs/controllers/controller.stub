@@ -53,7 +53,7 @@ class {{controllerClass}} extends Controller
         $data = $request->validated();
         $item = {{modelClass}}::create($data);
 
-        return redirect()->route(strtolower('{{routeName}}') . '.index')
+        return redirect()->route(strtolower('{{routeName}}') . '.edit', $item->id)
             ->with('success', '{{modelClass}} created successfully.');
     }
 
@@ -90,7 +90,7 @@ class {{controllerClass}} extends Controller
         $data = $request->validated();
         ${{modelClassCamel}}->update($data);
 
-        return redirect()->back()
+        return back()
             ->with('success', '{{modelClass}} updated successfully.');
     }
 
@@ -101,7 +101,7 @@ class {{controllerClass}} extends Controller
     {
         ${{modelClassCamel}}->delete();
 
-        return redirect()->route(strtolower('{{routeName}}') . '.index')
+        return back()
             ->with('success', '{{modelClass}} deleted successfully.');
     }
 

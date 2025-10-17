@@ -176,7 +176,8 @@ const { relation, controller, controllerName, formActionUrls } = useEntityContex
     props.entity,
     props.parentEntity,
     props.parentId,
-    props.item
+    props.item,
+    props.id
 )
 
 const controllerInfo = computed(() => {

@@ -8,6 +8,8 @@
             <div class="flex items-center justify-end w-full">
                 <Button
                     v-if="!expanded"
+                    :disabled="!allowExpand"
+                    type="button"
                     variant="outline"
                     size="sm"
                     class="flex shrink-0 text-xs h-8 px-2 justify-self-end"
@@ -26,10 +28,12 @@
         <Transition name="fade-expand">
             <div v-if="expanded" class="mt-3 border-t pt-3">
                 <div class="flex justify-between items-center mb-2">
-                    <h4 class="text-sm font-medium">
-                        New {{ entity?.singularName }} details
+                    <h4 class="text-xs font-semibold text-muted-foreground">
+                        {{title}}
                     </h4>
+
                     <Button
+                        type="button"
                         variant="ghost"
                         size="sm"
                         class="text-xs text-muted-foreground"
@@ -42,7 +46,9 @@
                 <ResourceForm
                     :entity="entity"
                     :id="id"
+                    :item="item"
                     :json-mode="true"
+                    :close-on-submit="false"
                 />
             </div>
         </Transition>
@@ -51,12 +57,14 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import {ResourceFormEmits, ResourceFormProps} from '@/types/support'
+import {ExpandableFormProps, ResourceFormEmits, ResourceFormProps} from '@/types/support'
 import { Button } from '@/components/ui/button'
 import ResourceForm from '@/components/ResourceForm.vue'
 
-const props = defineProps<ResourceFormProps>()
+const props = defineProps<ExpandableFormProps>()
 const emit = defineEmits<ResourceFormEmits>()
+
+const title = props.id ? `Edit ${props.entity.singularName}` : `Create ${props.entity.singularName}`
 
 const expanded = ref(false)
 </script>

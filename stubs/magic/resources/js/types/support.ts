@@ -1,4 +1,5 @@
 import {ColumnDef} from "@tanstack/vue-table";
+import {Ref} from "vue";
 
 export type CrudActionType = 'create' | 'read' | 'update' | 'delete';
 
@@ -96,7 +97,7 @@ export interface Filter {
 }
 
 export interface ResourceBaseProps {
-    id?: DbId | null
+    id?: DbId | Ref<DbId> | null
     item?: ResourceData
     entity: Entity
 }
@@ -106,6 +107,11 @@ export interface ResourceFormProps extends ResourceBaseProps {
     parentId?: DbId | null
     jsonMode?: boolean
     dialogMode?: boolean
+    closeOnSubmit?: boolean
+}
+
+export interface ExpandableFormProps extends ResourceFormProps {
+    allowExpand?: boolean
 }
 
 
@@ -232,6 +238,19 @@ export interface WayfinderRoute {
         [key: string]: any
     }
     [key: string]: any
+}
+
+/**
+ * Standard API response structure
+ * T is the type of the content payload
+ */
+export interface ApiResponse<T = any> {
+    content?: T
+    meta?: any
+    message?: string
+    success: boolean
+    errors?: Record<string, string[]>
+    status: number
 }
 
 export interface PaginationObject {

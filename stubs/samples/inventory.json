@@ -1,8 +1,8 @@
 {
     "app": {
         "name": "InventoryHub",
-        "seedEnabled": true,
-        "seedCount": 8,
+        "seedEnabled": false,
+        "seedCount": 0,
         "fakerMappings": {
             "carrier": "randomElement([\"FedEx\", \"UPS\", \"DHL\", \"USPS\"])"
         }

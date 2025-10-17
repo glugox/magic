@@ -24,7 +24,7 @@ class SetupDevelopmentEnvAction implements DescribableAction
         $this->logInvocation($this->describe()->name);
 
         // Eneble slow server for development purposes
-        // $this->enableSlowServer($context);
+        $this->enableSlowServer($context);
 
         // Enable Pest RefreshDatabase trait for browser tests
         $this->enablePestRefreshDatabase();

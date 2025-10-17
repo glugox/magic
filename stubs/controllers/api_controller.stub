@@ -6,16 +6,14 @@ use App\Http\Controllers\Controller;
 use Glugox\TableQuery\Services\TableQueryService;
 use {{modelClassFull}};
 use {{resourceClassFull}};
-use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 use Glugox\ModelMeta\Requests\MetaRequest;
+use App\Http\Responses\ApiResponse;
 
 /**
  * {{classDescription}}
  */
 class {{controllerClass}} extends Controller
 {
-
     /**
      * Display a listing of the resource.
      */
@@ -24,15 +22,23 @@ class {{controllerClass}} extends Controller
         $query = {{modelClass}}::query();
         $tableQueryService = TableQueryService::forModel({{modelClass}}::class);
 
-         // Apply table query (search, sort, filters)
-         $items = $tableQueryService->applyAll(
+        // Apply table query (search, sort, filters)
+        $items = $tableQueryService->applyAll(
             $query,
             $request->get('{{searchQueryString}}', ''),
             $request->get('sortKey'),
             $request->get('sortDir')
-         )->paginate();
+        )->paginate();
 
-        return {{resourceClass}}::collection($items)->response()->getData();
+        return ApiResponse::success(
+            content: {{resourceClass}}::collection($items)->response()->getData(),
+            meta: [
+                'total' => $items->total(),
+                'per_page' => $items->perPage(),
+                'current_page' => $items->currentPage(),
+            ],
+            message: '{{modelClassPlural}} retrieved successfully.'
+        );
     }
 
     /**
@@ -40,11 +46,12 @@ class {{controllerClass}} extends Controller
      */
     public function store(MetaRequest $request)
     {
-        $validated = $request->validated();
+        $item = {{modelClass}}::create($request->validated());
 
-        $item = {{modelClass}}::create($validated);
-
-        return new {{resourceClass}}($item);
+        return ApiResponse::success(
+            content: new {{resourceClass}}($item),
+            message: '{{modelClass}} created successfully.'
+        );
     }
 
     /**
@@ -52,7 +59,12 @@ class {{controllerClass}} extends Controller
      */
     public function show(MetaRequest $request, {{modelClass}} ${{modelClassCamel}})
     {
-        return new {{resourceClass}}(${{modelClassCamel}});
+        ${{modelClassCamel}}->load($request->meta()->relationsNames());
+
+        return ApiResponse::success(
+            content: new {{resourceClass}}(${{modelClassCamel}}),
+            message: '{{modelClass}} retrieved successfully.'
+        );
     }
 
     /**
@@ -60,11 +72,12 @@ class {{controllerClass}} extends Controller
      */
     public function update(MetaRequest $request, {{modelClass}} ${{modelClassCamel}})
     {
-        $validated = $request->validated();
+        ${{modelClassCamel}}->update($request->validated());
 
-        ${{modelClassCamel}}->update($validated);
-
-        return new {{resourceClass}}(${{modelClassCamel}});
+        return ApiResponse::success(
+            content: new {{resourceClass}}(${{modelClassCamel}}),
+            message: '{{modelClass}} updated successfully.'
+        );
     }
 
     /**
@@ -72,8 +85,13 @@ class {{controllerClass}} extends Controller
      */
     public function destroy({{modelClass}} ${{modelClassCamel}})
     {
+        $id = ${{modelClassCamel}}->id;
         ${{modelClassCamel}}->delete();
 
-        return response()->json(null, 204);
+        return ApiResponse::success(
+            content: null,
+            message: "{{modelClass}} with ID $id deleted successfully.",
+            meta: ['deleted_id' => $id]
+        );
     }
 }

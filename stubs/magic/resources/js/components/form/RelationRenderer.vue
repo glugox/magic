@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {computed} from "vue";
-import {DbId, Entity, FormRelationProps, ResourceData, ResourceFormProps} from "@/types/support";
+import {DbId, Entity, FormRelationProps, ResourceData} from "@/types/support";
 
 import ExpandableForm from "@/components/form/ExpandableForm.vue";
 import HeadingSmall from "@/components/HeadingSmall.vue";
@@ -26,12 +26,14 @@ const parentEntity = computed(() =>
     props.entity
 )
 
-const foreignId = computed(() =>
+const foreignKey = computed(() =>
     props.relation.foreignKey
 )
 
 const relatedData = computed(() =>
-    props.item as ResourceData
+        (props.item as ResourceData) ?? {
+            [String(foreignKey.value)]: props.parentId
+        } as ResourceData
 )
 
 const relatedId = computed<DbId | null>(() =>
@@ -44,15 +46,15 @@ const relatedId = computed<DbId | null>(() =>
     <div class="flex justify-between items-center border-b pb-2">
         <HeadingSmall
             :title="entity.singularName"
-            :description="`Manage ${entity.singularName} details associated with this ${parentEntity.singularName}.`"
+            :description="!parentId ? `You have to create ${parentEntity.singularName} in order to manage this record.` : `Manage ${entity.singularName} details associated with this ${parentEntity.singularName}.`"
         />
     </div>
 
     <ExpandableForm
         :entity="entity"
         :parent-entity="parentEntity"
-        :item="relatedData"
         :id="relatedId"
+        :allow-expand="!!parentId"
         :jsonMode="true"
     >
         <template #field  >

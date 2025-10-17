@@ -12,16 +12,20 @@ import type { Controller, DbId, Entity, Relation } from "@/types/support";
  *                     this is 1
  * @param item Record<string, any> | undefined This is the current item if any, for example if we are on /users/1/edit page,
  *                     this is the user record with ID 1
+ * @param id
  * @returns Object with useful computed properties such as controller URLs for CRUD actions
  */
 export function useEntityContext(
     entity: Entity,
     parentEntity?: Entity,
     parentId?: DbId | null,
-    item?: Record<string, any>
+    item?: Record<string, any>,
+    id?: DbId | null
 ) {
     const currentEntity = ref(entity);
     const currentParent = ref(parentEntity || null);
+
+    const idResolved = computed(() => id ?? item?.id ?? null);
 
     const relation = computed<Relation | null>(
         () => parentEntity?.relations.find((r) => r.relatedEntity && r.relatedEntity().name === entity.name) ?? null
@@ -46,7 +50,7 @@ export function useEntityContext(
 
     const controllerStoreArgs = computed(() => (!parentId ? [] : [parentId]));
     const controllerUpdateArgs = computed(() =>
-        parentId ? [parentId, item?.id] : item?.id
+        parentId ? [parentId, idResolved.value] : idResolved.value
     );
     // Compute store URL if possible
     const storeUrl = computed(() => {
@@ -58,7 +62,7 @@ export function useEntityContext(
 
     // Edit URL is usually the same as update URL
     const editUrl = computed(() => {
-        if (controller.value?.edit && item?.id) {
+        if (controller.value?.edit && idResolved.value) {
             return controller.value.edit(controllerUpdateArgs.value);
         }
         return null;
@@ -66,15 +70,15 @@ export function useEntityContext(
 
     // Compute update URL if possible
     const updateUrl = computed(() => {
-        if (controller.value?.update && item?.id) {
+        if (controller.value?.update && idResolved.value) {
             return controller.value.update(controllerUpdateArgs.value);
         }
         return null;
     });
     // Compute destroy URL if possible
     const destroyUrl = computed(() => {
-        if (controller.value?.destroy && item?.id) {
-            return controller.value.destroy(item.id);
+        if (controller.value?.destroy && idResolved.value) {
+            return controller.value.destroy(idResolved.value);
         }
         return null;
     });
@@ -87,7 +91,7 @@ export function useEntityContext(
     });
     // Compute show URL if possible
     const showUrl = computed(() => {
-        if (controller.value?.show && item?.id) {
+        if (controller.value?.show && idResolved.value) {
             return controller.value.show(controllerUpdateArgs.value);
         }
         return null;
@@ -125,7 +129,7 @@ export function useEntityContext(
         return urls;
     });
 
-    const crudActionType = computed(() => (item?.id ? "update" : "create"));
+    const crudActionType = computed(() => (idResolved.value ? "update" : "create"));
 
     return {
         entity: currentEntity,

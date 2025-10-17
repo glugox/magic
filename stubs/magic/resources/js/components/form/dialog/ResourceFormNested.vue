@@ -50,6 +50,7 @@ function handleOpenRelated(relation: Relation) {
             :item="item"
             :parent-entity="parentEntity"
             :parent-id="parentId"
+            :close-on-submit="closeOnSubmit"
             @open-related="handleOpenRelated"
         />
 
