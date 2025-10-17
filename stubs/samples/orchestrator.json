@@ -1,0 +1,79 @@
+{
+    "app": {
+        "name": "Orchestrator",
+        "seedEnabled": false,
+        "seedCount": 0,
+        "fakerMappings": {}
+    },
+    "entities": [
+        {
+            "name": "User",
+            "fields": [
+                { "name": "id", "type": "id" },
+                { "name": "name", "type": "string", "searchable": true },
+                { "name": "email", "type": "string", "unique": true, "searchable": true },
+                { "name": "password", "type": "password", "hidden": true },
+                { "name": "is_admin", "type": "boolean", "default": false }
+            ],
+            "relations": [
+                { "type": "belongsToMany", "relatedEntityName": "Role", "pivot": "role_user" }
+            ],
+            "filters": [
+                { "field": "name", "type": "text" },
+                { "field": "email", "type": "text" },
+                { "field": "is_admin", "type": "boolean" }
+            ]
+        },
+        {
+            "name": "Role",
+            "fields": [
+                { "name": "id", "type": "id" },
+                { "name": "name", "type": "string", "unique": true }
+            ],
+            "relations": [
+                { "type": "belongsToMany", "relatedEntityName": "User", "pivot": "role_user" }
+            ]
+        },
+        {
+            "name": "AppInstance",
+            "fields": [
+                { "name": "id", "type": "id" },
+                { "name": "name", "type": "string", "searchable": true },
+                { "name": "config", "type": "json" },
+                { "name": "status", "type": "enum", "options": ["building", "running", "stopped", "error"], "default": "building" },
+                { "name": "path", "type": "string" },
+                { "name": "url", "type": "string" }
+            ],
+            "relations": [
+                { "type": "hasMany", "relatedEntityName": "BuildLog", "cascade": true }
+            ],
+            "filters": [
+                { "field": "name", "type": "text" },
+                { "field": "status", "type": "enum" }
+            ]
+        },
+        {
+            "name": "BuildLog",
+            "fields": [
+                { "name": "id", "type": "id" },
+                { "name": "action", "type": "enum", "options": ["build", "rebuild", "delete"] },
+                { "name": "message", "type": "text", "nullable": true },
+                { "name": "created_at", "type": "dateTime" }
+            ],
+            "relations": [
+                { "type": "belongsTo", "relatedEntityName": "AppInstance" }
+            ]
+        },
+        {
+            "name": "ConfigFile",
+            "fields": [
+                { "name": "id", "type": "id" },
+                { "name": "name", "type": "string" },
+                { "name": "content", "type": "json" }
+            ],
+            "relations": [
+                { "type": "hasMany", "relatedEntityName": "AppInstance" }
+            ]
+        }
+    ]
+}
