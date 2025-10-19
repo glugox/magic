@@ -14,6 +14,7 @@ use Glugox\Magic\Commands\BuildVuePagesCommand;
 use Glugox\Magic\Commands\FreshCommand;
 use Glugox\Magic\Commands\InstallNodePackagesCommand;
 use Glugox\Magic\Commands\ListSamplesCommand;
+use Glugox\Magic\Commands\McpServerCommand;
 use Glugox\Magic\Commands\PublishFilesCommand;
 use Glugox\Magic\Commands\ResetAppCommand;
 use Glugox\Magic\Commands\ResetByManifestCommand;
@@ -61,6 +62,7 @@ class MagicServiceProvider extends ServiceProvider
                 ListSamplesCommand::class,
                 ResetByManifestCommand::class,
                 RunActionCommand::class,
+                McpServerCommand::class,
             ]);
         }
     }

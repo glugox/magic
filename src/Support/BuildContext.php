@@ -43,10 +43,16 @@ class BuildContext
      */
     public static function fromOptions(array $options): self
     {
+        $overrides = $options['overrides'] ?? $options['set'] ?? [];
+
+        if (is_string($overrides)) {
+            $overrides = [$overrides];
+        }
+
         return new self(
             configPath: $options['config'] ?? null,
             starter: $options['starter'] ?? null,
-            overrides: $options['set'] ?? []
+            overrides: is_array($overrides) ? $overrides : []
         );
     }
 
@@ -148,7 +154,7 @@ class BuildContext
                 $this->config = app(ResolveAppConfigAction::class)([
                     'config' => $this->configPath,
                     'starter' => $this->starter,
-                    'set' => $this->overrides,
+                    'overrides' => $this->overrides,
                 ]);
             } catch (JsonException|ReflectionException $e) {
                 Log::channel('magic')->critical("Failed to load config file: {$e->getMessage()}");
