@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { edit, show } from '@/routes/{{folderName}}';
+import { edit, show } from '@/routes/{{routeName}}';
 import { Head, usePage } from '@inertiajs/vue3';
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import AppLayout from '@/layouts/AppLayout.vue';

@@ -22,6 +22,10 @@
                 { "field": "name", "type": "text" },
                 { "field": "email", "type": "text" },
                 { "field": "is_admin", "type": "boolean" }
+            ],
+            "actions": [
+                { "name": "assign_role", "command": "user:assign-role" },
+                { "name": "remove_role", "command": "user:remove-role" }
             ]
         },
         {
@@ -51,18 +55,24 @@
             ],
             "relations": [
                 { "type": "hasMany", "relatedEntityName": "BuildLog", "cascade": true },
+                { "type": "hasMany", "relatedEntityName": "Job", "cascade": true },
+                { "type": "hasMany", "relatedEntityName": "ValidationCheck", "cascade": true },
                 { "type": "belongsTo", "relatedEntityName": "ConfigFile", "nullable": true }
             ],
             "filters": [
                 { "field": "name", "type": "text" },
                 { "field": "status", "type": "enum" },
-                { "field": "last_build_ok", "type": "boolean" }
+                { "field": "last_build_ok", "type": "boolean" },
+                { "field": "last_build_at", "type": "date_range" }
             ],
             "actions": [
-                { "name": "create", "command": "app:create" },
                 { "name": "rebuild", "command": "app:rebuild" },
                 { "name": "delete", "command": "app:delete" },
-                { "name": "preview", "type": "link", "field": "url" }
+                { "name": "preview", "type": "link", "field": "url" },
+                { "name": "start", "command": "app:start" },
+                { "name": "stop", "command": "app:stop" },
+                { "name": "restart", "command": "app:restart" },
+                { "name": "validate", "command": "app:validate" }
             ]
         },
         {
@@ -71,16 +81,18 @@
                 { "name": "id", "type": "id" },
                 { "name": "action", "type": "enum", "options": ["build", "rebuild", "delete"] },
                 { "name": "message", "type": "text", "nullable": true },
-                { "name": "success", "type": "boolean", "default": false },
-                { "name": "created_at", "type": "dateTime" }
+                { "name": "success", "type": "boolean", "default": false }
             ],
             "relations": [
                 { "type": "belongsTo", "relatedEntityName": "AppInstance" }
             ],
             "filters": [
                 { "field": "action", "type": "enum" },
-                { "field": "success", "type": "boolean" },
-                { "field": "created_at", "type": "dateRange" }
+                { "field": "success", "type": "boolean" }
+            ],
+            "actions": [
+                { "name": "retry", "command": "build:retry" },
+                { "name": "export", "command": "build:export" }
             ]
         },
         {
@@ -95,6 +107,54 @@
             ],
             "filters": [
                 { "field": "name", "type": "text" }
+            ],
+            "actions": [
+                { "name": "duplicate", "command": "config:duplicate" },
+                { "name": "validate", "command": "config:validate" }
+            ]
+        },
+        {
+            "name": "Job",
+            "fields": [
+                { "name": "id", "type": "id" },
+                { "name": "command", "type": "string" },
+                { "name": "status", "type": "enum", "options": ["pending", "running", "success", "failed"], "default": "pending" },
+                { "name": "output", "type": "text", "nullable": true },
+                { "name": "finished_at", "type": "dateTime", "nullable": true }
+            ],
+            "relations": [
+                { "type": "belongsTo", "relatedEntityName": "AppInstance" }
+            ],
+            "filters": [
+                { "field": "status", "type": "enum" }
+            ],
+            "actions": [
+                { "name": "retry", "command": "job:retry" },
+                { "name": "cancel", "command": "job:cancel" },
+                { "name": "view_output" }
+            ]
+        },
+        {
+            "name": "ValidationCheck",
+            "fields": [
+                { "name": "id", "type": "id" },
+                { "name": "name", "type": "string" },
+                { "name": "status", "type": "enum", "options": ["pending", "passed", "failed"], "default": "pending" },
+                { "name": "message", "type": "text", "nullable": true },
+                { "name": "checked_at", "type": "dateTime" }
+            ],
+            "relations": [
+                { "type": "belongsTo", "relatedEntityName": "AppInstance" }
+            ],
+            "filters": [
+                { "field": "status", "type": "enum" },
+                { "field": "checked_at", "type": "date_range" }
+            ],
+            "actions": [
+                { "name": "run_check", "command": "validation:run" },
+                { "name": "recheck", "command": "validation:recheck" },
+                { "name": "ignore", "command": "validation:ignore" },
+                { "name": "export_report", "command": "validation:export" }
             ]
         }
     ]

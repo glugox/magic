@@ -172,7 +172,7 @@ class GenerateVuePagesAction implements DescribableAction
             'href' => $relation->getRelatedEntity()->getHref(),
             'relationType' => $relation->getType()->value,
             'foreignKey' => $relation->getForeignKey(),
-            'folderName' => $entity->getFolderName(),
+            'routeName' => $entity->getRouteName(),
             'mainEntityImports' => $this->tsHelper->writeEntityImports($entity),
             'relatedEntityImports' => $this->tsHelper->writeEntityImports($relation->getRelatedEntity(), options: ['entityAlias' => 'relatedEntity']),
             'supportImports' => $this->tsHelper->writeRelationIndexPageSupportImports($relation->getRelatedEntity(), $entity),
@@ -188,7 +188,7 @@ class GenerateVuePagesAction implements DescribableAction
         return StubHelper::loadStub('vue/edit.stub', [
             'entityName' => $entity->getName(),
             'pluralName' => $entity->getPluralName(),
-            'folderName' => $entity->getRouteName(),
+            'routeName' => $entity->getRouteName(),
             'entityImports' => $this->tsHelper->writeEntityImports($entity),
             'supportImports' => $this->tsHelper->writeFormPageSupportImports($entity),
             'relationSidebarItems' => $this->tsHelper->writeRelationSidebarItems($entity, $this->context->getConfig()),
