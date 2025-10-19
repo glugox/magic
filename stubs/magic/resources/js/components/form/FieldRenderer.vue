@@ -13,6 +13,7 @@ import EnumField from "@/components/form/EnumField.vue";
 import DateTimeField from "@/components/form/DateTimeField.vue";
 import IdField from '@/components/form/IdField.vue';
 import SecretField from "@/components/form/SecretField.vue";
+import UrlField from '@/components/form/UrlField.vue';
 
 const props = defineProps<FormFieldProps>()
 // forward listeners
@@ -66,7 +67,7 @@ const componentMap: Record<string, any> = {
 
     // ──────── Networking ────────
     ipAddress: StringField,      // ✅ need IpAddressField
-    url: StringField,            // ✅ need UrlField
+    url: UrlField,            // ✅ need UrlField
     phone: StringField,          // ✅ need PhoneField
 
     // ──────── Media / File ────────

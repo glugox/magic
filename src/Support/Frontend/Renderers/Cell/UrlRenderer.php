@@ -19,7 +19,7 @@ class UrlRenderer extends Renderer
     if (!value) return '';
 
     const display = value.length > 32 ? value.slice(0, 32) + '...' : value;
-    return h('p', { title: value, class: 'text-small' }, display);
+    return h('a', { title: value, href: value, class: 'text-small underline', target: '_blank' }, display);
 }";
 
         return new RendererResult(

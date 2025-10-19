@@ -47,7 +47,7 @@
                 { "name": "id", "type": "id" },
                 { "name": "name", "type": "string", "searchable": true },
                 { "name": "status", "type": "enum", "options": ["building", "running", "stopped", "error"], "default": "building" },
-                { "name": "url", "type": "string", "nullable": true },
+                { "name": "url", "type": "url", "nullable": true },
                 { "name": "path", "type": "string" },
                 { "name": "last_build_ok", "type": "boolean", "default": false },
                 { "name": "last_build_at", "type": "dateTime", "nullable": true },
