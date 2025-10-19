@@ -32,6 +32,9 @@
             ],
             "relations": [
                 { "type": "belongsToMany", "relatedEntityName": "User", "pivot": "role_user" }
+            ],
+            "filters": [
+                { "field": "name", "type": "text" }
             ]
         },
         {
@@ -39,17 +42,27 @@
             "fields": [
                 { "name": "id", "type": "id" },
                 { "name": "name", "type": "string", "searchable": true },
-                { "name": "config", "type": "json" },
                 { "name": "status", "type": "enum", "options": ["building", "running", "stopped", "error"], "default": "building" },
+                { "name": "url", "type": "string", "nullable": true },
                 { "name": "path", "type": "string" },
-                { "name": "url", "type": "string" }
+                { "name": "last_build_ok", "type": "boolean", "default": false },
+                { "name": "last_build_at", "type": "dateTime", "nullable": true },
+                { "name": "config", "type": "json" }
             ],
             "relations": [
-                { "type": "hasMany", "relatedEntityName": "BuildLog", "cascade": true }
+                { "type": "hasMany", "relatedEntityName": "BuildLog", "cascade": true },
+                { "type": "belongsTo", "relatedEntityName": "ConfigFile", "nullable": true }
             ],
             "filters": [
                 { "field": "name", "type": "text" },
-                { "field": "status", "type": "enum" }
+                { "field": "status", "type": "enum" },
+                { "field": "last_build_ok", "type": "boolean" }
+            ],
+            "actions": [
+                { "name": "create", "command": "app:create" },
+                { "name": "rebuild", "command": "app:rebuild" },
+                { "name": "delete", "command": "app:delete" },
+                { "name": "preview", "type": "link", "field": "url" }
             ]
         },
         {
@@ -58,10 +71,16 @@
                 { "name": "id", "type": "id" },
                 { "name": "action", "type": "enum", "options": ["build", "rebuild", "delete"] },
                 { "name": "message", "type": "text", "nullable": true },
+                { "name": "success", "type": "boolean", "default": false },
                 { "name": "created_at", "type": "dateTime" }
             ],
             "relations": [
                 { "type": "belongsTo", "relatedEntityName": "AppInstance" }
+            ],
+            "filters": [
+                { "field": "action", "type": "enum" },
+                { "field": "success", "type": "boolean" },
+                { "field": "created_at", "type": "dateRange" }
             ]
         },
         {
@@ -73,6 +92,9 @@
             ],
             "relations": [
                 { "type": "hasMany", "relatedEntityName": "AppInstance" }
+            ],
+            "filters": [
+                { "field": "name", "type": "text" }
             ]
         }
     ]

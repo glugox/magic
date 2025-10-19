@@ -212,7 +212,7 @@ class Entity
      */
     public function getDirectoryName(): string
     {
-        return $this->getTableName();
+        return str_replace('_', '-', $this->getTableName());
     }
 
     /**
