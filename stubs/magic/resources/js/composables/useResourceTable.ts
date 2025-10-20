@@ -5,6 +5,7 @@ import type {
     DataTableFilters,
     DataTableSettings,
     DbId,
+    EntityAction,
     ResourceData,
     ResourceTableProps,
     TableId,
@@ -281,62 +282,77 @@ export function useResourceTable<T>(props: ResourceTableProps<T>, tableId: Table
     /**
      * Perform bulk action on selected rows
      */
-    async function performBulkAction(action: "edit" | "delete" | "archive") {
-        if (selectedIds.value.length === 0) {
-            alert("No items selected.")
-            return
+    async function performToolbarAction(action: EntityAction): Promise<boolean> {
+        const normalized = action.name.toLowerCase()
+        const command = action.command?.toLowerCase()
+
+        if (action.type === "link") {
+            return false
         }
 
-        /*const confirmed =
-            action === "delete"
-                ? confirm(`Are you sure you want to delete ${selectedIds.value.length} item(s)?`)
-                : confirm(`Archive ${selectedIds.value.length} item(s)?`)
+        if (normalized === "edit") {
+            return false
+        }
 
-        if (!confirmed) return*/
+        const requiresSelection = normalized !== "create"
+
+        if (requiresSelection && selectedIds.value.length === 0) {
+            alert("No items selected.")
+            return true
+        }
+
+        const matchesCommand = (value?: string | null, target?: string) => {
+            return value && target ? value.toLowerCase() === target : false
+        }
 
         try {
-            bulkActionProcessing.value = true // show spinner
+            if (normalized === "delete" || matchesCommand(command, "app:delete")) {
+                bulkActionProcessing.value = true
 
-            switch (action) {
-                case "delete": {
-                    // Use Wayfinder-generated form
-                    const form = useForm({ ids: selectedIds.value })
-                    const postForm = controller.value.bulkDestroy(parentId?.value)
-                    await new Promise<void>((resolve, reject) => {
-                        form.submit(postForm, {
-                            onSuccess: () => resolve(),
-                            onError: (err) => reject(err),
-                        })
+                const form = useForm({ ids: selectedIds.value })
+                const postForm = controller.value.bulkDestroy(parentId?.value)
+                await new Promise<void>((resolve, reject) => {
+                    form.submit(postForm, {
+                        onSuccess: () => resolve(),
+                        onError: (err) => reject(err),
                     })
+                })
 
-                    // clear selection after success
-                    selectedIds.value = []
-                    lastSavedIds.value = []
+                selectedIds.value = []
+                lastSavedIds.value = []
 
-                    break
+                return true
+            }
+
+            if (normalized === "archive" || matchesCommand(command, "app:archive")) {
+                const postForm = controller.value.bulkArchiveForm?.(parentId?.value)
+
+                if (!postForm) {
+                    return false
                 }
-                case "archive": {
-                    const form = useForm({ ids: selectedIds.value })
-                    const postForm = controller.value.bulkArchiveForm?.(parentId?.value)
-                    if (postForm) {
-                        await new Promise<void>((resolve, reject) => {
-                            form.submit(postForm, {
-                                onSuccess: () => resolve(),
-                                onError: (err) => reject(err),
-                            })
-                        })
-                    }
-                    break
-                }
-                case "edit":
-                    // optionally handle bulk edit here
-                    break
+
+                bulkActionProcessing.value = true
+
+                const form = useForm({ ids: selectedIds.value })
+                await new Promise<void>((resolve, reject) => {
+                    form.submit(postForm, {
+                        onSuccess: () => resolve(),
+                        onError: (err) => reject(err),
+                    })
+                })
+
+                return true
             }
         } catch (err) {
-            console.error(`Failed to ${action}`, err)
+            console.error(`Failed to run action ${action.name}`, err)
+            return true
         } finally {
-            bulkActionProcessing.value = false // hide spinner
+            if (bulkActionProcessing.value) {
+                bulkActionProcessing.value = false
+            }
         }
+
+        return false
     }
 
     // Subscribe to external filter changes
@@ -368,7 +384,7 @@ export function useResourceTable<T>(props: ResourceTableProps<T>, tableId: Table
         lastPage,
         sorting,
         selectedIds,
-        performBulkAction,
+        performToolbarAction,
         bulkActionProcessing,
         filtersVisible,
         toggleFilters,
