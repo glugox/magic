@@ -943,7 +943,17 @@ class Entity
      */
     public function toJson(): string
     {
-        $json = json_encode([
+        $json = json_encode($this->toArray(), JSON_PRETTY_PRINT);
+
+        return $json ?: '{}';
+    }
+
+    /**
+     * To array representation of the entity.
+     */
+    public function toArray(): array
+    {
+        return [
             'name' => $this->name,
             'table' => $this->getTableName(),
             'icon' => $this->icon,
@@ -952,9 +962,7 @@ class Entity
             'filters' => array_map(fn ($filter) => json_decode($filter->toJson(), true), ($this->filters ?? [])),
             'actions' => array_map(fn (Action $action) => $action->toArray(), ($this->actions ?? [])),
             'settings' => $this->settings ? json_decode($this->settings->toJson()) : null,
-        ], JSON_PRETTY_PRINT);
-
-        return $json ?: '{}';
+        ];
     }
 
     /**
