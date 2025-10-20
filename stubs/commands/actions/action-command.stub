@@ -2,7 +2,7 @@
 
 namespace {{namespace}};
 
-use Illuminate\\Console\\Command;
+use Illuminate\Console\Command;
 
 class {{className}} extends Command
 {

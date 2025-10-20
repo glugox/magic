@@ -27,10 +27,10 @@ class InstallNodePackagesAction implements DescribableAction
      * @var string[]
      */
     protected array $npmPackages = [
-        'axios',
-        'playwright@latest',
+        /*'axios',
+        'playwright@v1.56.1',
         'date-fns',
-        '@tanstack/vue-table'
+        '@tanstack/vue-table'*/
         // add more npm packages here...
     ];
 

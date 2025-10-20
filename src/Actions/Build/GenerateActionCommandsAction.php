@@ -53,7 +53,7 @@ class GenerateActionCommandsAction implements DescribableAction
 
     protected function generateCommandForAction(Entity $entity, ConfigAction $action): void
     {
-        $signature = $action->command;
+        $signature = 'app-' . $action->command;
 
         if ($signature === null || $signature === '') {
             Log::channel('magic')->warning(sprintf(
@@ -65,8 +65,8 @@ class GenerateActionCommandsAction implements DescribableAction
             return;
         }
 
-        $className = Str::studly($action->name).'Action';
-        $namespace = 'App\\Console\\Actions\\'.$entity->getName();
+        $className = $entity->getName() .  Str::studly($action->name).'Action';
+        $namespace = 'App\Console\Commands';
         $description = $action->description
             ?: sprintf('Handle the %s action for %s.', Str::headline($action->name), $entity->getName());
 
@@ -81,7 +81,7 @@ class GenerateActionCommandsAction implements DescribableAction
 
         $stub = StubHelper::loadStub('commands/actions/action-command.stub', $replacements);
 
-        $filePath = app_path('Console/Actions/'.$entity->getName().'/'.$className.'.php');
+        $filePath = app_path('Console/Commands/'.$className.'.php');
         File::ensureDirectoryExists(dirname($filePath));
 
         app(GenerateFileAction::class)($filePath, $stub);
