@@ -8,6 +8,7 @@ use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Helpers\ValidationHelper;
 use Glugox\Magic\Support\BuildContext;
+use Glugox\Magic\Support\Config\Action;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Config\Filter;
@@ -157,6 +158,7 @@ class PublishFilesAction implements DescribableAction
         foreach ($this->context->getConfig()->entities as $entity) {
             $content .= $this->generateEntityMetaRelations($entity);
             $content .= $this->generateEntityMetaFilters($entity);
+            $content .= $this->generateEntityMetaActions($entity);
         }
 
         $exportNames = array_map(fn ($e) => Str::camel(Str::singular($e->getName())).'Entity', $this->context->getConfig()->entities);
@@ -191,6 +193,7 @@ const {$entityVar}Entity: Entity = {
     ],
     relations: [],
     filters: [],
+    actions: [],
     nameValueGetter: (entity: ResourceData) => entity.{$entity->getMainFieldName()},
 };
 entities.push({$entityVar}Entity);
@@ -334,6 +337,42 @@ EOT;
         $filterEntry .= "\n    }";
 
         return $filterEntry;
+    }
+
+    private function generateEntityMetaActions(Entity $entity): string
+    {
+        $actions = $entity->getActions();
+        if (empty($actions)) {
+            return '';
+        }
+
+        $entityVar = Str::camel(Str::singular($entity->getName()));
+        $entries = [];
+
+        foreach ($actions as $action) {
+            $entries[] = $this->buildActionEntry($action);
+        }
+
+        $actionsBlock = implode(",\n    ", $entries);
+
+        return <<<EOT
+{$entityVar}Entity.actions = [
+    {$actionsBlock}
+];
+
+EOT;
+    }
+
+    private function buildActionEntry(Action $action): string
+    {
+        $payload = $action->toArray();
+
+        $json = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        if ($json === false) {
+            $json = '{}';
+        }
+
+        return $json;
     }
 
     /**

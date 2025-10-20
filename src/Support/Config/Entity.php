@@ -2,6 +2,7 @@
 
 namespace Glugox\Magic\Support\Config;
 
+use Glugox\Magic\Support\Config\Action;
 use Glugox\Magic\Support\Config\Entity\Settings;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
