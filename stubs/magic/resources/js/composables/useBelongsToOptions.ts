@@ -128,6 +128,16 @@ export function useBelongsToOptions(cfg: BelongsToOptionsConfig) {
             _logger.log("event", `detected creation of related entity, reloading options`, {
                 data: payload.record,
             });
+
+            const normalizedRecord = normalize(payload.record);
+
+            selectedOption.value = normalizedRecord;
+            initialId.value = normalizedRecord.id;
+
+            if (!options.value.find(o => o.id === normalizedRecord.id)) {
+                options.value.unshift(normalizedRecord);
+            }
+
             reloadOptions().then(r => r);
         }
     };
