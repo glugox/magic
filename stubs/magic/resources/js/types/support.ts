@@ -96,6 +96,17 @@ export interface Filter {
     relatedEntityName?: string | null // For relation filters
 }
 
+export interface EntityAction {
+    name: string
+    type?: string
+    label?: string
+    command?: string | null
+    field?: string | null
+    icon?: string | null
+    description?: string | null
+    [key: string]: any
+}
+
 export interface ResourceBaseProps {
     id?: DbId | Ref<DbId> | null
     item?: ResourceData
@@ -147,6 +158,7 @@ export interface Entity {
     fields: Field[]
     relations: Relation[],
     filters?: Filter[],
+    actions?: EntityAction[],
     nameValueGetter?: (item: ResourceData) => string
 }
 
@@ -207,7 +219,7 @@ export type TablePropsEmits = {
 }
 
 export type TableBulkEmits = {
-    (e: "bulk-action", action: "edit" | "delete" | "archive"): void
+    (e: "toolbar-action", action: EntityAction): void
 }
 
 export type TableFilterEmits = {
