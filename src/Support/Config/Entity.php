@@ -183,6 +183,7 @@ class Entity
     public function getMainFieldName()
     {
         $mainField = $this->getPrimaryNameField();
+
         return $mainField ? $mainField->name : 'name';
     }
 
@@ -506,18 +507,18 @@ class Entity
         }
 
         // Relations
-        //if (! $skipRelations) {
-            foreach ($this->getRelations() as $relation) {
+        // if (! $skipRelations) {
+        foreach ($this->getRelations() as $relation) {
 
-                // Only BELONGS_TO relations are shown in tables
-                if ($relation->getType() !== RelationType::BELONGS_TO) {
-                    continue;
-                }
-
-                $relationField = Field::fromRelation($relation);
-                $visible[] = $relationField;
+            // Only BELONGS_TO relations are shown in tables
+            if ($relation->getType() !== RelationType::BELONGS_TO) {
+                continue;
             }
-        //}
+
+            $relationField = Field::fromRelation($relation);
+            $visible[] = $relationField;
+        }
+        // }
 
         // Reorder: id first, name second, BELONGS_TO fields next
         usort($visible, function ($a, $b) {
@@ -1113,7 +1114,7 @@ class Entity
             // ID field should be by default hidden in forms
             if ($field->name === 'id') {
                 $field->hidden = true;
-                //$field->showInCard = false;
+                // $field->showInCard = false;
             }
         }
     }

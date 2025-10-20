@@ -1,27 +1,28 @@
 <?php
 
-
 namespace App\Http\Responses;
 
-use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Http\Resources\Json\JsonResource;
 use JsonSerializable;
 
 class ApiResponse implements Arrayable, JsonSerializable
 {
     protected $content;
+
     protected array $meta = [];
+
     protected ?string $message = null;
+
     protected bool $success = false;
+
     protected ?array $errors = null;
 
     public static function success(
-        $content, array
-        $meta = [],
+        $content, array $meta = [],
         ?string $message = null,
         ?array $errors = null
-    ): static
-    {
+    ): static {
         $instance = new static;
         $instance->content = $content;
         $instance->meta = $meta;

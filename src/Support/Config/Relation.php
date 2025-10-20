@@ -4,7 +4,6 @@ namespace Glugox\Magic\Support\Config;
 
 use Glugox\Magic\Support\Config\Builder\RelationBuilder;
 use Illuminate\Support\Str;
-use phpDocumentor\Reflection\Types\Boolean;
 use RuntimeException;
 
 class Relation
@@ -207,7 +206,7 @@ class Relation
      * it will look for a belongsTo relation from Post to User.
      * If no inverse relation is found, it returns null.
      */
-    public function getInverseRelation(): ?Relation
+    public function getInverseRelation(): ?self
     {
         if (! $this->hasRelatedEntity()) {
             return null;
@@ -222,7 +221,6 @@ class Relation
 
         return null;
     }
-
 
     /**
      * Has route

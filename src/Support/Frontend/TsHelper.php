@@ -254,8 +254,8 @@ class TsHelper
             'options' => [],
             'hidden' => false,
             /** Visibility control for various UIs (fallbacks to all if omitted) */
-            //visibleIn?: ('table' | 'form' | 'card')[];
-            "contexts" => [ "table" => true, "form" => true, "view" => true, "card" => true ]
+            // visibleIn?: ('table' | 'form' | 'card')[];
+            'contexts' => ['table' => true, 'form' => true, 'view' => true, 'card' => true]
         ];
 
         // Get rules as strings
@@ -313,7 +313,7 @@ class TsHelper
                     foreach ($value as $k => $v) {
                         $arrayItems[] = "$k: $v";
                     }
-                    $value = "{ ".implode(', ', $arrayItems)." }";
+                    $value = '{ '.implode(', ', $arrayItems).' }';
                 }
 
                 $lines[] = "$key: $value";

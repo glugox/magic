@@ -201,6 +201,7 @@ class StubHelper
             case FieldType::INTEGER:
             case FieldType::FLOAT:
             case FieldType::DECIMAL:
+            case FieldType::URL:
                 return "->type('{$fieldName}', '123')";
             case FieldType::DATE:
             case FieldType::DATETIME:

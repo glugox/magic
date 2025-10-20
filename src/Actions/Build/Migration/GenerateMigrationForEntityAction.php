@@ -187,7 +187,6 @@ PHP;
     }
 
     /**
-     * @param Entity $entity
      * @return string Code for indexes and unique constraints
      *
      * Example output:
@@ -279,7 +278,7 @@ PHP;
             $inverseRelation = $relation->getInverseRelation();
             // if inverse is HasOne, we want unique constraint
             if ($inverseRelation && $inverseRelation->getType() === RelationType::HAS_ONE) {
-                //$line .= '->unique()';
+                // $line .= '->unique()';
                 $makeUnique = true;
             }
             // If inverse is hasOne or hasMany, we add cascade on delete
