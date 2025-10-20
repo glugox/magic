@@ -6,6 +6,7 @@ use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Helpers\StubHelper;
 use Glugox\Magic\Support\BuildContext;
+use Glugox\Magic\Support\Config\Action;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Config\FieldType;
@@ -109,6 +110,8 @@ class GenerateModelMetaAction implements DescribableAction
         $this->usesRelations = [];
         $this->usesFilters = [];
 
+        $actionsLines = array_map(fn ($action) => $this->buildActionLine($action), $entity->getActions());
+
         $fieldLines = array_map(fn ($field) => $this->buildFieldLine($field), $entity->getFields());
         $relationsLines = array_map(fn ($relation) => $this->buildRelationLine($relation), $entity->getRelations());
         $filtersLines = array_map(fn ($filter) => $this->buildFilterLine($filter), $entity->getFilters());
@@ -120,6 +123,7 @@ class GenerateModelMetaAction implements DescribableAction
             'fields' => implode("\n            ", $fieldLines),
             'relations' => implode("\n            ", $relationsLines),
             'filters' => implode("\n            ", $filtersLines),
+            'actions' => implode("\n            ", $actionsLines),
             'importedFields' => implode(",\n    ", array_keys($this->usesFields)),
             'importedRelations' => implode("\n", array_map(fn ($relationClass) => 'use '.$relationClass.';', array_keys($this->usesRelations))),
             'importedFilters' => implode("\n", array_map(fn ($filterClass) => 'use '.$filterClass.';', array_keys($this->usesFilters))),
@@ -270,5 +274,15 @@ class GenerateModelMetaAction implements DescribableAction
         }
 
         return $code;
+    }
+
+    /**
+     * Build a single action definition entry for the actions() array.
+     */
+    protected function buildActionLine(Action $action): string
+    {
+        $array = $action->toArray();
+
+        return exportPhpValue($array, 3).',';
     }
 }

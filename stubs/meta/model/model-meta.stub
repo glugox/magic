@@ -49,15 +49,27 @@ class {{className}} extends ModelMeta
          ];
      }
 
-     /**
-      * Define filters for the {{className}} resource.
-      *
-      * @return array<int, Filter>
-      */
-      public function filters(): array
-      {
-          return [
-              {{filters}}
-          ];
-      }
+    /**
+     * Define filters for the {{className}} resource.
+     *
+     * @return array<int, Filter>
+     */
+    public function filters(): array
+    {
+        return [
+            {{filters}}
+        ];
+    }
+
+    /**
+     * Define toolbar actions for the {{className}} resource.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function actions(): array
+    {
+        return [
+            {{actions}}
+        ];
+    }
 }

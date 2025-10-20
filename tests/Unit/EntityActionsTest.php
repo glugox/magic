@@ -29,4 +29,14 @@ it('parses entity actions from json config', function () {
     expect($preview)->not()->toBeNull()
         ->and($preview->type)->toBe('link')
         ->and($preview->field)->toBe('url');
+
+    $entityArray = $entity->toArray();
+    expect($entityArray)
+        ->toHaveKey('actions')
+        ->and($entityArray['actions'])
+            ->toBeArray()
+            ->toHaveCount(7);
+    expect($entityArray['actions'][0])
+        ->toBeArray()
+        ->toHaveKey('name');
 });
