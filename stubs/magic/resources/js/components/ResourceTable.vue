@@ -1,7 +1,7 @@
 <script setup lang="ts" generic="T">
 import {defineProps, onMounted} from "vue"
 import {useResourceTable} from "@/composables/useResourceTable"
-import {ResourceTableProps} from "@/types/support"
+import {ResourceTableProps, EntityAction} from "@/types/support"
 import Toolbar from "@/components/resource-table/toolbar/Toolbar.vue";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import {FlexRender} from "@tanstack/vue-table";
@@ -21,7 +21,7 @@ const {createUrl} = useEntityContext(props.entity, props.parentEntity, props.par
 const tableId = props.state?.settings?.tableId || `table-${Math.random().toString(36).substring(2, 9)}`
 
 // Composable for handling tanstack table state and data
-const {table, rows, page, perPage, total, performBulkAction, bulkActionProcessing, filtersVisible, toggleFilters} = useResourceTable(props, tableId)
+const {table, rows, page, perPage, total, performToolbarAction, bulkActionProcessing, filtersVisible, toggleFilters, selectedIds} = useResourceTable(props, tableId)
 
 // Inertia page for flash messages
 const inertiaPage = usePage()
@@ -44,6 +44,49 @@ const setColumnsVisibility = (visibleColumns: string[]) => {
         table.getColumn(<string>column.id)?.toggleVisibility(visibleColumns.includes(<string>column.id))
     })
 }
+
+const formatActionLabel = (action: EntityAction) => {
+    if (action.label) {
+        return action.label
+    }
+
+    return action.name
+        .replace(/[-_]+/g, " ")
+        .replace(/(^|\s)\w/g, (match) => match.toUpperCase())
+}
+
+const handleToolbarAction = async (action: EntityAction) => {
+    if (action.type === 'link') {
+        if (!action.field) {
+            toast(`Missing field configuration for ${formatActionLabel(action)} action.`)
+            return
+        }
+
+        const selected = rows.value.filter((row: any) => selectedIds.value.includes((row as any).id))
+
+        if (!selected.length) {
+            toast(`Select at least one ${props.entity.singularName} to ${formatActionLabel(action)}.`)
+            return
+        }
+
+        selected.forEach((item) => {
+            const value = (item as Record<string, any>)[action.field!]
+            if (typeof value === 'string' && value.length && typeof window !== 'undefined') {
+                window.open(value, '_blank')
+            }
+        })
+
+        return
+    }
+
+    const handled = await performToolbarAction(action)
+
+    if (!handled) {
+        toast(`${formatActionLabel(action)} triggered`, {
+            description: action.description ?? undefined,
+        })
+    }
+}
 </script>
 
 <template>
@@ -57,7 +100,8 @@ const setColumnsVisibility = (visibleColumns: string[]) => {
         :bulk-action-processing="bulkActionProcessing"
         :entity="props.entity"
         :createUrl="createUrl"
-        @bulk-action="performBulkAction"
+        :selected-count="selectedIds.length"
+        @toolbar-action="handleToolbarAction"
         @update:visible-columns="setColumnsVisibility"
         @action="action => {
             if (action === 'toggle-filters') {

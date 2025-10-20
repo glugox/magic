@@ -1,73 +1,81 @@
 <script setup lang="ts">
+import { computed } from "vue"
 import { Button } from "@/components/ui/button"
 import {
     DropdownMenu,
     DropdownMenuContent,
-    DropdownMenuGroup,
     DropdownMenuItem,
-    DropdownMenuShortcut,
-    DropdownMenuSub,
-    DropdownMenuSubContent,
-    DropdownMenuSubTrigger,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Ellipsis } from "lucide-vue-next"
+import type { EntityAction } from "@/types/support"
 
-// icons
-import { Pencil, Trash2, Copy, Archive } from "lucide-vue-next"
-
-// Define action wit argument of the action type. Define 'action' event emitter
-const emit = defineEmits<{
-    (e: 'action', action: 'edit' | 'delete' | 'archive'): void
+const props = defineProps<{
+    actions: EntityAction[]
+    disabled?: boolean
+    selectedCount?: number
 }>()
 
+const emit = defineEmits<{
+    (e: "action", action: EntityAction): void
+}>()
+
+const visibleActions = computed(() => props.actions ?? [])
+const hasActions = computed(() => visibleActions.value.length > 0)
+
+function formatLabel(action: EntityAction): string {
+    if (action.label) {
+        return action.label
+    }
+
+    return action.name
+        .replace(/[-_]+/g, " ")
+        .replace(/(^|\s)\w/g, (match) => match.toUpperCase())
+}
+
+function onActionClick(action: EntityAction) {
+    emit("action", action)
+}
 </script>
 
 <template>
-    <DropdownMenu>
+    <DropdownMenu v-if="hasActions">
         <DropdownMenuTrigger as-child>
-            <Button variant="outline">
-                ...
+            <Button
+                variant="outline"
+                size="icon"
+                :disabled="disabled"
+            >
+                <Ellipsis class="h-4 w-4" />
+                <span class="sr-only">Open actions</span>
             </Button>
         </DropdownMenuTrigger>
 
         <DropdownMenuContent
-            class="w-56"
+            class="w-60"
             align="end"
             side="bottom"
         >
-            <DropdownMenuGroup>
-                <DropdownMenuItem @click="emit('action', 'edit')">
-                    <Pencil class="mr-2 h-4 w-4" />
-                    <span>Edit</span>
-                    <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
-                </DropdownMenuItem>
-
-                <DropdownMenuItem @click="emit('action', 'delete')">
-                    <Trash2 class="mr-2 h-4 w-4 text-red-600" />
-                    <span>Delete</span>
-                    <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
-                </DropdownMenuItem>
-
-                <!-- Submenu -->
-                <DropdownMenuSub>
-                    <DropdownMenuSubTrigger>
-                        More Actions
-                    </DropdownMenuSubTrigger>
-                    <DropdownMenuSubContent
-                        align="end"
-                        side="left"
-                    >
-                        <DropdownMenuItem>
-                            <Copy class="mr-2 h-4 w-4" />
-                            <span>Duplicate</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                            <Archive class="mr-2 h-4 w-4" />
-                            <span>Archive</span>
-                        </DropdownMenuItem>
-                    </DropdownMenuSubContent>
-                </DropdownMenuSub>
-            </DropdownMenuGroup>
+            <DropdownMenuLabel class="flex items-center justify-between text-xs font-semibold uppercase tracking-wide">
+                <span>Actions</span>
+                <span v-if="(selectedCount ?? 0) > 0" class="text-muted-foreground">
+                    {{ selectedCount }} selected
+                </span>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+                v-for="action in visibleActions"
+                :key="action.name"
+                class="flex flex-col items-start space-y-0.5"
+                @click="() => onActionClick(action)"
+            >
+                <span class="font-medium">{{ formatLabel(action) }}</span>
+                <span v-if="action.description" class="text-xs text-muted-foreground">
+                    {{ action.description }}
+                </span>
+            </DropdownMenuItem>
         </DropdownMenuContent>
     </DropdownMenu>
 </template>
