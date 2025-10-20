@@ -11,6 +11,7 @@ import {toast} from "vue-sonner"
 import {useEntityContext} from "@/composables/useEntityContext";
 import {Toaster} from '@/components/ui/sonner'
 import TableFiltersBox from "@/components/filters/TableFiltersBox.vue";
+import 'vue-sonner/style.css'
 
 const props = defineProps<ResourceTableProps<T>>()
 
