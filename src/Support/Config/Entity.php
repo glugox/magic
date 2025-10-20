@@ -2,6 +2,7 @@
 
 namespace Glugox\Magic\Support\Config;
 
+use Glugox\Magic\Support\Config\Action;
 use Glugox\Magic\Support\Config\Entity\Settings;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
@@ -18,6 +19,8 @@ class Entity
         public ?array $relations = [],
         /** @var Filter[] */
         public ?array $filters = [],
+        /** @var Action[] */
+        public ?array $actions = [],
         /** @var string */
         public ?string $tableName = null,
         // settings for the entity, e.g. timestamps, soft deletes, etc.
@@ -51,7 +54,16 @@ class Entity
      *         dynamic?: boolean
      *     }>,
      *     settings?: array{ has_images?: bool, is_searchable?: bool },
-     *     icon?: string
+     *     icon?: string,
+     *     actions?: list<array{
+     *         name: string,
+     *         type?: string,
+     *         command?: string,
+     *         field?: string,
+     *         label?: string,
+     *         icon?: string,
+     *         description?: string
+     *     }>
      * } $data JSON string or associative array with entity configuration
      */
     public static function fromConfig(array|string $data): self
@@ -91,11 +103,15 @@ class Entity
          *     icon?: string
          * } $data
          */
-        $entity = new self($data['name'], [], [], [], $data['table'] ?? null);
+        $entity = new self($data['name'], [], [], [], [], $data['table'] ?? null);
 
         foreach ($data['fields'] ?? [] as $fieldData) {
             $field = Field::fromConfig($fieldData, $entity);
             $entity->addField($field);
+        }
+
+        foreach ($data['actions'] ?? [] as $actionData) {
+            $entity->addAction($actionData);
         }
 
         foreach ($data['relations'] ?? [] as $relationData) {
@@ -425,6 +441,18 @@ class Entity
     }
 
     /**
+     * Add action definition to the entity.
+     */
+    public function addAction(Action|array $action): void
+    {
+        if (is_array($action)) {
+            $action = Action::fromConfig($action);
+        }
+
+        $this->actions[] = $action;
+    }
+
+    /**
      * Add a filter to the entity.
      */
     public function addFilter(Filter $filter): void
@@ -567,6 +595,21 @@ class Entity
     public function getFilters(): array
     {
         return $this->filters ?? [];
+    }
+
+    /**
+     * Get configured actions for the entity.
+     *
+     * @return Action[]
+     */
+    public function getActions(): array
+    {
+        return $this->actions ?? [];
+    }
+
+    public function hasActions(): bool
+    {
+        return ! empty($this->actions);
     }
 
     /**
@@ -907,6 +950,8 @@ class Entity
             'icon' => $this->icon,
             'fields' => array_map(fn ($field) => json_decode($field->toJson(), true), ($this->fields ?? [])),
             'relations' => array_map(fn ($relation) => json_decode($relation->toJson(), true), ($this->relations ?? [])),
+            'filters' => array_map(fn ($filter) => json_decode($filter->toJson(), true), ($this->filters ?? [])),
+            'actions' => array_map(fn (Action $action) => $action->toArray(), ($this->actions ?? [])),
             'settings' => $this->settings ? json_decode($this->settings->toJson()) : null,
         ], JSON_PRETTY_PRINT);
 
