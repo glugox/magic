@@ -1,0 +1,34 @@
+<?php
+
+namespace {{namespace}};
+
+use Illuminate\\Console\\Command;
+
+class {{className}} extends Command
+{
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = '{{signature}}';
+
+    /**
+     * The console command description.
+     *
+     * @var string|null
+     */
+    protected $description = '{{description}}';
+
+    /**
+     * Execute the console command.
+     */
+    public function handle(): int
+    {
+        $this->info('Running the {{actionNameHeadline}} action for {{entityName}}.');
+
+        // TODO: Implement the {{actionNameHeadline}} action logic.
+
+        return self::SUCCESS;
+    }
+}

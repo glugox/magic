@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {Filter, Loader} from "lucide-vue-next"
 import ToolBarActions from "@/components/resource-table/toolbar/ToolBarActions.vue"
-import {Entity, DbId, WayfinderRoute, DataTableState} from "@/types/support"
+import {Entity, DbId, WayfinderRoute, DataTableState, EntityAction} from "@/types/support"
 import {useTableProps} from "@/composables/useTableProps"
 import ColumnVisibilityMenu from "@/components/resource-table/toolbar/ColumnVisibilityMenu.vue";
 import NewEntityButton from "@/components/resource-table/toolbar/NewEntityButton.vue";
@@ -18,12 +18,13 @@ const {tableId, entity, createUrl, bulkActionProcessing, initialState} =
         parentId?: DbId
         bulkActionProcessing?: boolean
         initialState?: DataTableState
+        selectedCount?: number
     }>()
 
 // emits
 const emit = defineEmits<{
     (e: "update:visibleColumns", value: string[]): void
-    (e: "bulk-action", action: "edit" | "delete" | "archive"): void
+    (e: "toolbar-action", action: EntityAction): void
     (e: "action", value: string): void
 }>()
 
@@ -36,6 +37,10 @@ const canAddNew = computed(() => {
 
 const hasFilters = computed(() => {
     return entity.filters && entity.filters.length > 0
+})
+
+const hasActions = computed(() => {
+    return Array.isArray(entity.actions) && entity.actions.length > 0
 })
 
 </script>
@@ -62,7 +67,13 @@ const hasFilters = computed(() => {
                 :label="`New ${entity.singularName}`"
                 :createUrl="createUrl?.url"
             />
-            <ToolBarActions @action="(action) => emit('bulk-action', action)"/>
+            <ToolBarActions
+                v-if="hasActions"
+                :actions="entity.actions ?? []"
+                :disabled="bulkActionProcessing"
+                :selected-count="selectedCount ?? 0"
+                @action="(action) => emit('toolbar-action', action)"
+            />
         </div>
     </div>
 </template>
