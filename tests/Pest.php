@@ -303,6 +303,10 @@ function getFixtureConfigInventory(): Config
                 { "field": "status", "type": "enum" },
                 { "field": "price", "type": "range" },
                 { "field": "available_from", "type": "date_range" }
+            ],
+            "actions": [
+                { "name": "rebuildInventory", "command": "inventory:product-rebuild", "description": "Rebuild the product inventory cache" },
+                { "name": "openProduct", "type": "link", "field": "id" }
             ]
         },
         {

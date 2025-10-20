@@ -122,7 +122,19 @@
                                 "icon": { "type": "string" },
                                 "description": { "type": "string" }
                             },
-                            "additionalProperties": true
+                            "additionalProperties": true,
+                            "allOf": [
+                                {
+                                    "if": {
+                                        "properties": {
+                                            "type": { "const": "command" }
+                                        }
+                                    },
+                                    "then": {
+                                        "required": ["command"]
+                                    }
+                                }
+                            ]
                         }
                     }
                 }

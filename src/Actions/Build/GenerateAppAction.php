@@ -64,6 +64,9 @@ class GenerateAppAction implements DescribableAction
         // Step 9.1: Generate ModelMeta classes
         $buildContext = app(GenerateModelMetaAction::class)($buildContext);
 
+        // Step 9.2: Generate console commands for entity actions
+        $buildContext = app(GenerateActionCommandsAction::class)($buildContext);
+
         // Step 10: Generate Seeders
         $buildContext = app(GenerateSeedersAction::class)($buildContext);
 
