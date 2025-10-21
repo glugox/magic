@@ -40,6 +40,8 @@ class InstallApiCommand implements DescribableAction
         );
 
         $this->registerApiRouting();
+        $this->registerApiAuth();
+        $this->setStatefulApi();
 
         Log::channel('magic')->info('Finished install:api command.');
 
@@ -103,5 +105,96 @@ class InstallApiCommand implements DescribableAction
         $contents = self::replaceApiRegistration($contents);
         file_put_contents($file, $contents);
         Log::channel('magic')->info('Registered API routing in bootstrap/app.php');
+    }
+
+    /**
+     * Adds
+     *
+     * import { useApi } from "@/composables/useApi";
+     *
+     * const {initCsrf} = useApi();
+     * initCsrf().then(() => {
+     * console.log("CSRF token initialized");
+     * });
+     *
+     * In resources/js/app.js
+     *
+     * @return void
+     */
+    private function registerApiAuth()
+    {
+        $appJsPath = resource_path('js/app.js');
+        if (! file_exists($appJsPath)) {
+            Log::channel('magic')->warning(
+                "app.js file not found in resources/js directory. Please add the following snippet manually to initialize CSRF token for API requests:\n\n".
+                "import { useApi } from \"@/composables/useApi\";\n\n".
+                "const {initCsrf} = useApi();\n".
+                "initCsrf().then(() => {\n".
+                "    console.log(\"CSRF token initialized\");\n".
+                '});'
+            );
+
+            return;
+        }
+
+        $appJsContent = file_get_contents($appJsPath);
+        $importSnippet = 'import { useApi } from "@/composables/useApi";';
+        $initSnippet = "\nconst {initCsrf} = useApi();\ninitCsrf().then(() => {\n    console.log(\"CSRF token initialized\");\n});\n";
+
+        // Check if snippets already exist
+        if (str_contains($appJsContent, 'useApi') && str_contains($appJsContent, 'initCsrf()')) {
+            Log::channel('magic')->info('API auth snippets already exist in app.js');
+
+            return;
+        }
+
+        // Insert import snippet at the top
+        $newContent = preg_replace(
+            '/^<\?php\s*/',
+            $importSnippet."\n\n",
+            $appJsContent,
+            1
+        );
+
+        // Append init snippet at the end
+        $newContent .= $initSnippet;
+
+        file_put_contents($appJsPath, $newContent);
+        Log::channel('magic')->info('Added API auth snippets to app.js');
+    }
+
+    /**
+     * Adds:
+     * $middleware->statefulApi();
+     *
+     * Right below:
+     * $middleware->encryptCookies...
+     **/
+    private function setStatefulApi()
+    {
+        $file = base_path('bootstrap/app.php');
+
+        /** @var string $contents */
+        $contents = file_get_contents($file);
+
+        $snippet = '$middleware->statefulApi();';
+
+        // Check if snippet already exists
+        if (str_contains($contents, 'statefulApi()')) {
+            Log::channel('magic')->info('statefulApi() snippet already exists in HandleInertiaRequests.php');
+
+            return;
+        }
+
+        // Insert snippet right below $middleware->encryptCookies...
+        $newContent = preg_replace(
+            '/(\$middleware->encryptCookies\(.*?\);\s*)/s',
+            "$1\n        ".$snippet."\n",
+            $contents,
+            1
+        );
+
+        file_put_contents($file, $newContent);
+        Log::channel('magic')->info('Added statefulApi() snippet to HandleInertiaRequests.php');
     }
 }

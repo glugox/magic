@@ -104,6 +104,8 @@ export interface EntityAction {
     field?: string | null
     icon?: string | null
     description?: string | null
+    queued?: boolean | null
+    params?: any | null
     [key: string]: any
 }
 
@@ -149,7 +151,7 @@ export interface ValidationRuleSet {
 
 export interface Entity {
     name: string
-    indexRouteName: string
+    baseRoute: string
     singularName: string
     singularNameLower: string
     pluralName: string

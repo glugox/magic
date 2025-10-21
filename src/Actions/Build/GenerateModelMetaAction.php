@@ -263,6 +263,16 @@ class GenerateModelMetaAction implements DescribableAction
     }
 
     /**
+     * Build a single action definition entry for the actions() array.
+     */
+    protected function buildActionLine(Action $action): string
+    {
+        $array = $action->toArray();
+
+        return exportPhpValue($array, 3).',';
+    }
+
+    /**
      * Build the base field creation code, e.g., Text::make('field_name')
      */
     private function buildFieldCode(Field $field, string $class_basename): string
@@ -274,15 +284,5 @@ class GenerateModelMetaAction implements DescribableAction
         }
 
         return $code;
-    }
-
-    /**
-     * Build a single action definition entry for the actions() array.
-     */
-    protected function buildActionLine(Action $action): string
-    {
-        $array = $action->toArray();
-
-        return exportPhpValue($array, 3).',';
     }
 }

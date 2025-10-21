@@ -2,7 +2,6 @@
 
 namespace Glugox\Magic\Support\Config;
 
-use Glugox\Magic\Support\Config\Action;
 use Glugox\Magic\Support\Config\Entity\Settings;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
@@ -256,10 +255,10 @@ class Entity
      * Example: "users.index", "posts.index"
      * This is definition that can be passed to route() helper to generate URLs.
      */
-    public function getIndexRouteName(): string
+    public function getBaseRoute(): string
     {
         // Convert entity name to kebab-case for resource path
-        return $this->getFolderName().'.index';
+        return $this->getRouteName();
     }
 
     /**
@@ -446,7 +445,7 @@ class Entity
     public function addAction(Action|array $action): void
     {
         if (is_array($action)) {
-            $action = Action::fromConfig($action);
+            $action = Action::fromConfig($action, $this);
         }
 
         $this->actions[] = $action;

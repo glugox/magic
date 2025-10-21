@@ -181,7 +181,7 @@ class PublishFilesAction implements DescribableAction
         $content = <<<EOT
 const {$entityVar}Entity: Entity = {
     name: '{$entityName}',
-    indexRouteName: '{$entity->getIndexRouteName()}',
+    baseRoute: '{$entity->getBaseRoute()}',
     singularName: '{$entity->getSingularName()}',
     singularNameLower: '{$entityVar}',
     pluralName: '{$entity->getPluralName()}',

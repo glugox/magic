@@ -2,12 +2,16 @@
 
 namespace Glugox\Magic\Support\Config;
 
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 
 class Action
 {
     public function __construct(
-        public string $name,
+        // Short name of the action, e.g. "create"
+        public string $shortName,
+        // Full name including entity name prefix, e.g. "user.create"
+        public string $name = '',
         public string $type = 'command',
         public ?string $command = null,
         public ?string $label = null,
@@ -22,7 +26,7 @@ class Action
     /**
      * @param  array{name?: string, type?: string, command?: string, label?: string, field?: string, icon?: string, description?: string}  $data
      */
-    public static function fromConfig(array $data): self
+    public static function fromConfig(array $data, Entity $entity): self
     {
         if (! isset($data['name']) || $data['name'] === '') {
             throw new InvalidArgumentException('Action name is required');
@@ -32,10 +36,11 @@ class Action
         unset($extras['name'], $extras['type'], $extras['command'], $extras['label'], $extras['field'], $extras['icon'], $extras['description']);
 
         return new self(
-            name: $data['name'],
+            shortName: $data['name'],
+            name: $entity->getName().'.'.$data['name'],
             type: $data['type'] ?? 'command',
             command: $data['command'] ?? null,
-            label: $data['label'] ?? null,
+            label: $data['label'] ?? Str::title(str_replace('_', ' ', $data['name'])),
             field: $data['field'] ?? null,
             icon: $data['icon'] ?? null,
             description: $data['description'] ?? null,

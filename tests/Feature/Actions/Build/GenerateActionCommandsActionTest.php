@@ -1,6 +1,6 @@
 <?php
 
-use Glugox\Magic\Actions\Build\GenerateActionCommandsAction;
+use Glugox\Magic\Actions\Build\GenerateActionsAction;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
@@ -9,7 +9,7 @@ it('generates console commands for command-type entity actions', function (): vo
 
     $buildContext = getFixtureBuildContext();
 
-    $action = app(GenerateActionCommandsAction::class);
+    $action = app(GenerateActionsAction::class);
 
     $action($buildContext);
 
@@ -19,11 +19,11 @@ it('generates console commands for command-type entity actions', function (): vo
                 continue;
             }
 
-            $className = Str::studly($configAction->name).'Action.php';
-            $path = app_path('Console/Actions/'.$entity->getName().'/'.$className);
+            $className = Str::studly(Str::replace('.', '_', $configAction->name)).'Action.php';
+            $path = app_path('Actions/'.$className);
 
             expect(File::exists($path))->toBeTrue();
-            expect(File::get($path))->toContain($configAction->command);
+            expect(File::get($path))->toContain($configAction->name);
         }
     }
 });

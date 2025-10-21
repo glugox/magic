@@ -46,11 +46,17 @@ class GenerateAppAction implements DescribableAction
         // Step 4: Install Composer Packages
         $buildContext = app(InstallComposerPackagesAction::class)($buildContext);
 
+        // Step 4.1: Set Environment Variables
+        $buildContext = app(SetEnvAction::class)($buildContext);
+
         // Step 5: Generate Enums
         $buildContext = app(GenerateEnumsAction::class)($buildContext);
 
         // Step 6: Run Install API Command
         $buildContext = app(InstallApiCommand::class)($buildContext);
+
+        // Step 6.1: Install Queue System
+        $buildContext = app(InstallQueueCommand::class)($buildContext);
 
         // Step 7: Enable Attachable (copy traits, resources, stubs conditionally)
         $buildContext = app(EnableAttachableAction::class)($buildContext);
@@ -65,7 +71,7 @@ class GenerateAppAction implements DescribableAction
         $buildContext = app(GenerateModelMetaAction::class)($buildContext);
 
         // Step 9.2: Generate console commands for entity actions
-        $buildContext = app(GenerateActionCommandsAction::class)($buildContext);
+        $buildContext = app(GenerateActionsAction::class)($buildContext);
 
         // Step 10: Generate Seeders
         $buildContext = app(GenerateSeedersAction::class)($buildContext);

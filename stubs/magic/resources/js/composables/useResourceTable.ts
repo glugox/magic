@@ -14,10 +14,12 @@ import {arraysEqualIgnoreOrder, debounced, isEqual} from "@/lib/app"
 import axios from "axios"
 import {useEntityContext} from "@/composables/useEntityContext";
 import {useFilters, subscribeToFilters} from "@/store/tableFiltersStore";
+import {useApi} from "./useApi";
 
 export function useResourceTable<T>(props: ResourceTableProps<T>, tableId: TableId) {
 
     const { data, parentId, columns } = toRefs(props)
+    const { post } = useApi()
 
     const settings = ref<DataTableSettings>(props.state?.settings ?? {})
 
@@ -343,6 +345,15 @@ export function useResourceTable<T>(props: ResourceTableProps<T>, tableId: Table
 
                 return true
             }
+
+
+            // Call custom action handler if provided
+            const actionResponse = await runAction(action, selectedIds.value)
+            if (actionResponse === true) {
+                return true
+            }
+
+
         } catch (err) {
             console.error(`Failed to run action ${action.name}`, err)
             return true
@@ -353,6 +364,26 @@ export function useResourceTable<T>(props: ResourceTableProps<T>, tableId: Table
         }
 
         return false
+    }
+
+    /**
+     * Run custom action handler if provided
+     */
+    async function runAction(action: EntityAction, ids: DbId[]): Promise<boolean> {
+
+        const form = useForm({
+            action: action.name,
+            queued: action.queued ?? false,
+            params: action.params ?? {},
+            targets: ids,
+        });
+        const endpoint = '/actions/run';
+
+        const res = await post(endpoint, form.data());
+
+        console.log('Custom action response:', res);
+
+        return true;
     }
 
     // Subscribe to external filter changes

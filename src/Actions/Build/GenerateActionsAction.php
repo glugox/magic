@@ -20,16 +20,29 @@ use Illuminate\Support\Str;
     description: 'Generate application console commands for configured entity actions.',
     parameters: ['context' => 'The build context including entities and their configured actions.']
 )]
-class GenerateActionCommandsAction implements DescribableAction
+class GenerateActionsAction implements DescribableAction
 {
     use AsDescribableAction;
     use CanLogSectionTitle;
 
     protected BuildContext $context;
 
+    /**
+     * Where to place generated action classes
+     */
+    protected $actionsPath;
+
     public function __invoke(BuildContext $context): BuildContext
     {
         $this->logInvocation($this->describe()->name);
+        $this->actionsPath = app_path('Actions');
+
+        // Create App/Actions directory if it doesn't exist
+
+        if (! File::exists($this->actionsPath)) {
+            File::makeDirectory($this->actionsPath, 0755, true);
+            Log::info("Created directory: {$this->actionsPath}");
+        }
 
         $this->context = $context;
 
@@ -43,46 +56,27 @@ class GenerateActionCommandsAction implements DescribableAction
     protected function generateForEntity(Entity $entity): void
     {
         foreach ($entity->getActions() as $action) {
-            if ($action->type !== 'command') {
-                continue;
-            }
-
-            $this->generateCommandForAction($entity, $action);
+            $this->generateAction($entity, $action);
         }
     }
 
-    protected function generateCommandForAction(Entity $entity, ConfigAction $action): void
+    protected function generateAction(Entity $entity, ConfigAction $action): void
     {
-        $signature = 'app-' . $action->command;
-
-        if ($signature === null || $signature === '') {
-            Log::channel('magic')->warning(sprintf(
-                'Skipping action "%s" for entity "%s" because no command signature is defined.',
-                $action->name,
-                $entity->getName()
-            ));
-
-            return;
-        }
-
-        $className = $entity->getName() .  Str::studly($action->name).'Action';
-        $namespace = 'App\Console\Commands';
+        $className = Str::studly(Str::replace('.', '_', $action->name)).'Action';
         $description = $action->description
             ?: sprintf('Handle the %s action for %s.', Str::headline($action->name), $entity->getName());
 
         $replacements = [
-            'namespace' => $namespace,
             'className' => $className,
-            'signature' => $signature,
-            'description' => addslashes($description),
-            'actionNameHeadline' => Str::headline($action->name),
+            'description' => $description,
             'entityName' => $entity->getName(),
+            'name' => $action->name,
+            'label' => $action->label
         ];
 
-        $stub = StubHelper::loadStub('commands/actions/action-command.stub', $replacements);
+        $stub = StubHelper::loadStub('actions/action.stub', $replacements);
 
-        $filePath = app_path('Console/Commands/'.$className.'.php');
-        File::ensureDirectoryExists(dirname($filePath));
+        $filePath = $this->actionsPath.'/'.$className.'.php';
 
         app(GenerateFileAction::class)($filePath, $stub);
         $this->context->registerGeneratedFile($filePath);

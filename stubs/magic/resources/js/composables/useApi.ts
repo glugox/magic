@@ -1,41 +1,51 @@
-import {ApiResponse} from '@/types/support'
+import axios, { AxiosRequestConfig } from 'axios'
+import { ApiResponse } from '@/types/support'
+
+const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://orchestrator.test'
+const baseApiURL = `${baseURL}/api`
+
+// Create an axios instance
+const api = axios.create({
+    baseURL: baseApiURL,
+    withCredentials: true, // important for sanctum + cookies
+    headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+    },
+})
+
+// Track CSRF initialization
+let csrfReady = false
+
+async function initCsrf() {
+    if (!csrfReady) {
+        await axios.get(`${baseURL}/sanctum/csrf-cookie`, { withCredentials: true })
+        csrfReady = true
+    }
+}
 
 export const useApi = () => {
-    const baseURL = import.meta.env.VITE_API_BASE_URL || '/api'
-
     const request = async <T = any>(
         endpoint: string,
-        options: RequestInit = {}
+        options: AxiosRequestConfig = {}
     ): Promise<ApiResponse<T>> => {
-
-        // Development only, delay for 1s to simulate network latency
         if (import.meta.env.DEV) {
             await new Promise((resolve) => setTimeout(resolve, 250))
         }
 
-        const url = `${baseURL}${endpoint}`
-
         try {
-            const response = await fetch(url, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json',
-                    ...options.headers,
-                },
+            const response = await api.request<T>({
+                url: endpoint,
                 ...options,
             })
 
-            const contentType = response.headers.get('content-type')
-            const json = contentType?.includes('application/json')
-                ? await response.json().catch(() => null)
-                : null
-
-            return json as ApiResponse<T>
+            return response.data as ApiResponse<T>
         } catch (error: any) {
             return {
                 success: false,
-                status: 0,
-                message: error.message || 'Network error.',
+                status: error.response?.status ?? 0,
+                message: error.response?.data?.message || error.message || 'Network error.',
             }
         }
     }
@@ -44,49 +54,21 @@ export const useApi = () => {
         params ? `?${new URLSearchParams(params).toString()}` : ''
 
     return {
-        get: <T = any>(endpoint: string, params?: Record<string, string>) =>
+        initCsrf,
+
+        get: async <T = any>(endpoint: string, params?: Record<string, string>) =>
             request<T>(`${endpoint}${getQueryString(params)}`, { method: 'GET' }),
 
-        post: <T = any>(
-            endpoint: string,
-            body?: Record<string, any>,
-            headers: Record<string, string> = {}
-        ) =>
-            request<T>(endpoint, {
-                method: 'POST',
-                headers,
-                body: body ? JSON.stringify(body) : undefined,
-            }),
+        post: async <T = any>(endpoint: string, body?: Record<string, any>) =>
+            request<T>(endpoint, { method: 'POST', data: body }),
 
-        put: <T = any>(
-            endpoint: string,
-            body?: Record<string, any>,
-            headers: Record<string, string> = {}
-        ) =>
-            request<T>(endpoint, {
-                method: 'PUT',
-                headers,
-                body: body ? JSON.stringify(body) : undefined,
-            }),
+        put: async <T = any>(endpoint: string, body?: Record<string, any>) =>
+            request<T>(endpoint, { method: 'PUT', data: body }),
 
-        patch: <T = any>(
-            endpoint: string,
-            body?: Record<string, any>,
-            headers: Record<string, string> = {}
-        ) =>
-            request<T>(endpoint, {
-                method: 'PATCH',
-                headers,
-                body: body ? JSON.stringify(body) : undefined,
-            }),
+        patch: async <T = any>(endpoint: string, body?: Record<string, any>) =>
+            request<T>(endpoint, { method: 'PATCH', data: body }),
 
-        delete: <T = any>(
-            endpoint: string,
-            headers: Record<string, string> = {}
-        ) =>
-            request<T>(endpoint, {
-                method: 'DELETE',
-                headers,
-            }),
+        delete: async <T = any>(endpoint: string) =>
+            request<T>(endpoint, { method: 'DELETE' }),
     }
 }

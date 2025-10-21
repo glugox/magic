@@ -24,8 +24,8 @@
                 { "field": "is_admin", "type": "boolean" }
             ],
             "actions": [
-                { "name": "assign_role", "command": "user:assign-role" },
-                { "name": "remove_role", "command": "user:remove-role" }
+                { "name": "assign_role" },
+                { "name": "remove_role"}
             ]
         },
         {
@@ -55,7 +55,7 @@
             ],
             "relations": [
                 { "type": "hasMany", "relatedEntityName": "BuildLog", "cascade": true },
-                { "type": "hasMany", "relatedEntityName": "Job", "cascade": true },
+                { "type": "hasMany", "relatedEntityName": "AppJob", "cascade": true },
                 { "type": "hasMany", "relatedEntityName": "ValidationCheck", "cascade": true },
                 { "type": "belongsTo", "relatedEntityName": "ConfigFile", "nullable": true }
             ],
@@ -66,13 +66,13 @@
                 { "field": "last_build_at", "type": "date_range" }
             ],
             "actions": [
-                { "name": "rebuild", "command": "app:rebuild" },
-                { "name": "delete", "command": "app:delete" },
+                { "name": "rebuild" },
+                { "name": "delete" },
                 { "name": "preview", "type": "link", "field": "url" },
-                { "name": "start", "command": "app:start" },
-                { "name": "stop", "command": "app:stop" },
-                { "name": "restart", "command": "app:restart" },
-                { "name": "validate", "command": "app:validate" }
+                { "name": "start" },
+                { "name": "stop" },
+                { "name": "restart" },
+                { "name": "validate"}
             ]
         },
         {
@@ -91,8 +91,8 @@
                 { "field": "success", "type": "boolean" }
             ],
             "actions": [
-                { "name": "retry", "command": "build:retry" },
-                { "name": "export", "command": "build:export" }
+                { "name": "retry" },
+                { "name": "export" }
             ]
         },
         {
@@ -109,12 +109,12 @@
                 { "field": "name", "type": "text" }
             ],
             "actions": [
-                { "name": "duplicate", "command": "config:duplicate" },
-                { "name": "validate", "command": "config:validate" }
+                { "name": "duplicate" },
+                { "name": "validate"}
             ]
         },
         {
-            "name": "Job",
+            "name": "AppJob",
             "fields": [
                 { "name": "id", "type": "id" },
                 { "name": "command", "type": "string" },
@@ -129,8 +129,8 @@
                 { "field": "status", "type": "enum" }
             ],
             "actions": [
-                { "name": "retry", "command": "job:retry" },
-                { "name": "cancel", "command": "job:cancel" },
+                { "name": "retry" },
+                { "name": "cancel" },
                 { "name": "view_output" }
             ]
         },
@@ -151,10 +151,10 @@
                 { "field": "checked_at", "type": "date_range" }
             ],
             "actions": [
-                { "name": "run_check", "command": "validation:run" },
-                { "name": "recheck", "command": "validation:recheck" },
-                { "name": "ignore", "command": "validation:ignore" },
-                { "name": "export_report", "command": "validation:export" }
+                { "name": "run_check" },
+                { "name": "recheck" },
+                { "name": "ignore" },
+                { "name": "export_report" }
             ]
         }
     ]

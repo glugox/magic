@@ -1,0 +1,25 @@
+<?php
+
+namespace App\Actions;
+
+use Glugox\Actions\Contracts\Action;
+use Glugox\Actions\DTO\ActionContext;
+use Glugox\Actions\Support\Progress;
+
+class {{className}} implements Action
+{
+    public const NAME = '{{name}}';
+
+    public function name(): string { return self::NAME; }
+
+    public function description(): string { return 'This action performs the {{label}} operation.'; }
+
+    public function label(): string { return '{{label}}'; }
+
+    public function handle(ActionContext $ctx, Progress $progress): array
+    {
+        // Implement the action logic here
+
+        return ['message' => '{{label}} complete'];
+    }
+}
