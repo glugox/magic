@@ -3,6 +3,7 @@
         "name": "InventoryHub",
         "seedEnabled": false,
         "seedCount": 0,
+        "devMode": true,
         "fakerMappings": {
             "carrier": "randomElement([\"FedEx\", \"UPS\", \"DHL\", \"USPS\"])"
         }

@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import { ApiResponse } from '@/types/support'
 
-const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://orchestrator.test'
+const baseURL = import.meta.env.VITE_API_BASE_URL || window.location.origin
 const baseApiURL = `${baseURL}/api`
 
 // Create an axios instance

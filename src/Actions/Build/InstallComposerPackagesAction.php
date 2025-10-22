@@ -4,6 +4,7 @@ namespace Glugox\Magic\Actions\Build;
 
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
+use Glugox\Magic\Helpers\ComposerHelper;
 use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
@@ -19,6 +20,16 @@ use Symfony\Component\Process\Process;
 class InstallComposerPackagesAction implements DescribableAction
 {
     use AsDescribableAction, CanLogSectionTitle;
+
+    /**
+     * Composer's composer.json path.
+     */
+    protected string $composerJsonPath;
+
+    /**
+     * Helper to manipulate composer.json.
+     */
+    protected ComposerHelper $composerHelper;
 
     /**
      * List of Composer packages with flexible definitions.
@@ -37,6 +48,13 @@ class InstallComposerPackagesAction implements DescribableAction
             'name' => 'glugox/model-meta',
             'version' => null,
             'options' => [],
+            'type' => 'path',
+        ],
+        [
+            'name' => 'glugox/actions',
+            'version' => null,
+            'options' => [],
+            'type' => 'path',
         ],
         [
             'name' => 'pestphp/pest',
@@ -48,6 +66,12 @@ class InstallComposerPackagesAction implements DescribableAction
             'version' => null,
             'options' => [],
         ],
+        // Sanctum is required for API authentication
+        [
+            'name' => 'laravel/sanctum',
+            'version' => null,
+            'options' => [],
+        ],
     ];
 
     /**
@@ -56,7 +80,7 @@ class InstallComposerPackagesAction implements DescribableAction
      * @var string[]
      */
     protected array $globalComposerOptions = [
-        '--dev', // example global option
+        //'--dev', // example global option
     ];
 
     public function __invoke(BuildContext $context): BuildContext
@@ -64,6 +88,40 @@ class InstallComposerPackagesAction implements DescribableAction
         $this->logInvocation($this->describe()->name);
 
         Log::channel('magic')->info('Checking Composer dependencies...');
+
+        // Set composer.json path
+        $this->composerJsonPath = base_path('composer.json');
+        $this->composerHelper = new ComposerHelper(base_path('composer.json'));
+
+        /**
+         * If we are in dev mode , we want the packages to be linked as symlinks
+         * instead of being installed via packagist. This allows for easier development and testing of local packages.
+         *
+         * "type": "path",
+         * "url": "/Users/ervin/Code/github.com/glugox/actions",
+         * "options": {
+         * "symlink": true
+         * }
+         */
+        if ($context->getConfig()->app->devMode) {
+
+            // Ensure minimum stability
+            $this->composerHelper->ensureMinimumStability('dev');
+
+            foreach ($this->composerPackages as &$pkg) {
+
+                // Skip if type is not path
+                if (!isset($pkg['type']) || $pkg['type'] !== 'path') {
+                    continue;
+                }
+
+                $pkg['url'] = '/Users/ervin/Code/github.com/'.$pkg['name'];
+
+                $pkgOptions = $pkg['options'] ?? [];
+                $pkg['options'] = $pkgOptions;
+            }
+            unset($pkg); // break the reference
+        }
 
         foreach ($this->composerPackages as $pkg) {
             $name = $pkg['name'];
@@ -74,6 +132,11 @@ class InstallComposerPackagesAction implements DescribableAction
                 Log::channel('magic')->info("Composer package {$name} is already installed.");
 
                 continue;
+            }
+
+            // If it is local, ensure it is added to composer.json as a path repository
+            if (isset($pkg['type']) && $pkg['type'] === 'path' && isset($pkg['url'])) {
+                $this->composerHelper->ensureLocalRepo($pkg['url']);
             }
 
             // Merge global + per-package + context options

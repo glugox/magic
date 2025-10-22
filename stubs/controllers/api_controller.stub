@@ -95,29 +95,4 @@ class {{controllerClass}} extends Controller
             meta: ['deleted_id' => $id]
         );
     }
-
-    /**
-     * Run action on the specified resource.
-     */
-    /*public function action(Request $request, {{modelClass}} ${{modelClassCamel}})
-    {
-        $data = $request->validate([
-            'action_name' => 'required|string',
-            'ids' => 'required|array',
-            //'ids.*' => 'exists:{{tableName}},id'
-        ]);
-        $actionName = $request->input('action_name');
-        /*if (!method_exists($this, $actionName)) {
-            return ApiResponse::error(
-                message: "Action '$actionName' not found.",
-                statusCode: 404
-            );
-        }*/
-        $result = true;
-        return ApiResponse::success(
-            content: $result,
-            message: "Action '$actionName' executed successfully."
-        );
-
-    }*/
 }

@@ -2,7 +2,8 @@
     "app": {
         "name": "UNO",
         "seedEnabled": false,
-        "seedCount": 20
+        "seedCount": 20,
+        "devMode": true
     },
     "entities": [
         {

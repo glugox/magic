@@ -106,6 +106,10 @@ return [
             ],
         ],
     ],
+
+    // Development mode
+    'dev_mode' => env('MAGIC_DEV_MODE', false) === true,
+
     'dev' => [
         'default_password_hash' => '$2y$12$00A.1FrCk3FctOEVIHlkLu5qYNfFdBGJUCyzdMaGcvC9CPTgPoIgK',
     ],

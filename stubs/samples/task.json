@@ -2,7 +2,8 @@
     "app": {
         "name": "TaskMaster",
         "seedEnabled": true,
-        "seedCount": 50
+        "seedCount": 50,
+        "devMode": true
     },
     "entities": [
         {

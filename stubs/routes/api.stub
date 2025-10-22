@@ -1,5 +1,5 @@
 // Start of admin middleware group
-Route::middleware('auth:sanctum')->group(function(){
+Route::middleware(['web', 'auth:sanctum'])->group(function () {
 
     /**
      * {{entityName}} api routes

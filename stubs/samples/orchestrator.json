@@ -3,7 +3,8 @@
         "name": "Orchestrator",
         "seedEnabled": false,
         "seedCount": 0,
-        "fakerMappings": {}
+        "fakerMappings": {},
+        "devMode": true
     },
     "entities": [
         {

@@ -2,6 +2,8 @@
 
 namespace Glugox\Magic\Helpers;
 
+use RuntimeException;
+
 class EnvHelper
 {
     /**
@@ -14,23 +16,38 @@ class EnvHelper
     public static function setEnvValue(string $key, string $value, ?string $envPath = null): void
     {
         $envPath = $envPath ?? base_path('.env');
-        $escaped = preg_quote($key, '/');
+        if (! file_exists($envPath)) {
+            throw new RuntimeException("Env file not found at: {$envPath}");
+        }
 
         $content = file_get_contents($envPath);
 
-        // Check if key exists
-        if (preg_match("/^{$escaped}=.*/m", $content)) {
-            // Replace existing
-            $content = preg_replace(
-                "/^{$escaped}=.*/m",
-                "{$key}=\"{$value}\"",
-                $content
-            );
+        // Normalize line endings
+        $content = str_replace("\r\n", "\n", $content);
+
+        $pattern = "/^{$key}\s*=\s*.*$/m";
+        $line = $key.'='.self::escapeValue($value);
+
+        if (preg_match($pattern, $content)) {
+            // Replace existing line
+            $content = preg_replace($pattern, $line, $content);
         } else {
-            // Append new
-            $content .= "\n{$key}=\"{$value}\"";
+            // Append new variable with a newline before if not empty
+            $content = mb_rtrim($content)."\n".$line."\n";
         }
 
         file_put_contents($envPath, $content);
+    }
+
+    /**
+     * Escape env value properly (only quote if needed).
+     */
+    protected static function escapeValue(string $value): string
+    {
+        if (preg_match('/\s/', $value) || str_contains($value, '#') || str_contains($value, '"')) {
+            return '"'.addslashes($value).'"';
+        }
+
+        return $value;
     }
 }

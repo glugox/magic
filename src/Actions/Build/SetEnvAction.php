@@ -39,6 +39,9 @@ class SetEnvAction implements DescribableAction
         EnvHelper::setEnvValue('SESSION_DOMAIN', $domain);
         EnvHelper::setEnvValue('SANCTUM_STATEFUL_DOMAINS', $domain);
 
+        // MAGIC_DEV_MODE
+        EnvHelper::setEnvValue('MAGIC_DEV_MODE', $context->getConfig()->app->isDevMode() ? 'true' : 'false');
+
         return $context;
     }
 }

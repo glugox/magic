@@ -9,6 +9,7 @@ use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Support\Facades\Log;
+use Symfony\Component\Console\Output\BufferedOutput;
 
 #[ActionDescription(
     name: 'update_db',
@@ -26,7 +27,11 @@ class UpdateDbAction implements DescribableAction
 
         // Step 1. Run migrations to ensure the database schema is up to date
         Log::channel('magic')->info('Running database migrations to update the schema...');
-        Artisan::call('migrate', ['--force' => true]);
+        $outputBuffer = new BufferedOutput;
+        Artisan::call('migrate', ['--force' => true], $outputBuffer);
+
+        $output = $outputBuffer->fetch();
+        Log::channel('magic')->info("Migration output:\n".$output);
 
         // Step 2. Seed the database if enabled in config
         // if ($context->getConfig()->app->seedEnabled) {

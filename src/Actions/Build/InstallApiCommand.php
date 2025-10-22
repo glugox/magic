@@ -25,19 +25,17 @@ class InstallApiCommand implements DescribableAction
         $this->logInvocation($this->describe()->name);
 
         // Check if "api:" already exists in withRouting
-        if (self::isApiInstalled()) {
+        if (! self::isApiInstalled()) {
+            // Run the install:api Artisan command
+            Artisan::call('install:api',
+                [
+                    '--force' => true,
+                    '--no-interaction' => true
+                ]
+            );
+        } else {
             Log::channel('magic')->info('API routing already registered in bootstrap/app.php. Skipping install:api command.');
-
-            return $context;
         }
-
-        // Run the install:api Artisan command
-        Artisan::call('install:api',
-            [
-                '--force' => true,
-                '--no-interaction' => true
-            ]
-        );
 
         $this->registerApiRouting();
         $this->registerApiAuth();
@@ -123,7 +121,7 @@ class InstallApiCommand implements DescribableAction
      */
     private function registerApiAuth()
     {
-        $appJsPath = resource_path('js/app.js');
+        $appJsPath = resource_path('js/app.ts');
         if (! file_exists($appJsPath)) {
             Log::channel('magic')->warning(
                 "app.js file not found in resources/js directory. Please add the following snippet manually to initialize CSRF token for API requests:\n\n".
@@ -149,12 +147,7 @@ class InstallApiCommand implements DescribableAction
         }
 
         // Insert import snippet at the top
-        $newContent = preg_replace(
-            '/^<\?php\s*/',
-            $importSnippet."\n\n",
-            $appJsContent,
-            1
-        );
+        $newContent = $importSnippet."\n\n".$appJsContent;
 
         // Append init snippet at the end
         $newContent .= $initSnippet;

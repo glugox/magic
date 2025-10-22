@@ -34,7 +34,12 @@ class App
          * Whether to generate strong passwords (longer time) for seeded users,
          * or use 'password' (faster) for testing purposes.
          */
-        public ?bool $strongPasswords = false
+        public ?bool $strongPasswords = false,
+
+        /**
+         * Dev mode flag
+         */
+        public ?bool $devMode = false,
     ) {}
 
     public static function fromConfig(array $data): self
@@ -44,8 +49,17 @@ class App
             $data['seedEnabled'] ?? false,
             $data['seedCount'] ?? 20,
             $data['fakerMappings'] ?? null,
-            $data['strongPasswords'] ?? false
+            $data['strongPasswords'] ?? false,
+            $data['devMode'] ?? false,
         );
+    }
+
+    /**
+     * Is dev mode
+     */
+    public function isDevMode(): bool
+    {
+        return $this->devMode === true;
     }
 
     /**
@@ -55,6 +69,11 @@ class App
     {
         return [
             'name' => $this->name,
+            'seedEnabled' => $this->seedEnabled,
+            'seedCount' => $this->seedCount,
+            'fakerMappings' => $this->fakerMappings,
+            'strongPasswords' => $this->strongPasswords,
+            'devMode' => $this->devMode,
         ];
     }
 

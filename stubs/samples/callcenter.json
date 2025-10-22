@@ -2,7 +2,8 @@
     "app": {
         "name": "CallCenterPro",
         "seedEnabled": false,
-        "seedCount": 50
+        "seedCount": 50,
+        "devMode": true
     },
     "entities": [
         {
