@@ -545,7 +545,7 @@ EOT;
         $destination = base_path();
 
         // Use the CopyDirectoryAction to copy files
-        $filesCopied = app(CopyDirectoryAction::class)($source, $destination);
+        $filesCopied = app(CopyDirectoryAction::class)($source, $destination, false, true);
         $this->context->registerGeneratedFile($filesCopied);
     }
 }

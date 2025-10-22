@@ -3,6 +3,7 @@
 namespace Glugox\Magic\Actions\Build;
 
 use Artisan;
+use Glugox\Magic\Actions\Files\BackupOriginalFileAction;
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Support\BuildContext;
@@ -101,6 +102,7 @@ class InstallApiCommand implements DescribableAction
         $contents = file_get_contents($file);
 
         $contents = self::replaceApiRegistration($contents);
+        app(BackupOriginalFileAction::class)($file);
         file_put_contents($file, $contents);
         Log::channel('magic')->info('Registered API routing in bootstrap/app.php');
     }
@@ -152,6 +154,7 @@ class InstallApiCommand implements DescribableAction
         // Append init snippet at the end
         $newContent .= $initSnippet;
 
+        app(BackupOriginalFileAction::class)($appJsPath);
         file_put_contents($appJsPath, $newContent);
         Log::channel('magic')->info('Added API auth snippets to app.js');
     }
@@ -187,6 +190,7 @@ class InstallApiCommand implements DescribableAction
             1
         );
 
+        app(BackupOriginalFileAction::class)($file);
         file_put_contents($file, $newContent);
         Log::channel('magic')->info('Added statefulApi() snippet to HandleInertiaRequests.php');
     }

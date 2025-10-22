@@ -3,6 +3,7 @@
 namespace Glugox\Magic\Commands;
 
 use Glugox\Magic\Actions\Files\CopyDirectoryAction;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 
 class ResetLaravelCommand extends MagicBaseCommand
@@ -23,8 +24,14 @@ class ResetLaravelCommand extends MagicBaseCommand
     {
         Log::channel('magic')->info('Starting Laravel reset...');
 
-        $sourcePath = __DIR__.'/../../stubs/laravel';
+        $sourcePath = base_path('.magic/backup');
         $destinationPath = base_path();
+
+        if (! File::exists($sourcePath)) {
+            Log::channel('magic')->warning('No Laravel backup found under .magic/backup. Nothing to restore.');
+
+            return 0;
+        }
 
         app(CopyDirectoryAction::class)($sourcePath, $destinationPath, true);
         Log::channel('magic')->info('Reset Laravel complete!');

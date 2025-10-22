@@ -2,6 +2,7 @@
 
 namespace Glugox\Magic\Actions\Build;
 
+use Glugox\Magic\Actions\Files\BackupOriginalFileAction;
 use Glugox\Magic\Actions\Files\GenerateFileAction;
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
@@ -477,6 +478,7 @@ class GenerateControllersAction implements DescribableAction
 
         if (! str_contains($webPhpContent, $requireLine)) {
             // Append require line at the end
+            app(BackupOriginalFileAction::class)($webPhpPath);
             File::append($webPhpPath, "\n$requireLine\n");
             $this->context->registerUpdatedFile($webPhpPath);
             Log::channel('magic')->info('Added require to routes/web.php');
@@ -509,6 +511,7 @@ class GenerateControllersAction implements DescribableAction
         // Append require line if missing
         if (! str_contains($apiPhpContent, $requireLine)) {
             $apiPhpContent .= "\n$requireLine\n";
+            app(BackupOriginalFileAction::class)($apiPhpPath);
             File::put($apiPhpPath, $apiPhpContent);
             $this->context->registerUpdatedFile($apiPhpPath);
             Log::channel('magic')->info('Added require to routes/api.php for app/api.php');

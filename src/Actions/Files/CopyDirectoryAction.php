@@ -27,7 +27,7 @@ class CopyDirectoryAction implements DescribableAction
      *
      * @return array<int, string> List of affected paths (copied, created or removed)
      */
-    public function __invoke(string $source, string $destination, bool $deleteExtraneous = false): array
+    public function __invoke(string $source, string $destination, bool $deleteExtraneous = false, bool $backupExisting = false): array
     {
         if (! File::exists($source)) {
             Log::channel('magic')->warning("Source directory does not exist: {$source}");
@@ -43,7 +43,8 @@ class CopyDirectoryAction implements DescribableAction
             $deleteExtraneous,
             $affectedPaths,
             $deleteExtraneous ? false : true,
-            $destination
+            $destination,
+            $backupExisting
         );
 
         return $affectedPaths;
@@ -60,7 +61,8 @@ class CopyDirectoryAction implements DescribableAction
         bool $deleteExtraneous,
         array &$affectedPaths,
         bool $cleanupCurrentLevel,
-        string $destinationRoot
+        string $destinationRoot,
+        bool $backupExisting
     ): void {
         if (! File::exists($sourceDir)) {
             return;
@@ -91,13 +93,17 @@ class CopyDirectoryAction implements DescribableAction
                     $deleteExtraneous,
                     $affectedPaths,
                     $deleteExtraneous,
-                    $destinationRoot
+                    $destinationRoot,
+                    $backupExisting
                 );
 
                 continue;
             }
 
             File::ensureDirectoryExists(dirname($targetPath));
+            if ($backupExisting) {
+                app(BackupOriginalFileAction::class)($targetPath);
+            }
             File::copy($sourcePath, $targetPath);
             $affectedPaths[] = $targetPath;
             Log::channel('magic')->info('---Copied file: '.$this->relativeToDestination($targetPath, $destinationRoot));

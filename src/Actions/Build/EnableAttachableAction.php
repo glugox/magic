@@ -2,6 +2,7 @@
 
 namespace Glugox\Magic\Actions\Build;
 
+use Glugox\Magic\Actions\Files\BackupOriginalFileAction;
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Support\BuildContext;
@@ -80,6 +81,10 @@ class EnableAttachableAction implements DescribableAction
         }
 
         $destination = $destinationDir.'/'.$filename;
+        if (file_exists($destination)) {
+            app(BackupOriginalFileAction::class)($destination);
+        }
+
         copy($source, $destination);
         $this->context->registerGeneratedFile($destination);
 
@@ -92,6 +97,7 @@ class EnableAttachableAction implements DescribableAction
         $includeLine = "require base_path('routes/attachable.php');\n";
 
         if (! str_contains(file_get_contents($apiRoutesFile), $includeLine)) {
+            app(BackupOriginalFileAction::class)($apiRoutesFile);
             file_put_contents($apiRoutesFile, "\n".$includeLine, FILE_APPEND);
             $this->context->registerUpdatedFile($apiRoutesFile);
             Log::channel('magic')->info('Included attachable routes in routes/api.php');

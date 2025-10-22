@@ -2,6 +2,8 @@
 
 namespace Glugox\Magic\Helpers;
 
+use Glugox\Magic\Actions\Files\BackupOriginalFileAction;
+
 class ComposerHelper
 {
     protected string $path;
@@ -67,6 +69,7 @@ class ComposerHelper
     protected function save(): void
     {
         $json = json_encode($this->composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL;
+        app(BackupOriginalFileAction::class)($this->path);
         file_put_contents($this->path, $json);
     }
 }
