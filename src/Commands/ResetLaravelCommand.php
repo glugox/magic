@@ -26,7 +26,7 @@ class ResetLaravelCommand extends MagicBaseCommand
         $sourcePath = __DIR__.'/../../stubs/laravel';
         $destinationPath = base_path();
 
-        app(CopyDirectoryAction::class)($sourcePath, $destinationPath);
+        app(CopyDirectoryAction::class)($sourcePath, $destinationPath, true);
         Log::channel('magic')->info('Reset Laravel complete!');
 
         return 0;
