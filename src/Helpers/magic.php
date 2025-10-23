@@ -93,3 +93,47 @@ if (! function_exists('exportPhpValue')) {
     }
 
 }
+
+if (! function_exists('mb_ltrim')) {
+    /**
+     * Unicode-safe equivalent of ltrim().
+     */
+    function mb_ltrim(string $string, string $charMask = " \t\n\r\0\x0B"): string
+    {
+        if ($charMask === " \t\n\r\0\x0B") {
+            return ltrim($string);
+        }
+
+        $pattern = '/^['.preg_quote($charMask, '/').']+/u';
+        $result = preg_replace($pattern, '', $string);
+
+        return $result ?? $string;
+    }
+}
+
+if (! function_exists('mb_rtrim')) {
+    /**
+     * Unicode-safe equivalent of rtrim().
+     */
+    function mb_rtrim(string $string, string $charMask = " \t\n\r\0\x0B"): string
+    {
+        if ($charMask === " \t\n\r\0\x0B") {
+            return rtrim($string);
+        }
+
+        $pattern = '/['.preg_quote($charMask, '/').']+$/u';
+        $result = preg_replace($pattern, '', $string);
+
+        return $result ?? $string;
+    }
+}
+
+if (! function_exists('mb_trim')) {
+    /**
+     * Unicode-safe equivalent of trim().
+     */
+    function mb_trim(string $string, string $charMask = " \t\n\r\0\x0B"): string
+    {
+        return mb_ltrim(mb_rtrim($string, $charMask), $charMask);
+    }
+}

@@ -2,6 +2,7 @@
 
 namespace Glugox\Magic\Helpers;
 
+use JsonException;
 use RuntimeException;
 
 class ComposerHelper
@@ -19,10 +20,14 @@ class ComposerHelper
         }
 
         $json = file_get_contents($this->path);
-        $this->composer = json_decode($json, true);
+        if ($json === false) {
+            throw new RuntimeException("Failed to read composer.json at {$this->path}");
+        }
 
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new RuntimeException('Invalid composer.json: '.json_last_error_msg());
+        try {
+            $this->composer = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException $exception) {
+            throw new RuntimeException('Invalid composer.json: '.$exception->getMessage(), 0, $exception);
         }
     }
 

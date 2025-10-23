@@ -91,7 +91,14 @@ class EnableAttachableAction implements DescribableAction
         $apiRoutesFile = base_path('routes/api.php');
         $includeLine = "require base_path('routes/attachable.php');\n";
 
-        if (! str_contains(file_get_contents($apiRoutesFile), $includeLine)) {
+        $apiRoutesContent = file_exists($apiRoutesFile) ? file_get_contents($apiRoutesFile) : '';
+        if ($apiRoutesContent === false) {
+            Log::channel('magic')->warning('Unable to read routes/api.php to include attachable routes.');
+
+            return;
+        }
+
+        if (! str_contains($apiRoutesContent, $includeLine)) {
             file_put_contents($apiRoutesFile, "\n".$includeLine, FILE_APPEND);
             $this->context->registerUpdatedFile($apiRoutesFile);
             Log::channel('magic')->info('Included attachable routes in routes/api.php');

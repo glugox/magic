@@ -33,6 +33,12 @@ class FilesGenerationUpdate
         // Load the manifest
         if (file_exists($manifestPath)) {
             $contents = file_get_contents($manifestPath);
+            if ($contents === false) {
+                Log::channel('magic')->warning("Failed to read manifest file at {$manifestPath}");
+
+                return;
+            }
+
             $data = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
             if (isset($data['files']['created'])) {
                 foreach ($data['files']['created'] as $file) {

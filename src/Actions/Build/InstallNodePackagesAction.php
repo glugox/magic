@@ -8,6 +8,7 @@ use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Support\Facades\Log;
+use JsonException;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 
@@ -78,9 +79,19 @@ class InstallNodePackagesAction implements DescribableAction
         Log::channel('magic')->info('Checking Node.js dependencies...');
 
         $packageJsonPath = base_path('package.json');
-        $packageJson = file_exists($packageJsonPath)
-            ? json_decode(file_get_contents($packageJsonPath), true)
-            : [];
+        $packageJson = [];
+        if (file_exists($packageJsonPath)) {
+            $packageJsonContent = file_get_contents($packageJsonPath);
+            if ($packageJsonContent === false) {
+                Log::channel('magic')->warning('Unable to read package.json. Skipping package inspection.');
+            } else {
+                try {
+                    $packageJson = json_decode($packageJsonContent, true, 512, JSON_THROW_ON_ERROR);
+                } catch (JsonException $exception) {
+                    Log::channel('magic')->warning('Invalid package.json encountered: '.$exception->getMessage());
+                }
+            }
+        }
 
         // 1. Install missing npm packages in one command
         $missingPackages = array_filter($this->npmPackages, fn ($pkg) => ! $this->isPackageInstalled($pkg, $packageJson));

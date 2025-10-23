@@ -54,6 +54,11 @@ class SetupDevelopmentEnvAction implements DescribableAction
         }
 
         $pestFileContent = file_get_contents($pestFilePath);
+        if ($pestFileContent === false) {
+            Log::channel('magic')->warning('Unable to read Pest.php to enable RefreshDatabase trait.');
+
+            return;
+        }
         $snippet = <<<'EOT'
 pest()->extend(Tests\TestCase::class)
     ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
@@ -74,6 +79,12 @@ EOT;
             $pestFileContent,
             1
         );
+
+        if ($newContent === null) {
+            Log::channel('magic')->warning('Failed to update Pest.php with RefreshDatabase snippet.');
+
+            return;
+        }
 
         file_put_contents($pestFilePath, $newContent);
         Log::channel('magic')->info('Added RefreshDatabase trait snippet to Pest.php');
@@ -111,6 +122,12 @@ EOT;
 
         // Check if the snippet already exists to avoid duplication
         $mainFileContent = file_get_contents($mainFilePath);
+        if ($mainFileContent === false) {
+            Log::channel('magic')->warning("Unable to read {$mainFilePath} to append slow server snippet.");
+
+            return;
+        }
+
         if (! str_contains($mainFileContent, 'import.meta.env.DEV')) {
             file_put_contents($mainFilePath, $mainFileContent."\n".$slowServerSnippet);
             Log::channel('magic')->info("Added slow server simulation snippet to $mainFilePath");

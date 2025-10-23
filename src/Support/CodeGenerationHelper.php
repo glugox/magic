@@ -90,6 +90,10 @@ class CodeGenerationHelper
     public function removeRegion(string $filePath, ?string $tag = null): bool
     {
         $content = file_get_contents($filePath);
+        if ($content === false) {
+            return false;
+        }
+
         if ($tag) {
             // Escape tag and match exactly that region
             $escapedTag = preg_quote($tag, '/');
@@ -100,8 +104,11 @@ class CodeGenerationHelper
         }
 
         // Replace in content
-        $content = preg_replace($pattern, '', $content);
+        $updatedContent = preg_replace($pattern, '', $content);
+        if ($updatedContent === null) {
+            return false;
+        }
 
-        return file_put_contents($filePath, $content) !== false;
+        return file_put_contents($filePath, $updatedContent) !== false;
     }
 }
