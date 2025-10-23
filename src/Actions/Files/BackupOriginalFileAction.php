@@ -42,7 +42,7 @@ class BackupOriginalFileAction implements DescribableAction
             return null;
         }
 
-        $relativePath = ltrim(str_replace($basePath, '', $realPath), DIRECTORY_SEPARATOR);
+        $relativePath = mb_ltrim(str_replace($basePath, '', $realPath), DIRECTORY_SEPARATOR);
         $backupRoot = base_path('.magic/backup');
         $backupPath = $backupRoot.DIRECTORY_SEPARATOR.$relativePath;
 

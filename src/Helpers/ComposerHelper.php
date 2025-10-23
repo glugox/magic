@@ -3,25 +3,27 @@
 namespace Glugox\Magic\Helpers;
 
 use Glugox\Magic\Actions\Files\BackupOriginalFileAction;
+use RuntimeException;
 
 class ComposerHelper
 {
     protected string $path;
+
     protected array $composer;
 
     public function __construct(string $composerJsonPath)
     {
         $this->path = $composerJsonPath;
 
-        if (!file_exists($this->path)) {
-            throw new \RuntimeException("composer.json not found at {$this->path}");
+        if (! file_exists($this->path)) {
+            throw new RuntimeException("composer.json not found at {$this->path}");
         }
 
         $json = file_get_contents($this->path);
         $this->composer = json_decode($json, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \RuntimeException("Invalid composer.json: " . json_last_error_msg());
+            throw new RuntimeException('Invalid composer.json: '.json_last_error_msg());
         }
     }
 
@@ -30,12 +32,12 @@ class ComposerHelper
      */
     public function ensureLocalRepo(string $url): void
     {
-        if (!isset($this->composer['repositories']) || !is_array($this->composer['repositories'])) {
+        if (! isset($this->composer['repositories']) || ! is_array($this->composer['repositories'])) {
             $this->composer['repositories'] = [];
         }
 
         // Normalize path
-        $url = rtrim($url, '/');
+        $url = mb_rtrim($url, '/');
 
         // Check if already exists
         foreach ($this->composer['repositories'] as $repo) {
@@ -68,7 +70,7 @@ class ComposerHelper
 
     protected function save(): void
     {
-        $json = json_encode($this->composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL;
+        $json = json_encode($this->composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES).PHP_EOL;
         app(BackupOriginalFileAction::class)($this->path);
         file_put_contents($this->path, $json);
     }

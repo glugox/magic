@@ -24,7 +24,6 @@ class CopyDirectoryAction implements DescribableAction
      * @param  bool  $deleteExtraneous  When true, remove files and directories in the destination that do not exist in the
      *                                  source. Cleanup is skipped at the root level to avoid deleting vendor or other
      *                                  user-provided directories. Child directories are mirrored exactly.
-     *
      * @return array<int, string> List of affected paths (copied, created or removed)
      */
     public function __invoke(string $source, string $destination, bool $deleteExtraneous = false, bool $backupExisting = false): array
@@ -137,6 +136,6 @@ class CopyDirectoryAction implements DescribableAction
 
     private function relativeToDestination(string $path, string $destinationRoot): string
     {
-        return ltrim(str_replace($destinationRoot, '', $path), DIRECTORY_SEPARATOR);
+        return mb_ltrim(str_replace($destinationRoot, '', $path), DIRECTORY_SEPARATOR);
     }
 }
