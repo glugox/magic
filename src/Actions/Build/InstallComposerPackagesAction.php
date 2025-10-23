@@ -80,7 +80,7 @@ class InstallComposerPackagesAction implements DescribableAction
      * @var string[]
      */
     protected array $globalComposerOptions = [
-        //'--dev', // example global option
+        // '--dev', // example global option
     ];
 
     public function __invoke(BuildContext $context): BuildContext
@@ -111,7 +111,7 @@ class InstallComposerPackagesAction implements DescribableAction
             foreach ($this->composerPackages as &$pkg) {
 
                 // Skip if type is not path
-                if (!isset($pkg['type']) || $pkg['type'] !== 'path') {
+                if (! isset($pkg['type']) || $pkg['type'] !== 'path') {
                     continue;
                 }
 

@@ -4,9 +4,9 @@ use Glugox\Magic\Helpers\EnvHelper;
 
 beforeEach(function () {
     // Copy the provided .env content into a temp file for testing
-    $this->envPath = __DIR__ . '/.env.testing';
+    $this->envPath = __DIR__.'/.env.testing';
 
-    $content = <<<ENV
+    $content = <<<'ENV'
 APP_NAME=Laravel
 APP_ENV=local
 APP_KEY=base64:eiq2xLX4Mtnw0CEYYLaVrY7qGRvydJIHj9O0VQRh+w4=
@@ -63,7 +63,7 @@ MAIL_PORT=2525
 MAIL_USERNAME=null
 MAIL_PASSWORD=null
 MAIL_FROM_ADDRESS="hello@example.com"
-MAIL_FROM_NAME="\${APP_NAME}"
+MAIL_FROM_NAME="${APP_NAME}"
 
 AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=
@@ -71,7 +71,7 @@ AWS_DEFAULT_REGION=us-east-1
 AWS_BUCKET=
 AWS_USE_PATH_STYLE_ENDPOINT=false
 
-VITE_APP_NAME="\${APP_NAME}"
+VITE_APP_NAME="${APP_NAME}"
 ENV;
 
     file_put_contents($this->envPath, $content);
@@ -86,14 +86,14 @@ test('it updates an existing variable', function () {
 
     $content = file_get_contents($this->envPath);
     expect($content)->toMatch('/^APP_ENV=production/m');
-    expect(substr_count($content, 'APP_ENV='))->toBe(1);
+    expect(mb_substr_count($content, 'APP_ENV='))->toBe(1);
 });
 
 test('it appends a new variable', function () {
     EnvHelper::setEnvValue('SANCTUM_STATEFUL_DOMAINS', 'localhost,127.0.0.1', $this->envPath);
 
     $content = file_get_contents($this->envPath);
-    //expect($content)->toMatch('/SANCTUM_STATEFUL_DOMAINS="localhost,127.0.0.1"/');
+    // expect($content)->toMatch('/SANCTUM_STATEFUL_DOMAINS="localhost,127.0.0.1"/');
     expect($content)->toMatch('/SANCTUM_STATEFUL_DOMAINS=localhost,127\.0\.0\.1/');
 });
 
@@ -104,7 +104,7 @@ test('it updates a quoted value correctly', function () {
     // Allow either MAIL_FROM_ADDRESS=admin@example.com OR MAIL_FROM_ADDRESS="admin@example.com"
     expect($content)->toMatch('/^MAIL_FROM_ADDRESS="?admin@example.com"?$/m');
 
-    expect(substr_count($content, 'MAIL_FROM_ADDRESS='))->toBe(1);
+    expect(mb_substr_count($content, 'MAIL_FROM_ADDRESS='))->toBe(1);
 });
 
 test('it preserves other variables and only changes target', function () {
@@ -135,4 +135,3 @@ test('it handles adding sanctum session config', function () {
     expect($content)->toMatch('/^SESSION_DRIVER=database/m');
     expect($content)->toMatch('/^SESSION_DOMAIN=localhost/m');
 });
-

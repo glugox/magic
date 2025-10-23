@@ -2,6 +2,7 @@
 
 namespace Glugox\Magic\Actions\Build;
 
+use Glugox\Magic\Actions\Files\BackupOriginalFileAction;
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Support\BuildContext;
@@ -75,6 +76,7 @@ EOT;
             1
         );
 
+        app(BackupOriginalFileAction::class)($pestFilePath);
         file_put_contents($pestFilePath, $newContent);
         Log::channel('magic')->info('Added RefreshDatabase trait snippet to Pest.php');
     }
@@ -112,6 +114,7 @@ EOT;
         // Check if the snippet already exists to avoid duplication
         $mainFileContent = file_get_contents($mainFilePath);
         if (! str_contains($mainFileContent, 'import.meta.env.DEV')) {
+            app(BackupOriginalFileAction::class)($mainFilePath);
             file_put_contents($mainFilePath, $mainFileContent."\n".$slowServerSnippet);
             Log::channel('magic')->info("Added slow server simulation snippet to $mainFilePath");
         } else {

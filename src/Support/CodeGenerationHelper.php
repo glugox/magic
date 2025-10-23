@@ -2,6 +2,7 @@
 
 namespace Glugox\Magic\Support;
 
+use Glugox\Magic\Actions\Files\BackupOriginalFileAction;
 use Illuminate\Support\Facades\Log;
 
 class CodeGenerationHelper
@@ -77,6 +78,8 @@ class CodeGenerationHelper
             // Rebuild whole code
             $newCode = mb_substr($code, 0, $methodStart).$methodBody.mb_substr($code, $methodEnd);
 
+            app(BackupOriginalFileAction::class)($filePath);
+
             return file_put_contents($filePath, $newCode) !== false;
         }
         Log::channel('magic')->error("Method {$methodName} not found in {$filePath}");
@@ -101,6 +104,8 @@ class CodeGenerationHelper
 
         // Replace in content
         $content = preg_replace($pattern, '', $content);
+
+        app(BackupOriginalFileAction::class)($filePath);
 
         return file_put_contents($filePath, $content) !== false;
     }

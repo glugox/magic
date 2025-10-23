@@ -35,6 +35,10 @@ class GenerateFileAction implements DescribableAction
             File::makeDirectory($directory, 0755, true);
         }
 
+        if ($isUpdate) {
+            app(BackupOriginalFileAction::class)($filePath);
+        }
+
         File::put($filePath, $content);
 
         return $filePath;

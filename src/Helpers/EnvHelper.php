@@ -2,6 +2,7 @@
 
 namespace Glugox\Magic\Helpers;
 
+use Glugox\Magic\Actions\Files\BackupOriginalFileAction;
 use RuntimeException;
 
 class EnvHelper
@@ -36,6 +37,7 @@ class EnvHelper
             $content = mb_rtrim($content)."\n".$line."\n";
         }
 
+        app(BackupOriginalFileAction::class)($envPath);
         file_put_contents($envPath, $content);
     }
 
