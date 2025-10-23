@@ -9,6 +9,7 @@ use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 
 #[ActionDescription(
     name: 'install_api',
@@ -50,8 +51,10 @@ class InstallApiCommand implements DescribableAction
     {
         $file = base_path('bootstrap/app.php');
 
-        /** @var string $contents */
         $contents = file_get_contents($file);
+        if ($contents === false) {
+            throw new RuntimeException('Unable to read bootstrap/app.php when checking API installation state.');
+        }
 
         // Capture the withRouting(...) block
         if (preg_match('/->withRouting\s*\((.*?)\)/s', $contents, $matches)) {
@@ -97,8 +100,10 @@ class InstallApiCommand implements DescribableAction
         Log::channel('magic')->info('Ensuring API routing is registered in bootstrap/app.php');
         $file = base_path('bootstrap/app.php');
 
-        /** @var string $contents */
         $contents = file_get_contents($file);
+        if ($contents === false) {
+            throw new RuntimeException('Unable to read bootstrap/app.php while registering API routing.');
+        }
 
         $contents = self::replaceApiRegistration($contents);
         file_put_contents($file, $contents);
@@ -119,7 +124,7 @@ class InstallApiCommand implements DescribableAction
      *
      * @return void
      */
-    private function registerApiAuth()
+    private function registerApiAuth(): void
     {
         $appJsPath = resource_path('js/app.ts');
         if (! file_exists($appJsPath)) {
@@ -136,6 +141,11 @@ class InstallApiCommand implements DescribableAction
         }
 
         $appJsContent = file_get_contents($appJsPath);
+        if ($appJsContent === false) {
+            Log::channel('magic')->warning('Unable to read app.ts while registering API auth snippets.');
+
+            return;
+        }
         $importSnippet = 'import { useApi } from "@/composables/useApi";';
         $initSnippet = "\nconst {initCsrf} = useApi();\ninitCsrf().then(() => {\n    console.log(\"CSRF token initialized\");\n});\n";
 
@@ -162,13 +172,17 @@ class InstallApiCommand implements DescribableAction
      *
      * Right below:
      * $middleware->encryptCookies...
-     **/
-    private function setStatefulApi()
+     */
+    private function setStatefulApi(): void
     {
         $file = base_path('bootstrap/app.php');
 
-        /** @var string $contents */
         $contents = file_get_contents($file);
+        if ($contents === false) {
+            Log::channel('magic')->warning('Unable to read bootstrap/app.php while setting stateful API.');
+
+            return;
+        }
 
         $snippet = '$middleware->statefulApi();';
 
@@ -186,6 +200,12 @@ class InstallApiCommand implements DescribableAction
             $contents,
             1
         );
+
+        if ($newContent === null) {
+            Log::channel('magic')->warning('Failed to update bootstrap/app.php with statefulApi snippet.');
+
+            return;
+        }
 
         file_put_contents($file, $newContent);
         Log::channel('magic')->info('Added statefulApi() snippet to HandleInertiaRequests.php');

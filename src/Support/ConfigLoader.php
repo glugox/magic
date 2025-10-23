@@ -33,13 +33,12 @@ class ConfigLoader
         }
 
         $json = file_get_contents($path);
+        if ($json === false) {
+            Log::channel('magic')->error("Unable to read config file at: {$path}");
+            throw new RuntimeException("Unable to read config file at: {$path}");
+        }
 
         $config = Config::fromJson($json);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            Log::channel('magic')->error('Invalid JSON in config file: '.json_last_error_msg());
-            throw new RuntimeException('Invalid JSON in config file: '.json_last_error_msg());
-        }
 
         Log::channel('magic')->info('Config loaded successfully: '.$path);
 

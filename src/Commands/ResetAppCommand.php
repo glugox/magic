@@ -241,6 +241,12 @@ class ResetAppCommand extends MagicBaseCommand
         $webRoutesPath = base_path('routes/web.php');
         if (file_exists($webRoutesPath)) {
             $content = file_get_contents($webRoutesPath);
+            if ($content === false) {
+                $this->logWarning('Unable to read web.php. Skipping removal of app.php include.');
+
+                return;
+            }
+
             $pattern = "/require __DIR__\s*\.\s*'\/app\.php';\s*/";
             $newContent = preg_replace($pattern, '', $content);
             if ($newContent !== null && $newContent !== $content) {

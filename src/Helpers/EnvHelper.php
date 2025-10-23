@@ -21,6 +21,9 @@ class EnvHelper
         }
 
         $content = file_get_contents($envPath);
+        if ($content === false) {
+            throw new RuntimeException("Unable to read env file at: {$envPath}");
+        }
 
         // Normalize line endings
         $content = str_replace("\r\n", "\n", $content);

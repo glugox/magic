@@ -143,6 +143,9 @@ class StubHelper
         }
 
         $stub = file_get_contents($fullPath);
+        if ($stub === false) {
+            throw new RuntimeException("Failed to read stub file: {$fullPath}");
+        }
 
         // Use existing applyReplacements() method to inject variables
         return self::applyReplacements($stub, $replacements);
