@@ -3,6 +3,7 @@
 namespace Glugox\Magic\Support\Config;
 
 use Glugox\Magic\Support\Config\Entity\Settings;
+use Glugox\Magic\Support\MagicNamespaces;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use RuntimeException;
@@ -209,7 +210,7 @@ class Entity
     public function getFullyQualifiedModelClass(): string
     {
         // Convert entity name to StudlyCase for fully qualified class name
-        return 'App\\Models\\'.$this->getClassName();
+        return MagicNamespaces::models($this->getClassName());
     }
 
     /**

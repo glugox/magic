@@ -5,11 +5,14 @@ namespace Glugox\Magic\Actions\Build;
 use Glugox\Magic\Actions\Files\GenerateFileAction;
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
+use Glugox\Magic\Helpers\StubHelper;
 use Glugox\Magic\Helpers\ValidationHelper;
 use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Relation;
 use Glugox\Magic\Support\Config\RelationType;
+use Glugox\Magic\Support\MagicNamespaces;
+use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Support\Facades\File;
@@ -52,8 +55,8 @@ class GenerateControllersAction implements DescribableAction
     public function __construct(protected ValidationHelper $validationHelper)
     {
         $this->stubsPath = __DIR__.'/../../../stubs';
-        $this->controllerPath = app_path('Http/Controllers');
-        $this->routesFilePath = base_path('routes/app.php');
+        $this->controllerPath = MagicPaths::app('Http/Controllers');
+        $this->routesFilePath = MagicPaths::routes('app.php');
         if (! File::exists($this->controllerPath)) {
             File::makeDirectory($this->controllerPath, 0755, true);
         }
@@ -151,7 +154,7 @@ class GenerateControllersAction implements DescribableAction
         if (! File::exists($stubPath)) {
             return '';
         }
-        $stub = File::get($stubPath);
+        $stub = StubHelper::replaceBaseNamespace(File::get($stubPath));
 
         $replacements = [
             '{{classDescription}}' => "Controller for managing {$relatedEntity->getPluralName()} related to a {$entity->getSingularName()} ( {$relation->getType()->value} )",
@@ -216,7 +219,7 @@ class GenerateControllersAction implements DescribableAction
         app(GenerateFileAction::class)($filePath, $template);
         $this->context->registerGeneratedFile($filePath);
 
-        $relPath = str_replace(app_path('Http/Controllers/'), '', $filePath);
+        $relPath = str_replace(MagicPaths::app('Http/Controllers/'), '', $filePath);
         Log::channel('magic')->info("Controller created: {$relPath}");
     }
 
@@ -239,8 +242,8 @@ class GenerateControllersAction implements DescribableAction
             throw new RuntimeException("Missing stub: $relationDefaultStubPath");
         }
 
-        $mainStub = File::get($mainStubPath);
-        $relationDefaultStub = File::get($relationDefaultStubPath);
+        $mainStub = StubHelper::replaceBaseNamespace(File::get($mainStubPath));
+        $relationDefaultStub = StubHelper::replaceBaseNamespace(File::get($relationDefaultStubPath));
 
         $importedControllers = [];
         $mainRoutes = [];
@@ -249,7 +252,7 @@ class GenerateControllersAction implements DescribableAction
         // --- Collect main resource routes ---
         foreach ($this->context->getConfig()->entities as $entity) {
             $name = $entity->getRouteName();
-            $controllerFQCN = 'App\\Http\\Controllers\\'.Str::studly(Str::singular($name)).'Controller';
+            $controllerFQCN = MagicNamespaces::httpControllers(Str::studly(Str::singular($name)).'Controller');
             $controllerShort = class_basename($controllerFQCN);
 
             if (! in_array($controllerFQCN, $importedControllers)) {
@@ -287,13 +290,13 @@ class GenerateControllersAction implements DescribableAction
                 $relationStubFile = Str::kebab($relationType).'.stub';
                 $relationStubPath = $this->stubsPath."/routes/relation/{$relationStubFile}";
                 if (File::exists($relationStubPath)) {
-                    $relationStub = File::get($relationStubPath);
+                    $relationStub = StubHelper::replaceBaseNamespace(File::get($relationStubPath));
                 } else {
                     $relationStub = $relationDefaultStub;
                 }
 
                 $relatedEntity = $relation->getRelatedEntity();
-                $controllerFQCN = $relation->getControllerFullQualifiedName();
+                $controllerFQCN = ltrim($relation->getControllerFullQualifiedName(), '\\');
                 $controllerShort = class_basename($controllerFQCN);
 
                 if (! in_array($controllerFQCN, $importedControllers)) {
@@ -364,11 +367,11 @@ class GenerateControllersAction implements DescribableAction
 
         // Resource class names
         $resourceClass = $modelClass.'Resource';               // 'UserResource'
-        $resourceClassFull = 'App\Http\Resources\\'.$resourceClass; // 'App\Http\Resources\UserResource'
+        $resourceClassFull = MagicNamespaces::httpResources($resourceClass); // e.g. Vendor\Package\Http\Resources\UserResource
 
         // Load stub
         $stubPath = $this->stubsPath.'/controllers/api_controller.stub';
-        $template = File::get($stubPath);
+        $template = StubHelper::replaceBaseNamespace(File::get($stubPath));
 
         // Replace placeholders
         $replacements = [
@@ -394,7 +397,7 @@ class GenerateControllersAction implements DescribableAction
         app(GenerateFileAction::class)($filePath, $content);
         $this->context->registerGeneratedFile($filePath);
 
-        $relPath = str_replace(app_path('Http/Controllers/'), '', $filePath);
+        $relPath = str_replace(MagicPaths::app('Http/Controllers/'), '', $filePath);
         Log::channel('magic')->info("API Controller created: {$relPath}");
     }
 
@@ -409,9 +412,9 @@ class GenerateControllersAction implements DescribableAction
             throw new RuntimeException("Missing stub: $stubPath");
         }
 
-        $apiStub = File::get($stubPath);
+        $apiStub = StubHelper::replaceBaseNamespace(File::get($stubPath));
 
-        $appApiPath = base_path('routes/app/api.php');
+        $appApiPath = MagicPaths::routes('app/api.php');
         if (! File::exists(dirname($appApiPath))) {
             File::makeDirectory(dirname($appApiPath), 0755, true);
         }
@@ -422,7 +425,7 @@ class GenerateControllersAction implements DescribableAction
 
         foreach ($this->context->getConfig()->entities as $entity) {
             $name = $entity->getRouteName();
-            $controllerFQCN = 'App\\Http\\Controllers\\Api\\'.Str::studly(Str::singular($name)).'ApiController';
+            $controllerFQCN = MagicNamespaces::httpControllers('Api\\'.Str::studly(Str::singular($name)).'ApiController');
 
             // Add use statement only once
             if (! in_array($controllerFQCN, $importedControllers)) {
@@ -435,7 +438,8 @@ class GenerateControllersAction implements DescribableAction
 
         foreach ($this->context->getConfig()->entities as $entity) {
             $name = $entity->getRouteName();
-            $controllerShort = class_basename('App\\Http\\Controllers\\Api\\'.Str::studly(Str::singular($name)).'ApiController');
+            $controllerFQCN = MagicNamespaces::httpControllers('Api\\'.Str::studly(Str::singular($name)).'ApiController');
+            $controllerShort = class_basename($controllerFQCN);
 
             $replacements = [
                 '{{routeName}}' => $name,
@@ -462,7 +466,7 @@ class GenerateControllersAction implements DescribableAction
      */
     protected function ensureWebPhpRequiresAppPhp(): void
     {
-        $webPhpPath = base_path('routes/web.php');
+        $webPhpPath = MagicPaths::routes('web.php');
         $requireLine = "require __DIR__.'/app.php';";
 
         if (! File::exists($webPhpPath)) {
@@ -488,7 +492,7 @@ class GenerateControllersAction implements DescribableAction
      */
     protected function ensureApiPhpRequiresAppApiPhp(): void
     {
-        $apiPhpPath = base_path('routes/api.php');
+        $apiPhpPath = MagicPaths::routes('api.php');
         $requireLine = "require __DIR__.'/app/api.php';";
 
         if (! File::exists($apiPhpPath)) {

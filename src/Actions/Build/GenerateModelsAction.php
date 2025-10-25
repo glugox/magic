@@ -11,6 +11,8 @@ use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Config\FieldType;
 use Glugox\Magic\Support\Config\Relation;
 use Glugox\Magic\Support\Config\RelationType;
+use Glugox\Magic\Support\MagicNamespaces;
+use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -34,7 +36,7 @@ class GenerateModelsAction implements DescribableAction
     public function __construct()
     {
         $this->stubsPath = __DIR__.'/../../../stubs';
-        $this->modelPath = app_path('Models');
+        $this->modelPath = MagicPaths::app('Models');
         if (! File::exists($this->modelPath)) {
             File::makeDirectory($this->modelPath, 0755, true);
         }
@@ -116,13 +118,13 @@ class GenerateModelsAction implements DescribableAction
 
         // Automatically add HasName trait if entity has no "name" field
         if (! $entity->hasField('name')) {
-            $traits[] = 'App\Traits\HasName';
+            $traits[] = MagicNamespaces::traits('HasName');
             $appends[] = 'name';
         }
 
         // Automatically add HasImages trait if entity supports images
         if ($entity->hasImages() ?? false) {
-            $traits[] = 'App\Traits\HasImages';
+            $traits[] = MagicNamespaces::traits('HasImages');
         }
 
         // Imports for traits
@@ -148,7 +150,7 @@ class GenerateModelsAction implements DescribableAction
 
         // Prepare stub replacements
         $replacements = [
-            '{{namespace}}' => 'App\Models',
+            '{{namespace}}' => MagicNamespaces::models(),
             '{{uses}}' => implode("\n", array_map(fn ($t) => "use $t;", array_unique($uses))),
             '{{modelClass}}' => $className,
             '{{extends}}' => $extends,
@@ -184,7 +186,7 @@ class GenerateModelsAction implements DescribableAction
         $filePath = $this->modelPath.'/'.$className.'.php';
         app(GenerateFileAction::class)($filePath, $template);
 
-        $filePathRelative = str_replace(app_path('Models/'), '', $filePath);
+        $filePathRelative = str_replace(MagicPaths::app('Models/'), '', $filePath);
         Log::channel('magic')->info("Model created: $filePathRelative");
     }
 
@@ -197,7 +199,9 @@ class GenerateModelsAction implements DescribableAction
 
         // If enum → reference generated enum class
         if ($type === FieldType::ENUM && ! empty($field->options)) {
-            return '\\App\\Enums\\'.Str::studly($field->getEntity()->getName()).Str::studly($field->name).'Enum::class';
+            $enumClass = Str::studly($field->getEntity()->getName()).Str::studly($field->name).'Enum';
+
+            return '\\'.MagicNamespaces::enums($enumClass).'::class';
         }
 
         return match ($type) {

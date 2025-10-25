@@ -6,6 +6,7 @@ use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Helpers\ComposerHelper;
 use Glugox\Magic\Support\BuildContext;
+use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Support\Facades\Log;
@@ -87,11 +88,17 @@ class InstallComposerPackagesAction implements DescribableAction
     {
         $this->logInvocation($this->describe()->name);
 
+        if (MagicPaths::isUsingPackage()) {
+            Log::channel('magic')->info('Skipping Composer dependency installation in package generation mode.');
+
+            return $context;
+        }
+
         Log::channel('magic')->info('Checking Composer dependencies...');
 
         // Set composer.json path
-        $this->composerJsonPath = base_path('composer.json');
-        $this->composerHelper = new ComposerHelper(base_path('composer.json'));
+        $this->composerJsonPath = MagicPaths::base('composer.json');
+        $this->composerHelper = new ComposerHelper($this->composerJsonPath);
 
         /**
          * If we are in dev mode , we want the packages to be linked as symlinks
@@ -181,7 +188,7 @@ class InstallComposerPackagesAction implements DescribableAction
     {
         Log::channel('magic')->info($message);
 
-        $process = new Process($command, base_path());
+        $process = new Process($command, MagicPaths::base());
         $process->setTimeout(null);
 
         $process->run(function ($type, string $buffer) {

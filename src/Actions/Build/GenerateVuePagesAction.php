@@ -11,6 +11,7 @@ use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Relation;
 use Glugox\Magic\Support\Frontend\TsHelper;
+use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Support\Facades\File;
@@ -40,7 +41,7 @@ class GenerateVuePagesAction implements DescribableAction
     public function __construct(
         protected TsHelper $tsHelper
     ) {
-        $this->pagesPath = resource_path('js/pages');
+        $this->pagesPath = MagicPaths::resource('js/pages');
     }
 
     public function __invoke(BuildContext $buildContext): BuildContext

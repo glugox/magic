@@ -4,6 +4,7 @@ use Glugox\Magic\Actions\Build\GenerateSeedersAction;
 use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\CodeGenerationHelper;
 use Glugox\Magic\Support\Config\Config;
+use Glugox\Magic\Support\MagicPaths;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
@@ -42,5 +43,26 @@ it('generates seeder for each sample config', function (): void {
 
             $this->assertNotEmpty($files, "Seeder file not found for entity: {$entityName}");
         }
+    }
+});
+
+it('skips DatabaseSeeder scaffolding in package builds', function (): void {
+    $packagePath = base_path('packages/seeder-package');
+    File::deleteDirectory($packagePath);
+
+    $context = getFixtureBuildContext();
+    $context->destinationPath = $packagePath;
+
+    MagicPaths::usePackage($packagePath);
+
+    try {
+        $seederPath = MagicPaths::database('seeders/DatabaseSeeder.php');
+        expect(File::exists($seederPath))->toBeFalse();
+
+        app(GenerateSeedersAction::class)($context);
+
+        expect(File::exists($seederPath))->toBeFalse();
+    } finally {
+        MagicPaths::clearPackage();
     }
 });

@@ -6,6 +6,7 @@ use Artisan;
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Support\BuildContext;
+use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Support\Facades\Log;
@@ -24,6 +25,12 @@ class UpdateDbAction implements DescribableAction
     {
         // Log section title
         $this->logInvocation($this->describe()->name);
+
+        if (MagicPaths::isUsingPackage()) {
+            Log::channel('magic')->info('Skipping database migrations in package generation mode.');
+
+            return $context;
+        }
 
         // Step 1. Run migrations to ensure the database schema is up to date
         Log::channel('magic')->info('Running database migrations to update the schema...');

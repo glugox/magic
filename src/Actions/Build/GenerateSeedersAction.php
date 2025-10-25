@@ -13,6 +13,8 @@ use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Config\FieldType;
 use Glugox\Magic\Support\Config\Relation;
+use Glugox\Magic\Support\MagicNamespaces;
+use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Support\Faker\FakerExtension;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
@@ -50,18 +52,23 @@ class GenerateSeedersAction implements DescribableAction
     protected array $generatedPivotSeeders = [];
 
     /**
+     * Whether the current build should touch DatabaseSeeder scaffolding.
+     */
+    protected bool $shouldUpdateDatabaseSeeder = false;
+
+    /**
      * Constructor to set up paths.
      */
     public function __construct(protected CodeGenerationHelper $codeHelper)
     {
         // Ensure the factories directory exists
-        $this->factoriesPath = database_path('factories');
+        $this->factoriesPath = MagicPaths::database('factories');
         if (! File::exists($this->factoriesPath)) {
             File::makeDirectory($this->factoriesPath, 0755, true);
         }
 
         // Ensure the seeders directory exists
-        $this->seedersPath = database_path('seeders');
+        $this->seedersPath = MagicPaths::database('seeders');
         if (! File::exists($this->seedersPath)) {
             File::makeDirectory($this->seedersPath, 0755, true);
         }
@@ -77,6 +84,9 @@ class GenerateSeedersAction implements DescribableAction
 
         // Store context for later use
         $this->context = $context;
+        $this->shouldUpdateDatabaseSeeder = ! $context->isPackageBuild();
+
+        $this->ensureDatabaseSeederExists();
 
         // Add seeding code to create admin user
         $this->generateAdminUserSeeder();
@@ -197,7 +207,7 @@ class GenerateSeedersAction implements DescribableAction
             'fakerFields' => $fakerFields,
         ]);
 
-        $path = database_path("factories/{$className}.php");
+        $path = MagicPaths::database("factories/{$className}.php");
         app(GenerateFileAction::class)($path, $content);
         $this->context->registerGeneratedFile($path);
     }
@@ -214,7 +224,7 @@ class GenerateSeedersAction implements DescribableAction
 
         $hasManyLines = [];
         $pivotLines = [];
-        $useStatements = [];
+        $useStatements = ['use '.MagicNamespaces::models($entityName).';'];
 
         foreach ($entity->getRelations() as $relation) {
 
@@ -250,7 +260,7 @@ class GenerateSeedersAction implements DescribableAction
                 $parentVar = '$'.Str::camel($rel->getLocalEntityName()).'s';
                 $foreignKey = $rel->getForeignKey();
 
-                $useStatements[] = "use App\\Models\\{$rel->getLocalEntityName()};";
+                $useStatements[] = 'use '.MagicNamespaces::models($rel->getLocalEntityName()).';';
                 // $useStatements[] = "use App\\Models\\{$entity->getClassName()};";
 
                 // Fetch all parent entities
@@ -268,6 +278,12 @@ class GenerateSeedersAction implements DescribableAction
             $factoryCode = "\${$entity->getClassName()}Items = {$entity->getClassName()}::factory()->count({$seedCount})->create();";
         }
 
+        $useStatements = array_values(array_unique($useStatements));
+        $useStatementsBlock = implode("\n", $useStatements);
+        if ($useStatementsBlock !== '') {
+            $useStatementsBlock .= "\n";
+        }
+
         $content = StubHelper::loadStub('database/seeder.stub', [
             'namespace' => $namespace,
             'class' => $className,
@@ -275,7 +291,7 @@ class GenerateSeedersAction implements DescribableAction
             'seedCount' => $seedCount,
             'factoryCode' => $factoryCode,
             'relationsCode' => '',
-            'useStatements' => implode("\n\n", array_unique($useStatements)),
+            'useStatements' => $useStatementsBlock,
         ]);
 
         $path = $this->seedersPath."/{$className}.php";
@@ -319,6 +335,8 @@ class GenerateSeedersAction implements DescribableAction
             'class' => $seederClass,
             'relationMethod' => $relationMethod,
             'seedCount' => $seedCount,
+            'entityUse' => 'use '.MagicNamespaces::models($entityName).';',
+            'relatedEntityUse' => 'use '.MagicNamespaces::models($relatedEntity).';',
         ]);
 
         $path = $this->seedersPath."/{$seederClass}.php";
@@ -327,16 +345,18 @@ class GenerateSeedersAction implements DescribableAction
 
         Log::channel('magic')->info("Pivot seeder created: {$seederClass}.php");
 
-        $filePath = $this->seedersPath.'/DatabaseSeeder.php';
-        $this->codeHelper->appendCodeBlock(
-            $filePath,
-            'run',
-            [
-                "// Pivot seeder for {$entityName} <-> {$relatedEntity}",
-                "\$this->call({$seederClass}::class);",
-            ],
-            'pivot_seeders'
-        );
+        if ($this->shouldUpdateDatabaseSeeder) {
+            $filePath = $this->seedersPath.'/DatabaseSeeder.php';
+            $this->codeHelper->appendCodeBlock(
+                $filePath,
+                'run',
+                [
+                    "// Pivot seeder for {$entityName} <-> {$relatedEntity}",
+                    "\$this->call({$seederClass}::class);",
+                ],
+                'pivot_seeders'
+            );
+        }
     }
 
     /**
@@ -373,7 +393,8 @@ class GenerateSeedersAction implements DescribableAction
 
             if ($belongsTo) {
                 $relatedEntity = $belongsTo->getRelatedEntityName();
-                $lines[] = "            '{$field->name}' => \\App\\Models\\{$relatedEntity}::inRandomOrder()->first()?->id ?? \\App\\Models\\{$relatedEntity}::factory(),";
+                $relatedFqcn = '\\'.MagicNamespaces::models($relatedEntity);
+                $lines[] = "            '{$field->name}' => {$relatedFqcn}::inRandomOrder()->first()?->id ?? {$relatedFqcn}::factory(),";
 
                 continue;
             }
@@ -408,6 +429,10 @@ class GenerateSeedersAction implements DescribableAction
 
     private function insertSeederCall($seederClass): void
     {
+        if (! $this->shouldUpdateDatabaseSeeder) {
+            return;
+        }
+
         $filePath = $this->seedersPath.'/DatabaseSeeder.php';
         $this->codeHelper->appendCodeBlock(
             $filePath,
@@ -422,6 +447,10 @@ class GenerateSeedersAction implements DescribableAction
 
     private function generateAdminUserSeeder(): void
     {
+        if (! $this->shouldUpdateDatabaseSeeder) {
+            return;
+        }
+
         $this->codeHelper->appendCodeBlock(
             $this->seedersPath.'/DatabaseSeeder.php',
             'run',
@@ -460,5 +489,28 @@ class GenerateSeedersAction implements DescribableAction
         }
 
         return $fakerType;
+    }
+
+    /**
+     * Ensure DatabaseSeeder exists when generating into a fresh package.
+     */
+    protected function ensureDatabaseSeederExists(): void
+    {
+        if (! $this->shouldUpdateDatabaseSeeder) {
+            return;
+        }
+
+        $filePath = $this->seedersPath.'/DatabaseSeeder.php';
+
+        if (File::exists($filePath)) {
+            return;
+        }
+
+        $content = StubHelper::loadStub('database/database-seeder-base.stub', [
+            'userModel' => MagicNamespaces::models('User'),
+        ]);
+
+        app(GenerateFileAction::class)($filePath, $content);
+        $this->context->registerGeneratedFile($filePath);
     }
 }

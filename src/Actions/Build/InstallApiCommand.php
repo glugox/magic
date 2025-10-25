@@ -6,6 +6,7 @@ use Artisan;
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Support\BuildContext;
+use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Support\Facades\Log;
@@ -23,6 +24,12 @@ class InstallApiCommand implements DescribableAction
     {
         // Log section title
         $this->logInvocation($this->describe()->name);
+
+        if (MagicPaths::isUsingPackage()) {
+            Log::channel('magic')->info('Skipping install:api adjustments in package generation mode.');
+
+            return $context;
+        }
 
         // Check if "api:" already exists in withRouting
         if (! self::isApiInstalled()) {
@@ -48,7 +55,11 @@ class InstallApiCommand implements DescribableAction
 
     public static function isApiInstalled(): bool
     {
-        $file = base_path('bootstrap/app.php');
+        $file = MagicPaths::base('bootstrap/app.php');
+
+        if (! file_exists($file)) {
+            return false;
+        }
 
         /** @var string $contents */
         $contents = file_get_contents($file);
@@ -80,10 +91,10 @@ class InstallApiCommand implements DescribableAction
 
                 return str_replace($matches[0], "->withRouting(\n$newArgs\n)", $contents);
             }
-            Log::channel('magic')->info('API routing already registered in '.base_path('bootstrap/app.php').', skipping...');
+            Log::channel('magic')->info('API routing already registered in '.MagicPaths::base('bootstrap/app.php').', skipping...');
 
         } else {
-            Log::channel('magic')->error('Could not locate withRouting() block in '.base_path('bootstrap/app.php'));
+            Log::channel('magic')->error('Could not locate withRouting() block in '.MagicPaths::base('bootstrap/app.php'));
         }
 
         return $contents;
@@ -95,7 +106,7 @@ class InstallApiCommand implements DescribableAction
     private function registerApiRouting(): void
     {
         Log::channel('magic')->info('Ensuring API routing is registered in bootstrap/app.php');
-        $file = base_path('bootstrap/app.php');
+        $file = MagicPaths::base('bootstrap/app.php');
 
         /** @var string $contents */
         $contents = file_get_contents($file);
@@ -121,7 +132,7 @@ class InstallApiCommand implements DescribableAction
      */
     private function registerApiAuth()
     {
-        $appJsPath = resource_path('js/app.ts');
+        $appJsPath = MagicPaths::resource('js/app.ts');
         if (! file_exists($appJsPath)) {
             Log::channel('magic')->warning(
                 "app.js file not found in resources/js directory. Please add the following snippet manually to initialize CSRF token for API requests:\n\n".
@@ -165,7 +176,7 @@ class InstallApiCommand implements DescribableAction
      **/
     private function setStatefulApi()
     {
-        $file = base_path('bootstrap/app.php');
+        $file = MagicPaths::base('bootstrap/app.php');
 
         /** @var string $contents */
         $contents = file_get_contents($file);

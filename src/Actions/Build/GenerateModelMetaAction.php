@@ -13,6 +13,8 @@ use Glugox\Magic\Support\Config\FieldType;
 use Glugox\Magic\Support\Config\Filter;
 use Glugox\Magic\Support\Config\Relation;
 use Glugox\Magic\Support\Config\RelationType;
+use Glugox\Magic\Support\MagicNamespaces;
+use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
 use Glugox\ModelMeta\Fields\Boolean;
@@ -117,7 +119,7 @@ class GenerateModelMetaAction implements DescribableAction
         $filtersLines = array_map(fn ($filter) => $this->buildFilterLine($filter), $entity->getFilters());
 
         $replacements = [
-            'namespace' => 'App\\Meta\\Models',
+            'namespace' => MagicNamespaces::metaModels(),
             'className' => $entity->getName().'Meta',
             'tableName' => $entity->getTableName(),
             'fields' => implode("\n            ", $fieldLines),
@@ -132,7 +134,7 @@ class GenerateModelMetaAction implements DescribableAction
         // Load stub & apply replacements
         $stub = StubHelper::loadStub('meta/model/model-meta.stub', $replacements);
 
-        $filePath = base_path("app/Meta/Models/{$entity->getName()}Meta.php");
+        $filePath = MagicPaths::app("Meta/Models/{$entity->getName()}Meta.php");
 
         FileFacade::ensureDirectoryExists(dirname($filePath));
         FileFacade::put($filePath, $stub);

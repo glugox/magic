@@ -6,6 +6,7 @@ use Artisan;
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Support\BuildContext;
+use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Support\Facades\Log;
@@ -23,6 +24,12 @@ class InstallQueueCommand implements DescribableAction
     {
         // Log section title
         $this->logInvocation($this->describe()->name);
+
+        if (MagicPaths::isUsingPackage()) {
+            Log::channel('magic')->info('Skipping queue installation in package generation mode.');
+
+            return $context;
+        }
 
         // Run the install:api Artisan command
         Artisan::call('make:queue-table');

@@ -8,6 +8,7 @@ use Glugox\Magic\Support\Config\Readers\SchemaReader;
 use Glugox\Magic\Validation\MagicConfigValidator;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use Glugox\Magic\Support\MagicPaths;
 use JsonException;
 use ReflectionClass;
 use ReflectionException;
@@ -68,14 +69,14 @@ class Config
      */
     public static function ensureBasePath(string $path): string
     {
-        $base = base_path();
+        $base = MagicPaths::base();
 
         // Already absolute inside base
         if (str_starts_with($path, $base) || str_starts_with($path, '/')) {
             return $path;
         }
 
-        return base_path($path);
+        return MagicPaths::base($path);
     }
 
     /**
