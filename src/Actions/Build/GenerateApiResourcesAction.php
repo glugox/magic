@@ -9,6 +9,7 @@ use Glugox\Magic\Helpers\StubHelper;
 use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\RelationType;
+use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Support\Facades\File;
@@ -57,8 +58,8 @@ class GenerateApiResourcesAction implements DescribableAction
             throw new RuntimeException("Missing stub: {$collectionStubPath}");
         }
 
-        $resourceStub = File::get($resourceStubPath);
-        $collectionStub = File::get($collectionStubPath);
+        $resourceStub = StubHelper::replaceBaseNamespace(File::get($resourceStubPath));
+        $collectionStub = StubHelper::replaceBaseNamespace(File::get($collectionStubPath));
 
         foreach ($this->context->getConfig()->entities as $entity) {
             $this->generateResource($entity, $resourceStub);
@@ -124,7 +125,7 @@ class GenerateApiResourcesAction implements DescribableAction
         $content = StubHelper::applyReplacements($resourceStub, $replacements);
 
         // Ensure directory exists
-        $dir = app_path('Http/Resources');
+        $dir = MagicPaths::app('Http/Resources');
         if (! File::exists($dir)) {
             File::makeDirectory($dir, 0755, true);
         }
@@ -149,7 +150,7 @@ class GenerateApiResourcesAction implements DescribableAction
         $content = StubHelper::applyReplacements($collectionStub, $replacements);
 
         // Ensure directory exists
-        $dir = app_path('Http/Resources');
+        $dir = MagicPaths::app('Http/Resources');
         if (! File::exists($dir)) {
             File::makeDirectory($dir, 0755, true);
         }

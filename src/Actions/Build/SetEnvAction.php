@@ -27,6 +27,10 @@ class SetEnvAction implements DescribableAction
 
         $this->context = $context;
 
+        if ($context->isPackageBuild()) {
+            return $context;
+        }
+
         /**
          * SESSION_SECURE_COOKIE=false
          * SESSION_DOMAIN=orchestrator.test

@@ -3,6 +3,7 @@
 namespace Glugox\Magic\Support;
 
 use Glugox\Magic\Support\Config\Config;
+use Glugox\Magic\Support\MagicPaths;
 use Illuminate\Support\Facades\Log;
 use JsonException;
 use ReflectionException;
@@ -24,7 +25,7 @@ class ConfigLoader
      */
     public static function load(?string $path = null, ?array $overrides = null): Config
     {
-        $path = $path ?? config('magic.config_path', base_path('resume.json'));
+        $path = $path ?? config('magic.config_path', MagicPaths::base('resume.json'));
 
         Log::channel('magic')->info("Loading Magic config from: {$path}");
         if (! file_exists($path)) {

@@ -5,6 +5,7 @@ namespace Glugox\Magic\Actions\Build;
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Support\BuildContext;
+use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Support\Facades\Log;
@@ -73,11 +74,16 @@ class InstallNodePackagesAction implements DescribableAction
     {
         // Log section title
         $this->logInvocation($this->describe()->name);
+        if (MagicPaths::isUsingPackage()) {
+            Log::channel('magic')->info('Skipping Node.js dependency installation in package generation mode.');
+
+            return $context;
+        }
         $shadcnVueVersion = 'v2.2.0'; // or specify a version like '1.2.3'
 
         Log::channel('magic')->info('Checking Node.js dependencies...');
 
-        $packageJsonPath = base_path('package.json');
+        $packageJsonPath = MagicPaths::base('package.json');
         $packageJson = file_exists($packageJsonPath)
             ? json_decode(file_get_contents($packageJsonPath), true)
             : [];
@@ -141,8 +147,8 @@ class InstallNodePackagesAction implements DescribableAction
      */
     public function isShadcnInstalled(string $component): bool
     {
-        $singleFile = resource_path("js/components/ui/{$component}.vue");
-        $componentDir = resource_path("js/components/ui/{$component}");
+        $singleFile = MagicPaths::resource("js/components/ui/{$component}.vue");
+        $componentDir = MagicPaths::resource("js/components/ui/{$component}");
 
         // Case 1: single file component exists
         if (file_exists($singleFile)) {
@@ -173,7 +179,7 @@ class InstallNodePackagesAction implements DescribableAction
      */
     public function runProcess(array $command, string $message): void
     {
-        $process = new Process($command, base_path());
+        $process = new Process($command, MagicPaths::base());
         $process->setTimeout(null);
 
         $process->run(function ($type, $buffer) {

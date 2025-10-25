@@ -1,0 +1,45 @@
+<?php
+
+namespace {{providerNamespace}};
+
+use Illuminate\Support\ServiceProvider;
+
+class {{providerClass}} extends ServiceProvider
+{
+    public function register(): void
+    {
+        //
+    }
+
+    public function boot(): void
+    {
+        $this->registerRoutes();
+        $this->registerResources();
+    }
+
+    protected function registerRoutes(): void
+    {
+        if (file_exists($web = __DIR__.'/../../routes/web.php')) {
+            $this->loadRoutesFrom($web);
+        }
+
+        if (file_exists($api = __DIR__.'/../../routes/api.php')) {
+            $this->loadRoutesFrom($api);
+        }
+    }
+
+    protected function registerResources(): void
+    {
+        if (is_dir($views = __DIR__.'/../../resources/views')) {
+            $this->loadViewsFrom($views, '{{viewNamespace}}');
+        }
+
+        if (is_dir($migrations = __DIR__.'/../../database/migrations')) {
+            $this->loadMigrationsFrom($migrations);
+        }
+
+        if (is_dir($lang = __DIR__.'/../../resources/lang')) {
+            $this->loadTranslationsFrom($lang, '{{viewNamespace}}');
+        }
+    }
+}

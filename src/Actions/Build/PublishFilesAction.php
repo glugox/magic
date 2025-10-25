@@ -16,6 +16,7 @@ use Glugox\Magic\Support\Config\Relation;
 use Glugox\Magic\Support\Config\RelationType;
 use Glugox\Magic\Support\Frontend\TsHelper;
 use Glugox\Magic\Support\TypeHelper;
+use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Support\Facades\File;
@@ -50,7 +51,7 @@ class PublishFilesAction implements DescribableAction
         private readonly TsHelper $tsHelper,
         private readonly ValidationHelper $validationHelper,
     ) {
-        $this->jsPath = resource_path('js');
+        $this->jsPath = MagicPaths::resource('js');
     }
 
     public function __invoke(BuildContext $context): BuildContext
@@ -542,7 +543,7 @@ EOT;
     private function copyMagicFiles(): void
     {
         $source = __DIR__.'/../../../stubs/magic';
-        $destination = base_path();
+        $destination = MagicPaths::base();
 
         // Use the CopyDirectoryAction to copy files
         $filesCopied = app(CopyDirectoryAction::class)($source, $destination);

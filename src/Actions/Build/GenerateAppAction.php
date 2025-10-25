@@ -7,6 +7,8 @@ use Glugox\Magic\Actions\Config\ResolveAppConfigAction;
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Support\BuildContext;
+use Glugox\Magic\Support\MagicNamespaces;
+use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Support\Config\Config;
 use Glugox\Magic\Traits\AsDescribableAction;
 use ReflectionException;
@@ -36,6 +38,16 @@ class GenerateAppAction implements DescribableAction
         }
         // Step 1: Initialize BuildContext with options and config
         $buildContext = BuildContext::fromOptions($options)->setConfig($config);
+
+        MagicNamespaces::use($buildContext->getBaseNamespace());
+
+        if ($buildContext->isPackageBuild()) {
+            MagicPaths::usePackage($buildContext->getDestinationPath() ?? '');
+            $buildContext = app(InitializePackageAction::class)($buildContext);
+        } else {
+            MagicPaths::clearPackage();
+            MagicNamespaces::clear();
+        }
 
         // Step 2: Publish Files
         $buildContext = app(PublishFilesAction::class)($buildContext);

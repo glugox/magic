@@ -3,6 +3,7 @@
 namespace Glugox\Magic\Support\Config;
 
 use Glugox\Magic\Support\Config\Builder\RelationBuilder;
+use Glugox\Magic\Support\MagicNamespaces;
 use Illuminate\Support\Str;
 use RuntimeException;
 
@@ -314,7 +315,9 @@ class Relation
         $localEntityName = $this->localEntity->getName();
         $relatedEntityName = $this->getRelatedEntityNameOrFail();
 
-        return "\\App\\Http\\Controllers\\{$localEntityName}\\{$localEntityName}{$relatedEntityName}Controller";
+        $controllerNamespace = MagicNamespaces::httpControllers("{$localEntityName}\\{$localEntityName}{$relatedEntityName}Controller");
+
+        return '\\'.$controllerNamespace;
     }
 
     /**

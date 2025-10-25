@@ -8,6 +8,8 @@ use Glugox\Magic\Support\CodeGenerationHelper;
 use Glugox\Magic\Support\Config\Config;
 use Glugox\Magic\Support\ConsoleBlock;
 use Glugox\Magic\Support\File\FilesGenerationUpdate;
+use Glugox\Magic\Support\MagicNamespaces;
+use Glugox\Magic\Support\MagicPaths;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -208,9 +210,8 @@ class ResetAppCommand extends MagicBaseCommand
                 $controllerFQN = $relation->getControllerFullQualifiedName();
 
                 // Convert FQN to path: App\Http\Controllers\Api\RelationNameController -> app/Http/Controllers/Api/RelationNameController.php
-                $controllerPath = app_path(str_replace('\\', '/', mb_ltrim($controllerFQN, '\\')));
-                // Also remove the /App/ prefix if present
-                $controllerPath = str_replace('App/', '', $controllerPath);
+                $relativeNamespace = Str::after(ltrim($controllerFQN, '\\'), MagicNamespaces::base().'\\');
+                $controllerPath = MagicPaths::app(str_replace('\\', '/', $relativeNamespace).'.php');
 
                 $this->deleteFile($controllerPath, 'Relation Controller', $relation->getRelationName());
 

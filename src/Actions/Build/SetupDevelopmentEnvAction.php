@@ -5,6 +5,7 @@ namespace Glugox\Magic\Actions\Build;
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Support\BuildContext;
+use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Support\Facades\Log;
@@ -22,6 +23,10 @@ class SetupDevelopmentEnvAction implements DescribableAction
     {
         // Log section title
         $this->logInvocation($this->describe()->name);
+
+        if ($context->isPackageBuild()) {
+            return $context;
+        }
 
         // Eneble slow server for development purposes
         $this->enableSlowServer($context);
@@ -43,7 +48,7 @@ class SetupDevelopmentEnvAction implements DescribableAction
      */
     private function enablePestRefreshDatabase(): void
     {
-        $pestFilePath = base_path('tests/Pest.php');
+        $pestFilePath = MagicPaths::tests('Pest.php');
         if (! file_exists($pestFilePath)) {
             Log::channel('magic')->warning(
                 "Pest.php file not found in tests directory. Please add the following snippet manually to enable RefreshDatabase trait for browser tests:\n\n".
@@ -97,8 +102,8 @@ if (import.meta.env.DEV) {
     })
 }
 EOT;
-        $mainJsPath = resource_path('js/main.ts');
-        $mainAppPath = resource_path('js/app.ts');
+        $mainJsPath = MagicPaths::resource('js/main.ts');
+        $mainAppPath = MagicPaths::resource('js/app.ts');
         if (file_exists($mainJsPath)) {
             $mainFilePath = $mainJsPath;
         } elseif (file_exists($mainAppPath)) {

@@ -15,7 +15,7 @@ class EnvHelper
      */
     public static function setEnvValue(string $key, string $value, ?string $envPath = null): void
     {
-        $envPath = $envPath ?? base_path('.env');
+        $envPath = $envPath ?? \Glugox\Magic\Support\MagicPaths::base('.env');
         if (! file_exists($envPath)) {
             throw new RuntimeException("Env file not found at: {$envPath}");
         }

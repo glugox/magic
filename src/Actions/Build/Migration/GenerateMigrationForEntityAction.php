@@ -11,6 +11,7 @@ use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Config\FieldType;
 use Glugox\Magic\Support\Config\RelationType;
 use Glugox\Magic\Support\File\FilesGenerationUpdate;
+use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
@@ -43,7 +44,7 @@ class GenerateMigrationForEntityAction implements DescribableAction
         $isUpdate = Schema::hasTable($tableName);
 
         /** @var string[] $migrationFiles */
-        $migrationFiles = File::glob(database_path("migrations/*_create_{$tableName}_table.php"));
+        $migrationFiles = File::glob(MagicPaths::database("migrations/*_create_{$tableName}_table.php"));
         if (! $isUpdate && ! empty($migrationFiles)) {
             foreach ($migrationFiles as $file) {
                 File::delete($file);
@@ -53,7 +54,7 @@ class GenerateMigrationForEntityAction implements DescribableAction
         }
 
         $fileName = date('Y_m_d_His').'_'.($isUpdate ? 'update' : 'create')."_{$tableName}_table.php";
-        $migrationPath = database_path('migrations/'.$fileName);
+        $migrationPath = MagicPaths::database('migrations/'.$fileName);
 
         if ($isUpdate) {
             $columnsCode = $this->buildColumnsCodeForUpdate($entity);
@@ -94,11 +95,11 @@ class GenerateMigrationForEntityAction implements DescribableAction
 
             $pivotTableName = $relation->getPivotName();
             $fileName = date('Y_m_d_His')."_create_{$pivotTableName}_table.php";
-            $migrationPath = database_path('migrations/'.$fileName);
+            $migrationPath = MagicPaths::database('migrations/'.$fileName);
 
             // Delete existing migration files if they exist
             /** @var string[] $migrationFiles */
-            $migrationFiles = File::glob(database_path("migrations/*_create_{$pivotTableName}_table.php"));
+            $migrationFiles = File::glob(MagicPaths::database("migrations/*_create_{$pivotTableName}_table.php"));
             foreach ($migrationFiles as $file) {
                 File::delete($file);
                 $update->addDeleted($file);

@@ -5,7 +5,9 @@ namespace Glugox\Magic\Actions\Build;
 use Glugox\Magic\Actions\Files\GenerateFileAction;
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
+use Glugox\Magic\Helpers\StubHelper;
 use Glugox\Magic\Support\BuildContext;
+use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
@@ -31,8 +33,8 @@ class GenerateEnumsAction implements DescribableAction
 
     public function __construct()
     {
-        $this->phpEnumPath = app_path('Enums');
-        $this->tsEnumPath = resource_path('js/enums');
+        $this->phpEnumPath = MagicPaths::app('Enums');
+        $this->tsEnumPath = MagicPaths::resource('js/enums');
         $this->stubsDir = __DIR__.'/../../../stubs/enums';
 
         if (! File::exists($this->phpEnumPath)) {
@@ -70,7 +72,7 @@ class GenerateEnumsAction implements DescribableAction
         $tsFile = "{$this->tsEnumPath}/{$enumName}.ts";
 
         // --- PHP Enum ---
-        $enumStub = File::get($this->stubsDir.'/enum.php.stub');
+        $enumStub = StubHelper::replaceBaseNamespace(File::get($this->stubsDir.'/enum.php.stub'));
 
         $cases = '';
         $labels = '';
