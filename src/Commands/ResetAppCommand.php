@@ -210,7 +210,7 @@ class ResetAppCommand extends MagicBaseCommand
                 $controllerFQN = $relation->getControllerFullQualifiedName();
 
                 // Convert FQN to path: App\Http\Controllers\Api\RelationNameController -> app/Http/Controllers/Api/RelationNameController.php
-                $relativeNamespace = Str::after(ltrim($controllerFQN, '\\'), MagicNamespaces::base().'\\');
+                $relativeNamespace = Str::after(mb_ltrim($controllerFQN, '\\'), MagicNamespaces::base().'\\');
                 $controllerPath = MagicPaths::app(str_replace('\\', '/', $relativeNamespace).'.php');
 
                 $this->deleteFile($controllerPath, 'Relation Controller', $relation->getRelationName());

@@ -24,7 +24,7 @@ class MagicNamespaces
      */
     public static function use(string $namespace): void
     {
-        static::$baseNamespace = trim($namespace, '\\');
+        static::$baseNamespace = mb_trim($namespace, '\\');
     }
 
     /**
@@ -40,7 +40,7 @@ class MagicNamespaces
      */
     public static function base(string $suffix = ''): string
     {
-        $suffix = trim($suffix, '\\');
+        $suffix = mb_trim($suffix, '\\');
 
         return $suffix === ''
             ? static::$baseNamespace
@@ -111,15 +111,15 @@ class MagicNamespaces
     public static function toPsr4Path(string $namespace): string
     {
         $relative = Str::after($namespace, static::$baseNamespace.'\\');
-        $relative = trim($relative, '\\');
+        $relative = mb_trim($relative, '\\');
 
         return str_replace('\\', '/', $relative === '' ? '' : $relative).($relative === '' ? '' : '/');
     }
 
     protected static function qualify(string $root, string $suffix): string
     {
-        $root = trim($root, '\\');
-        $suffix = trim($suffix, '\\');
+        $root = mb_trim($root, '\\');
+        $suffix = mb_trim($suffix, '\\');
 
         if ($suffix === '') {
             return $root;

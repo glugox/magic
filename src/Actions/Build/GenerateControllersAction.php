@@ -296,7 +296,7 @@ class GenerateControllersAction implements DescribableAction
                 }
 
                 $relatedEntity = $relation->getRelatedEntity();
-                $controllerFQCN = ltrim($relation->getControllerFullQualifiedName(), '\\');
+                $controllerFQCN = mb_ltrim($relation->getControllerFullQualifiedName(), '\\');
                 $controllerShort = class_basename($controllerFQCN);
 
                 if (! in_array($controllerFQCN, $importedControllers)) {

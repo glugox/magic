@@ -98,7 +98,7 @@ class MagicPaths
             return static::join(static::base('routes'), $path);
         }
 
-        return base_path('routes'.(empty($path) ? '' : DIRECTORY_SEPARATOR.ltrim($path, DIRECTORY_SEPARATOR)));
+        return base_path('routes'.(empty($path) ? '' : DIRECTORY_SEPARATOR.mb_ltrim($path, DIRECTORY_SEPARATOR)));
     }
 
     /**
@@ -182,11 +182,11 @@ class MagicPaths
      */
     protected static function normalizePath(string $path): string
     {
-        if (Str::startsWith($path, ['/', '\\']) || preg_match('/^[A-Za-z]:[\\\/]/', $path) === 1) {
-            return rtrim($path, DIRECTORY_SEPARATOR);
+        if (Str::startsWith($path, ['/', '\\']) || preg_match('/^[A-Za-z]:[\\\\\\/]/', $path) === 1) {
+            return mb_rtrim($path, DIRECTORY_SEPARATOR);
         }
 
-        return rtrim(base_path($path), DIRECTORY_SEPARATOR);
+        return mb_rtrim(base_path($path), DIRECTORY_SEPARATOR);
     }
 
     /**
@@ -198,6 +198,6 @@ class MagicPaths
             return $base;
         }
 
-        return rtrim($base, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.ltrim($path, DIRECTORY_SEPARATOR);
+        return mb_rtrim($base, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.mb_ltrim($path, DIRECTORY_SEPARATOR);
     }
 }

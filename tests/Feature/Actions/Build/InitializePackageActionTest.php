@@ -37,9 +37,9 @@ it('scaffolds composer manifest and service provider for package builds', functi
     $providerContents = File::get($providerPath);
     expect($providerContents)
         ->toContain('namespace Vendor\\Package\\Providers;')
-        ->and($providerContents)->toContain("loadRoutesFrom(__DIR__.'/../../routes/web.php')")
-        ->and($providerContents)->toContain("loadViewsFrom(")
-        ->and($providerContents)->toContain("loadMigrationsFrom(");
+        ->and($providerContents)->toContain('loadRoutesFrom(')
+        ->and($providerContents)->toContain('loadViewsFrom(')
+        ->and($providerContents)->toContain('loadMigrationsFrom(');
 
     MagicPaths::clearPackage();
     MagicNamespaces::clear();

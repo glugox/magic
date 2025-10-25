@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Glugox\Magic\Support\Config;
 
 use Glugox\Magic\Support\Config\Readers\SchemaReader;
+use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Validation\MagicConfigValidator;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
-use Glugox\Magic\Support\MagicPaths;
 use JsonException;
 use ReflectionClass;
 use ReflectionException;
