@@ -6,11 +6,6 @@
 
 A Laravel code generator that turns JSON entity definitions into a working application or a reusable Composer package. Magic wires migrations, models, controllers, Vue/Inertia pages, tests, and boilerplate Laravel setup so you can prototype or bootstrap production features in minutes.
 
-<p align="center">
-  <a href="https://php.net"><img src="https://img.shields.io/badge/php-%5E8.4-blue" alt="PHP Version"></a>
-  <a href="LICENSE.md"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License"></a>
-  <a href="https://codecov.io/gh/glugox/magic"><img src="https://codecov.io/gh/glugox/magic/branch/main/graph/badge.svg" alt="Coverage"></a>
-</p>
 
 ![Magic build workflow](magic-demo.svg)
 
