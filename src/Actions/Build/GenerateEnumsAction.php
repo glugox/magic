@@ -7,7 +7,6 @@ use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Helpers\StubHelper;
 use Glugox\Magic\Support\BuildContext;
-use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Traits\AsDescribableAction;

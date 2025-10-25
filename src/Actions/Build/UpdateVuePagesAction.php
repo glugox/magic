@@ -112,9 +112,9 @@ class UpdateVuePagesAction implements DescribableAction
         );
 
         // Replace the app name in the file
-        $updatedContent = preg_replace(
-            '/<span class="mb-0.5 truncate leading-tight font-semibold">.*?<\/span>/',
-            "<span class=\"mb-0.5 truncate leading-tight font-semibold\">{$appName}</span>",
+        $updatedContent = str_replace(
+            'Laravel Starter Kit',
+            $appName,
             $content
         );
 

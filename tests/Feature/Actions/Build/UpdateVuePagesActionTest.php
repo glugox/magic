@@ -22,7 +22,7 @@ VUE);
     File::ensureDirectoryExists(dirname($this->appLogoPath));
     File::put($this->appLogoPath, <<<'VUE'
 <template>
-    <span class="mb-0.5 truncate leading-tight font-semibold">OldApp</span>
+    <span class="mb-0.5 truncate leading-tight font-semibold">Laravel Starter Kit</span>
 </template>
 VUE);
 });
@@ -48,7 +48,7 @@ it('updates sidebar and app logo', function (): void {
 
     // ✅ AppLogo contains new app name
     expect(File::get($this->appLogoPath))
-        ->toContain('>InventoryHub</span>');
+        ->toContain('InventoryHub');
 });
 
 it('scaffolds Vue components when generating into a package', function (): void {
@@ -76,7 +76,7 @@ it('scaffolds Vue components when generating into a package', function (): void 
             ->toContain("href: '/users'")
             ->toContain('const mainNavItems: NavItem[] = [');
 
-        expect(File::get($logoPath))->toContain('>InventoryHub</span>');
+        expect(File::get($logoPath))->toContain('InventoryHub');
     } finally {
         MagicPaths::clearPackage();
     }

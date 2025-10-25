@@ -9,7 +9,6 @@ use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Validation\MagicConfigValidator;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
-use Glugox\Magic\Support\MagicPaths;
 use JsonException;
 use ReflectionClass;
 use ReflectionException;

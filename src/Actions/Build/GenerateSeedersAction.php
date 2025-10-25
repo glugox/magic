@@ -13,8 +13,6 @@ use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Config\FieldType;
 use Glugox\Magic\Support\Config\Relation;
-use Glugox\Magic\Support\MagicNamespaces;
-use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Support\Faker\FakerExtension;
 use Glugox\Magic\Support\MagicNamespaces;
 use Glugox\Magic\Support\MagicPaths;
@@ -429,6 +427,29 @@ class GenerateSeedersAction implements DescribableAction
         return $this->guessFakerMethod(Factory::create(), $field);
     }
 
+    /**
+     * Ensure DatabaseSeeder exists when generating into a fresh package.
+     */
+    protected function ensureDatabaseSeederExists(): void
+    {
+        if (! $this->shouldUpdateDatabaseSeeder) {
+            return;
+        }
+
+        $filePath = $this->seedersPath.'/DatabaseSeeder.php';
+
+        if (File::exists($filePath)) {
+            return;
+        }
+
+        $content = StubHelper::loadStub('database/database-seeder-base.stub', [
+            'userModel' => MagicNamespaces::models('User'),
+        ]);
+
+        app(GenerateFileAction::class)($filePath, $content);
+        $this->context->registerGeneratedFile($filePath);
+    }
+
     private function insertSeederCall($seederClass): void
     {
         if (! $this->shouldUpdateDatabaseSeeder) {
@@ -491,28 +512,5 @@ class GenerateSeedersAction implements DescribableAction
         }
 
         return $fakerType;
-    }
-
-    /**
-     * Ensure DatabaseSeeder exists when generating into a fresh package.
-     */
-    protected function ensureDatabaseSeederExists(): void
-    {
-        if (! $this->shouldUpdateDatabaseSeeder) {
-            return;
-        }
-
-        $filePath = $this->seedersPath.'/DatabaseSeeder.php';
-
-        if (File::exists($filePath)) {
-            return;
-        }
-
-        $content = StubHelper::loadStub('database/database-seeder-base.stub', [
-            'userModel' => MagicNamespaces::models('User'),
-        ]);
-
-        app(GenerateFileAction::class)($filePath, $content);
-        $this->context->registerGeneratedFile($filePath);
     }
 }
