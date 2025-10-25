@@ -5,6 +5,7 @@ namespace Glugox\Magic\Actions\Build;
 use Glugox\Magic\Actions\Files\GenerateFileAction;
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
+use Glugox\Magic\Helpers\StubHelper;
 use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Support\Config\Field;
@@ -71,7 +72,7 @@ class GenerateEnumsAction implements DescribableAction
         $tsFile = "{$this->tsEnumPath}/{$enumName}.ts";
 
         // --- PHP Enum ---
-        $enumStub = File::get($this->stubsDir.'/enum.php.stub');
+        $enumStub = StubHelper::replaceBaseNamespace(File::get($this->stubsDir.'/enum.php.stub'));
 
         $cases = '';
         $labels = '';

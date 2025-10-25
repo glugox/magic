@@ -35,6 +35,8 @@ class BuildContext
         public ?string $starter = null,
         public array $overrides = [],
         public ?string $destinationPath = null,
+        protected string $baseNamespace = 'App',
+        protected ?string $packageName = null,
     ) {
         $this->filesGenerationUpdate = new FilesGenerationUpdate;
     }
@@ -49,6 +51,8 @@ class BuildContext
             starter: $options['starter'] ?? null,
             overrides: $options['set'] ?? [],
             destinationPath: $options['package-path'] ?? $options['package_path'] ?? null,
+            baseNamespace: $options['package-namespace'] ?? $options['package_namespace'] ?? 'App',
+            packageName: $options['package-name'] ?? $options['package_name'] ?? null,
         );
     }
 
@@ -60,6 +64,16 @@ class BuildContext
     public function isPackageBuild(): bool
     {
         return ! empty($this->destinationPath);
+    }
+
+    public function getBaseNamespace(): string
+    {
+        return $this->baseNamespace;
+    }
+
+    public function getPackageName(): ?string
+    {
+        return $this->packageName;
     }
 
     /**

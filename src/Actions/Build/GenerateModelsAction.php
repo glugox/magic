@@ -11,6 +11,7 @@ use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Config\FieldType;
 use Glugox\Magic\Support\Config\Relation;
 use Glugox\Magic\Support\Config\RelationType;
+use Glugox\Magic\Support\MagicNamespaces;
 use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
@@ -117,13 +118,13 @@ class GenerateModelsAction implements DescribableAction
 
         // Automatically add HasName trait if entity has no "name" field
         if (! $entity->hasField('name')) {
-            $traits[] = 'App\Traits\HasName';
+            $traits[] = MagicNamespaces::traits('HasName');
             $appends[] = 'name';
         }
 
         // Automatically add HasImages trait if entity supports images
         if ($entity->hasImages() ?? false) {
-            $traits[] = 'App\Traits\HasImages';
+            $traits[] = MagicNamespaces::traits('HasImages');
         }
 
         // Imports for traits
@@ -149,7 +150,7 @@ class GenerateModelsAction implements DescribableAction
 
         // Prepare stub replacements
         $replacements = [
-            '{{namespace}}' => 'App\Models',
+            '{{namespace}}' => MagicNamespaces::models(),
             '{{uses}}' => implode("\n", array_map(fn ($t) => "use $t;", array_unique($uses))),
             '{{modelClass}}' => $className,
             '{{extends}}' => $extends,
@@ -198,7 +199,9 @@ class GenerateModelsAction implements DescribableAction
 
         // If enum → reference generated enum class
         if ($type === FieldType::ENUM && ! empty($field->options)) {
-            return '\\App\\Enums\\'.Str::studly($field->getEntity()->getName()).Str::studly($field->name).'Enum::class';
+            $enumClass = Str::studly($field->getEntity()->getName()).Str::studly($field->name).'Enum';
+
+            return '\\'.MagicNamespaces::enums($enumClass).'::class';
         }
 
         return match ($type) {

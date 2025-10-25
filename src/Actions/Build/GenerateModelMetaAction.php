@@ -13,6 +13,7 @@ use Glugox\Magic\Support\Config\FieldType;
 use Glugox\Magic\Support\Config\Filter;
 use Glugox\Magic\Support\Config\Relation;
 use Glugox\Magic\Support\Config\RelationType;
+use Glugox\Magic\Support\MagicNamespaces;
 use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
@@ -118,7 +119,7 @@ class GenerateModelMetaAction implements DescribableAction
         $filtersLines = array_map(fn ($filter) => $this->buildFilterLine($filter), $entity->getFilters());
 
         $replacements = [
-            'namespace' => 'App\\Meta\\Models',
+            'namespace' => MagicNamespaces::metaModels(),
             'className' => $entity->getName().'Meta',
             'tableName' => $entity->getTableName(),
             'fields' => implode("\n            ", $fieldLines),

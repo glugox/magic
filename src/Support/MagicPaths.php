@@ -132,6 +132,7 @@ class MagicPaths
 
         $directories = [
             'src',
+            'src/Providers',
             'database',
             'database/migrations',
             'database/seeders',

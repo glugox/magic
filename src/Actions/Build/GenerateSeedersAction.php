@@ -13,6 +13,7 @@ use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Config\FieldType;
 use Glugox\Magic\Support\Config\Relation;
+use Glugox\Magic\Support\MagicNamespaces;
 use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Support\Faker\FakerExtension;
 use Glugox\Magic\Traits\AsDescribableAction;
@@ -215,7 +216,7 @@ class GenerateSeedersAction implements DescribableAction
 
         $hasManyLines = [];
         $pivotLines = [];
-        $useStatements = [];
+        $useStatements = ['use '.MagicNamespaces::models($entityName).';'];
 
         foreach ($entity->getRelations() as $relation) {
 
@@ -251,7 +252,7 @@ class GenerateSeedersAction implements DescribableAction
                 $parentVar = '$'.Str::camel($rel->getLocalEntityName()).'s';
                 $foreignKey = $rel->getForeignKey();
 
-                $useStatements[] = "use App\\Models\\{$rel->getLocalEntityName()};";
+                $useStatements[] = 'use '.MagicNamespaces::models($rel->getLocalEntityName()).';';
                 // $useStatements[] = "use App\\Models\\{$entity->getClassName()};";
 
                 // Fetch all parent entities
@@ -269,6 +270,12 @@ class GenerateSeedersAction implements DescribableAction
             $factoryCode = "\${$entity->getClassName()}Items = {$entity->getClassName()}::factory()->count({$seedCount})->create();";
         }
 
+        $useStatements = array_values(array_unique($useStatements));
+        $useStatementsBlock = implode("\n", $useStatements);
+        if ($useStatementsBlock !== '') {
+            $useStatementsBlock .= "\n";
+        }
+
         $content = StubHelper::loadStub('database/seeder.stub', [
             'namespace' => $namespace,
             'class' => $className,
@@ -276,7 +283,7 @@ class GenerateSeedersAction implements DescribableAction
             'seedCount' => $seedCount,
             'factoryCode' => $factoryCode,
             'relationsCode' => '',
-            'useStatements' => implode("\n\n", array_unique($useStatements)),
+            'useStatements' => $useStatementsBlock,
         ]);
 
         $path = $this->seedersPath."/{$className}.php";
@@ -320,6 +327,8 @@ class GenerateSeedersAction implements DescribableAction
             'class' => $seederClass,
             'relationMethod' => $relationMethod,
             'seedCount' => $seedCount,
+            'entityUse' => 'use '.MagicNamespaces::models($entityName).';',
+            'relatedEntityUse' => 'use '.MagicNamespaces::models($relatedEntity).';',
         ]);
 
         $path = $this->seedersPath."/{$seederClass}.php";
@@ -374,7 +383,8 @@ class GenerateSeedersAction implements DescribableAction
 
             if ($belongsTo) {
                 $relatedEntity = $belongsTo->getRelatedEntityName();
-                $lines[] = "            '{$field->name}' => \\App\\Models\\{$relatedEntity}::inRandomOrder()->first()?->id ?? \\App\\Models\\{$relatedEntity}::factory(),";
+                $relatedFqcn = '\\'.MagicNamespaces::models($relatedEntity);
+                $lines[] = "            '{$field->name}' => {$relatedFqcn}::inRandomOrder()->first()?->id ?? {$relatedFqcn}::factory(),";
 
                 continue;
             }

@@ -58,8 +58,8 @@ class GenerateApiResourcesAction implements DescribableAction
             throw new RuntimeException("Missing stub: {$collectionStubPath}");
         }
 
-        $resourceStub = File::get($resourceStubPath);
-        $collectionStub = File::get($collectionStubPath);
+        $resourceStub = StubHelper::replaceBaseNamespace(File::get($resourceStubPath));
+        $collectionStub = StubHelper::replaceBaseNamespace(File::get($collectionStubPath));
 
         foreach ($this->context->getConfig()->entities as $entity) {
             $this->generateResource($entity, $resourceStub);

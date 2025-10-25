@@ -5,6 +5,7 @@ namespace Glugox\Magic\Commands;
 use Exception;
 use Glugox\Magic\Actions\Build\GenerateAppAction;
 use Glugox\Magic\Support\ConsoleBlock;
+use Glugox\Magic\Support\MagicNamespaces;
 use Glugox\Magic\Support\MagicPaths;
 use Illuminate\Support\Facades\Log;
 use ReflectionException;
@@ -16,7 +17,9 @@ class BuildAppCommand extends MagicBaseCommand
     {--config= : Path to JSON config file}
     {--starter= : Starter template to use}
     {--set=* : Inline config override in key=value format (dot notation allowed)}
-    {--package-path= : Directory where the generated application should be written}';
+    {--package-path= : Directory where the generated application should be written}
+    {--package-namespace= : Root namespace to use when generating into a package}
+    {--package-name= : Composer package name (vendor/package) for package builds}';
 
     protected $description = 'Build Laravel app parts from JSON config';
 
@@ -34,8 +37,17 @@ class BuildAppCommand extends MagicBaseCommand
         $packageMode = ! empty($options['package-path']);
 
         if ($packageMode) {
+            $namespace = (string) ($options['package-namespace'] ?? '');
+            $packageName = (string) ($options['package-name'] ?? '');
+
+            if ($namespace === '' || $packageName === '') {
+                throw new Exception('Package builds require both --package-namespace and --package-name options.');
+            }
+
+            MagicNamespaces::use($namespace);
             MagicPaths::usePackage($options['package-path']);
         } else {
+            MagicNamespaces::clear();
             MagicPaths::clearPackage();
         }
 
@@ -67,6 +79,8 @@ class BuildAppCommand extends MagicBaseCommand
             if ($packageMode) {
                 MagicPaths::clearPackage();
             }
+
+            MagicNamespaces::clear();
         }
     }
 }

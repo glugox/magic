@@ -20,6 +20,7 @@ test('package paths are applied when using package mode', function () {
 
     foreach ([
         'src',
+        'src/Providers',
         'resources/js',
         'database/migrations',
         'routes',

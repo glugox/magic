@@ -6,6 +6,7 @@ use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Config\FieldType;
 use Glugox\Magic\Support\Config\RelationType;
+use Glugox\Magic\Support\MagicNamespaces;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
@@ -145,7 +146,26 @@ class StubHelper
         $stub = file_get_contents($fullPath);
 
         // Use existing applyReplacements() method to inject variables
-        return self::applyReplacements($stub, $replacements);
+        $stub = self::applyReplacements($stub, $replacements);
+
+        return self::replaceBaseNamespace($stub);
+    }
+
+    public static function replaceBaseNamespace(string $content): string
+    {
+        $base = MagicNamespaces::base();
+
+        if ($base === 'App') {
+            return $content;
+        }
+
+        $escapedBase = addslashes($base);
+
+        return str_replace(
+            ['namespace App\\', 'use App\\', '\\App\\', 'App\\\\'],
+            ['namespace '.$base.'\\', 'use '.$base.'\\', '\\'.$base.'\\', $escapedBase.'\\\\'],
+            $content
+        );
     }
 
     /**

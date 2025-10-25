@@ -111,7 +111,7 @@ class GenerateCrudTestsAction implements DescribableAction
         $usesStr = implode("\n", $uses);
 
         $stubPath = $this->stubsPath.'/tests/crud-test.stub';
-        $template = File::get($stubPath);
+        $template = StubHelper::replaceBaseNamespace(File::get($stubPath));
 
         $replacements = [
             '{{classDescription}}' => "CRUD test for model {$entity->getSingularName()}",
