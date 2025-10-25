@@ -36,11 +36,17 @@ class UpdateVuePagesAction implements DescribableAction
      */
     protected string $sidebarPath;
 
+    /**
+     * Path to Vue component stubs for fallback scaffolding.
+     */
+    protected string $componentStubPath;
+
     public function __construct()
     {
         // Path to your Vue file
         $this->sidebarPath = MagicPaths::resource('js/components/AppSidebar.vue');
         $this->appLogoPath = MagicPaths::resource('js/components/AppLogo.vue');
+        $this->componentStubPath = __DIR__.'/../../../stubs/laravel/resources/js/components';
     }
 
     public function __invoke(BuildContext $context): BuildContext
@@ -63,11 +69,11 @@ class UpdateVuePagesAction implements DescribableAction
      */
     public function updateSidebar()
     {
-        if (! File::exists($this->sidebarPath)) {
-            throw new RuntimeException("Sidebar file not found at {$this->sidebarPath}");
-        }
-
-        $content = File::get($this->sidebarPath);
+        [$existing, $content] = $this->resolveComponentContents(
+            $this->sidebarPath,
+            'AppSidebar.vue',
+            'Sidebar file not found at '
+        );
 
         // Generate the new mainNavItems array as Vue code
         $itemsCode = $this->generateNavItemsCode();
@@ -83,7 +89,14 @@ class UpdateVuePagesAction implements DescribableAction
         $content = $this->updateImports($content);
 
         app(GenerateFileAction::class)($this->sidebarPath, $content);
-        $this->context->registerUpdatedFile($this->sidebarPath);
+
+        if ($existing) {
+            $this->context->registerUpdatedFile($this->sidebarPath);
+
+            return;
+        }
+
+        $this->context->registerGeneratedFile($this->sidebarPath);
     }
 
     /**
@@ -92,7 +105,11 @@ class UpdateVuePagesAction implements DescribableAction
     public function updateAppName(): void
     {
         $appName = $this->context->getConfig()->app->name;
-        $content = File::get($this->appLogoPath);
+        [$existing, $content] = $this->resolveComponentContents(
+            $this->appLogoPath,
+            'AppLogo.vue',
+            'App logo file not found at '
+        );
 
         // Replace the app name in the file
         $updatedContent = preg_replace(
@@ -103,7 +120,14 @@ class UpdateVuePagesAction implements DescribableAction
 
         // Action call -- use the GenerateFileAction to update the file
         app(GenerateFileAction::class)($this->appLogoPath, $updatedContent);
-        $this->context->registerUpdatedFile($this->appLogoPath);
+
+        if ($existing) {
+            $this->context->registerUpdatedFile($this->appLogoPath);
+
+            return;
+        }
+
+        $this->context->registerGeneratedFile($this->appLogoPath);
     }
 
     /**
@@ -185,5 +209,27 @@ JS;
         }
 
         return $content;
+    }
+
+    /**
+     * Resolve the contents for a Vue component, scaffolding from stubs when needed.
+     */
+    protected function resolveComponentContents(string $path, string $stubFile, string $missingMessagePrefix): array
+    {
+        if (File::exists($path)) {
+            return [true, File::get($path)];
+        }
+
+        if (! MagicPaths::isUsingPackage()) {
+            throw new RuntimeException($missingMessagePrefix.$path);
+        }
+
+        $stubPath = $this->componentStubPath.'/'.$stubFile;
+
+        if (! File::exists($stubPath)) {
+            throw new RuntimeException("Vue stub not found: {$stubPath}");
+        }
+
+        return [false, File::get($stubPath)];
     }
 }

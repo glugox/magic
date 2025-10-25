@@ -17,6 +17,7 @@ use Glugox\Magic\Support\Config\RelationType;
 use Glugox\Magic\Support\Frontend\TsHelper;
 use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Support\TypeHelper;
+use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Support\Facades\File;

@@ -3,6 +3,7 @@
 namespace Glugox\Magic\Support;
 
 use Glugox\Magic\Support\Config\Config;
+use Glugox\Magic\Support\MagicPaths;
 use Illuminate\Support\Facades\Log;
 use JsonException;
 use ReflectionException;

@@ -7,6 +7,8 @@ use Glugox\Magic\Actions\Config\ResolveAppConfigAction;
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Support\BuildContext;
+use Glugox\Magic\Support\MagicNamespaces;
+use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Support\Config\Config;
 use Glugox\Magic\Support\MagicNamespaces;
 use Glugox\Magic\Support\MagicPaths;

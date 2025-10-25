@@ -13,6 +13,8 @@ use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Config\FieldType;
 use Glugox\Magic\Support\Config\Relation;
+use Glugox\Magic\Support\MagicNamespaces;
+use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Support\Faker\FakerExtension;
 use Glugox\Magic\Support\MagicNamespaces;
 use Glugox\Magic\Support\MagicPaths;
@@ -52,6 +54,11 @@ class GenerateSeedersAction implements DescribableAction
     protected array $generatedPivotSeeders = [];
 
     /**
+     * Whether the current build should touch DatabaseSeeder scaffolding.
+     */
+    protected bool $shouldUpdateDatabaseSeeder = false;
+
+    /**
      * Constructor to set up paths.
      */
     public function __construct(protected CodeGenerationHelper $codeHelper)
@@ -79,6 +86,9 @@ class GenerateSeedersAction implements DescribableAction
 
         // Store context for later use
         $this->context = $context;
+        $this->shouldUpdateDatabaseSeeder = ! $context->isPackageBuild();
+
+        $this->ensureDatabaseSeederExists();
 
         // Add seeding code to create admin user
         $this->generateAdminUserSeeder();
@@ -337,16 +347,18 @@ class GenerateSeedersAction implements DescribableAction
 
         Log::channel('magic')->info("Pivot seeder created: {$seederClass}.php");
 
-        $filePath = $this->seedersPath.'/DatabaseSeeder.php';
-        $this->codeHelper->appendCodeBlock(
-            $filePath,
-            'run',
-            [
-                "// Pivot seeder for {$entityName} <-> {$relatedEntity}",
-                "\$this->call({$seederClass}::class);",
-            ],
-            'pivot_seeders'
-        );
+        if ($this->shouldUpdateDatabaseSeeder) {
+            $filePath = $this->seedersPath.'/DatabaseSeeder.php';
+            $this->codeHelper->appendCodeBlock(
+                $filePath,
+                'run',
+                [
+                    "// Pivot seeder for {$entityName} <-> {$relatedEntity}",
+                    "\$this->call({$seederClass}::class);",
+                ],
+                'pivot_seeders'
+            );
+        }
     }
 
     /**
@@ -419,6 +431,10 @@ class GenerateSeedersAction implements DescribableAction
 
     private function insertSeederCall($seederClass): void
     {
+        if (! $this->shouldUpdateDatabaseSeeder) {
+            return;
+        }
+
         $filePath = $this->seedersPath.'/DatabaseSeeder.php';
         $this->codeHelper->appendCodeBlock(
             $filePath,
@@ -433,6 +449,10 @@ class GenerateSeedersAction implements DescribableAction
 
     private function generateAdminUserSeeder(): void
     {
+        if (! $this->shouldUpdateDatabaseSeeder) {
+            return;
+        }
+
         $this->codeHelper->appendCodeBlock(
             $this->seedersPath.'/DatabaseSeeder.php',
             'run',
@@ -471,5 +491,28 @@ class GenerateSeedersAction implements DescribableAction
         }
 
         return $fakerType;
+    }
+
+    /**
+     * Ensure DatabaseSeeder exists when generating into a fresh package.
+     */
+    protected function ensureDatabaseSeederExists(): void
+    {
+        if (! $this->shouldUpdateDatabaseSeeder) {
+            return;
+        }
+
+        $filePath = $this->seedersPath.'/DatabaseSeeder.php';
+
+        if (File::exists($filePath)) {
+            return;
+        }
+
+        $content = StubHelper::loadStub('database/database-seeder-base.stub', [
+            'userModel' => MagicNamespaces::models('User'),
+        ]);
+
+        app(GenerateFileAction::class)($filePath, $content);
+        $this->context->registerGeneratedFile($filePath);
     }
 }

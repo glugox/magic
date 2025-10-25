@@ -113,11 +113,11 @@ class EnableAttachableAction implements DescribableAction
     protected function resolveDestinationDirectory(string $destination): string
     {
         return match (true) {
-            str_starts_with($destination, 'app/') => MagicPaths::app(mb_substr($destination, 4)),
+            str_starts_with($destination, 'app/') => MagicPaths::app(substr($destination, 4)),
             $destination === 'app' => MagicPaths::app(),
-            str_starts_with($destination, 'database/') => MagicPaths::database(mb_substr($destination, 9)),
+            str_starts_with($destination, 'database/') => MagicPaths::database(substr($destination, 9)),
             $destination === 'database' => MagicPaths::database(),
-            str_starts_with($destination, 'routes') => MagicPaths::routes(mb_trim(mb_substr($destination, 6), '/')),
+            str_starts_with($destination, 'routes') => MagicPaths::routes(trim(substr($destination, 6), '/')),
             str_starts_with($destination, 'config') => MagicPaths::base($destination),
             str_starts_with($destination, 'public') => MagicPaths::base($destination),
             default => MagicPaths::base($destination),
