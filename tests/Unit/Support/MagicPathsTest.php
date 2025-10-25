@@ -31,3 +31,40 @@ test('package paths are applied when using package mode', function () {
     MagicPaths::clearPackage();
     File::deleteDirectory($tempDir);
 });
+
+test('clearing package restores application defaults', function () {
+    $tempDir = base_path('package-output-restore');
+    File::deleteDirectory($tempDir);
+
+    MagicPaths::usePackage($tempDir);
+    MagicPaths::clearPackage();
+
+    expect(MagicPaths::isUsingPackage())
+        ->toBeFalse()
+        ->and(MagicPaths::base())
+        ->toBe(base_path())
+        ->and(MagicPaths::app('Models'))
+        ->toBe(app_path('Models'))
+        ->and(MagicPaths::resource('js/types'))
+        ->toBe(resource_path('js/types'))
+        ->and(config('magic.paths.support_types_file'))
+        ->toBe(resource_path('js/types/support.ts'));
+
+    File::deleteDirectory($tempDir);
+});
+
+test('relative package paths are normalized against the base path', function () {
+    $relative = 'package-output-relative';
+    $resolved = base_path($relative);
+    File::deleteDirectory($resolved);
+
+    MagicPaths::usePackage($relative);
+
+    expect(MagicPaths::base())
+        ->toBe($resolved)
+        ->and(MagicPaths::routes('api.php'))
+        ->toBe($resolved.'/routes/api.php');
+
+    MagicPaths::clearPackage();
+    File::deleteDirectory($resolved);
+});
