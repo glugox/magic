@@ -10,6 +10,7 @@ use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Relation;
 use Glugox\Magic\Support\Config\RelationType;
+use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Support\Facades\File;
@@ -52,8 +53,8 @@ class GenerateControllersAction implements DescribableAction
     public function __construct(protected ValidationHelper $validationHelper)
     {
         $this->stubsPath = __DIR__.'/../../../stubs';
-        $this->controllerPath = app_path('Http/Controllers');
-        $this->routesFilePath = base_path('routes/app.php');
+        $this->controllerPath = MagicPaths::app('Http/Controllers');
+        $this->routesFilePath = MagicPaths::routes('app.php');
         if (! File::exists($this->controllerPath)) {
             File::makeDirectory($this->controllerPath, 0755, true);
         }
@@ -216,7 +217,7 @@ class GenerateControllersAction implements DescribableAction
         app(GenerateFileAction::class)($filePath, $template);
         $this->context->registerGeneratedFile($filePath);
 
-        $relPath = str_replace(app_path('Http/Controllers/'), '', $filePath);
+        $relPath = str_replace(MagicPaths::app('Http/Controllers/'), '', $filePath);
         Log::channel('magic')->info("Controller created: {$relPath}");
     }
 
@@ -394,7 +395,7 @@ class GenerateControllersAction implements DescribableAction
         app(GenerateFileAction::class)($filePath, $content);
         $this->context->registerGeneratedFile($filePath);
 
-        $relPath = str_replace(app_path('Http/Controllers/'), '', $filePath);
+        $relPath = str_replace(MagicPaths::app('Http/Controllers/'), '', $filePath);
         Log::channel('magic')->info("API Controller created: {$relPath}");
     }
 
@@ -411,7 +412,7 @@ class GenerateControllersAction implements DescribableAction
 
         $apiStub = File::get($stubPath);
 
-        $appApiPath = base_path('routes/app/api.php');
+        $appApiPath = MagicPaths::routes('app/api.php');
         if (! File::exists(dirname($appApiPath))) {
             File::makeDirectory(dirname($appApiPath), 0755, true);
         }
@@ -462,7 +463,7 @@ class GenerateControllersAction implements DescribableAction
      */
     protected function ensureWebPhpRequiresAppPhp(): void
     {
-        $webPhpPath = base_path('routes/web.php');
+        $webPhpPath = MagicPaths::routes('web.php');
         $requireLine = "require __DIR__.'/app.php';";
 
         if (! File::exists($webPhpPath)) {
@@ -488,7 +489,7 @@ class GenerateControllersAction implements DescribableAction
      */
     protected function ensureApiPhpRequiresAppApiPhp(): void
     {
-        $apiPhpPath = base_path('routes/api.php');
+        $apiPhpPath = MagicPaths::routes('api.php');
         $requireLine = "require __DIR__.'/app/api.php';";
 
         if (! File::exists($apiPhpPath)) {

@@ -6,6 +6,7 @@ use Glugox\Magic\Actions\Files\GenerateFileAction;
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Support\BuildContext;
+use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Support\Facades\File;
@@ -38,8 +39,8 @@ class UpdateVuePagesAction implements DescribableAction
     public function __construct()
     {
         // Path to your Vue file
-        $this->sidebarPath = base_path('resources/js/components/AppSidebar.vue');
-        $this->appLogoPath = base_path('resources/js/components/AppLogo.vue');
+        $this->sidebarPath = MagicPaths::resource('js/components/AppSidebar.vue');
+        $this->appLogoPath = MagicPaths::resource('js/components/AppLogo.vue');
     }
 
     public function __invoke(BuildContext $context): BuildContext

@@ -33,7 +33,8 @@ class BuildContext
     public function __construct(
         public ?string $configPath = null,
         public ?string $starter = null,
-        public array $overrides = []
+        public array $overrides = [],
+        public ?string $destinationPath = null,
     ) {
         $this->filesGenerationUpdate = new FilesGenerationUpdate;
     }
@@ -46,8 +47,19 @@ class BuildContext
         return new self(
             configPath: $options['config'] ?? null,
             starter: $options['starter'] ?? null,
-            overrides: $options['set'] ?? []
+            overrides: $options['set'] ?? [],
+            destinationPath: $options['package-path'] ?? $options['package_path'] ?? null,
         );
+    }
+
+    public function getDestinationPath(): ?string
+    {
+        return $this->destinationPath;
+    }
+
+    public function isPackageBuild(): bool
+    {
+        return ! empty($this->destinationPath);
     }
 
     /**

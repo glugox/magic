@@ -237,7 +237,7 @@ class StubHelper
                 return "->select('{$fieldName}', '{$field->getFirstEnumOptionValue()}')";
             case 'file':
             case 'image':
-                return "->attach('{$fieldName}', base_path('tests/Fixtures/test_file.txt'))";
+                return "->attach('{$fieldName}', \\Glugox\\Magic\\Support\\MagicPaths::base('tests/Fixtures/test_file.txt'))";
             default:
                 return "// Unsupported field type: {$fieldType->value}";
         }

@@ -11,6 +11,7 @@ use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Relation;
 use Glugox\Magic\Support\Config\RelationType;
+use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Support\Facades\File;
@@ -47,7 +48,7 @@ class GenerateCrudTestsAction implements DescribableAction
     public function __construct(protected ValidationHelper $validationHelper)
     {
         $this->stubsPath = __DIR__.'/../../../stubs';
-        $this->testsPath = base_path('tests/Browser');
+        $this->testsPath = MagicPaths::tests('Browser');
         if (! File::exists($this->testsPath)) {
             File::makeDirectory($this->testsPath, 0755, true);
         }
@@ -134,7 +135,7 @@ class GenerateCrudTestsAction implements DescribableAction
         app(GenerateFileAction::class)($filePath, $template);
         $this->context->registerGeneratedFile($filePath);
 
-        $relPath = str_replace(app_path('tests/'), '', $filePath);
+        $relPath = str_replace(MagicPaths::tests().DIRECTORY_SEPARATOR, '', $filePath);
         Log::channel('magic')->info("test created: {$relPath}");
     }
 }

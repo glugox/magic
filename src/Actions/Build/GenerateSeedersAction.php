@@ -13,6 +13,7 @@ use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Config\FieldType;
 use Glugox\Magic\Support\Config\Relation;
+use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Support\Faker\FakerExtension;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
@@ -55,13 +56,13 @@ class GenerateSeedersAction implements DescribableAction
     public function __construct(protected CodeGenerationHelper $codeHelper)
     {
         // Ensure the factories directory exists
-        $this->factoriesPath = database_path('factories');
+        $this->factoriesPath = MagicPaths::database('factories');
         if (! File::exists($this->factoriesPath)) {
             File::makeDirectory($this->factoriesPath, 0755, true);
         }
 
         // Ensure the seeders directory exists
-        $this->seedersPath = database_path('seeders');
+        $this->seedersPath = MagicPaths::database('seeders');
         if (! File::exists($this->seedersPath)) {
             File::makeDirectory($this->seedersPath, 0755, true);
         }
@@ -197,7 +198,7 @@ class GenerateSeedersAction implements DescribableAction
             'fakerFields' => $fakerFields,
         ]);
 
-        $path = database_path("factories/{$className}.php");
+        $path = MagicPaths::database("factories/{$className}.php");
         app(GenerateFileAction::class)($path, $content);
         $this->context->registerGeneratedFile($path);
     }

@@ -9,6 +9,7 @@ use Glugox\Magic\Helpers\StubHelper;
 use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\Config\Action as ConfigAction;
 use Glugox\Magic\Support\Config\Entity;
+use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Support\Facades\File;
@@ -35,7 +36,7 @@ class GenerateActionsAction implements DescribableAction
     public function __invoke(BuildContext $context): BuildContext
     {
         $this->logInvocation($this->describe()->name);
-        $this->actionsPath = app_path('Actions');
+        $this->actionsPath = MagicPaths::app('Actions');
 
         // Create App/Actions directory if it doesn't exist
 

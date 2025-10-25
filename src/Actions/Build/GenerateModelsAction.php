@@ -11,6 +11,7 @@ use Glugox\Magic\Support\Config\Field;
 use Glugox\Magic\Support\Config\FieldType;
 use Glugox\Magic\Support\Config\Relation;
 use Glugox\Magic\Support\Config\RelationType;
+use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -34,7 +35,7 @@ class GenerateModelsAction implements DescribableAction
     public function __construct()
     {
         $this->stubsPath = __DIR__.'/../../../stubs';
-        $this->modelPath = app_path('Models');
+        $this->modelPath = MagicPaths::app('Models');
         if (! File::exists($this->modelPath)) {
             File::makeDirectory($this->modelPath, 0755, true);
         }
@@ -184,7 +185,7 @@ class GenerateModelsAction implements DescribableAction
         $filePath = $this->modelPath.'/'.$className.'.php';
         app(GenerateFileAction::class)($filePath, $template);
 
-        $filePathRelative = str_replace(app_path('Models/'), '', $filePath);
+        $filePathRelative = str_replace(MagicPaths::app('Models/'), '', $filePath);
         Log::channel('magic')->info("Model created: $filePathRelative");
     }
 

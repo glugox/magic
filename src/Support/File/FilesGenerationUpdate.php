@@ -2,6 +2,7 @@
 
 namespace Glugox\Magic\Support\File;
 
+use Glugox\Magic\Support\MagicPaths;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use JsonException;
@@ -27,7 +28,7 @@ class FilesGenerationUpdate
      */
     public static function deleteGeneratedFiles(): void
     {
-        $manifestPath = storage_path('magic/manifest.json');
+        $manifestPath = MagicPaths::storage('magic/manifest.json');
         Log::channel('magic')->debug("Deleting generated files by manifest file : $manifestPath}");
 
         // Load the manifest
@@ -116,7 +117,7 @@ class FilesGenerationUpdate
      */
     public function writeManifest(): void
     {
-        $manifestPath = storage_path('magic/manifest.json');
+        $manifestPath = MagicPaths::storage('magic/manifest.json');
         $data = [
             'timestamp' => date('c'),
             'files' => [

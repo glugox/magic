@@ -5,8 +5,10 @@ namespace Glugox\Magic\Actions\Build;
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Support\BuildContext;
+use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 
 #[ActionDescription(
@@ -67,7 +69,7 @@ class EnableAttachableAction implements DescribableAction
     protected function copyFile(array $file): void
     {
         $source = $this->stubsDir.'/'.$file['src'];
-        $destinationDir = base_path($file['dest']);
+        $destinationDir = $this->resolveDestinationDirectory($file['dest']);
 
         if (! is_dir($destinationDir)) {
             mkdir($destinationDir, 0755, true);
@@ -88,8 +90,16 @@ class EnableAttachableAction implements DescribableAction
 
     protected function includeAttachableRoutes(): void
     {
-        $apiRoutesFile = base_path('routes/api.php');
-        $includeLine = "require base_path('routes/attachable.php');\n";
+        $apiRoutesFile = MagicPaths::routes('api.php');
+        if (! file_exists($apiRoutesFile)) {
+            File::ensureDirectoryExists(dirname($apiRoutesFile));
+            File::put($apiRoutesFile, "<?php\n\n");
+            $this->context->registerGeneratedFile($apiRoutesFile);
+        }
+
+        $includeLine = MagicPaths::isUsingPackage()
+            ? "require __DIR__.'/attachable.php';\n"
+            : "require base_path('routes/attachable.php');\n";
 
         if (! str_contains(file_get_contents($apiRoutesFile), $includeLine)) {
             file_put_contents($apiRoutesFile, "\n".$includeLine, FILE_APPEND);
@@ -98,5 +108,19 @@ class EnableAttachableAction implements DescribableAction
         } else {
             Log::channel('magic')->info('Attachable routes already included in routes/api.php');
         }
+    }
+
+    protected function resolveDestinationDirectory(string $destination): string
+    {
+        return match (true) {
+            str_starts_with($destination, 'app/') => MagicPaths::app(substr($destination, 4)),
+            $destination === 'app' => MagicPaths::app(),
+            str_starts_with($destination, 'database/') => MagicPaths::database(substr($destination, 9)),
+            $destination === 'database' => MagicPaths::database(),
+            str_starts_with($destination, 'routes') => MagicPaths::routes(trim(substr($destination, 6), '/')),
+            str_starts_with($destination, 'config') => MagicPaths::base($destination),
+            str_starts_with($destination, 'public') => MagicPaths::base($destination),
+            default => MagicPaths::base($destination),
+        };
     }
 }
