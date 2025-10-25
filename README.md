@@ -1,4 +1,4 @@
-# Magic
+# ![logo.svg](https://raw.githubusercontent.com/glugox/cloud/refs/heads/main/public/logo.svg) Magic
 
 [![PHP Version](https://img.shields.io/badge/php-%5E8.4-blue)](https://php.net)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
