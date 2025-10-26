@@ -167,6 +167,12 @@ After running the generator in package mode:
 2. Require it from your real Laravel application via VCS or path repositories.
 3. Register the generated service provider if you disable Laravel’s automatic package discovery.
 
+Example of generating a package called `glugox/module-a` with the `orchestrator` starter:
+
+```bash
+php artisan magic:build --package-path ./modules/glugox/module-a --package-name glugox/module-a --package-namespace Glugox\\ModuleA --starter orchestrator
+```
+
 ---
 
 ## File generation reference

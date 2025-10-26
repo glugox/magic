@@ -36,6 +36,45 @@ class MagicConfigValidator
     }
 
     /**
+     * Validate json against schema
+     */
+    public static function validateJsonSchema(string $json, string $schemaPath = null): void
+    {
+        $data   = json_decode($json, true);
+        $schema = json_decode(file_get_contents($schemaPath), true);
+
+        $errors = [];
+
+        foreach ($schema['required'] ?? [] as $requiredField) {
+            if (!array_key_exists($requiredField, $data)) {
+                $errors[] = "Missing required field: {$requiredField}";
+            }
+        }
+
+        foreach ($schema['properties'] ?? [] as $field => $rules) {
+            if (isset($data[$field])) {
+                $value = $data[$field];
+
+                if (($rules['type'] ?? null) === 'string' && !is_string($value)) {
+                    $errors[] = "{$field} must be a string";
+                }
+
+                if (($rules['type'] ?? null) === 'integer' && !is_int($value)) {
+                    $errors[] = "{$field} must be an integer";
+                }
+
+                if (isset($rules['minimum']) && $value < $rules['minimum']) {
+                    $errors[] = "{$field} must be at least {$rules['minimum']}";
+                }
+            }
+        }
+
+        if (!empty($errors)) {
+            throw new InvalidArgumentException("JSON Schema validation errors:\n" . implode("\n", $errors));
+        }
+    }
+
+    /**
      * Validate config
      *
      * We need to validate:

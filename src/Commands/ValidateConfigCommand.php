@@ -51,15 +51,19 @@ class ValidateConfigCommand extends MagicBaseCommand
             return CommandAlias::FAILURE;
         }
 
-        $structureErrors = $this->validateStructure($decoded, $this->resolveSchemaPath());
 
-        if (! empty($structureErrors)) {
-            foreach ($structureErrors as $error) {
-                $this->error($error);
+        $schemaPath = $this->resolveSchemaPath();
+        if ($schemaPath !== null) {
+            try {
+                MagicConfigValidator::validateJsonSchema($json, $schemaPath);
+            } catch (Throwable $exception) {
+                $this->error('JSON Schema validation failed: '.$exception->getMessage());
+                return CommandAlias::FAILURE;
             }
-
-            return CommandAlias::FAILURE;
+        } else {
+            $this->warn('No JSON schema file found. Skipping structural validation.');
         }
+
 
         $autoFixWasEnabled = MagicConfigValidator::$autoFixEnabled;
         MagicConfigValidator::disableAutoFix();
@@ -106,163 +110,5 @@ class ValidateConfigCommand extends MagicBaseCommand
         }
 
         return null;
-    }
-
-    private function validateStructure(array $data, ?string $schemaPath = null): array
-    {
-        $errors = [];
-
-        if (! isset($data['app']) || ! is_array($data['app'])) {
-            $errors[] = 'The configuration must include an "app" object.';
-        } else {
-            $errors = array_merge($errors, $this->validateAppSection($data['app']));
-        }
-
-        if (! isset($data['entities']) || ! is_array($data['entities']) || $data['entities'] === []) {
-            $errors[] = 'The configuration must include at least one entity.';
-        } else {
-            foreach ($data['entities'] as $index => $entity) {
-                if (! is_array($entity)) {
-                    $errors[] = "Entity at index {$index} must be an object.";
-
-                    continue;
-                }
-
-                $errors = array_merge($errors, $this->validateEntity($entity, $index));
-            }
-        }
-
-        if ($schemaPath === null) {
-            $this->warn('JSON schema file not found. Falling back to built-in validation rules.');
-        }
-
-        return $errors;
-    }
-
-    private function validateAppSection(array $app): array
-    {
-        $errors = [];
-
-        foreach (['name', 'seedEnabled', 'seedCount'] as $key) {
-            if (! array_key_exists($key, $app)) {
-                $errors[] = "The app section must define the \"{$key}\" property.";
-            }
-        }
-
-        if (isset($app['seedEnabled']) && ! is_bool($app['seedEnabled'])) {
-            $errors[] = 'The app.seedEnabled property must be a boolean value.';
-        }
-
-        if (isset($app['seedCount']) && ! is_int($app['seedCount'])) {
-            $errors[] = 'The app.seedCount property must be an integer.';
-        }
-
-        if (isset($app['fakerMappings']) && ! is_array($app['fakerMappings'])) {
-            $errors[] = 'The app.fakerMappings property must be an object.';
-        }
-
-        return $errors;
-    }
-
-    private function validateEntity(array $entity, int $index): array
-    {
-        $errors = [];
-        $prefix = "entities[{$index}]";
-
-        if (! isset($entity['name']) || ! is_string($entity['name']) || $entity['name'] === '') {
-            $errors[] = "{$prefix}.name must be a non-empty string.";
-        }
-
-        if (! isset($entity['fields']) || ! is_array($entity['fields']) || $entity['fields'] === []) {
-            $errors[] = "{$prefix}.fields must be a non-empty array.";
-        } else {
-            foreach ($entity['fields'] as $fieldIndex => $field) {
-                if (! is_array($field)) {
-                    $errors[] = "{$prefix}.fields[{$fieldIndex}] must be an object.";
-
-                    continue;
-                }
-
-                if (! isset($field['name']) || ! is_string($field['name']) || $field['name'] === '') {
-                    $errors[] = "{$prefix}.fields[{$fieldIndex}].name must be a non-empty string.";
-                }
-
-                if (! isset($field['type']) || ! is_string($field['type']) || $field['type'] === '') {
-                    $errors[] = "{$prefix}.fields[{$fieldIndex}].type must be a non-empty string.";
-                }
-            }
-        }
-
-        if (isset($entity['relations'])) {
-            if (! is_array($entity['relations'])) {
-                $errors[] = "{$prefix}.relations must be an array.";
-            } else {
-                foreach ($entity['relations'] as $relationIndex => $relation) {
-                    if (! is_array($relation)) {
-                        $errors[] = "{$prefix}.relations[{$relationIndex}] must be an object.";
-
-                        continue;
-                    }
-
-                    if (! isset($relation['type']) || ! is_string($relation['type']) || $relation['type'] === '') {
-                        $errors[] = "{$prefix}.relations[{$relationIndex}].type must be a non-empty string.";
-                    }
-
-                    if (! isset($relation['relatedEntityName']) || ! is_string($relation['relatedEntityName']) || $relation['relatedEntityName'] === '') {
-                        $errors[] = "{$prefix}.relations[{$relationIndex}].relatedEntityName must be a non-empty string.";
-                    }
-
-                    if (($relation['type'] ?? null) === 'belongsToMany' && empty($relation['pivot'])) {
-                        $errors[] = "{$prefix}.relations[{$relationIndex}].pivot is required for belongsToMany relations.";
-                    }
-                }
-            }
-        }
-
-        if (isset($entity['filters'])) {
-            if (! is_array($entity['filters'])) {
-                $errors[] = "{$prefix}.filters must be an array.";
-            } else {
-                foreach ($entity['filters'] as $filterIndex => $filter) {
-                    if (! is_array($filter)) {
-                        $errors[] = "{$prefix}.filters[{$filterIndex}] must be an object.";
-
-                        continue;
-                    }
-
-                    if (! isset($filter['field']) || ! is_string($filter['field']) || $filter['field'] === '') {
-                        $errors[] = "{$prefix}.filters[{$filterIndex}].field must be a non-empty string.";
-                    }
-
-                    if (! isset($filter['type']) || ! is_string($filter['type']) || $filter['type'] === '') {
-                        $errors[] = "{$prefix}.filters[{$filterIndex}].type must be a non-empty string.";
-                    }
-                }
-            }
-        }
-
-        if (isset($entity['actions'])) {
-            if (! is_array($entity['actions'])) {
-                $errors[] = "{$prefix}.actions must be an array.";
-            } else {
-                foreach ($entity['actions'] as $actionIndex => $action) {
-                    if (! is_array($action)) {
-                        $errors[] = "{$prefix}.actions[{$actionIndex}] must be an object.";
-
-                        continue;
-                    }
-
-                    if (! isset($action['name']) || ! is_string($action['name']) || $action['name'] === '') {
-                        $errors[] = "{$prefix}.actions[{$actionIndex}].name must be a non-empty string.";
-                    }
-
-                    if (($action['type'] ?? null) === 'command' && (! isset($action['command']) || ! is_string($action['command']) || $action['command'] === '')) {
-                        $errors[] = "{$prefix}.actions[{$actionIndex}].command is required when type is command.";
-                    }
-                }
-            }
-        }
-
-        return $errors;
     }
 }
