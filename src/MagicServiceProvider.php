@@ -20,6 +20,7 @@ use Glugox\Magic\Commands\ResetByManifestCommand;
 use Glugox\Magic\Commands\ResetLaravelCommand;
 use Glugox\Magic\Commands\RunActionCommand;
 use Glugox\Magic\Commands\SuggestionsCommand;
+use Glugox\Magic\Commands\ValidateConfigCommand;
 use Glugox\Magic\Commands\VueSidebarUpdaterCommand;
 use Glugox\Magic\Helpers\ValidationHelper;
 use Glugox\Magic\Support\ActionRegistry;
@@ -58,6 +59,7 @@ class MagicServiceProvider extends ServiceProvider
                 InstallNodePackagesCommand::class,
                 PublishFilesCommand::class,
                 SuggestionsCommand::class,
+                ValidateConfigCommand::class,
                 ListSamplesCommand::class,
                 ResetByManifestCommand::class,
                 RunActionCommand::class,
