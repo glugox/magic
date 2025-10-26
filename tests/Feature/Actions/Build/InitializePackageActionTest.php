@@ -2,6 +2,7 @@
 
 use Glugox\Magic\Actions\Build\InitializePackageAction;
 use Glugox\Magic\Support\BuildContext;
+use Glugox\Magic\Support\Config\Config;
 use Glugox\Magic\Support\MagicNamespaces;
 use Glugox\Magic\Support\MagicPaths;
 use Illuminate\Support\Facades\File;
@@ -10,11 +11,22 @@ it('scaffolds composer manifest and service provider for package builds', functi
     $tempDir = base_path('package-init-'.uniqid());
     File::deleteDirectory($tempDir);
 
-    $context = new BuildContext(
+    $context = (new BuildContext(
         destinationPath: $tempDir,
         baseNamespace: 'Vendor\\Package',
         packageName: 'vendor/package',
-    );
+    ));
+
+    $config = Config::fromJson([
+        'app' => [
+            'name' => 'Billing',
+            'description' => 'Invoices and payments',
+            'capabilities' => ['http:web', 'http:api'],
+        ],
+        'entities' => [],
+    ]);
+
+    $context->setConfig($config);
 
     MagicNamespaces::use('Vendor\\Package');
 
@@ -40,6 +52,21 @@ it('scaffolds composer manifest and service provider for package builds', functi
         ->and($providerContents)->toContain('loadRoutesFrom(')
         ->and($providerContents)->toContain('loadViewsFrom(')
         ->and($providerContents)->toContain('loadMigrationsFrom(');
+
+    $modulePath = $tempDir.'/module.json';
+    expect(File::exists($modulePath))->toBeTrue();
+
+    $module = json_decode(File::get($modulePath), true);
+    expect($module)
+        ->toBeArray()
+        ->and($module['module'] ?? null)
+        ->toMatchArray([
+            'id' => 'vendor/package',
+            'name' => 'Billing',
+            'namespace' => 'Vendor\\Package',
+            'description' => 'Invoices and payments',
+            'capabilities' => ['http:web', 'http:api'],
+        ]);
 
     MagicPaths::clearPackage();
     MagicNamespaces::clear();

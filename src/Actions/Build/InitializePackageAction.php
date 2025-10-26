@@ -12,6 +12,7 @@ use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 #[ActionDescription(
     name: 'initialize_package',
@@ -47,6 +48,7 @@ class InitializePackageAction implements DescribableAction
         }
 
         $this->writeComposerManifest($context);
+        $this->writeModuleManifest($context);
         $this->ensureServiceProvider($context);
 
         return $context;
@@ -140,6 +142,64 @@ class InitializePackageAction implements DescribableAction
             $context->registerGeneratedFile($providerPath);
         } else {
             $context->registerUpdatedFile($providerPath);
+        }
+    }
+
+    protected function writeModuleManifest(BuildContext $context): void
+    {
+        $packageName = $context->getPackageName();
+        if ($packageName === null) {
+            return;
+        }
+
+        $modulePath = MagicPaths::base('module.json');
+        $existing = [];
+        $isNew = ! File::exists($modulePath);
+
+        if (! $isNew) {
+            $contents = File::get($modulePath);
+            $decoded = json_decode($contents, true);
+            $existing = is_array($decoded) ? $decoded : [];
+        }
+
+        $config = null;
+
+        try {
+            $config = $context->getConfig();
+        } catch (RuntimeException) {
+            $config = null;
+        }
+
+        $module = $existing['module'] ?? [];
+
+        $module['id'] = $packageName;
+
+        $name = $config?->app->name ?? $module['name'] ?? Str::headline(Str::afterLast($context->getBaseNamespace(), '\\'));
+        $module['name'] = $name;
+
+        $module['namespace'] = $context->getBaseNamespace();
+
+        if ($config !== null) {
+            if ($config->app->description !== null) {
+                $module['description'] = $config->app->description;
+            } elseif (! array_key_exists('description', $module)) {
+                $module['description'] = null;
+            }
+
+            $module['capabilities'] = $config->app->capabilities;
+        } else {
+            $module['capabilities'] = $module['capabilities'] ?? [];
+        }
+
+        $existing['module'] = $module;
+
+        $json = json_encode($existing, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES).PHP_EOL;
+        File::put($modulePath, $json);
+
+        if ($isNew) {
+            $context->registerGeneratedFile($modulePath);
+        } else {
+            $context->registerUpdatedFile($modulePath);
         }
     }
 }

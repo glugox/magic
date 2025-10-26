@@ -13,6 +13,18 @@ class App
         public string $name,
 
         /**
+         * Optional human readable description of the module.
+         */
+        public ?string $description = null,
+
+        /**
+         * Capabilities advertised by the generated module.
+         *
+         * @var array<int, string>
+         */
+        public array $capabilities = [],
+
+        /**
          * Whether to enable seeding of the database with initial data.
          *
          * @var bool|null
@@ -46,6 +58,8 @@ class App
     {
         return new self(
             $data['name'] ?? 'Uno',
+            $data['description'] ?? null,
+            is_array($data['capabilities'] ?? null) ? array_values($data['capabilities']) : [],
             $data['seedEnabled'] ?? false,
             $data['seedCount'] ?? 20,
             $data['fakerMappings'] ?? null,
@@ -69,6 +83,8 @@ class App
     {
         return [
             'name' => $this->name,
+            'description' => $this->description,
+            'capabilities' => $this->capabilities,
             'seedEnabled' => $this->seedEnabled,
             'seedCount' => $this->seedCount,
             'fakerMappings' => $this->fakerMappings,
