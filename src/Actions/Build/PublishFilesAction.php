@@ -542,6 +542,12 @@ EOT;
      */
     private function copyMagicFiles(): void
     {
+
+        if($this->context->isPackageBuild()) {
+            Log::channel('magic')->info('Skipping copying Magic files for package build.');
+            return;
+        }
+
         $source = __DIR__.'/../../../stubs/magic';
         $destination = MagicPaths::base();
 

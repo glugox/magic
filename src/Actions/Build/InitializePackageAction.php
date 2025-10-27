@@ -123,15 +123,23 @@ class InitializePackageAction implements DescribableAction
 
     protected function ensureServiceProvider(BuildContext $context): void
     {
-        $providerClass = 'MagicPackageServiceProvider';
+
+        // Package name
+        $packageName = $context->getPackageName();
+
+        // Provider
+        $idShortName = Str::studly(Str::afterLast($packageName, '/'));
+        $providerClass = Str::title($idShortName) . 'ServiceProvider';
+
         $providerNamespace = MagicNamespaces::providers();
         $providerPath = MagicPaths::app("Providers/{$providerClass}.php");
         $isNew = ! File::exists($providerPath);
 
         $viewNamespace = Str::kebab(class_basename(MagicNamespaces::base()));
 
+
         $contents = StubHelper::loadStub('package/service-provider.stub', [
-            'providerNamespace' => $providerNamespace,
+            'providerNamespace' => MagicNamespaces::providers(),
             'providerClass' => $providerClass,
             'viewNamespace' => $viewNamespace,
         ]);
@@ -170,14 +178,15 @@ class InitializePackageAction implements DescribableAction
             $config = null;
         }
 
-        $module = $existing['module'] ?? [];
+        $module = $existing ?? [];
 
         $module['id'] = $packageName;
-
-        $name = $config?->app->name ?? $module['name'] ?? Str::headline(Str::afterLast($context->getBaseNamespace(), '\\'));
-        $module['name'] = $name;
-
+        $module['name'] = $config?->app->name ?? Str::headline(Str::afterLast($context->getBaseNamespace(), '\\'));
         $module['namespace'] = $context->getBaseNamespace();
+
+        // Provider
+        $idShortName = Str::studly(Str::afterLast($packageName, '/'));
+        $module['providers'] = [MagicNamespaces::providers(Str::title($idShortName) . 'ServiceProvider')];
 
         if ($config !== null) {
             if ($config->app->description !== null) {
@@ -191,7 +200,7 @@ class InitializePackageAction implements DescribableAction
             $module['capabilities'] = $module['capabilities'] ?? [];
         }
 
-        $existing['module'] = $module;
+        $existing = $module;
 
         $json = json_encode($existing, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES).PHP_EOL;
         File::put($modulePath, $json);
