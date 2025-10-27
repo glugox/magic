@@ -194,7 +194,7 @@ class GenerateControllersAction implements DescribableAction
         $tableName = $entity->getTableName();
 
         $stubPath = $this->stubsPath.'/controllers/controller.stub';
-        $template = File::get($stubPath);
+        $template = StubHelper::replaceBaseNamespace(File::get($stubPath));
 
         // Add Resource imports
         $resourceClass = $modelClass.'Resource';
