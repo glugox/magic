@@ -105,11 +105,52 @@ class InitializePackageAction implements DescribableAction
         $existing['autoload']['psr-4'][$baseNamespace.'\\'] = 'src/';
         $existing['autoload-dev']['psr-4'][$baseNamespace.'\\Tests\\'] = 'tests/';
 
+        $existing['require'] = isset($existing['require']) && is_array($existing['require'])
+            ? $existing['require']
+            : [];
+
+        $moduleConstraint = $this->resolveModuleVersionConstraint($context);
+        if ($moduleConstraint !== null && ! array_key_exists('glugox/module', $existing['require'])) {
+            $existing['require']['glugox/module'] = $moduleConstraint;
+            ksort($existing['require']);
+        }
+
+        $moduleRepository = $this->resolveModuleRepositoryDefinition($context);
+        if ($moduleRepository !== null) {
+            $repositories = $existing['repositories'] ?? [];
+            if (! is_array($repositories)) {
+                $repositories = [];
+            }
+
+            $alreadyRegistered = false;
+            foreach ($repositories as $repository) {
+                if (! is_array($repository)) {
+                    continue;
+                }
+
+                if (($repository['type'] ?? null) === $moduleRepository['type']
+                    && ($repository['url'] ?? null) === $moduleRepository['url']) {
+                    $alreadyRegistered = true;
+                    break;
+                }
+            }
+
+            if (! $alreadyRegistered) {
+                $repositories[] = $moduleRepository;
+            }
+
+            $existing['repositories'] = $repositories;
+        }
+
         $providers = $existing['extra']['laravel']['providers'] ?? [];
         if (! in_array($providerFqcn, $providers, true)) {
             $providers[] = $providerFqcn;
         }
         $existing['extra']['laravel']['providers'] = array_values($providers);
+
+        if ($this->isDevMode($context)) {
+            $existing['minimum-stability'] = $existing['minimum-stability'] ?? 'dev';
+        }
 
         $json = json_encode($existing, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES).PHP_EOL;
         File::put($composerPath, $json);
@@ -119,6 +160,58 @@ class InitializePackageAction implements DescribableAction
         } else {
             $context->registerUpdatedFile($composerPath);
         }
+    }
+
+    protected function resolveModuleVersionConstraint(BuildContext $context): ?string
+    {
+        $config = $this->getConfigIfAvailable($context);
+
+        if ($config !== null && $config->app->isDevMode()) {
+            return 'dev-main';
+        }
+
+        return 'dev-main';
+    }
+
+    /**
+     * @return array{type: string, url: string, options?: array<string, mixed>}|null
+     */
+    protected function resolveModuleRepositoryDefinition(BuildContext $context): ?array
+    {
+        $config = $this->getConfigIfAvailable($context);
+
+        if ($config === null || ! $config->app->isDevMode()) {
+            return null;
+        }
+
+        $destinationPath = $context->getDestinationPath();
+        $basePath = $destinationPath !== null
+            ? dirname($destinationPath)
+            : dirname(MagicPaths::base());
+
+        $modulePath = $basePath.DIRECTORY_SEPARATOR.'module';
+
+        return [
+            'type' => 'path',
+            'url' => str_replace(DIRECTORY_SEPARATOR, '/', $modulePath),
+            'options' => ['symlink' => true],
+        ];
+    }
+
+    protected function getConfigIfAvailable(BuildContext $context): ?\Glugox\Magic\Support\Config\Config
+    {
+        try {
+            return $context->getConfig();
+        } catch (RuntimeException) {
+            return null;
+        }
+    }
+
+    protected function isDevMode(BuildContext $context): bool
+    {
+        $config = $this->getConfigIfAvailable($context);
+
+        return $config !== null && $config->app->isDevMode();
     }
 
     protected function ensureServiceProvider(BuildContext $context): void

@@ -3,6 +3,8 @@
 use Glugox\Magic\Actions\Build\GenerateModelsAction;
 use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\Config\Config;
+use Glugox\Magic\Support\MagicNamespaces;
+use Glugox\Magic\Support\MagicPaths;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
@@ -33,6 +35,37 @@ it('generates model for each sample config', function (): void {
             $this->assertNotEmpty($files, "Model file not found for entity: {$entityName}");
         }
     }
+});
+
+it('uses shared module has name trait when generating package models', function (): void {
+    $packagePath = base_path('packages/model-package-'.uniqid());
+    File::deleteDirectory($packagePath);
+
+    $context = new BuildContext(
+        destinationPath: $packagePath,
+        baseNamespace: 'Glugox\\Inventory',
+        packageName: 'glugox/inventory',
+    );
+
+    $context->setConfig(getFixtureConfig());
+
+    MagicPaths::usePackage($packagePath);
+    MagicNamespaces::use('Glugox\\Inventory');
+
+    $action = app(GenerateModelsAction::class);
+    $action($context);
+
+    $modelPath = $packagePath.'/src/Models/Order.php';
+    expect(File::exists($modelPath))->toBeTrue();
+
+    $contents = File::get($modelPath);
+    expect($contents)
+        ->toContain('use Glugox\\Module\\Contracts\\HasName;')
+        ->and($contents)->toContain('use HasName;');
+
+    MagicPaths::clearPackage();
+    MagicNamespaces::clear();
+    File::deleteDirectory($packagePath);
 });
 
 it('generates models with enum casting when enum fields exist', function (): void {

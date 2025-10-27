@@ -118,7 +118,11 @@ class GenerateModelsAction implements DescribableAction
 
         // Automatically add HasName trait if entity has no "name" field
         if (! $entity->hasField('name')) {
-            $traits[] = MagicNamespaces::traits('HasName');
+            $hasNameTrait = MagicPaths::isUsingPackage()
+                ? 'Glugox\\Module\\Contracts\\HasName'
+                : MagicNamespaces::traits('HasName');
+
+            $traits[] = $hasNameTrait;
             $appends[] = 'name';
         }
 

@@ -58,6 +58,12 @@ class InstallComposerPackagesAction implements DescribableAction
             'type' => 'path',
         ],
         [
+            'name' => 'glugox/module',
+            'version' => null,
+            'options' => [],
+            'type' => 'path',
+        ],
+        [
             'name' => 'pestphp/pest',
             'version' => null,
             'options' => ['--with-all-dependencies'],

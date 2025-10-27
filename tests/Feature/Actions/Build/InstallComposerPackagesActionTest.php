@@ -28,7 +28,7 @@ it('runs composer installation for missing packages', function () {
         $mock->shouldAllowMockingProtectedMethods()
             ->makePartial()
             ->shouldReceive('runProcess')
-            ->times(5) // Expecting 3 packages to be installed
+            ->times(6) // Expecting all configured packages to be installed
             ->withArgs(function ($command, $message) {
                 expect($command[1])->toBe('require'); // composer require
                 // expect($command[2])->toBeIn(['pestphp/pest', 'pestphp/pest-plugin-browser', 'glugox/model-meta']);
