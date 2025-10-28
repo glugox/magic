@@ -92,6 +92,10 @@ class Config
         // Decode JSON if it's a string
         $data = is_string($json) ? json_decode($json, true, 512, JSON_THROW_ON_ERROR) : $json;
 
+        /** @var MagicConfigValidator $rawValidator */
+        $rawValidator = app(MagicConfigValidator::class);
+        $rawValidator->validateRaw($data);
+
         $entities = [];
 
         // @phpstan-ignore-next-line
