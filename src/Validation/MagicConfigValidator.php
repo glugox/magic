@@ -113,7 +113,7 @@ class MagicConfigValidator
     protected function validateEntity(Entity $entity): void
     {
         // Validate entity name
-        if (empty($entity->name)) {
+        if (trim($entity->name) === '') {
             throw new InvalidArgumentException('Entity name is required');
         }
 

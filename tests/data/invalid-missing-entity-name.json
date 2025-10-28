@@ -1,0 +1,16 @@
+{
+    "app": {
+        "name": "Invalid Entity",
+        "version": "1.0.0"
+    },
+    "entities": [
+        {
+            "fields": [
+                {
+                    "name": "id",
+                    "type": "id"
+                }
+            ]
+        }
+    ]
+}

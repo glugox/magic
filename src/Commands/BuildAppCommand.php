@@ -3,12 +3,15 @@
 namespace Glugox\Magic\Commands;
 
 use Exception;
+use InvalidArgumentException;
 use Glugox\Magic\Actions\Build\GenerateAppAction;
 use Glugox\Magic\Support\ConsoleBlock;
 use Glugox\Magic\Support\MagicNamespaces;
 use Glugox\Magic\Support\MagicPaths;
 use Illuminate\Support\Facades\Log;
 use ReflectionException;
+use JsonException;
+use Throwable;
 use Symfony\Component\Console\Command\Command as CommandAlias;
 
 class BuildAppCommand extends MagicBaseCommand
@@ -75,6 +78,15 @@ class BuildAppCommand extends MagicBaseCommand
             Log::channel('magic')->info('✅ Build complete!');
 
             return CommandAlias::SUCCESS;
+        } catch (InvalidArgumentException|JsonException $exception) {
+            $block->error($exception->getMessage());
+            Log::channel('magic')->error('Build failed: '.$exception->getMessage(), ['exception' => $exception]);
+
+            return CommandAlias::FAILURE;
+        } catch (Throwable $exception) {
+            Log::channel('magic')->error('Build failed with unexpected error: '.$exception->getMessage(), ['exception' => $exception]);
+
+            throw $exception;
         } finally {
             if ($packageMode) {
                 MagicPaths::clearPackage();
