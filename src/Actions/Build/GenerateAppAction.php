@@ -2,7 +2,6 @@
 
 namespace Glugox\Magic\Actions\Build;
 
-use Exception;
 use Glugox\Magic\Actions\Config\ResolveAppConfigAction;
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
@@ -33,9 +32,6 @@ class GenerateAppAction implements DescribableAction
         // Step 1: Parse the configuration file
         /** @var Config $config */
         $config = app(ResolveAppConfigAction::class)($options);
-        if (! $config->isValid()) {
-            throw new Exception('Invalid configuration provided.');
-        }
         // Step 1: Initialize BuildContext with options and config
         $buildContext = BuildContext::fromOptions($options)->setConfig($config);
 

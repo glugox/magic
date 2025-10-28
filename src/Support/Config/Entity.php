@@ -5,7 +5,6 @@ namespace Glugox\Magic\Support\Config;
 use Glugox\Magic\Support\Config\Entity\Settings;
 use Glugox\Magic\Support\MagicNamespaces;
 use Illuminate\Support\Str;
-use InvalidArgumentException;
 use RuntimeException;
 
 class Entity
@@ -103,7 +102,9 @@ class Entity
          *     icon?: string
          * } $data
          */
-        $entity = new self($data['name'], [], [], [], [], $data['table'] ?? null);
+        $name = is_string($data['name'] ?? null) ? trim($data['name']) : '';
+
+        $entity = new self($name, [], [], [], [], $data['table'] ?? null);
 
         foreach ($data['fields'] ?? [] as $fieldData) {
             $field = Field::fromConfig($fieldData, $entity);
