@@ -98,7 +98,8 @@ class InitializePackageAction implements DescribableAction
         }
 
         $baseNamespace = MagicNamespaces::base();
-        $providerFqcn = MagicNamespaces::providers('MagicPackageServiceProvider');
+        $providerClass = $this->resolveServiceProviderClass($context);
+        $providerFqcn = MagicNamespaces::providers($providerClass);
 
         $existing['name'] = $packageName;
         $existing['type'] = $existing['type'] ?? 'library';
@@ -124,12 +125,7 @@ class InitializePackageAction implements DescribableAction
     protected function ensureServiceProvider(BuildContext $context): void
     {
 
-        // Package name
-        $packageName = $context->getPackageName();
-
-        // Provider
-        $idShortName = Str::studly(Str::afterLast($packageName, '/'));
-        $providerClass = Str::title($idShortName) . 'ServiceProvider';
+        $providerClass = $this->resolveServiceProviderClass($context);
 
         $providerNamespace = MagicNamespaces::providers();
         $providerPath = MagicPaths::app("Providers/{$providerClass}.php");
@@ -185,8 +181,8 @@ class InitializePackageAction implements DescribableAction
         $module['namespace'] = $context->getBaseNamespace();
 
         // Provider
-        $idShortName = Str::studly(Str::afterLast($packageName, '/'));
-        $module['providers'] = [MagicNamespaces::providers(Str::title($idShortName) . 'ServiceProvider')];
+        $providerClass = $this->resolveServiceProviderClass($context);
+        $module['providers'] = [MagicNamespaces::providers($providerClass)];
 
         if ($config !== null) {
             if ($config->app->description !== null) {
@@ -210,5 +206,25 @@ class InitializePackageAction implements DescribableAction
         } else {
             $context->registerUpdatedFile($modulePath);
         }
+    }
+
+    protected function resolveServiceProviderClass(BuildContext $context): string
+    {
+        $packageName = $context->getPackageName();
+
+        if ($packageName === null || $packageName === '') {
+            return 'MagicPackageServiceProvider';
+        }
+
+        $shortName = Str::afterLast($packageName, '/');
+        $shortName = $shortName !== '' ? $shortName : $packageName;
+
+        $studly = Str::studly($shortName);
+
+        if ($studly === '') {
+            return 'MagicPackageServiceProvider';
+        }
+
+        return $studly.'ServiceProvider';
     }
 }

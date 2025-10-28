@@ -41,9 +41,9 @@ it('scaffolds composer manifest and service provider for package builds', functi
         ->and($composer['name'] ?? null)->toBe('vendor/package')
         ->and($composer['autoload']['psr-4']['Vendor\\Package\\'] ?? null)->toBe('src/')
         ->and($composer['extra']['laravel']['providers'] ?? [])
-        ->toContain('Vendor\\Package\\Providers\\MagicPackageServiceProvider');
+        ->toContain('Vendor\\Package\\Providers\\PackageServiceProvider');
 
-    $providerPath = $tempDir.'/src/Providers/MagicPackageServiceProvider.php';
+    $providerPath = $tempDir.'/src/Providers/PackageServiceProvider.php';
     expect(File::exists($providerPath))->toBeTrue();
 
     $providerContents = File::get($providerPath);
