@@ -22,8 +22,65 @@ class MagicConfigValidator
      * Constructor
      */
     public function __construct(
-        protected Config $config,
+        protected ?Config $config = null,
     ) {}
+
+    /**
+     * Validate the raw array structure of the configuration.
+     */
+    public function validateRaw(array $data): void
+    {
+        if (! array_key_exists('app', $data) || ! is_array($data['app'])) {
+            throw new InvalidArgumentException('The configuration must include an "app" object.');
+        }
+
+        if (! array_key_exists('entities', $data) || ! is_array($data['entities'])) {
+            throw new InvalidArgumentException('The configuration must include an "entities" array.');
+        }
+
+        foreach ($data['entities'] as $index => $entityData) {
+            if (! is_array($entityData)) {
+                throw new InvalidArgumentException(sprintf('Entity at index %d must be an object.', $index));
+            }
+
+            $name = $entityData['name'] ?? null;
+            if (! is_string($name) || trim($name) === '') {
+                throw new InvalidArgumentException('Each entity must define a non-empty "name".');
+            }
+
+            if (isset($entityData['fields']) && ! is_array($entityData['fields'])) {
+                throw new InvalidArgumentException(sprintf('The "fields" for entity "%s" must be an array.', $name));
+            }
+
+            foreach ($entityData['fields'] ?? [] as $fieldIndex => $field) {
+                if (! is_array($field)) {
+                    throw new InvalidArgumentException(sprintf('Field at index %d for entity "%s" must be an object.', $fieldIndex, $name));
+                }
+
+                if (! is_string($field['name'] ?? null) || trim($field['name']) === '') {
+                    throw new InvalidArgumentException(sprintf('Each field for entity "%s" must define a non-empty "name".', $name));
+                }
+
+                if (! is_string($field['type'] ?? null) || trim((string) $field['type']) === '') {
+                    throw new InvalidArgumentException(sprintf('Each field for entity "%s" must define a non-empty "type".', $name));
+                }
+            }
+
+            if (isset($entityData['relations']) && ! is_array($entityData['relations'])) {
+                throw new InvalidArgumentException(sprintf('The "relations" for entity "%s" must be an array.', $name));
+            }
+
+            foreach ($entityData['relations'] ?? [] as $relationIndex => $relationData) {
+                if (! is_array($relationData)) {
+                    throw new InvalidArgumentException(sprintf('Relation at index %d for entity "%s" must be an object.', $relationIndex, $name));
+                }
+
+                if (! is_string($relationData['type'] ?? null) || trim($relationData['type']) === '') {
+                    throw new InvalidArgumentException(sprintf('Each relation for entity "%s" must define a non-empty "type".', $name));
+                }
+            }
+        }
+    }
 
     public static function disableAutoFix(): void
     {
