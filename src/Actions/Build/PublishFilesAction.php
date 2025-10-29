@@ -542,9 +542,9 @@ EOT;
      */
     private function copyMagicFiles(): void
     {
-
-        if($this->context->isPackageBuild()) {
+        if ($this->context->isPackageBuild()) {
             Log::channel('magic')->info('Skipping copying Magic files for package build.');
+
             return;
         }
 
