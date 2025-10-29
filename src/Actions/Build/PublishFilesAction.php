@@ -6,6 +6,7 @@ use Glugox\Magic\Actions\Files\CopyDirectoryAction;
 use Glugox\Magic\Actions\Files\GenerateFileAction;
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
+use Glugox\Magic\Helpers\StubHelper;
 use Glugox\Magic\Helpers\ValidationHelper;
 use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\Config\Action;
@@ -542,17 +543,74 @@ EOT;
      */
     private function copyMagicFiles(): void
     {
+        $source = __DIR__.'/../../../stubs/magic';
+
         if ($this->context->isPackageBuild()) {
-            Log::channel('magic')->info('Skipping copying Magic files for package build.');
+            $this->copyMagicFilesForPackage($source);
 
             return;
         }
 
-        $source = __DIR__.'/../../../stubs/magic';
         $destination = MagicPaths::base();
 
         // Use the CopyDirectoryAction to copy files
         $filesCopied = app(CopyDirectoryAction::class)($source, $destination);
         $this->context->registerGeneratedFile($filesCopied);
+    }
+
+    private function copyMagicFilesForPackage(string $source): void
+    {
+        Log::channel('magic')->info('Publishing Magic support files for package build.');
+
+        $this->copyNamespaceAwareSupportFile(
+            $source.'/app/Traits/HasName.php',
+            MagicPaths::app('Traits/HasName.php')
+        );
+
+        $this->copyNamespaceAwareSupportFile(
+            $source.'/app/Http/Responses/ApiResponse.php',
+            MagicPaths::app('Http/Responses/ApiResponse.php')
+        );
+
+        $this->copyNamespaceAwareSupportFile(
+            $source.'/app/Http/Middleware/HandleInertiaRequests.php',
+            MagicPaths::app('Http/Middleware/HandleInertiaRequests.php')
+        );
+
+        $this->copyMagicDirectory($source.'/resources', MagicPaths::resource());
+        $this->copyMagicDirectory($source.'/scripts', MagicPaths::base('scripts'));
+        $this->copyMagicDirectory($source.'/tests', MagicPaths::tests());
+    }
+
+    private function copyNamespaceAwareSupportFile(string $source, string $destination): void
+    {
+        if (! file_exists($source)) {
+            return;
+        }
+
+        if (file_exists($destination)) {
+            Log::channel('magic')->info("Skipping existing Magic support file: {$destination}");
+
+            return;
+        }
+
+        $contents = file_get_contents($source);
+        $contents = StubHelper::replaceBaseNamespace($contents);
+
+        $generatedPath = app(GenerateFileAction::class)($destination, $contents);
+        $this->context->registerGeneratedFile($generatedPath);
+    }
+
+    private function copyMagicDirectory(string $source, string $destination): void
+    {
+        if (! is_dir($source)) {
+            return;
+        }
+
+        $copied = app(CopyDirectoryAction::class)($source, $destination);
+
+        if ($copied !== []) {
+            $this->context->registerGeneratedFile($copied);
+        }
     }
 }
