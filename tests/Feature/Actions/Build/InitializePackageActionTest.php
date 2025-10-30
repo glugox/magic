@@ -6,6 +6,7 @@ use Glugox\Magic\Support\Config\Config;
 use Glugox\Magic\Support\MagicNamespaces;
 use Glugox\Magic\Support\MagicPaths;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Route;
 
 it('scaffolds composer manifest and service provider for package builds', function () {
     $tempDir = base_path('package-init-'.uniqid());
@@ -74,7 +75,7 @@ it('scaffolds composer manifest and service provider for package builds', functi
     File::deleteDirectory($tempDir);
 });
 
-it('configures local module repository when in dev mode', function () {
+it('registers routes from generated package files', function () {
     $tempDir = base_path('package-init-'.uniqid());
     File::deleteDirectory($tempDir);
 
@@ -84,39 +85,46 @@ it('configures local module repository when in dev mode', function () {
         packageName: 'vendor/package',
     );
 
-    $config = Config::fromJson([
+    $context->setConfig(Config::fromJson([
         'app' => [
-            'name' => 'Billing',
-            'description' => 'Invoices and payments',
-            'capabilities' => ['http:web', 'http:api'],
-            'devMode' => true,
+            'name' => 'Demo',
+            'description' => null,
+            'capabilities' => ['http:web'],
         ],
         'entities' => [],
-    ]);
-
-    $context->setConfig($config);
+    ]));
 
     MagicNamespaces::use('Vendor\\Package');
 
-    app(InitializePackageAction::class)($context);
+    try {
+        app(InitializePackageAction::class)($context);
 
-    $composerPath = $tempDir.'/composer.json';
-    expect(File::exists($composerPath))->toBeTrue();
+        $routesDir = $tempDir.'/routes';
+        File::ensureDirectoryExists($routesDir);
 
-    $composer = json_decode(File::get($composerPath), true);
-    $expectedPath = str_replace('\\', '/', dirname($tempDir).'/module');
+        File::put($routesDir.'/app.php', <<<'PHP'
+<?php
 
-    $repositories = collect($composer['repositories'] ?? []);
+use Illuminate\Support\Facades\Route;
 
-    expect($repositories->contains(function ($repo) use ($expectedPath) {
-        return is_array($repo)
-            && ($repo['type'] ?? null) === 'path'
-            && ($repo['url'] ?? null) === $expectedPath;
-    }))->toBeTrue();
+Route::get('package-test', fn () => 'ok')->name('package-test');
+PHP);
 
-    expect($composer['minimum-stability'] ?? null)->toBe('dev');
+        if (File::exists($routesDir.'/web.php')) {
+            File::delete($routesDir.'/web.php');
+        }
 
-    MagicPaths::clearPackage();
-    MagicNamespaces::clear();
-    File::deleteDirectory($tempDir);
+        require_once $tempDir.'/src/Providers/PackageServiceProvider.php';
+
+        $providerClass = 'Vendor\\Package\\Providers\\PackageServiceProvider';
+        $provider = new $providerClass($this->app);
+        $provider->register();
+        $provider->boot();
+
+        expect(Route::has('package-test'))->toBeTrue();
+    } finally {
+        MagicPaths::clearPackage();
+        MagicNamespaces::clear();
+        File::deleteDirectory($tempDir);
+    }
 });
