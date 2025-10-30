@@ -43,6 +43,16 @@ class MagicServiceProvider extends ServiceProvider
             __DIR__.'/../config/magic.php' => config_path('magic.php'),
         ], 'config');
 
+        $this->publishes([
+            __DIR__.'/../resources/views' => resource_path('views'),
+            __DIR__.'/../resources/css' => resource_path('css'),
+            __DIR__.'/../resources/js' => resource_path('js'),
+        ], 'magic-frontend');
+
+        $this->publishes([
+            __DIR__.'/../scripts/generate-ui-index.mjs' => base_path('scripts/generate-ui-index.mjs'),
+        ], 'magic-scripts');
+
         // Register your commands only when running in console
         if ($this->app->runningInConsole()) {
             $this->commands([
