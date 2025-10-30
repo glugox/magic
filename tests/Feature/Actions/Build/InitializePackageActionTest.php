@@ -6,6 +6,7 @@ use Glugox\Magic\Support\Config\Config;
 use Glugox\Magic\Support\MagicNamespaces;
 use Glugox\Magic\Support\MagicPaths;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Route;
 
 it('scaffolds composer manifest and service provider for package builds', function () {
     $tempDir = base_path('package-init-'.uniqid());
@@ -71,4 +72,58 @@ it('scaffolds composer manifest and service provider for package builds', functi
     MagicPaths::clearPackage();
     MagicNamespaces::clear();
     File::deleteDirectory($tempDir);
+});
+
+it('registers routes from generated package files', function () {
+    $tempDir = base_path('package-init-'.uniqid());
+    File::deleteDirectory($tempDir);
+
+    $context = new BuildContext(
+        destinationPath: $tempDir,
+        baseNamespace: 'Vendor\\Package',
+        packageName: 'vendor/package',
+    );
+
+    $context->setConfig(Config::fromJson([
+        'app' => [
+            'name' => 'Demo',
+            'description' => null,
+            'capabilities' => ['http:web'],
+        ],
+        'entities' => [],
+    ]));
+
+    MagicNamespaces::use('Vendor\\Package');
+
+    try {
+        app(InitializePackageAction::class)($context);
+
+        $routesDir = $tempDir.'/routes';
+        File::ensureDirectoryExists($routesDir);
+
+        File::put($routesDir.'/app.php', <<<'PHP'
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+Route::get('package-test', fn () => 'ok')->name('package-test');
+PHP);
+
+        if (File::exists($routesDir.'/web.php')) {
+            File::delete($routesDir.'/web.php');
+        }
+
+        require_once $tempDir.'/src/Providers/PackageServiceProvider.php';
+
+        $providerClass = 'Vendor\\Package\\Providers\\PackageServiceProvider';
+        $provider = new $providerClass($this->app);
+        $provider->register();
+        $provider->boot();
+
+        expect(Route::has('package-test'))->toBeTrue();
+    } finally {
+        MagicPaths::clearPackage();
+        MagicNamespaces::clear();
+        File::deleteDirectory($tempDir);
+    }
 });
