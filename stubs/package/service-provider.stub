@@ -19,13 +19,10 @@ class {{providerClass}} extends ServiceProvider
 
     protected function registerRoutes(): void
     {
-        if (file_exists($web = __DIR__.'/../../routes/web.php')) {
-            $this->loadRoutesFrom($web);
-        }
-
-        if (file_exists($api = __DIR__.'/../../routes/api.php')) {
-            $this->loadRoutesFrom($api);
-        }
+        $this->loadRouteFile(__DIR__.'/../../routes/web.php');
+        $this->loadRouteFile(__DIR__.'/../../routes/app.php');
+        $this->loadRouteFile(__DIR__.'/../../routes/api.php');
+        $this->loadRouteFile(__DIR__.'/../../routes/app/api.php');
     }
 
     protected function registerResources(): void
@@ -40,6 +37,13 @@ class {{providerClass}} extends ServiceProvider
 
         if (is_dir($lang = __DIR__.'/../../resources/lang')) {
             $this->loadTranslationsFrom($lang, '{{viewNamespace}}');
+        }
+    }
+
+    protected function loadRouteFile(string $path): void
+    {
+        if (file_exists($path)) {
+            $this->loadRoutesFrom($path);
         }
     }
 }
