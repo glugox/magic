@@ -5,6 +5,8 @@ use Glugox\Magic\Actions\Files\CopyDirectoryAction;
 use Glugox\Magic\Actions\Files\GenerateFileAction;
 use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\Config\Config;
+use Glugox\Magic\Support\MagicNamespaces;
+use Glugox\Magic\Support\MagicPaths;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Psr\Log\LoggerInterface;
@@ -58,4 +60,51 @@ test('it publishes files and generates support files', function (): void {
     $result = ($action)($context);
 
     expect($result)->toBeInstanceOf(BuildContext::class);
+});
+
+test('it copies support scaffolding when building a package', function (): void {
+    $configPath = __DIR__.'/../../data/callcenter.json';
+    $config = Config::fromJsonFile($configPath);
+
+    $packagePath = base_path('packages/magic-package-'.uniqid());
+    File::deleteDirectory($packagePath);
+
+    $context = BuildContext::fromOptions([
+        'config' => $configPath,
+        'package-path' => $packagePath,
+        'package-namespace' => 'Vendor\\Package',
+        'package-name' => 'vendor/package',
+    ])->setConfig($config);
+
+    MagicNamespaces::use('Vendor\\Package');
+    MagicPaths::usePackage($packagePath);
+
+    try {
+        expect(File::exists(MagicPaths::app('Traits/HasName.php')))->toBeFalse();
+
+        $action = app(PublishFilesAction::class);
+        $action($context);
+
+        $traitPath = MagicPaths::app('Traits/HasName.php');
+        $responsePath = MagicPaths::app('Http/Responses/ApiResponse.php');
+        $middlewarePath = MagicPaths::app('Http/Middleware/HandleInertiaRequests.php');
+
+        expect(File::exists($traitPath))->toBeTrue()
+            ->and(File::get($traitPath))->toContain('namespace Vendor\\Package\\Traits;');
+
+        expect(File::exists($responsePath))->toBeTrue()
+            ->and(File::get($responsePath))->toContain('namespace Vendor\\Package\\Http\\Responses;');
+
+        expect(File::exists($middlewarePath))->toBeTrue()
+            ->and(File::get($middlewarePath))->toContain('namespace Vendor\\Package\\Http\\Middleware;');
+
+        expect(File::exists(MagicPaths::resource('js/components/AppSidebar.vue')))->toBeTrue();
+        expect(File::exists(MagicPaths::resource('views/app.blade.php')))->toBeTrue();
+        expect(File::exists(MagicPaths::base('scripts/generate-ui-index.mjs')))->toBeTrue();
+        expect(File::exists(MagicPaths::tests('Fixtures/test_file.txt')))->toBeTrue();
+    } finally {
+        MagicPaths::clearPackage();
+        MagicNamespaces::clear();
+        File::deleteDirectory($packagePath);
+    }
 });
