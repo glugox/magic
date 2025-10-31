@@ -2,6 +2,7 @@
 
 namespace Glugox\Magic\Support;
 
+use Glugox\ModelMeta\ModelMetaResolver;
 use Illuminate\Support\Str;
 
 class MagicNamespaces
@@ -25,6 +26,8 @@ class MagicNamespaces
     public static function use(string $namespace): void
     {
         static::$baseNamespace = mb_trim($namespace, '\\');
+
+        static::syncModelMetaNamespace();
     }
 
     /**
@@ -33,6 +36,8 @@ class MagicNamespaces
     public static function clear(): void
     {
         static::$baseNamespace = 'App';
+
+        static::syncModelMetaNamespace();
     }
 
     /**
@@ -126,5 +131,17 @@ class MagicNamespaces
         }
 
         return $root.'\\'.$suffix;
+    }
+
+    /**
+     * Keep the ModelMeta resolver aligned with the active base namespace.
+     */
+    protected static function syncModelMetaNamespace(): void
+    {
+        if (! class_exists(ModelMetaResolver::class)) {
+            return;
+        }
+
+        ModelMetaResolver::setDefaultNamespace(static::metaModels());
     }
 }
