@@ -7,6 +7,7 @@ use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Helpers\StubHelper;
 use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\ControllerBaseResolver;
+use Glugox\Magic\Support\MagicNamespaces;
 use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
@@ -54,11 +55,25 @@ class EnableAttachableAction implements DescribableAction
             ['src' => 'placeholders/default.png', 'dest' => 'public/images/placeholders'],
         ];
 
+        if (MagicPaths::isUsingPackage()) {
+            $filesToCopy = array_values(array_filter($filesToCopy, function (array $file) {
+                return ! in_array($file['src'], [
+                    'traits/HasImages.php',
+                    'models/Attachment.php',
+                    'jobs/ProcessAttachment.php',
+                    'routes/attachable.php',
+                    'config/attachments.php',
+                ], true);
+            }));
+        }
+
         foreach ($filesToCopy as $file) {
             $this->copyFile($file);
         }
 
-        $this->includeAttachableRoutes();
+        if (! MagicPaths::isUsingPackage()) {
+            $this->includeAttachableRoutes();
+        }
 
         return $context;
     }
@@ -100,6 +115,17 @@ class EnableAttachableAction implements DescribableAction
                 [$import, $base['class']],
                 $contents
             );
+
+            if (MagicPaths::isUsingPackage()) {
+                $baseNamespace = MagicNamespaces::base();
+                $contents = str_replace([
+                    'use '.$baseNamespace.'\\Jobs\\ProcessAttachment;',
+                    'use '.$baseNamespace.'\\Models\\Attachment;',
+                ], [
+                    'use Glugox\\Module\\Jobs\\ProcessAttachment;',
+                    'use Glugox\\Module\\Models\\Attachment;',
+                ], $contents);
+            }
 
             file_put_contents($destination, $contents);
         } else {

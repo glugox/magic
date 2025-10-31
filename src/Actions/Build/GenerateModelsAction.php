@@ -71,6 +71,7 @@ class GenerateModelsAction implements DescribableAction
         $extends = '\Illuminate\Database\Eloquent\Model';
         $uses = [];
         $traits = [];
+        $implements = [];
         $appends = [];
         $fields = $entity->getFields();
 
@@ -118,23 +119,29 @@ class GenerateModelsAction implements DescribableAction
 
         // Automatically add HasName trait if entity has no "name" field
         if (! $entity->hasField('name')) {
-            $hasNameTrait = MagicPaths::isUsingPackage()
-                ? 'Glugox\\Module\\Contracts\\HasName'
-                : MagicNamespaces::traits('HasName');
-
-            $traits[] = $hasNameTrait;
+            if (MagicPaths::isUsingPackage()) {
+                $traits[] = 'Glugox\\Module\\Eloquent\\HasName';
+                $uses[] = 'Glugox\\Module\\Contracts\\HasName as HasNameContract';
+                $implements[] = 'HasNameContract';
+            } else {
+                $traits[] = MagicNamespaces::traits('HasName');
+            }
             $appends[] = 'name';
         }
 
         // Automatically add HasImages trait if entity supports images
         if ($entity->hasImages() ?? false) {
-            $traits[] = MagicNamespaces::traits('HasImages');
+            $traits[] = MagicPaths::isUsingPackage()
+                ? 'Glugox\\Module\\Eloquent\\HasImages'
+                : MagicNamespaces::traits('HasImages');
         }
 
         // Imports for traits
         foreach ($traits as $t) {
             $uses[] = $t;
         }
+
+        $uses = array_unique($uses);
 
         // Infer casts if empty
         if (empty($casts)) {
@@ -155,9 +162,10 @@ class GenerateModelsAction implements DescribableAction
         // Prepare stub replacements
         $replacements = [
             '{{namespace}}' => MagicNamespaces::models(),
-            '{{uses}}' => implode("\n", array_map(fn ($t) => "use $t;", array_unique($uses))),
+            '{{uses}}' => implode("\n", array_map(fn ($t) => "use $t;", $uses)),
             '{{modelClass}}' => $className,
             '{{extends}}' => $extends,
+            '{{implements}}' => empty($implements) ? '' : ' implements '.implode(', ', array_unique($implements)),
             '{{traits}}' => ! empty($traits) ? 'use '.implode(', ', array_map(fn ($t) => class_basename($t), $traits)).';' : '',
             '{{fillable}}' => implode(",\n        ", array_map(fn ($f) => "'$f'", $fillable)),
             '{{hidden}}' => implode(",\n        ", array_map(fn ($h) => "'$h'", $hidden)),

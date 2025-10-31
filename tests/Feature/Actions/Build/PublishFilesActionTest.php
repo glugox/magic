@@ -80,23 +80,16 @@ test('it copies support scaffolding when building a package', function (): void 
     MagicPaths::usePackage($packagePath);
 
     try {
-        expect(File::exists(MagicPaths::app('Traits/HasName.php')))->toBeFalse();
-
         $action = app(PublishFilesAction::class);
         $action($context);
 
-        $traitPath = MagicPaths::app('Traits/HasName.php');
-        $responsePath = MagicPaths::app('Http/Responses/ApiResponse.php');
-        $middlewarePath = MagicPaths::app('Http/Middleware/HandleInertiaRequests.php');
+        expect(File::exists(MagicPaths::app('Traits/HasName.php')))->toBeFalse();
+        expect(File::exists(MagicPaths::app('Http/Responses/ApiResponse.php')))->toBeFalse();
+        expect(File::exists(MagicPaths::app('Http/Middleware/HandleInertiaRequests.php')))->toBeFalse();
 
-        expect(File::exists($traitPath))->toBeTrue()
-            ->and(File::get($traitPath))->toContain('namespace Vendor\\Package\\Traits;');
-
-        expect(File::exists($responsePath))->toBeTrue()
-            ->and(File::get($responsePath))->toContain('namespace Vendor\\Package\\Http\\Responses;');
-
-        expect(File::exists($middlewarePath))->toBeTrue()
-            ->and(File::get($middlewarePath))->toContain('namespace Vendor\\Package\\Http\\Middleware;');
+        expect(class_exists(\Glugox\Module\Eloquent\HasName::class))->toBeTrue();
+        expect(class_exists(\Glugox\Module\Http\Responses\ApiResponse::class))->toBeTrue();
+        expect(class_exists(\Glugox\Module\Http\Middleware\HandleInertiaRequests::class))->toBeTrue();
 
         expect(File::exists(MagicPaths::resource('js/components/AppSidebar.vue')))->toBeTrue();
         expect(File::exists(MagicPaths::resource('views/app.blade.php')))->toBeTrue();
