@@ -28,7 +28,19 @@ $moduleApiMiddleware ??= (static function (): array {
     return array_values(array_unique($middleware));
 })();
 
-Route::middleware($moduleApiMiddleware)->group(function () {
+$moduleApiPrefix ??= (static function () {
+    $configured = config('module.api.prefix');
+
+    if (is_string($configured) && $configured !== '') {
+        return $configured;
+    }
+
+    return 'api';
+})();
+
+Route::prefix($moduleApiPrefix)
+    ->middleware($moduleApiMiddleware)
+    ->group(function () {
 
     /**
      * {{entityName}} api routes
@@ -45,5 +57,4 @@ Route::middleware($moduleApiMiddleware)->group(function () {
 
     // Action route
     //Route::post('{{routeName}}/action', [{{controllerClass}}::class, 'action'])->name('api.{{routeName}}.action');
-
 }); // End of admin middleware group
