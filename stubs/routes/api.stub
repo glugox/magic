@@ -12,6 +12,7 @@ $moduleApiMiddleware ??= (static function (): array {
 
     $defaultGuard = config('auth.defaults.guard');
     $defaultDriver = $defaultGuard ? config('auth.guards.'.$defaultGuard.'.driver') : null;
+    $authPreference = config('module.api.require_auth');
 
     $middleware = [];
 
@@ -19,10 +20,20 @@ $moduleApiMiddleware ??= (static function (): array {
         $middleware[] = 'web';
     }
 
-    if ($defaultGuard) {
-        $middleware[] = 'auth:'.$defaultGuard;
-    } else {
-        $middleware[] = 'auth';
+    $shouldIncludeAuthMiddleware = true;
+
+    if (is_bool($authPreference)) {
+        $shouldIncludeAuthMiddleware = $authPreference;
+    } elseif ($defaultDriver === 'session') {
+        $shouldIncludeAuthMiddleware = \Illuminate\Support\Facades\Route::has('login');
+    }
+
+    if ($shouldIncludeAuthMiddleware) {
+        if ($defaultGuard) {
+            $middleware[] = 'auth:'.$defaultGuard;
+        } else {
+            $middleware[] = 'auth';
+        }
     }
 
     return array_values(array_unique($middleware));
