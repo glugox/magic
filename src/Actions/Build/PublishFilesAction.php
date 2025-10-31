@@ -562,21 +562,6 @@ EOT;
     {
         Log::channel('magic')->info('Publishing Magic support files for package build.');
 
-        $this->copyNamespaceAwareSupportFile(
-            $source.'/app/Traits/HasName.php',
-            MagicPaths::app('Traits/HasName.php')
-        );
-
-        $this->copyNamespaceAwareSupportFile(
-            $source.'/app/Http/Responses/ApiResponse.php',
-            MagicPaths::app('Http/Responses/ApiResponse.php')
-        );
-
-        $this->copyNamespaceAwareSupportFile(
-            $source.'/app/Http/Middleware/HandleInertiaRequests.php',
-            MagicPaths::app('Http/Middleware/HandleInertiaRequests.php')
-        );
-
         $this->copyMagicDirectory($source.'/resources', MagicPaths::resource());
         $this->copyMagicDirectory($source.'/scripts', MagicPaths::base('scripts'));
         $this->copyMagicDirectory($source.'/tests', MagicPaths::tests());

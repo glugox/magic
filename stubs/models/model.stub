@@ -11,7 +11,7 @@ namespace {{namespace}};
  * Customize only in safe ways. For relationships or traits,
  * prefer creating traits or using config presets.
  */
-class {{modelClass}} extends {{extends}}
+class {{modelClass}} extends {{extends}}{{implements}}
 {
     {{traits}}
 
