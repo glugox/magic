@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
+import AppLayout from '@glugox/module/layouts/AppLayout.vue';
+import { type BreadcrumbItem } from '@glugox/module/types';
 import { Head } from '@inertiajs/vue3';
-import ResourceTable from '@/components/ResourceTable.vue';
+import ResourceTable from '@glugox/module/components/ResourceTable.vue';
 import { ColumnDef } from "@tanstack/vue-table";
-import {ResourceData, DataTableState} from '@/types/support';
-import { type PaginatedResponse, type DataTableFilters } from '@/types/support';
+import {ResourceData, DataTableState} from '@glugox/module/types/support';
+import { type PaginatedResponse, type DataTableFilters } from '@glugox/module/types/support';
 {{entityImports}}
 {{supportImports}}
 

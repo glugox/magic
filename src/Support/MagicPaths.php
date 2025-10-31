@@ -162,19 +162,23 @@ class MagicPaths
             return;
         }
 
+        $vendorSupportTypes = static::vendorResource('js/types/support.ts');
+
         if (static::isUsingPackage()) {
             config([
-                'magic.paths.support_types_file' => static::resource('js/types/support.ts'),
+                'magic.paths.support_types_file' => $vendorSupportTypes,
                 'magic.paths.entity_types_file' => static::resource('js/types/entities.ts'),
                 'magic.paths.entity_meta_file' => static::resource('js/types/entityMeta.ts'),
             ]);
-        } else {
-            config([
-                'magic.paths.support_types_file' => resource_path('js/types/support.ts'),
-                'magic.paths.entity_types_file' => resource_path('js/types/entities.ts'),
-                'magic.paths.entity_meta_file' => resource_path('js/types/entityMeta.ts'),
-            ]);
+
+            return;
         }
+
+        config([
+            'magic.paths.support_types_file' => $vendorSupportTypes,
+            'magic.paths.entity_types_file' => resource_path('js/types/entities.ts'),
+            'magic.paths.entity_meta_file' => resource_path('js/types/entityMeta.ts'),
+        ]);
     }
 
     /**
@@ -187,6 +191,13 @@ class MagicPaths
         }
 
         return mb_rtrim(base_path($path), DIRECTORY_SEPARATOR);
+    }
+
+    protected static function vendorResource(string $path = ''): string
+    {
+        $resourcesBase = dirname(__DIR__, 2).DIRECTORY_SEPARATOR.'resources';
+
+        return static::join($resourcesBase, $path);
     }
 
     /**

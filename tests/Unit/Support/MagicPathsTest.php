@@ -16,7 +16,7 @@ test('package paths are applied when using package mode', function () {
         ->and(MagicPaths::resource('js/types'))
         ->toBe($tempDir.'/resources/js/types')
         ->and(config('magic.paths.support_types_file'))
-        ->toBe($tempDir.'/resources/js/types/support.ts');
+        ->toBe(base_path('resources/js/types/support.ts'));
 
     foreach ([
         'src',
@@ -49,7 +49,7 @@ test('clearing package restores application defaults', function () {
         ->and(MagicPaths::resource('js/types'))
         ->toBe(resource_path('js/types'))
         ->and(config('magic.paths.support_types_file'))
-        ->toBe(resource_path('js/types/support.ts'));
+        ->toBe(base_path('resources/js/types/support.ts'));
 
     File::deleteDirectory($tempDir);
 });

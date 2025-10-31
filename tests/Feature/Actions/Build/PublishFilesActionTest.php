@@ -91,10 +91,18 @@ test('it copies support scaffolding when building a package', function (): void 
         expect(class_exists(\Glugox\Module\Http\Responses\ApiResponse::class))->toBeTrue();
         expect(class_exists(\Glugox\Module\Http\Middleware\HandleInertiaRequests::class))->toBeTrue();
 
-        expect(File::exists(MagicPaths::resource('js/components/AppSidebar.vue')))->toBeTrue();
-        expect(File::exists(MagicPaths::resource('views/app.blade.php')))->toBeTrue();
-        expect(File::exists(MagicPaths::base('scripts/generate-ui-index.mjs')))->toBeTrue();
+        $aliasRoot = config('magic.frontend.alias');
+        $aliases = config('vite.aliases', []);
+
+        expect($aliasRoot)->toBe('@glugox/module');
+        expect($aliases)
+            ->toHaveKey('@glugox/module/components')
+            ->and(File::exists($aliases['@glugox/module/components'].'/AppSidebar.vue'))->toBeTrue();
+
+        expect(File::exists(MagicPaths::resource('js/components/AppSidebar.vue')))->toBeFalse();
+        expect(File::exists(MagicPaths::base('scripts/generate-ui-index.mjs')))->toBeFalse();
         expect(File::exists(MagicPaths::tests('Fixtures/test_file.txt')))->toBeTrue();
+        expect(File::exists(config('magic.paths.support_types_file')))->toBeTrue();
     } finally {
         MagicPaths::clearPackage();
         MagicNamespaces::clear();

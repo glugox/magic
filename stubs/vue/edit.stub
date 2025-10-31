@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { edit, show } from '@/routes/{{routeName}}';
 import { Head, usePage } from '@inertiajs/vue3';
-import HeadingSmall from '@/components/HeadingSmall.vue';
-import AppLayout from '@/layouts/AppLayout.vue';
-import ResourceLayout from '@/layouts/resource/Layout.vue';
-import { type BreadcrumbItem, type NavItem } from '@/types';
-import ResourceFormNested from '@/components/form/dialog/ResourceFormNested.vue';
+import HeadingSmall from '@glugox/module/components/HeadingSmall.vue';
+import AppLayout from '@glugox/module/layouts/AppLayout.vue';
+import ResourceLayout from '@glugox/module/layouts/resource/Layout.vue';
+import { type BreadcrumbItem, type NavItem } from '@glugox/module/types';
+import ResourceFormNested from '@glugox/module/components/form/dialog/ResourceFormNested.vue';
 import { SquareMinus, Link, CornerDownRight, FolderTree, GitCompareArrows } from 'lucide-vue-next';
 {{entityImports}}
 {{supportImports}}

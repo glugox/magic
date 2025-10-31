@@ -118,7 +118,7 @@ class TsHelper
     public function writeEntityHelperSupportImports(Entity $entity): string
     {
         $imports = [
-            "import { type Entity, type Field } from '@/types/support';",
+            "import { type Entity, type Field } from '@glugox/module/types/support';",
         ];
 
         return implode("\n", $imports)."\n";
