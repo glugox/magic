@@ -1,5 +1,46 @@
 // Start of admin middleware group
-Route::middleware(['web', 'auth:sanctum'])->group(function () {
+$moduleApiMiddleware ??= (static function (): array {
+    $configured = config('module.api.middleware');
+
+    if (is_array($configured) && $configured !== []) {
+        return array_values($configured);
+    }
+
+    if (config('auth.guards.sanctum')) {
+        return ['web', 'auth:sanctum'];
+    }
+
+    $defaultGuard = config('auth.defaults.guard');
+    $defaultDriver = $defaultGuard ? config('auth.guards.'.$defaultGuard.'.driver') : null;
+
+    $middleware = [];
+
+    if ($defaultDriver === 'session' || $defaultGuard === 'web') {
+        $middleware[] = 'web';
+    }
+
+    if ($defaultGuard) {
+        $middleware[] = 'auth:'.$defaultGuard;
+    } else {
+        $middleware[] = 'auth';
+    }
+
+    return array_values(array_unique($middleware));
+})();
+
+$moduleApiPrefix ??= (static function () {
+    $configured = config('module.api.prefix');
+
+    if (is_string($configured) && $configured !== '') {
+        return $configured;
+    }
+
+    return 'api';
+})();
+
+Route::prefix($moduleApiPrefix)
+    ->middleware($moduleApiMiddleware)
+    ->group(function () {
 
     /**
      * {{entityName}} api routes
@@ -16,5 +57,4 @@ Route::middleware(['web', 'auth:sanctum'])->group(function () {
 
     // Action route
     //Route::post('{{routeName}}/action', [{{controllerClass}}::class, 'action'])->name('api.{{routeName}}.action');
-
 }); // End of admin middleware group
