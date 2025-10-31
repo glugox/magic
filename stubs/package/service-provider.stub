@@ -2,48 +2,22 @@
 
 namespace {{providerNamespace}};
 
-use Illuminate\Support\ServiceProvider;
+use Glugox\Module\Providers\ModuleServiceProvider;
 
-class {{providerClass}} extends ServiceProvider
+class {{providerClass}} extends ModuleServiceProvider
 {
     public function register(): void
     {
-        //
+        // Register module-specific bindings here.
     }
 
-    public function boot(): void
+    protected function moduleBasePath(): string
     {
-        $this->registerRoutes();
-        $this->registerResources();
+        return dirname(__DIR__, 2);
     }
 
-    protected function registerRoutes(): void
+    protected function moduleViewNamespace(): string
     {
-        $this->loadRouteFile(__DIR__.'/../../routes/web.php');
-        $this->loadRouteFile(__DIR__.'/../../routes/app.php');
-        $this->loadRouteFile(__DIR__.'/../../routes/api.php');
-        $this->loadRouteFile(__DIR__.'/../../routes/app/api.php');
-    }
-
-    protected function registerResources(): void
-    {
-        if (is_dir($views = __DIR__.'/../../resources/views')) {
-            $this->loadViewsFrom($views, '{{viewNamespace}}');
-        }
-
-        if (is_dir($migrations = __DIR__.'/../../database/migrations')) {
-            $this->loadMigrationsFrom($migrations);
-        }
-
-        if (is_dir($lang = __DIR__.'/../../resources/lang')) {
-            $this->loadTranslationsFrom($lang, '{{viewNamespace}}');
-        }
-    }
-
-    protected function loadRouteFile(string $path): void
-    {
-        if (file_exists($path)) {
-            $this->loadRoutesFrom($path);
-        }
+        return '{{viewNamespace}}';
     }
 }
