@@ -7,6 +7,9 @@ use Glugox\Magic\Support\MagicNamespaces;
 use Glugox\Magic\Support\MagicPaths;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Lang;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
 
 it('scaffolds composer manifest and service provider for package builds', function () {
     $tempDir = base_path('package-init-'.uniqid());
@@ -51,9 +54,11 @@ it('scaffolds composer manifest and service provider for package builds', functi
     $providerContents = File::get($providerPath);
     expect($providerContents)
         ->toContain('namespace Vendor\\Package\\Providers;')
-        ->and($providerContents)->toContain('loadRoutesFrom(')
-        ->and($providerContents)->toContain('loadViewsFrom(')
-        ->and($providerContents)->toContain('loadMigrationsFrom(');
+        ->and($providerContents)->toContain('use Glugox\\Module\\Providers\\ModuleServiceProvider;')
+        ->and($providerContents)->toContain('extends ModuleServiceProvider')
+        ->and($providerContents)->toContain('function moduleBasePath(): string')
+        ->and($providerContents)->toContain("return dirname(__DIR__, 2);")
+        ->and($providerContents)->toContain("return 'package';");
 
     $modulePath = $tempDir.'/module.json';
     expect(File::exists($modulePath))->toBeTrue();
@@ -114,6 +119,30 @@ PHP);
             File::delete($routesDir.'/web.php');
         }
 
+        $viewsDir = $tempDir.'/resources/views';
+        File::ensureDirectoryExists($viewsDir);
+        File::put($viewsDir.'/example.blade.php', 'example');
+
+        $langDir = $tempDir.'/resources/lang/en';
+        File::ensureDirectoryExists($langDir);
+        File::put($langDir.'/messages.php', <<<'PHP'
+<?php
+
+return [
+    'title' => 'Example Title',
+];
+PHP);
+
+        File::put($tempDir.'/resources/lang/en.json', json_encode(['json-key' => 'Json Example']).PHP_EOL);
+
+        $migrationsDir = $tempDir.'/database/migrations';
+        File::ensureDirectoryExists($migrationsDir);
+        File::put($migrationsDir.'/2024_01_01_000000_create_examples_table.php', '<?php return [];');
+
+        $publicDir = $tempDir.'/public';
+        File::ensureDirectoryExists($publicDir);
+        File::put($publicDir.'/module.js', 'console.log("ok");');
+
         require_once $tempDir.'/src/Providers/PackageServiceProvider.php';
 
         $providerClass = 'Vendor\\Package\\Providers\\PackageServiceProvider';
@@ -121,7 +150,19 @@ PHP);
         $provider->register();
         $provider->boot();
 
+        Lang::setLocale('en');
+
         expect(Route::has('package-test'))->toBeTrue();
+        expect(View::exists('package::example'))->toBeTrue();
+        expect(Lang::get('package::messages.title'))->toBe('Example Title');
+        expect(app('migrator')->paths())->toContain($migrationsDir);
+
+        $published = IlluminateServiceProvider::pathsToPublish($providerClass);
+        expect($published)->toHaveKey($publicDir);
+        expect($published[$publicDir])->toBe(public_path('vendor/package'));
+
+        $tagged = IlluminateServiceProvider::pathsToPublish($providerClass, 'package-assets');
+        expect($tagged[$publicDir] ?? null)->toBe(public_path('vendor/package'));
     } finally {
         MagicPaths::clearPackage();
         MagicNamespaces::clear();
