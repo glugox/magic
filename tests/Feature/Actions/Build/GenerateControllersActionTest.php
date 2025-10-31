@@ -66,6 +66,19 @@ it('generates both API and regular controllers for entities', function (): void 
     foreach ($expectedRegularMethods as $method) {
         expect($regularContents)->toContain($method);
     }
+
+    $apiRoutesPath = base_path('routes/app/api.php');
+    expect(File::exists($apiRoutesPath))->toBeTrue();
+
+    $apiRoutesContents = File::get($apiRoutesPath);
+    expect($apiRoutesContents)
+        ->toContain('$moduleApiMiddleware ??= (static function (): array {')
+        ->and($apiRoutesContents)
+        ->toContain("config('module.api.middleware')")
+        ->and($apiRoutesContents)
+        ->toContain("config('auth.guards.sanctum')")
+        ->and($apiRoutesContents)
+        ->toContain('Route::middleware($moduleApiMiddleware)');
 });
 
 /*
@@ -185,6 +198,17 @@ it('extends module controller when generating in package mode', function (): voi
             ->toContain('use Glugox\\Module\\Http\\Controller as ModuleController;')
             ->and($apiControllerContents)
             ->toContain('extends ModuleController');
+
+        $packageApiRoutesPath = $packagePath.'/routes/app/api.php';
+        expect(File::exists($packageApiRoutesPath))->toBeTrue();
+
+        $packageApiRoutes = File::get($packageApiRoutesPath);
+        expect($packageApiRoutes)
+            ->toContain('$moduleApiMiddleware ??= (static function (): array {')
+            ->and($packageApiRoutes)
+            ->toContain("config('auth.guards.sanctum')")
+            ->and($packageApiRoutes)
+            ->toContain('Route::middleware($moduleApiMiddleware)');
     } finally {
         MagicPaths::clearPackage();
         MagicNamespaces::clear();
