@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+{{controllerBaseImport}}
 use Glugox\TableQuery\Services\TableQueryService;
 use {{modelClassFull}};
 use {{resourceClassFull}};
@@ -13,7 +13,7 @@ use App\Http\Responses\ApiResponse;
 /**
  * {{classDescription}}
  */
-class {{controllerClass}} extends Controller
+class {{controllerClass}} extends {{controllerBaseClass}}
 {
     /**
      * Display a listing of the resource.

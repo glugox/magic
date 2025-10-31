@@ -11,6 +11,7 @@ use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\Config\Entity;
 use Glugox\Magic\Support\Config\Relation;
 use Glugox\Magic\Support\Config\RelationType;
+use Glugox\Magic\Support\ControllerBaseResolver;
 use Glugox\Magic\Support\MagicNamespaces;
 use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Traits\AsDescribableAction;
@@ -176,7 +177,29 @@ class GenerateControllersAction implements DescribableAction
             '{{searchQueryString}}' => $this->context->getConfig()->getConfigValue('naming.search_query_string', 'search')
         ];
 
+        $replacements = array_merge($replacements, $this->controllerBaseReplacements());
+
         return str_replace(array_keys($replacements), array_values($replacements), $stub);
+    }
+
+    /**
+     * Determine the base controller import and class placeholders.
+     *
+     * @return array<string, string>
+     */
+    protected function controllerBaseReplacements(): array
+    {
+        $base = ControllerBaseResolver::resolve($this->context->isPackageBuild());
+
+        $import = $base['import'];
+        if ($import !== '') {
+            $import .= "\n";
+        }
+
+        return [
+            '{{controllerBaseImport}}' => $import,
+            '{{controllerBaseClass}}' => $base['class'],
+        ];
     }
 
     /**
@@ -212,6 +235,8 @@ class GenerateControllersAction implements DescribableAction
             '{{resourceClass}}' => $resourceClass,
             '{{searchQueryString}}' => $this->context->getConfig()->getConfigValue('naming.search_query_string', 'search'),
         ];
+
+        $replacements = array_merge($replacements, $this->controllerBaseReplacements());
 
         $template = str_replace(array_keys($replacements), array_values($replacements), $template);
 
@@ -384,6 +409,8 @@ class GenerateControllersAction implements DescribableAction
             '{{resourceClassFull}}' => $resourceClassFull,
             '{{searchQueryString}}' => $this->context->getConfig()->getConfigValue('naming.search_query_string', 'search'),
         ];
+
+        $replacements = array_merge($replacements, $this->controllerBaseReplacements());
 
         $content = str_replace(array_keys($replacements), array_values($replacements), $template);
 
