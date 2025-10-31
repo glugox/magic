@@ -89,28 +89,6 @@ it('generates both API and regular controllers for entities', function (): void 
         ->toContain('->middleware($moduleApiMiddleware)');
 });
 
-/*
-Expected generated controllers based on current JSON config:
-
-- Regular controllers: 11
-    User, Role, Warehouse, Category, Product, Order, OrderItem, Shipment, CarrierDetail, Attachment, Review
-
-- API controllers: 11
-    (one API controller per entity)
-
-- Relation controllers: 20
-    User: 4 (Order, Shipment, Role, Attachment)
-    Role: 1 (User)
-    Warehouse: 2 (Product, User)
-    Category: 1 (Product)
-    Product: 4 (Warehouse, Category, Attachment, Review)
-    Order: 3 (User, OrderItem, Shipment)
-    OrderItem: 2 (Order, Product)
-    Shipment: 2 (Order, CarrierDetail)
-    CarrierDetail: 1 (Shipment)
-    Attachment: 0
-    Review: 0
-*/
 it('generates relation controllers for entities', function (): void {
 
     $action = app(GenerateControllersAction::class);

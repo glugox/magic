@@ -129,13 +129,6 @@ class GenerateModelsAction implements DescribableAction
             $appends[] = 'name';
         }
 
-        // Automatically add HasImages trait if entity supports images
-        if ($entity->hasImages() ?? false) {
-            $traits[] = MagicPaths::isUsingPackage()
-                ? 'Glugox\\Module\\Eloquent\\HasImages'
-                : MagicNamespaces::traits('HasImages');
-        }
-
         // Imports for traits
         foreach ($traits as $t) {
             $uses[] = $t;
