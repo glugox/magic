@@ -293,20 +293,6 @@ class Config
     }
 
     /**
-     * Check if any entity has images enabled in settings.
-     */
-    public function anyEntityHasImages(): bool
-    {
-        foreach ($this->entities as $entity) {
-            if ($entity->settings->hasImages) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
      * Process Entity to ensure it has a related entities set as objects and not only relation names,
      * after all entities are loaded.
      */

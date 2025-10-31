@@ -239,8 +239,7 @@ function getFixtureConfigInventory(): Config
             "relations": [
                 { "type": "hasMany", "relatedEntityName": "Order", "foreignKey": "user_id" },
                 { "type": "hasMany", "relatedEntityName": "Shipment", "foreignKey": "user_id" },
-                { "type": "belongsToMany", "relatedEntityName": "Role", "pivot": "role_user", "foreignKey": "user_id", "relatedKey": "role_id" },
-                { "type": "morphMany", "relatedEntityName": "Attachment", "relationName": "attachments" }
+                { "type": "belongsToMany", "relatedEntityName": "Role", "pivot": "role_user", "foreignKey": "user_id", "relatedKey": "role_id" }
             ]
         },
         {
@@ -295,7 +294,6 @@ function getFixtureConfigInventory(): Config
             "relations": [
                 { "type": "belongsTo", "relatedEntityName": "Warehouse", "foreignKey": "warehouse_id" },
                 { "type": "belongsToMany", "relatedEntityName": "Category", "pivot": "category_product", "foreignKey": "product_id", "relatedKey": "category_id" },
-                { "type": "morphMany", "relatedEntityName": "Attachment", "relationName": "attachments" },
                 { "type": "morphMany", "relatedEntityName": "Review", "relationName": "reviews" }
             ],
             "filters": [
@@ -366,19 +364,6 @@ function getFixtureConfigInventory(): Config
             ]
         },
         {
-            "name": "Attachment",
-            "fields": [
-                { "name": "id", "type": "id", "nullable": false },
-                { "name": "attachable_id", "type": "foreignId", "nullable": false },
-                { "name": "attachable_type", "type": "string", "nullable": false },
-                { "name": "file_path", "type": "string", "nullable": false },
-                { "name": "file_type", "type": "string", "nullable": false }
-            ],
-            "relations": [
-                { "type": "morphTo", "relationName": "attachable" }
-            ]
-        },
-        {
             "name": "Review",
             "fields": [
                 { "name": "id", "type": "id", "nullable": false },
@@ -422,7 +407,6 @@ type User {
   orders: Order! @hasMany
   shipments: Shipment! @hasMany
   roles: Role! @belongsToMany @pivot("role_user") @foreignKey("user_id") @relatedKey("role_id")
-  attachments: Attachment! @morphMany
 }
 
 type Role {
@@ -467,7 +451,6 @@ type Product {
   status: Status! @sort
   warehouse: Warehouse! @belongsTo
   categories: Category! @belongsToMany @pivot("category_product") @foreignKey("product_id") @relatedKey("category_id")
-  attachments: Attachment! @morphMany
   reviews: Review! @morphMany
 }
 
@@ -516,15 +499,6 @@ type CarrierDetail {
   tracking_number: String
   service_level: String
   shipment: Shipment! @belongsTo
-}
-
-type Attachment {
-  id: ID!
-  attachable_id: ForeignId!
-  attachable_type: String!
-  file_path: String!
-  file_type: String!
-  attachable: @morphTo
 }
 
 type Review {

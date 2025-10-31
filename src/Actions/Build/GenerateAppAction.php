@@ -66,46 +66,43 @@ class GenerateAppAction implements DescribableAction
         // Step 6.1: Install Queue System
         $buildContext = app(InstallQueueCommand::class)($buildContext);
 
-        // Step 7: Enable Attachable (copy traits, resources, stubs conditionally)
-        $buildContext = app(EnableAttachableAction::class)($buildContext);
-
-        // Step 8: Generate Migrations
+        // Step 7: Generate Migrations
         $buildContext = app(GenerateMigrationsAction::class)($buildContext);
 
-        // Step 9: Generate Models
+        // Step 8: Generate Models
         $buildContext = app(GenerateModelsAction::class)($buildContext);
 
-        // Step 9.1: Generate ModelMeta classes
+        // Step 8.1: Generate ModelMeta classes
         $buildContext = app(GenerateModelMetaAction::class)($buildContext);
 
-        // Step 9.2: Generate console commands for entity actions
+        // Step 8.2: Generate console commands for entity actions
         $buildContext = app(GenerateActionsAction::class)($buildContext);
 
-        // Step 10: Generate Seeders
+        // Step 9: Generate Seeders
         $buildContext = app(GenerateSeedersAction::class)($buildContext);
 
-        // Step 11: Generate API Resources
+        // Step 10: Generate API Resources
         $buildContext = app(GenerateApiResourcesAction::class)($buildContext);
 
-        // Step 12: Generate Controllers
+        // Step 11: Generate Controllers
         $buildContext = app(GenerateControllersAction::class)($buildContext);
 
-        // Step 13: Generate Vue Pages
+        // Step 12: Generate Vue Pages
         $buildContext = app(GenerateVuePagesAction::class)($buildContext);
 
-        // Step 14: Update Vue Pages
+        // Step 13: Update Vue Pages
         $buildContext = app(UpdateVuePagesAction::class)($buildContext);
 
-        // Step 15: Update Database
+        // Step 14: Update Database
         $buildContext = app(UpdateDbAction::class)($buildContext);
 
-        // Step 16: Write Manifest
+        // Step 15: Write Manifest
         $buildContext = app(GenerateManifestAction::class)($buildContext);
 
-        // Step 17: Setup Development Environment (optional)
+        // Step 16: Setup Development Environment (optional)
         $buildContext = app(SetupDevelopmentEnvAction::class)($buildContext);
 
-        // Step 18: Generate CRUD tests for models
+        // Step 17: Generate CRUD tests for models
         $buildContext = app(GenerateCrudTestsAction::class)($buildContext);
 
         // Return the final BuildContext

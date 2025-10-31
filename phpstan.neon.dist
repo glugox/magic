@@ -9,8 +9,6 @@ parameters:
     excludePaths:
         - config
         - stubs/laravel
-        - stubs/controllers/AttachmentController.php
-        - stubs/routes/attachable.php
     tmpDir: build/phpstan
     checkOctaneCompatibility: true
     checkModelProperties: true

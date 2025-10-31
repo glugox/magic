@@ -8,7 +8,6 @@ export { default as EnumField } from './EnumField.vue';
 export { default as ExpandableForm } from './ExpandableForm.vue';
 export { default as FieldRenderer } from './FieldRenderer.vue';
 export { default as IdField } from './IdField.vue';
-export { default as ImageField } from './ImageField.vue';
 export { default as InputField } from './InputField.vue';
 export { default as NumberField } from './NumberField.vue';
 export { default as RelationRenderer } from './RelationRenderer.vue';
