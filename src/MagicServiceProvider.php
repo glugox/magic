@@ -33,6 +33,8 @@ use Illuminate\Support\ServiceProvider;
 
 class MagicServiceProvider extends ServiceProvider
 {
+    private const FRONTEND_ALIAS = '@glugox/module';
+
     /**
      * Bootstrap any application services.
      */
@@ -50,8 +52,10 @@ class MagicServiceProvider extends ServiceProvider
         ], 'magic-frontend');
 
         $this->publishes([
-            __DIR__.'/../scripts/generate-ui-index.mjs' => base_path('scripts/generate-ui-index.mjs'),
+            __DIR__.'/../resources/scripts/generate-ui-index.mjs' => base_path('scripts/generate-ui-index.mjs'),
         ], 'magic-scripts');
+
+        $this->registerViteAliases();
 
         // Register your commands only when running in console
         if ($this->app->runningInConsole()) {
@@ -110,6 +114,37 @@ class MagicServiceProvider extends ServiceProvider
 
             return $registry;
         });
+    }
+
+    private function registerViteAliases(): void
+    {
+        if (! function_exists('config')) {
+            return;
+        }
+
+        $resourcesPath = dirname(__DIR__).'/resources';
+        $aliasRoot = self::FRONTEND_ALIAS;
+
+        $aliases = array_merge(
+            config('vite.aliases', []),
+            [
+                $aliasRoot => $resourcesPath.'/js',
+                $aliasRoot.'/components' => $resourcesPath.'/js/components',
+                $aliasRoot.'/composables' => $resourcesPath.'/js/composables',
+                $aliasRoot.'/store' => $resourcesPath.'/js/store',
+                $aliasRoot.'/types' => $resourcesPath.'/js/types',
+                $aliasRoot.'/lib' => $resourcesPath.'/js/lib',
+                $aliasRoot.'/utils' => $resourcesPath.'/js/utils',
+                $aliasRoot.'/layouts' => $resourcesPath.'/js/layouts',
+                $aliasRoot.'/css' => $resourcesPath.'/css',
+                $aliasRoot.'/scripts' => $resourcesPath.'/scripts',
+            ]
+        );
+
+        config([
+            'vite.aliases' => $aliases,
+            'magic.frontend.alias' => $aliasRoot,
+        ]);
     }
 
     /**

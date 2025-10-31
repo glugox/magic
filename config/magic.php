@@ -6,12 +6,16 @@ return [
     'paths' => [
         // Support types file
         // In which file we should keep global type like Entity, Field, etc.
-        'support_types_file' => env('MAGIC_SUPPORT_TYPES_FILE', resource_path('js/types/support.ts')),
+        'support_types_file' => env('MAGIC_SUPPORT_TYPES_FILE', __DIR__.'/../resources/js/types/support.ts'),
 
         // Entity specific types file
         // In which file we should keep entity specific types.
         'entity_types_file' => env('MAGIC_ENTITY_TYPES_FILE', resource_path('js/types/entities.ts')),
         'entity_meta_file' => env('MAGIC_ENTITY_META_FILE', resource_path('js/types/entityMeta.ts')),
+    ],
+
+    'frontend' => [
+        'alias' => '@glugox/module',
     ],
 
     // Prism default model

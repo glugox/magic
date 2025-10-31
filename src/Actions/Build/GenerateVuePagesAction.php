@@ -216,12 +216,12 @@ class GenerateVuePagesAction implements DescribableAction
 <script setup lang="ts">
 import { create } from '@/routes/{$folderName}';
 import { Head, usePage } from '@inertiajs/vue3';
-import HeadingSmall from '@/components/HeadingSmall.vue';
-import AppLayout from '@/layouts/AppLayout.vue';
-import ResourceLayout from '@/layouts/resource/Layout.vue';
-import { type BreadcrumbItem, type NavItem } from '@/types';
+import HeadingSmall from '@glugox/module/components/HeadingSmall.vue';
+import AppLayout from '@glugox/module/layouts/AppLayout.vue';
+import ResourceLayout from '@glugox/module/layouts/resource/Layout.vue';
+import { type BreadcrumbItem, type NavItem } from '@glugox/module/types';
 import { SquareMinus, Link, CornerDownRight, FolderTree, GitCompareArrows } from 'lucide-vue-next';
-import ResourceFormNested from '@/components/form/dialog/ResourceFormNested.vue';
+import ResourceFormNested from '@glugox/module/components/form/dialog/ResourceFormNested.vue';
 $entityImports
 $supportImports
 

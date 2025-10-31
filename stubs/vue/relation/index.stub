@@ -1,18 +1,18 @@
 <script setup lang="ts" generic="T">
 import { ref } from "vue";
-import AppLayout from '@/layouts/AppLayout.vue';
-import ResourceLayout from '@/layouts/resource/Layout.vue';
-import { type BreadcrumbItem, type NavItem } from '@/types';
+import AppLayout from '@glugox/module/layouts/AppLayout.vue';
+import ResourceLayout from '@glugox/module/layouts/resource/Layout.vue';
+import { type BreadcrumbItem, type NavItem } from '@glugox/module/types';
 import { edit, show } from '@/routes/{{routeName}}';
 import { Head } from '@inertiajs/vue3';
-import ResourceTable from '@/components/ResourceTable.vue';
-import ResourceForm from '@/components/ResourceForm.vue';
+import ResourceTable from '@glugox/module/components/ResourceTable.vue';
+import ResourceForm from '@glugox/module/components/ResourceForm.vue';
 import { ColumnDef } from "@tanstack/vue-table";
-import HeadingSmall from '@/components/HeadingSmall.vue';
-import { type DbId } from '@/types/support';
+import HeadingSmall from '@glugox/module/components/HeadingSmall.vue';
+import { type DbId } from '@glugox/module/types/support';
 import { SquareMinus, Link, CornerDownRight, FolderTree, GitCompareArrows } from 'lucide-vue-next';
-import {ResourceData, DataTableState} from '@/types/support';
-import { type PaginatedResponse } from '@/types/support';
+import {ResourceData, DataTableState} from '@glugox/module/types/support';
+import { type PaginatedResponse } from '@glugox/module/types/support';
 
 {{mainEntityImports}}
 {{relatedEntityImports}}

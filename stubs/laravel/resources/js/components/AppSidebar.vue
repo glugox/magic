@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import NavFooter from '@/components/NavFooter.vue';
-import NavMain from '@/components/NavMain.vue';
-import NavUser from '@/components/NavUser.vue';
+import NavFooter from '@glugox/module/components/NavFooter.vue';
+import NavMain from '@glugox/module/components/NavMain.vue';
+import NavUser from '@glugox/module/components/NavUser.vue';
 import {
     Sidebar,
     SidebarContent,
@@ -12,7 +12,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import { type NavItem } from '@/types';
+import { type NavItem } from '@glugox/module/types';
 import { Link } from '@inertiajs/vue3';
 import { BookOpen, Folder, LayoutGrid } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';

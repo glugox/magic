@@ -119,7 +119,7 @@ class InstallApiCommand implements DescribableAction
     /**
      * Adds
      *
-     * import { useApi } from "@/composables/useApi";
+     * import { useApi } from "@glugox/module/composables/useApi";
      *
      * const {initCsrf} = useApi();
      * initCsrf().then(() => {
@@ -136,7 +136,7 @@ class InstallApiCommand implements DescribableAction
         if (! file_exists($appJsPath)) {
             Log::channel('magic')->warning(
                 "app.js file not found in resources/js directory. Please add the following snippet manually to initialize CSRF token for API requests:\n\n".
-                "import { useApi } from \"@/composables/useApi\";\n\n".
+                "import { useApi } from \"@glugox/module/composables/useApi\";\n\n".
                 "const {initCsrf} = useApi();\n".
                 "initCsrf().then(() => {\n".
                 "    console.log(\"CSRF token initialized\");\n".
@@ -147,7 +147,7 @@ class InstallApiCommand implements DescribableAction
         }
 
         $appJsContent = file_get_contents($appJsPath);
-        $importSnippet = 'import { useApi } from "@/composables/useApi";';
+        $importSnippet = 'import { useApi } from "@glugox/module/composables/useApi";';
         $initSnippet = "\nconst {initCsrf} = useApi();\ninitCsrf().then(() => {\n    console.log(\"CSRF token initialized\");\n});\n";
 
         // Check if snippets already exist

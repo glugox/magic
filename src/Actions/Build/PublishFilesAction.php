@@ -146,7 +146,7 @@ class PublishFilesAction implements DescribableAction
             $controllersImportStr = implode("\n", $ctrImportsArr)."\n";
         }
 
-        $content .= "import {Entity, ResourceData} from '@/types/support';\n\n";
+        $content .= "import {Entity, ResourceData} from '@glugox/module/types/support';\n\n";
         $content .= $controllersImportStr;
 
         $content .= "let entities: Entity[] = [];\n\n";
@@ -396,7 +396,7 @@ EOT;
         $content = '';
 
         // Add imports
-        $content .= "import {ResourceData} from '@/types/support';\n\n";
+        $content .= "import {ResourceData} from '@glugox/module/types/support';\n\n";
 
         // Generate entity interfaces
         foreach ($this->context->getConfig()->entities as $entity) {
@@ -474,14 +474,14 @@ EOT;
         // Ensure the directory exists
         File::ensureDirectoryExists(dirname($path));
 
-        $content = <<<EOT
+$content = <<<EOT
 import {ColumnDef} from "@tanstack/vue-table";
-import { Checkbox } from "@/components/ui/checkbox"
+import { Checkbox } from "@glugox/module/components/ui/checkbox"
 import {h} from "vue";
-import {Button} from "@/components/ui/button";
+import {Button} from "@glugox/module/components/ui/button";
 import {ArrowUp,ArrowDown,ArrowUpDown} from "lucide-vue-next";
-import Avatar from "@/components/Avatar.vue";
-import {parseBool, formatDate} from "@/lib/app";
+import Avatar from "@glugox/module/components/Avatar.vue";
+import {parseBool, formatDate} from "@glugox/module/lib/app";
 $entityImports
 $supportImports
 
