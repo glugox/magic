@@ -4,7 +4,9 @@ namespace Glugox\Magic\Actions\Build;
 
 use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
+use Glugox\Magic\Helpers\StubHelper;
 use Glugox\Magic\Support\BuildContext;
+use Glugox\Magic\Support\ControllerBaseResolver;
 use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Traits\AsDescribableAction;
 use Glugox\Magic\Traits\CanLogSectionTitle;
@@ -82,7 +84,28 @@ class EnableAttachableAction implements DescribableAction
         }
 
         $destination = $destinationDir.'/'.$filename;
-        copy($source, $destination);
+
+        if ($file['src'] === 'controllers/AttachmentController.php') {
+            $contents = file_get_contents($source);
+            $contents = StubHelper::replaceBaseNamespace($contents);
+
+            $base = ControllerBaseResolver::resolve($this->context->isPackageBuild());
+            $import = $base['import'];
+            if ($import !== '') {
+                $import .= "\n";
+            }
+
+            $contents = str_replace(
+                ['{{controllerBaseImport}}', '{{controllerBaseClass}}'],
+                [$import, $base['class']],
+                $contents
+            );
+
+            file_put_contents($destination, $contents);
+        } else {
+            copy($source, $destination);
+        }
+
         $this->context->registerGeneratedFile($destination);
 
         Log::channel('magic')->info("Copied {$filename} to {$file['dest']}");

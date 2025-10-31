@@ -1,6 +1,9 @@
 <?php
 
 use Glugox\Magic\Actions\Build\GenerateControllersAction;
+use Glugox\Magic\Support\BuildContext;
+use Glugox\Magic\Support\MagicNamespaces;
+use Glugox\Magic\Support\MagicPaths;
 
 it('generates controller and routes for entities', function (): void {
 
@@ -144,4 +147,48 @@ it('generates relation controllers for entities', function (): void {
         expect($content)->not()->toContain('{{parentModelClass}}');
     }
 
+});
+
+it('extends module controller when generating in package mode', function (): void {
+    $packagePath = base_path('tmp/package-build');
+    File::deleteDirectory($packagePath);
+
+    MagicPaths::usePackage($packagePath);
+    MagicNamespaces::use('Vendor\\Package');
+
+    $buildContext = new BuildContext(
+        destinationPath: $packagePath,
+        baseNamespace: 'Vendor\\Package',
+        packageName: 'vendor/package'
+    );
+    $buildContext->setConfig(getFixtureConfig());
+
+    try {
+        $action = app(GenerateControllersAction::class);
+        $buildContext = $action($buildContext);
+
+        $controllerPath = $packagePath.'/src/Http/Controllers/UserController.php';
+        $apiControllerPath = $packagePath.'/src/Http/Controllers/Api/UserApiController.php';
+
+        expect(File::exists($controllerPath))->toBeTrue();
+        expect(File::exists($apiControllerPath))->toBeTrue();
+
+        $controllerContents = File::get($controllerPath);
+        $apiControllerContents = File::get($apiControllerPath);
+
+        expect($controllerContents)
+            ->toContain('use Glugox\\Module\\Http\\Controller as ModuleController;')
+            ->and($controllerContents)
+            ->toContain('extends ModuleController');
+
+        expect($apiControllerContents)
+            ->toContain('use Glugox\\Module\\Http\\Controller as ModuleController;')
+            ->and($apiControllerContents)
+            ->toContain('extends ModuleController');
+    } finally {
+        MagicPaths::clearPackage();
+        MagicNamespaces::clear();
+        app()->forgetInstance(GenerateControllersAction::class);
+        File::deleteDirectory($packagePath);
+    }
 });

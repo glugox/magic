@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\AttachmentResource;
+{{controllerBaseImport}}use App\Http\Resources\AttachmentResource;
 use App\Jobs\ProcessAttachment;
 use App\Models\Attachment;
 use Illuminate\Http\JsonResponse;
@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Throwable;
 
-class AttachmentController extends Controller
+class AttachmentController extends {{controllerBaseClass}}
 {
     /**
      * List attachments for a given attachable entity.

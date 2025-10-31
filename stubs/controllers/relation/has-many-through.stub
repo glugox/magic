@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\{{entitySingularName}};
 
-use App\Http\Controllers\Controller;
+{{controllerBaseImport}}
 use Glugox\TableQuery\Services\TableQueryService;
 use {{parentModelClassFull}};
 use {{relatedModelClassFull}};
@@ -15,7 +15,7 @@ use Glugox\ModelMeta\Requests\MetaRequest;
 /**
  * {{classDescription}}
  */
-class {{controllerClass}} extends Controller
+class {{controllerClass}} extends {{controllerBaseClass}}
 {
     /**
      * Constructor
