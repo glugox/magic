@@ -45,7 +45,7 @@
         "psr-4": {
             "Glugox\\Magic\\": "src/",
             "Glugox\\Magic\\Database\\Factories\\": "database/factories/",
-            "Glugox\\Module\\": "src/Module/"
+            "Glugox\\Module\\": "packages/module/src/"
         },
         "files": [
             "src/Helpers/magic.php"

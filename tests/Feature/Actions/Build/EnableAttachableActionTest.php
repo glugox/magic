@@ -3,6 +3,8 @@
 use Glugox\Magic\Actions\Build\EnableAttachableAction;
 use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\Config\Config;
+use Glugox\Magic\Support\MagicNamespaces;
+use Glugox\Magic\Support\MagicPaths;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 
@@ -47,4 +49,46 @@ it('copies files and includes attachable routes', function (): void {
     $result = $action($contextMock);
 
     expect($result)->toBe($contextMock);
+});
+
+it('relies on vendor scaffolding when building a package', function (): void {
+    $config = $this->createConfigFromFile('callcenter.json');
+    $context = BuildContext::fromOptions([
+        'config' => __DIR__.'/../../data/callcenter.json',
+        'package-path' => base_path('modules/test-package-'.uniqid()),
+        'package-namespace' => 'Vendor\\Package',
+        'package-name' => 'vendor/package',
+    ])->setConfig($config);
+
+    MagicNamespaces::use('Vendor\\Package');
+    $packagePath = $context->getDestinationPath();
+    expect($packagePath)->not->toBeNull();
+    MagicPaths::usePackage($packagePath);
+
+    try {
+        $copied = [];
+
+        $action = Mockery::mock(EnableAttachableAction::class)->makePartial();
+        $action->shouldAllowMockingProtectedMethods();
+        $action->shouldReceive('copyFile')
+            ->andReturnUsing(function (array $file) use (&$copied): void {
+                $copied[] = $file['src'];
+            });
+        $action->shouldReceive('includeAttachableRoutes')->never();
+
+        $action($context);
+
+        expect($copied)
+            ->toContain('migration/create_attachments_table.php')
+            ->and($copied)->toContain('api-resources/AttachmentResource.php')
+            ->and($copied)->toContain('controllers/AttachmentController.php')
+            ->and($copied)->not->toContain('traits/HasImages.php')
+            ->and($copied)->not->toContain('models/Attachment.php')
+            ->and($copied)->not->toContain('jobs/ProcessAttachment.php')
+            ->and($copied)->not->toContain('routes/attachable.php')
+            ->and($copied)->not->toContain('config/attachments.php');
+    } finally {
+        MagicPaths::clearPackage();
+        MagicNamespaces::clear();
+    }
 });
