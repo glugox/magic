@@ -69,7 +69,7 @@ class LocalPackages
     {
         $normalized = str_replace('\\', '/', $path);
 
-        return rtrim($normalized, '/');
+        return mb_rtrim($normalized, '/');
     }
 
     /**
@@ -106,14 +106,14 @@ class LocalPackages
         $normalized = static::normalizePath($resolved !== false ? $resolved : $path);
 
         if (preg_match('/^[A-Za-z]:/', $normalized) === 1) {
-            $root = substr($normalized, 0, 2);
-            $trimmed = ltrim(substr($normalized, 2), '/');
+            $root = mb_substr($normalized, 0, 2);
+            $trimmed = mb_ltrim(mb_substr($normalized, 2), '/');
             $parts = $trimmed === '' ? [] : explode('/', $trimmed);
 
             return [$parts, $root];
         }
 
-        $trimmed = ltrim($normalized, '/');
+        $trimmed = mb_ltrim($normalized, '/');
         $parts = $trimmed === '' ? [] : explode('/', $trimmed);
 
         return [$parts, '/'];
