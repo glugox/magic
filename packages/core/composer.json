@@ -1,0 +1,23 @@
+{
+    "name": "glugox/core",
+    "description": "Core orchestration layer for builder-generated modules.",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.4",
+        "illuminate/contracts": "^10.0||^11.0||^12.0",
+        "illuminate/support": "^10.0||^11.0||^12.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Glugox\\Core\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Glugox\\Core\\CoreServiceProvider"
+            ]
+        }
+    }
+}

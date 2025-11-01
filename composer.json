@@ -55,7 +55,8 @@
             "Glugox\\Magic\\": "src/",
             "Glugox\\Magic\\Database\\Factories\\": "database/factories/",
             "Glugox\\Module\\": "packages/module/src/",
-            "Glugox\\Builder\\": "packages/builder/src/"
+            "Glugox\\Builder\\": "packages/builder/src/",
+            "Glugox\\Core\\": "packages/core/src/"
         },
         "files": [
             "src/Helpers/magic.php"
@@ -65,7 +66,8 @@
         "psr-4": {
             "Glugox\\Magic\\Tests\\": "tests/",
             "Workbench\\App\\": "workbench/app/",
-            "Glugox\\Builder\\": "packages/builder/src/"
+            "Glugox\\Builder\\": "packages/builder/src/",
+            "Glugox\\Core\\": "packages/core/src/"
         }
     },
     "scripts": {
