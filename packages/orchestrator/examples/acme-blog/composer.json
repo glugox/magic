@@ -1,0 +1,35 @@
+{
+    "name": "acme/blog-module",
+    "description": "Blog feature module showcasing orchestrator conventions.",
+    "type": "laravel-module",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Acme\\Blog\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Acme\\Blog\\Providers\\BlogServiceProvider"
+            ]
+        },
+        "glugox-module": {
+            "id": "acme/blog",
+            "name": "Acme Blog",
+            "version": "1.0.0",
+            "routes": [
+                "routes/web.php"
+            ],
+            "migrations": "database/migrations",
+            "seeds": "database/seeders",
+            "views": "resources/views",
+            "translations": "resources/lang",
+            "capabilities": ["http:web", "db:migrations"],
+            "requires": {
+                "php": ">=8.2",
+                "laravel/framework": ">=11.0"
+            }
+        }
+    }
+}

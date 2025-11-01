@@ -1,0 +1,33 @@
+{
+    "name": "acme/analytics-module",
+    "description": "Analytics dashboard module demonstrating read-only capabilities.",
+    "type": "laravel-module",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Acme\\Analytics\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Acme\\Analytics\\Providers\\AnalyticsServiceProvider"
+            ]
+        },
+        "glugox-module": {
+            "id": "acme/analytics",
+            "name": "Acme Analytics",
+            "version": "1.0.0",
+            "routes": [
+                "routes/web.php"
+            ],
+            "views": "resources/views",
+            "translations": "resources/lang",
+            "capabilities": ["http:web"],
+            "requires": {
+                "php": ">=8.2",
+                "laravel/framework": ">=11.0"
+            }
+        }
+    }
+}

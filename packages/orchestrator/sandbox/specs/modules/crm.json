@@ -1,0 +1,50 @@
+{
+    "app": {
+        "disabled": false,
+        "name": "CRM",
+        "seedEnabled": true,
+        "seedCount": 20,
+        "fakerMappings": {
+            "company_name": "company",
+            "contact_email": "safeEmail"
+        }
+    },
+    "entities": [
+        {
+            "name": "Customer",
+            "fields": [
+                { "name": "id", "type": "id" },
+                { "name": "company_name", "type": "string", "searchable": true, "sortable": true, "unique": true },
+                { "name": "industry", "type": "enum", "options": ["tech", "finance", "retail"] },
+                { "name": "active", "type": "boolean", "default": true }
+            ],
+            "relations": [
+                { "type": "hasMany", "relatedEntityName": "Contact" }
+            ],
+            "filters": [
+                { "field": "company_name", "type": "text" },
+                { "field": "industry", "type": "enum" },
+                { "field": "active", "type": "boolean" }
+            ],
+            "actions": [
+                { "name": "deactivate", "label": "Deactivate", "type": "command", "command": "customer:deactivate" }
+            ]
+        },
+        {
+            "name": "Contact",
+            "fields": [
+                { "name": "id", "type": "id" },
+                { "name": "name", "type": "string", "searchable": true },
+                { "name": "email", "type": "string", "unique": true },
+                { "name": "phone", "type": "string", "nullable": true }
+            ],
+            "relations": [
+                { "type": "belongsTo", "relatedEntityName": "Customer" }
+            ],
+            "filters": [
+                { "field": "name", "type": "text" },
+                { "field": "email", "type": "text" }
+            ]
+        }
+    ]
+}
