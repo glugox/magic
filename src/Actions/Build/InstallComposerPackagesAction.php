@@ -45,7 +45,7 @@ class InstallComposerPackagesAction implements DescribableAction
      * @var array<int, array{name: string, version?: string|null, options?: array<int, string>}>
      */
     protected array $composerPackages = [
-        [
+       /* [
             'name' => 'glugox/model-meta',
             'version' => null,
             'options' => [],
@@ -62,7 +62,7 @@ class InstallComposerPackagesAction implements DescribableAction
             'version' => null,
             'options' => [],
             'type' => 'path',
-        ],
+        ],*/
         [
             'name' => 'pestphp/pest',
             'version' => null,
