@@ -2,7 +2,6 @@
 
 namespace Glugox\Module;
 
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 

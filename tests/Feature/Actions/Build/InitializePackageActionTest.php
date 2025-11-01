@@ -54,7 +54,7 @@ it('scaffolds composer manifest and service provider for package builds', functi
     $providerContents = File::get($providerPath);
     expect($providerContents)
         ->toContain('namespace Vendor\\Package\\Providers;')
-        ->and($providerContents)->toContain('use Glugox\\Module\\Providers\\ModuleServiceProvider;')
+        ->and($providerContents)->toContain('use Glugox\\Module\\ModuleServiceProvider;')
         ->and($providerContents)->toContain('extends ModuleServiceProvider')
         ->and($providerContents)->toContain('function register(): void')
         ->and($providerContents)->toContain('$this->registerModule();')
