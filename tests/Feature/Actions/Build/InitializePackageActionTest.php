@@ -49,9 +49,19 @@ it('scaffolds composer manifest and service provider for package builds', functi
         ->and($composer['extra']['laravel']['providers'] ?? [])
         ->toContain('Vendor\\Package\\Providers\\PackageServiceProvider');
 
-    $expectedRepository = LocalPackages::repositoryFor('glugox/module', $tempDir);
-    expect($expectedRepository)->not->toBeNull();
-    expect($composer['repositories'] ?? [])->toContain($expectedRepository);
+    $expectedRepositories = array_filter([
+        LocalPackages::repositoryFor('glugox/actions', $tempDir),
+        LocalPackages::repositoryFor('glugox/ai', $tempDir),
+        LocalPackages::repositoryFor('glugox/model-meta', $tempDir),
+        LocalPackages::repositoryFor('glugox/module', $tempDir),
+    ]);
+
+    expect($expectedRepositories)->not->toBeEmpty();
+
+    $actualRepositories = $composer['repositories'] ?? [];
+    foreach ($expectedRepositories as $expectedRepository) {
+        expect($actualRepositories)->toContain($expectedRepository);
+    }
 
     $providerPath = $tempDir.'/src/Providers/PackageServiceProvider.php';
     expect(File::exists($providerPath))->toBeTrue();

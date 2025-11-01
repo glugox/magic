@@ -71,14 +71,14 @@
   "repositories": [
     {
       "type": "path",
-      "url": "/Users/ervin/Code/github.com/glugox/module",
+      "url": "../module",
       "options": {
         "symlink": true
       }
     },
     {
       "type": "path",
-      "url": "/Users/ervin/Code/github.com/glugox/magic",
+      "url": "../..",
       "options": {
         "symlink": true
       }
