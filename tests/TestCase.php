@@ -76,6 +76,8 @@ class TestCase extends Orchestra
     {
         return [
             MagicServiceProvider::class,
+            \Glugox\Builder\BuilderServiceProvider::class,
+            \Glugox\Core\CoreServiceProvider::class,
         ];
     }
 }

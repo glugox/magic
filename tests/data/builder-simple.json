@@ -1,0 +1,15 @@
+{
+    "app": {
+        "name": "BuilderDemo"
+    },
+    "entities": [
+        {
+            "name": "Contact",
+            "fields": [
+                { "name": "id", "type": "id" },
+                { "name": "name", "type": "string" },
+                { "name": "email", "type": "string" }
+            ]
+        }
+    ]
+}

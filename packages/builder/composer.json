@@ -1,0 +1,23 @@
+{
+    "name": "glugox/builder",
+    "description": "Lightweight package generator for Magic modules.",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.4",
+        "illuminate/console": "^10.0||^11.0||^12.0",
+        "illuminate/support": "^10.0||^11.0||^12.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Glugox\\Builder\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Glugox\\Builder\\BuilderServiceProvider"
+            ]
+        }
+    }
+}
