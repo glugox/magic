@@ -4,15 +4,12 @@ declare(strict_types=1);
 
 namespace Glugox\Builder\Commands;
 
-use Glugox\Magic\Support\Config\Config;
-use Glugox\Magic\Support\Config\Entity;
-use Glugox\Magic\Support\Config\Field;
-use Glugox\Magic\Support\MagicPaths;
+use Glugox\Builder\Actions\GenerateApiRouteAction;
+use Glugox\Builder\Actions\LoadConfigAction;
+use Glugox\Builder\Actions\ResolvePrimaryEntityAction;
+use Glugox\Builder\Actions\WriteFileAction;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
-use JsonException;
-use RuntimeException;
+use InvalidArgumentException;
 use Symfony\Component\Console\Command\Command as CommandAlias;
 use Throwable;
 
@@ -25,18 +22,21 @@ class GenerateModuleCommand extends Command
         {--config= : Path to the JSON configuration file}
         {--package-path= : Directory where the package should be generated}';
 
-    protected $description = 'Generate a lightweight Magic package module using package mode.';
+    protected $description = 'Generate a lightweight package-mode API route based on a Magic config.';
+
+    public function __construct(
+        private readonly LoadConfigAction $loadConfig,
+        private readonly ResolvePrimaryEntityAction $resolvePrimaryEntity,
+        private readonly GenerateApiRouteAction $generateApiRoute,
+        private readonly WriteFileAction $writeFile,
+    ) {
+        parent::__construct();
+    }
 
     public function handle(): int
     {
         $configPath = (string) $this->option('config');
         $packagePath = (string) $this->option('package-path');
-
-        if ($configPath === '') {
-            $this->error('The --config option is required.');
-
-            return CommandAlias::FAILURE;
-        }
 
         if ($packagePath === '') {
             $this->error('The --package-path option is required.');
@@ -45,84 +45,32 @@ class GenerateModuleCommand extends Command
         }
 
         try {
-            $config = Config::fromJsonFile($configPath);
-        } catch (JsonException|RuntimeException|Throwable $exception) {
-            $this->error('Failed to load configuration: '.$exception->getMessage());
+            $config = ($this->loadConfig)($configPath);
+            $entity = ($this->resolvePrimaryEntity)($config);
+            $routeContents = ($this->generateApiRoute)($entity);
+
+            $routePath = $this->resolveRoutePath($packagePath);
+
+            ($this->writeFile)($routePath, $routeContents);
+
+            $this->info(sprintf('Generated API route for the %s entity.', $entity->name));
+
+            return CommandAlias::SUCCESS;
+        } catch (InvalidArgumentException $exception) {
+            $this->error($exception->getMessage());
+
+            return CommandAlias::FAILURE;
+        } catch (Throwable $exception) {
+            $this->error('An unexpected error occurred: '.$exception->getMessage());
 
             return CommandAlias::FAILURE;
         }
-
-        $entity = $config->entities[0] ?? null;
-
-        if (! $entity instanceof Entity) {
-            $this->error('The configuration must define at least one entity.');
-
-            return CommandAlias::FAILURE;
-        }
-
-        MagicPaths::usePackage($packagePath);
-
-        try {
-            $this->generateApiRoute($entity);
-        } finally {
-            MagicPaths::clearPackage();
-        }
-
-        $this->info(sprintf('Generated API route for the %s entity.', $entity->getName()));
-
-        return CommandAlias::SUCCESS;
     }
 
-    private function generateApiRoute(Entity $entity): void
+    private function resolveRoutePath(string $packagePath): string
     {
-        $routePath = MagicPaths::routes('api.php');
-        File::ensureDirectoryExists(dirname($routePath));
+        $normalized = rtrim($packagePath, DIRECTORY_SEPARATOR);
 
-        $fields = array_map(
-            static fn (Field $field): string => $field->name,
-            array_values(array_filter($entity->fields ?? [], static fn ($field): bool => $field instanceof Field))
-        );
-
-        $fieldsBlock = $this->formatFieldArray($fields);
-        $routeSlug = Str::kebab(Str::pluralStudly($entity->getName()));
-
-        $content = <<<PHP
-<?php
-
-declare(strict_types=1);
-
-use Illuminate\Support\Facades\Route;
-
-Route::middleware('api')->group(function (): void {
-    Route::get('{$routeSlug}', static function () {
-        return [
-            'entity' => '{$entity->getName()}',
-            'fields' => {$fieldsBlock},
-        ];
-    });
-});
-
-PHP;
-
-        File::put($routePath, $content);
-    }
-
-    /**
-     * @param  string[]  $fields
-     */
-    private function formatFieldArray(array $fields): string
-    {
-        if ($fields === []) {
-            return '[]';
-        }
-
-        $lines = array_map(
-            static fn (string $field): string => "'".str_replace("'", "\\'", $field)."',",
-            $fields
-        );
-
-        $indented = implode("\n            ", $lines);
-
-        return "[\n            {$indented}\n        ]";
+        return $normalized.DIRECTORY_SEPARATOR.'routes'.DIRECTORY_SEPARATOR.'api.php';
     }
 }
