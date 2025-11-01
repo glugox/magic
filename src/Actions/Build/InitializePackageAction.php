@@ -117,30 +117,32 @@ class InitializePackageAction implements DescribableAction
             ksort($existing['require']);
         }
 
-        $moduleRepository = $this->resolveModuleRepositoryDefinition($context);
-        if ($moduleRepository !== null) {
-            $repositories = $existing['repositories'] ?? [];
-            if (! is_array($repositories)) {
-                $repositories = [];
-            }
+        $repositories = $existing['repositories'] ?? [];
+        if (! is_array($repositories)) {
+            $repositories = [];
+        }
 
+        foreach ($this->resolveLocalRepositoryDefinitions($context) as $localRepository) {
             $alreadyRegistered = false;
+
             foreach ($repositories as $repository) {
                 if (! is_array($repository)) {
                     continue;
                 }
 
-                if (($repository['type'] ?? null) === $moduleRepository['type']
-                    && ($repository['url'] ?? null) === $moduleRepository['url']) {
+                if (($repository['type'] ?? null) === $localRepository['type']
+                    && ($repository['url'] ?? null) === $localRepository['url']) {
                     $alreadyRegistered = true;
                     break;
                 }
             }
 
             if (! $alreadyRegistered) {
-                $repositories[] = $moduleRepository;
+                $repositories[] = $localRepository;
             }
+        }
 
+        if ($repositories !== []) {
             $existing['repositories'] = $repositories;
         }
 
@@ -176,13 +178,36 @@ class InitializePackageAction implements DescribableAction
     }
 
     /**
-     * @return array{type: string, url: string, options?: array<string, mixed>}|null
+     * @return array<int, array{type: string, url: string, options?: array<string, mixed>}>
      */
-    protected function resolveModuleRepositoryDefinition(BuildContext $context): ?array
+    protected function resolveLocalRepositoryDefinitions(BuildContext $context): array
     {
         $repositoryBase = MagicPaths::base();
 
-        return LocalPackages::repositoryFor('glugox/module', $repositoryBase);
+        $definitions = [];
+
+        foreach ($this->localPackageNames() as $packageName) {
+            $repository = LocalPackages::repositoryFor($packageName, $repositoryBase);
+
+            if ($repository !== null) {
+                $definitions[] = $repository;
+            }
+        }
+
+        return $definitions;
+    }
+
+    /**
+     * @return string[]
+     */
+    protected function localPackageNames(): array
+    {
+        return [
+            'glugox/actions',
+            'glugox/ai',
+            'glugox/model-meta',
+            'glugox/module',
+        ];
     }
 
     protected function getConfigIfAvailable(BuildContext $context): ?\Glugox\Magic\Support\Config\Config
