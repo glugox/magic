@@ -3,6 +3,7 @@
 use Glugox\Magic\Actions\Build\InitializePackageAction;
 use Glugox\Magic\Support\BuildContext;
 use Glugox\Magic\Support\Config\Config;
+use Glugox\Magic\Support\LocalPackages;
 use Glugox\Magic\Support\MagicNamespaces;
 use Glugox\Magic\Support\MagicPaths;
 use Illuminate\Support\Facades\File;
@@ -47,6 +48,10 @@ it('scaffolds composer manifest and service provider for package builds', functi
         ->and($composer['require']['glugox/module'] ?? null)->toBe('dev-main')
         ->and($composer['extra']['laravel']['providers'] ?? [])
         ->toContain('Vendor\\Package\\Providers\\PackageServiceProvider');
+
+    $expectedRepository = LocalPackages::repositoryFor('glugox/module', $tempDir);
+    expect($expectedRepository)->not->toBeNull();
+    expect($composer['repositories'] ?? [])->toContain($expectedRepository);
 
     $providerPath = $tempDir.'/src/Providers/PackageServiceProvider.php';
     expect(File::exists($providerPath))->toBeTrue();
