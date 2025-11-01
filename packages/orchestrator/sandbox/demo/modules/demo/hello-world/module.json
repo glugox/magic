@@ -1,0 +1,14 @@
+{
+    "id": "demo/hello-world",
+    "name": "Hello World",
+    "version": "0.1.0",
+    "providers": [
+        "Demo\\HelloWorld\\Providers\\HelloWorldServiceProvider"
+    ],
+    "routes": [
+        "routes/api.php"
+    ],
+    "capabilities": [
+        "http:api"
+    ]
+}

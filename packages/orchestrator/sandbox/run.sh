@@ -2,7 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-APP_DIR="$SCRIPT_DIR/laravel-app"
+APP_DIR="$SCRIPT_DIR/demo/laravel-app"
 
 if [ ! -d "$APP_DIR" ]; then
     echo "Laravel app not found at $APP_DIR. Please run sandbox/init.sh first." >&2
@@ -11,10 +11,13 @@ fi
 
 cd "$APP_DIR"
 
-php artisan orchestrator:build
-#php artisan orchestrator:install glugox/blog
-php artisan orchestrator:install glugox/crm
+if php artisan list --raw | grep -q '^magic:build$'; then
+    php artisan orchestrator:build demo/hello-world
+else
+    echo "Skipping orchestrator:build because magic:build command is not available."
+fi
+
+php artisan orchestrator:reload --no-cache
+php artisan orchestrator:install demo/hello-world
 php artisan migrate --force
-#./vendor/bin/pest
-
-
+php artisan route:list --path=api/hello-world
