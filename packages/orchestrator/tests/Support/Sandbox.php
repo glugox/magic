@@ -16,7 +16,7 @@ function orchestratorConfig(string $basePath, array $overrides = []): array
         'installed_path' => 'vendor/composer/installed.json',
         'module_json_paths' => ['modules/*/module.json'],
         'module_specs_path' => 'specs/modules',
-        'modules_default_version' => '^1.0',
+        'modules_default_version' => 'dev-main',
         'auto_install' => true,
         'auto_enable' => true,
     ], $overrides);

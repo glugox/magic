@@ -14,7 +14,7 @@ it('skips composer require when package already exists', function () {
         file_put_contents(
             $composerPath,
             json_encode([
-                'require' => ['vendor/foo-module' => '^1.0'],
+                'require' => ['vendor/foo-module' => 'dev-main'],
             ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
         );
 
@@ -55,7 +55,7 @@ it('runs composer require for new packages', function () {
         $installer->install('vendor/foo-module', $modulePath);
 
         expect($installer->commands)->toMatchArray([
-            ['require', 'vendor/foo-module:^1.0'],
+            ['require', 'vendor/foo-module:dev-main'],
             ['dump-autoload'],
         ]);
 
@@ -110,13 +110,13 @@ it('falls back to requiring @dev when the preferred constraint is unavailable', 
 
         $installer = new FakeModuleInstaller($composerPath);
         $installer->failureMessages = [
-            'Composer command failed:   Problem 1 - Root composer.json requires vendor/foo-module ^1.0, found vendor/foo-module[dev-main] but it does not match the constraint.',
+            'Composer command failed:   Problem 1 - Root composer.json requires vendor/foo-module dev-main, found vendor/foo-module[1.0.0] but it does not match the constraint.',
         ];
 
         $installer->install('vendor/foo-module');
 
         expect($installer->commands)->toMatchArray([
-            ['require', 'vendor/foo-module:^1.0'],
+            ['require', 'vendor/foo-module:dev-main'],
             ['require', 'vendor/foo-module:@dev'],
             ['dump-autoload'],
         ]);
@@ -152,7 +152,7 @@ it('registers local repositories using relative paths', function () {
             ->and($composer['repositories'][0]['options'] ?? [])->toBe(['symlink' => true]);
 
         expect($installer->commands)->toBe([
-            ['require', 'glugox/crm:^1.0'],
+            ['require', 'glugox/crm:dev-main'],
             ['dump-autoload'],
         ]);
     } finally {
@@ -171,7 +171,7 @@ it('normalises existing path repositories to relative paths', function () {
 
         $initialComposer = [
             'name' => 'sandbox/app',
-            'require' => ['glugox/crm' => '^1.0'],
+            'require' => ['glugox/crm' => 'dev-main'],
             'repositories' => [
                 [
                     'type' => 'path',
