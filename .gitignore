@@ -31,3 +31,5 @@ testbench.yaml
 /docs
 /coverage
 /tests/.tmp
+
+/packages/orchestrator/sandbox/laravel-app
