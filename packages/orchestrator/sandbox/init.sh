@@ -5,8 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_DIR="$SCRIPT_DIR/laravel-app"
 
 # Default paths for local packages
-DEFAULT_ORCHESTRATOR_PATH="/Users/ervin/Code/github.com/glugox/orchestrator"
-#DEFAULT_MODULE_PATH="/Users/ervin/Code/github.com/glugox/module"
+DEFAULT_ORCHESTRATOR_PATH="/Users/ervin/Code/github.com/glugox/magic/packages/orchestrator"
 DEFAULT_MODULE_PATH="/Users/ervin/Code/github.com/glugox/magic/packages/module"
 DEFAULT_MAGIC_PATH="/Users/ervin/Code/github.com/glugox/magic"
 

@@ -9,7 +9,7 @@ use RuntimeException;
 
 class ModuleInstaller
 {
-    private const DEFAULT_MODULE_VERSION = '^1.0';
+    private const DEFAULT_MODULE_VERSION = '@dev';
     private const DEV_VERSION_CONSTRAINT = '@dev';
 
     protected string $composerJsonPath;
