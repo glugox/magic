@@ -3,9 +3,9 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_DIR="$SCRIPT_DIR/laravel-app"
-CONFIG_FILE="$SCRIPT_DIR/configs/builder-demo.json"
+CONFIG_FILE="$SCRIPT_DIR/Configs/builder-demo.json"
 
-REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 DEFAULT_CORE_PATH="$REPO_ROOT/packages/core"
 DEFAULT_BUILDER_PATH="$REPO_ROOT/packages/builder"
@@ -21,6 +21,11 @@ for pkg in LOCAL_CORE_PATH LOCAL_BUILDER_PATH LOCAL_MAGIC_PATH; do
         exit 1
     fi
 done
+
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo "❌ Config file not found at $CONFIG_FILE." >&2
+    exit 1
+fi
 
 if [ -d "$APP_DIR" ]; then
     rm -rf "$APP_DIR"
