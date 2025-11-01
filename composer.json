@@ -24,6 +24,15 @@
         "illuminate/contracts": "^10.0||^11.0||^12.0",
         "prism-php/prism": "^0.86.0"
     },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "packages/*",
+            "options": {
+                "symlink": true
+            }
+        }
+    ],
     "require-dev": {
         "driftingly/rector-laravel": "^2.0",
         "larastan/larastan": "^2.9||^3.0",
