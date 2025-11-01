@@ -56,6 +56,11 @@ it('scaffolds composer manifest and service provider for package builds', functi
         ->toContain('namespace Vendor\\Package\\Providers;')
         ->and($providerContents)->toContain('use Glugox\\Module\\ModuleServiceProvider;')
         ->and($providerContents)->toContain('extends ModuleServiceProvider')
+        ->and($providerContents)->toContain('function register(): void')
+        ->and($providerContents)->toContain('$this->registerModule();')
+        ->and($providerContents)->toContain('function boot(): void')
+        ->and($providerContents)->toContain('$this->bootModule();')
+        ->and($providerContents)->toContain("$this->publishModuleAssets('package-assets');")
         ->and($providerContents)->toContain('function moduleBasePath(): string')
         ->and($providerContents)->toContain("return dirname(__DIR__, 2);")
         ->and($providerContents)->toContain("return 'package';");
