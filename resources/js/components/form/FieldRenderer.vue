@@ -72,7 +72,7 @@ const componentMap: Record<string, any> = {
 
     // ──────── Media / File ────────
     file: StringField,            // ✅ need FileField
-    image: StringField,           // ✅ need ImageField
+    image: StringField,
 
     // ──────── Enum / Special ────────
     enum: EnumField,           // ✅ need EnumField

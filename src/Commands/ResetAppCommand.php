@@ -145,13 +145,6 @@ class ResetAppCommand extends MagicBaseCommand
             $this->deleteEntityMigrations($entity);
         }
 
-        // TODO: FEATURES
-        // Delete Features table migrations
-        $migrationFiles = File::glob(database_path('migrations/*_create_attachments_table.php'));
-        foreach ($migrationFiles as $file) {
-            $this->deleteFile($file, 'Migration');
-        }
-
         // Remove calls in DatabaseSeeder
         $this->codeHelper->removeRegion(database_path('seeders/DatabaseSeeder.php'));
 
