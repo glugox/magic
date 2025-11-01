@@ -1,0 +1,45 @@
+{
+  "name": "glugox/actions",
+  "description": "Glugox Actions: Actions for Laravel with progress tracking and broadcasting.",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Glugox"
+    }
+  ],
+  "require": {
+    "php": ">=8.1",
+    "illuminate/support": "^12.0",
+    "illuminate/bus": "^12.0",
+    "illuminate/queue": "^12.0",
+    "illuminate/events": "^12.0",
+    "illuminate/database": "^12.0",
+    "illuminate/broadcasting": "^12.0",
+    "illuminate/routing": "^12.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Glugox\\Actions\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Glugox\\Actions\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Glugox\\Actions\\ActionServiceProvider"
+      ]
+    }
+  },
+  "require-dev": {
+    "orchestra/testbench": "^v10.6.0",
+    "phpunit/phpunit": "^12.4.1"
+  },
+  "scripts": {
+    "test": "phpunit"
+  }
+}
