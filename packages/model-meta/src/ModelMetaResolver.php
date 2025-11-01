@@ -22,19 +22,27 @@ class ModelMetaResolver
     }
 
     /**
-     * @param object|string $model Eloquent model instance or fully qualified model class name
+     * @param  object|string  $model  Eloquent model instance or fully qualified model class name
      */
     public static function resolve(object|string $model): string
     {
-        $modelClass = is_string($model) ? Str::singular(Str::studly($model)) : $model::class;
-        $shortName  = class_basename($modelClass);
-        $metaClass  = static::$defaultNamespace . '\\' . $shortName . 'Meta';
+        $modelClass = static::normalizeModelClass($model);
+        $shortName = class_basename($modelClass);
+        $metaCandidates = [];
 
-        if (! class_exists($metaClass)) {
-            throw new RuntimeException("ModelMeta class not found for model [{$modelClass}] at [{$metaClass}]");
+        foreach (static::candidateNamespaces($modelClass) as $namespace) {
+            $metaCandidates[] = $namespace . '\\' . $shortName . 'Meta';
         }
 
-        return $metaClass;
+        foreach ($metaCandidates as $metaClass) {
+            if (class_exists($metaClass)) {
+                return $metaClass;
+            }
+        }
+
+        $lastAttempt = end($metaCandidates) ?: static::$defaultNamespace . '\\' . $shortName . 'Meta';
+
+        throw new RuntimeException("ModelMeta class not found for model [{$modelClass}] at [{$lastAttempt}]");
     }
 
     /**
@@ -49,5 +57,68 @@ class ModelMetaResolver
 
         // @phpstan-ignore-next-line
         return function_exists('app') ? app($metaClass) : new $metaClass();
+    }
+
+    /**
+     * Normalize a model reference into a class name string.
+     */
+    protected static function normalizeModelClass(object|string $model): string
+    {
+        if (is_object($model)) {
+            return $model::class;
+        }
+
+        if (class_exists($model)) {
+            return $model;
+        }
+
+        $studly = Str::studly($model);
+
+        if (class_exists($studly)) {
+            return $studly;
+        }
+
+        return Str::singular($studly);
+    }
+
+    /**
+     * Determine the list of namespaces to search for a meta class.
+     *
+     * @return array<int, string>
+     */
+    protected static function candidateNamespaces(string $modelClass): array
+    {
+        $namespaces = [];
+        $trimmedDefault = trim(static::$defaultNamespace, '\\');
+
+        if (class_exists($modelClass)) {
+            $namespace = trim(Str::beforeLast($modelClass, '\\' . class_basename($modelClass)), '\\');
+
+            if ($namespace !== '') {
+                $namespaces[] = static::inferMetaNamespace($namespace);
+            }
+        }
+
+        $namespaces[] = $trimmedDefault;
+
+        return array_values(array_unique(array_filter($namespaces)));
+    }
+
+    /**
+     * Infer the meta namespace from the given model namespace.
+     */
+    protected static function inferMetaNamespace(string $namespace): string
+    {
+        $namespace = trim($namespace, '\\');
+
+        if ($namespace === '') {
+            return trim(static::$defaultNamespace, '\\');
+        }
+
+        if (Str::endsWith($namespace, '\\Models')) {
+            return Str::replaceLast('\\Models', '\\Meta\\Models', $namespace);
+        }
+
+        return $namespace . '\\Meta\\Models';
     }
 }
