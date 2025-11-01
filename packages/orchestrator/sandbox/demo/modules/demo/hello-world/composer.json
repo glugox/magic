@@ -1,0 +1,28 @@
+{
+    "name": "demo/hello-world",
+    "description": "A minimal Hello World module for orchestrator sandbox demos.",
+    "type": "laravel-module",
+    "version": "dev-main",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Demo\\HelloWorld\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Demo\\HelloWorld\\Providers\\HelloWorldServiceProvider"
+            ]
+        },
+        "glugox-module": {
+            "id": "demo/hello-world",
+            "name": "Hello World",
+            "version": "0.1.0",
+            "routes": [
+                "routes/api.php"
+            ],
+            "capabilities": ["http:api"]
+        }
+    }
+}
