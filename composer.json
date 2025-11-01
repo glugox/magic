@@ -54,7 +54,8 @@
         "psr-4": {
             "Glugox\\Magic\\": "src/",
             "Glugox\\Magic\\Database\\Factories\\": "database/factories/",
-            "Glugox\\Module\\": "packages/module/src/"
+            "Glugox\\Module\\": "packages/module/src/",
+            "Glugox\\Builder\\": "packages/builder/src/"
         },
         "files": [
             "src/Helpers/magic.php"
@@ -63,7 +64,8 @@
     "autoload-dev": {
         "psr-4": {
             "Glugox\\Magic\\Tests\\": "tests/",
-            "Workbench\\App\\": "workbench/app/"
+            "Workbench\\App\\": "workbench/app/",
+            "Glugox\\Builder\\": "packages/builder/src/"
         }
     },
     "scripts": {
