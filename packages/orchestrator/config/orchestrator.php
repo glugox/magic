@@ -92,7 +92,7 @@ return [
     | provided. This allows you to control the preferred stability for new
     | module dependencies.
     */
-    'modules_default_version' => '^1.0',
+    'modules_default_version' => 'dev-main',
 
     /*
     |--------------------------------------------------------------------------

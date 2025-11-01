@@ -26,7 +26,7 @@ class ModuleInstaller
      *
      * @param  string       $packageName   e.g. "glugox/crm"
      * @param  string|null  $localPath     e.g. "modules/Glugox/Crm"
-     * @param  string|null  $version       e.g. "@dev" or "^1.0"
+     * @param  string|null  $version       e.g. "dev-main" or "@dev"
      * @return void
      */
     public function install(string $packageName, ?string $localPath = null, ?string $version = null): void
