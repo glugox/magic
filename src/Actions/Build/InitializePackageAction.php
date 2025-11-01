@@ -6,6 +6,7 @@ use Glugox\Magic\Attributes\ActionDescription;
 use Glugox\Magic\Contracts\DescribableAction;
 use Glugox\Magic\Helpers\StubHelper;
 use Glugox\Magic\Support\BuildContext;
+use Glugox\Magic\Support\LocalPackages;
 use Glugox\Magic\Support\MagicNamespaces;
 use Glugox\Magic\Support\MagicPaths;
 use Glugox\Magic\Traits\AsDescribableAction;
@@ -179,24 +180,9 @@ class InitializePackageAction implements DescribableAction
      */
     protected function resolveModuleRepositoryDefinition(BuildContext $context): ?array
     {
-        $config = $this->getConfigIfAvailable($context);
+        $repositoryBase = MagicPaths::base();
 
-        if ($config === null || ! $config->app->isDevMode()) {
-            return null;
-        }
-
-        $destinationPath = $context->getDestinationPath();
-        $basePath = $destinationPath !== null
-            ? dirname($destinationPath)
-            : dirname(MagicPaths::base());
-
-        $modulePath = $basePath.DIRECTORY_SEPARATOR.'module';
-
-        return [
-            'type' => 'path',
-            'url' => str_replace(DIRECTORY_SEPARATOR, '/', $modulePath),
-            'options' => ['symlink' => true],
-        ];
+        return LocalPackages::repositoryFor('glugox/module', $repositoryBase);
     }
 
     protected function getConfigIfAvailable(BuildContext $context): ?\Glugox\Magic\Support\Config\Config
