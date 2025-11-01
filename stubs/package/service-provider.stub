@@ -2,7 +2,7 @@
 
 namespace {{providerNamespace}};
 
-use Glugox\Module\ModuleServiceProvider;
+use Glugox\Module\Providers\ModuleServiceProvider;
 
 class {{providerClass}} extends ModuleServiceProvider
 {
